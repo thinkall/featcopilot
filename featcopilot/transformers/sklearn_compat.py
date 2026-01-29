@@ -247,6 +247,13 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         # Handle infinities and NaNs
         result = result.replace([np.inf, -np.inf], np.nan)
 
+        # Apply selection if selector was fitted
+        if self._selector is not None:
+            selected_features = self._selector.get_selected_features()
+            # Keep only selected features that exist in result
+            available = [f for f in selected_features if f in result.columns]
+            result = result[available]
+
         return result
 
     def fit_transform(
