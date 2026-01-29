@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from autofeat.engines.tabular import TabularEngine
-from autofeat.engines.timeseries import TimeSeriesEngine
+from featcopilot.engines.tabular import TabularEngine
+from featcopilot.engines.timeseries import TimeSeriesEngine
 
 
 class TestTabularEngine:

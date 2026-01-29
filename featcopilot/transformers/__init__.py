@@ -1,6 +1,6 @@
 """Scikit-learn compatible transformers."""
 
-from autofeat.transformers.sklearn_compat import (
+from featcopilot.transformers.sklearn_compat import (
     AutoFeatureEngineer,
     FeatureEngineerTransformer,
 )

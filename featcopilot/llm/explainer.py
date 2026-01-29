@@ -7,8 +7,8 @@ from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
-from autofeat.core.feature import Feature, FeatureSet
-from autofeat.llm.copilot_client import SyncCopilotFeatureClient
+from featcopilot.core.feature import Feature, FeatureSet
+from featcopilot.llm.copilot_client import SyncCopilotFeatureClient
 
 
 class FeatureExplainer:

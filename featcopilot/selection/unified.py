@@ -5,10 +5,10 @@ from typing import Dict, List, Optional, Union
 import numpy as np
 import pandas as pd
 
-from autofeat.core.base import BaseSelector
-from autofeat.selection.statistical import StatisticalSelector
-from autofeat.selection.importance import ImportanceSelector
-from autofeat.selection.redundancy import RedundancyEliminator
+from featcopilot.core.base import BaseSelector
+from featcopilot.selection.statistical import StatisticalSelector
+from featcopilot.selection.importance import ImportanceSelector
+from featcopilot.selection.redundancy import RedundancyEliminator
 
 
 class FeatureSelector(BaseSelector):

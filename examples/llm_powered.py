@@ -1,8 +1,8 @@
 """
-Example: LLM-Powered Feature Engineering with AutoFeat++
+Example: LLM-Powered Feature Engineering with FeatCopilot
 
 This example demonstrates the unique LLM-powered capabilities
-of AutoFeat++ using GitHub Copilot SDK.
+of FeatCopilot using GitHub Copilot SDK.
 
 NOTE: This requires the copilot-sdk package and GitHub Copilot
 CLI to be installed and authenticated.
@@ -14,7 +14,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
 
-from autofeat import AutoFeatureEngineer
+from featcopilot import AutoFeatureEngineer
 
 
 def create_healthcare_data(n_samples=500):
@@ -52,7 +52,7 @@ def create_healthcare_data(n_samples=500):
 
 def main():
     print("=" * 70)
-    print("AutoFeat++ LLM-Powered Feature Engineering Example")
+    print("FeatCopilot LLM-Powered Feature Engineering Example")
     print("=" * 70)
 
     # Create sample data

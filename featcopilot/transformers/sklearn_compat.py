@@ -9,12 +9,12 @@ import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from autofeat.core.feature import FeatureSet
-from autofeat.engines.tabular import TabularEngine
-from autofeat.engines.timeseries import TimeSeriesEngine
-from autofeat.engines.relational import RelationalEngine
-from autofeat.engines.text import TextEngine
-from autofeat.selection.unified import FeatureSelector
+from featcopilot.core.feature import FeatureSet
+from featcopilot.engines.tabular import TabularEngine
+from featcopilot.engines.timeseries import TimeSeriesEngine
+from featcopilot.engines.relational import RelationalEngine
+from featcopilot.engines.text import TextEngine
+from featcopilot.selection.unified import FeatureSelector
 
 
 class FeatureEngineerTransformer(BaseEstimator, TransformerMixin):
@@ -209,7 +209,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
                 verbose=self.verbose
             )
         elif engine_name == 'llm':
-            from autofeat.llm.semantic_engine import SemanticEngine
+            from featcopilot.llm.semantic_engine import SemanticEngine
             return SemanticEngine(
                 model=self.llm_config.get('model', 'gpt-5'),
                 max_suggestions=self.llm_config.get('max_suggestions', 20),

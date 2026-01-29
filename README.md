@@ -1,8 +1,8 @@
-# AutoFeat++ 🚀
+# FeatCopilot 🚀
 
-**Next-Generation LLM-Powered Auto Feature Engineering**
+**Next-Generation LLM-Powered Auto Feature Engineering with GitHub Copilot SDK**
 
-AutoFeat++ is a unified feature engineering framework that combines the best approaches from existing libraries (Featuretools, TSFresh, AutoFeat, OpenFE) with novel LLM-powered capabilities via GitHub Copilot SDK.
+FeatCopilot is a unified feature engineering framework that combines the best approaches from existing libraries (Featuretools, TSFresh, AutoFeat, OpenFE) with novel LLM-powered capabilities via GitHub Copilot SDK.
 
 ## Key Features
 
@@ -16,13 +16,13 @@ AutoFeat++ is a unified feature engineering framework that combines the best app
 
 ```bash
 # Basic installation
-pip install autofeat-plus
+pip install featcopilot
 
 # With LLM capabilities (requires GitHub Copilot)
-pip install autofeat-plus[llm]
+pip install featcopilot[llm]
 
 # Full installation
-pip install autofeat-plus[full]
+pip install featcopilot[full]
 ```
 
 ## Quick Start
@@ -30,7 +30,7 @@ pip install autofeat-plus[full]
 ### Basic Usage
 
 ```python
-from autofeat import AutoFeatureEngineer
+from featcopilot import AutoFeatureEngineer
 
 # Initialize the engineer
 engineer = AutoFeatureEngineer(
@@ -49,7 +49,7 @@ print(engineer.feature_importances_)
 ### LLM-Powered Feature Engineering
 
 ```python
-from autofeat import AutoFeatureEngineer
+from featcopilot import AutoFeatureEngineer
 
 # Enable LLM capabilities
 engineer = AutoFeatureEngineer(
@@ -98,7 +98,7 @@ X_with_custom = engineer.apply_custom_features(X, custom_features)
 Generates polynomial features, interaction terms, and mathematical transformations.
 
 ```python
-from autofeat.engines import TabularEngine
+from featcopilot.engines import TabularEngine
 
 engine = TabularEngine(
     polynomial_degree=2,
@@ -111,7 +111,7 @@ engine = TabularEngine(
 Extracts statistical, frequency, and temporal features from time series data.
 
 ```python
-from autofeat.engines import TimeSeriesEngine
+from featcopilot.engines import TimeSeriesEngine
 
 engine = TimeSeriesEngine(
     features=['mean', 'std', 'skew', 'autocorr', 'fft_coefficients']
@@ -122,7 +122,7 @@ engine = TimeSeriesEngine(
 Uses GitHub Copilot SDK for intelligent feature generation.
 
 ```python
-from autofeat.llm import SemanticEngine
+from featcopilot.llm import SemanticEngine
 
 engine = SemanticEngine(
     model='gpt-5',
@@ -134,7 +134,7 @@ engine = SemanticEngine(
 ## Feature Selection
 
 ```python
-from autofeat.selection import FeatureSelector
+from featcopilot.selection import FeatureSelector
 
 selector = FeatureSelector(
     methods=['mutual_info', 'importance', 'correlation'],
@@ -147,8 +147,8 @@ X_selected = selector.fit_transform(X, y)
 
 ## Comparison with Existing Libraries
 
-| Feature | AutoFeat++ | Featuretools | TSFresh | AutoFeat | OpenFE | CAAFE |
-|---------|------------|--------------|---------|----------|--------|-------|
+| Feature | FeatCopilot | Featuretools | TSFresh | AutoFeat | OpenFE | CAAFE |
+|---------|-------------|--------------|---------|----------|--------|-------|
 | Tabular Features | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ |
 | Time Series | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
 | Relational | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |

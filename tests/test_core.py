@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from autofeat.core.feature import Feature, FeatureOrigin, FeatureSet, FeatureType
-from autofeat.core.registry import FeatureRegistry
+from featcopilot.core.feature import Feature, FeatureOrigin, FeatureSet, FeatureType
+from featcopilot.core.registry import FeatureRegistry
 
 
 class TestFeature:

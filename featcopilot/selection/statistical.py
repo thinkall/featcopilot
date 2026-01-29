@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-from autofeat.core.base import BaseSelector, SelectorConfig
+from featcopilot.core.base import BaseSelector, SelectorConfig
 
 
 class StatisticalSelector(BaseSelector):

@@ -2,7 +2,7 @@
 
 from typing import Any, Callable, Dict, List, Optional, Type
 
-from autofeat.core.feature import Feature, FeatureOrigin, FeatureSet, FeatureType
+from featcopilot.core.feature import Feature, FeatureOrigin, FeatureSet, FeatureType
 
 
 class FeatureRegistry:

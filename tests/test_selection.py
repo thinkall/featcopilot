@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from autofeat.selection import (
+from featcopilot.selection import (
     FeatureSelector,
     ImportanceSelector,
     RedundancyEliminator,

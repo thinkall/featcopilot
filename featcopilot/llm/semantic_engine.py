@@ -10,9 +10,9 @@ import numpy as np
 import pandas as pd
 from pydantic import BaseModel, Field
 
-from autofeat.core.base import BaseEngine, EngineConfig
-from autofeat.core.feature import Feature, FeatureOrigin, FeatureSet, FeatureType
-from autofeat.llm.copilot_client import CopilotFeatureClient, SyncCopilotFeatureClient
+from featcopilot.core.base import BaseEngine, EngineConfig
+from featcopilot.core.feature import Feature, FeatureOrigin, FeatureSet, FeatureType
+from featcopilot.llm.copilot_client import CopilotFeatureClient, SyncCopilotFeatureClient
 
 
 class SemanticEngineConfig(EngineConfig):

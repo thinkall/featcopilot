@@ -3,13 +3,13 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "autofeat-plus"
+name = "featcopilot"
 version = "0.1.0"
-description = "Next-generation LLM-powered auto feature engineering framework"
+description = "Next-generation LLM-powered auto feature engineering framework with GitHub Copilot SDK"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "AutoFeat++ Contributors"}
+    {name = "FeatCopilot Contributors"}
 ]
 keywords = [
     "machine-learning",
@@ -68,7 +68,7 @@ Repository = "https://github.com/autofeat/autofeat-plus"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["autofeat*"]
+include = ["featcopilot*"]
 
 [tool.black]
 line-length = 100

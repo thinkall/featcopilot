@@ -9,8 +9,8 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 import pandas as pd
 
-from autofeat.core.feature import Feature, FeatureOrigin, FeatureType
-from autofeat.llm.copilot_client import SyncCopilotFeatureClient
+from featcopilot.core.feature import Feature, FeatureOrigin, FeatureType
+from featcopilot.llm.copilot_client import SyncCopilotFeatureClient
 
 
 class FeatureCodeGenerator:

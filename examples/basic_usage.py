@@ -1,7 +1,7 @@
 """
-Example: Basic Feature Engineering with AutoFeat++
+Example: Basic Feature Engineering with FeatCopilot
 
-This example demonstrates basic usage of AutoFeat++ for
+This example demonstrates basic usage of FeatCopilot for
 automated feature engineering on tabular data.
 """
 
@@ -11,8 +11,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score
 
-# Import AutoFeat++
-from autofeat import AutoFeatureEngineer
+# Import FeatCopilot
+from featcopilot import AutoFeatureEngineer
 
 
 def create_sample_data(n_samples=1000):
@@ -46,7 +46,7 @@ def create_sample_data(n_samples=1000):
 
 def main():
     print("=" * 60)
-    print("AutoFeat++ Basic Example")
+    print("FeatCopilot Basic Example")
     print("=" * 60)
 
     # Create sample data
@@ -72,8 +72,8 @@ def main():
     baseline_auc = roc_auc_score(y_test, baseline_preds)
     print(f"   - Baseline ROC-AUC: {baseline_auc:.4f}")
 
-    # Feature engineering with AutoFeat++
-    print("\n3. Applying AutoFeat++ feature engineering...")
+    # Feature engineering with FeatCopilot
+    print("\n3. Applying FeatCopilot feature engineering...")
     engineer = AutoFeatureEngineer(
         engines=["tabular"],
         max_features=50,

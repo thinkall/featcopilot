@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Set, Union
 import numpy as np
 import pandas as pd
 
-from autofeat.core.base import BaseSelector
+from featcopilot.core.base import BaseSelector
 
 
 class RedundancyEliminator(BaseSelector):
