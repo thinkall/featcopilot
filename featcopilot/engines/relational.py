@@ -3,23 +3,23 @@
 Generates aggregation features from related tables (inspired by Featuretools).
 """
 
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from featcopilot.core.base import BaseEngine, EngineConfig
-from featcopilot.core.feature import Feature, FeatureOrigin, FeatureSet, FeatureType
+from featcopilot.core.feature import FeatureSet
 
 
 class RelationalEngineConfig(EngineConfig):
     """Configuration for relational feature engine."""
 
     name: str = "RelationalEngine"
-    aggregation_functions: List[str] = Field(
+    aggregation_functions: list[str] = Field(
         default_factory=lambda: ["mean", "sum", "min", "max", "count", "std"],
-        description="Aggregation functions to apply"
+        description="Aggregation functions to apply",
     )
     max_depth: int = Field(default=2, ge=1, le=4, description="Max depth for feature synthesis")
     include_time_based: bool = Field(default=True, description="Include time-based aggregations")
@@ -28,20 +28,20 @@ class RelationalEngineConfig(EngineConfig):
 class RelationalEngine(BaseEngine):
     """
     Relational feature engineering engine.
-    
+
     Generates features from related tables using aggregation operations,
     similar to Featuretools' Deep Feature Synthesis but with:
     - Simpler API
     - LLM integration capabilities
     - Better performance
-    
+
     Parameters
     ----------
     aggregation_functions : list
         Aggregation functions to use (mean, sum, min, max, count, std, etc.)
     max_depth : int, default=2
         Maximum depth for feature synthesis
-    
+
     Examples
     --------
     >>> engine = RelationalEngine()
@@ -64,34 +64,30 @@ class RelationalEngine(BaseEngine):
 
     def __init__(
         self,
-        aggregation_functions: Optional[List[str]] = None,
+        aggregation_functions: Optional[list[str]] = None,
         max_depth: int = 2,
         max_features: Optional[int] = None,
         verbose: bool = False,
-        **kwargs
+        **kwargs,
     ):
         config = RelationalEngineConfig(
             aggregation_functions=aggregation_functions or ["mean", "sum", "count", "max", "min"],
             max_depth=max_depth,
             max_features=max_features,
             verbose=verbose,
-            **kwargs
+            **kwargs,
         )
         super().__init__(config=config)
         self.config: RelationalEngineConfig = config
-        self._relationships: List[Dict[str, str]] = []
+        self._relationships: list[dict[str, str]] = []
         self._feature_set = FeatureSet()
 
     def add_relationship(
-        self,
-        child_table: str,
-        parent_table: str,
-        key_column: str,
-        parent_key: Optional[str] = None
+        self, child_table: str, parent_table: str, key_column: str, parent_key: Optional[str] = None
     ) -> "RelationalEngine":
         """
         Define a relationship between tables.
-        
+
         Parameters
         ----------
         child_table : str
@@ -102,29 +98,31 @@ class RelationalEngine(BaseEngine):
             Foreign key column in child table
         parent_key : str, optional
             Primary key column in parent table (defaults to key_column)
-            
+
         Returns
         -------
         self : RelationalEngine
         """
-        self._relationships.append({
-            "child": child_table,
-            "parent": parent_table,
-            "child_key": key_column,
-            "parent_key": parent_key or key_column,
-        })
+        self._relationships.append(
+            {
+                "child": child_table,
+                "parent": parent_table,
+                "child_key": key_column,
+                "parent_key": parent_key or key_column,
+            }
+        )
         return self
 
     def fit(
         self,
         X: Union[pd.DataFrame, np.ndarray],
         y: Optional[Union[pd.Series, np.ndarray]] = None,
-        related_tables: Optional[Dict[str, pd.DataFrame]] = None,
-        **kwargs
+        related_tables: Optional[dict[str, pd.DataFrame]] = None,
+        **kwargs,
     ) -> "RelationalEngine":
         """
         Fit the engine to the data.
-        
+
         Parameters
         ----------
         X : DataFrame
@@ -133,7 +131,7 @@ class RelationalEngine(BaseEngine):
             Target variable
         related_tables : dict, optional
             Dictionary of related tables {name: DataFrame}
-            
+
         Returns
         -------
         self : RelationalEngine
@@ -151,19 +149,19 @@ class RelationalEngine(BaseEngine):
     def transform(
         self,
         X: Union[pd.DataFrame, np.ndarray],
-        related_tables: Optional[Dict[str, pd.DataFrame]] = None,
-        **kwargs
+        related_tables: Optional[dict[str, pd.DataFrame]] = None,
+        **kwargs,
     ) -> pd.DataFrame:
         """
         Generate aggregation features.
-        
+
         Parameters
         ----------
         X : DataFrame
             Primary table
         related_tables : dict, optional
             Dictionary of related tables
-            
+
         Returns
         -------
         X_features : DataFrame
@@ -203,7 +201,7 @@ class RelationalEngine(BaseEngine):
         parent_df: pd.DataFrame,
         child_key: str,
         parent_key: str,
-        parent_name: str
+        parent_name: str,
     ) -> pd.DataFrame:
         """Generate aggregation features from a parent table."""
         features = pd.DataFrame(index=child_df.index)

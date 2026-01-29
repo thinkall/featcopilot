@@ -3,33 +3,33 @@
 Provides drop-in sklearn transformers for feature engineering pipelines.
 """
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 
 from featcopilot.core.feature import FeatureSet
-from featcopilot.engines.tabular import TabularEngine
-from featcopilot.engines.timeseries import TimeSeriesEngine
 from featcopilot.engines.relational import RelationalEngine
+from featcopilot.engines.tabular import TabularEngine
 from featcopilot.engines.text import TextEngine
+from featcopilot.engines.timeseries import TimeSeriesEngine
 from featcopilot.selection.unified import FeatureSelector
 
 
 class FeatureEngineerTransformer(BaseEstimator, TransformerMixin):
     """
     Scikit-learn compatible feature engineering transformer.
-    
+
     Wraps individual engines for use in sklearn pipelines.
-    
+
     Parameters
     ----------
     engine : str, default='tabular'
         Engine type ('tabular', 'timeseries', 'relational', 'text')
     **engine_kwargs : dict
         Arguments passed to the engine
-        
+
     Examples
     --------
     >>> from sklearn.pipeline import Pipeline
@@ -39,11 +39,7 @@ class FeatureEngineerTransformer(BaseEstimator, TransformerMixin):
     ... ])
     """
 
-    def __init__(
-        self,
-        engine: str = 'tabular',
-        **engine_kwargs
-    ):
+    def __init__(self, engine: str = "tabular", **engine_kwargs):
         self.engine = engine
         self.engine_kwargs = engine_kwargs
         self._engine_instance = None
@@ -51,10 +47,10 @@ class FeatureEngineerTransformer(BaseEstimator, TransformerMixin):
     def _create_engine(self):
         """Create the appropriate engine instance."""
         engines = {
-            'tabular': TabularEngine,
-            'timeseries': TimeSeriesEngine,
-            'relational': RelationalEngine,
-            'text': TextEngine,
+            "tabular": TabularEngine,
+            "timeseries": TimeSeriesEngine,
+            "relational": RelationalEngine,
+            "text": TextEngine,
         }
 
         if self.engine not in engines:
@@ -84,10 +80,10 @@ class FeatureEngineerTransformer(BaseEstimator, TransformerMixin):
 class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
     """
     Main auto feature engineering class.
-    
+
     Combines multiple engines and selection methods for comprehensive
     automated feature engineering with LLM capabilities.
-    
+
     Parameters
     ----------
     engines : list, default=['tabular']
@@ -100,7 +96,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         Configuration for LLM engine
     verbose : bool, default=False
         Verbose output
-        
+
     Examples
     --------
     >>> engineer = AutoFeatureEngineer(
@@ -113,38 +109,38 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
 
     def __init__(
         self,
-        engines: Optional[List[str]] = None,
+        engines: Optional[list[str]] = None,
         max_features: Optional[int] = None,
-        selection_methods: Optional[List[str]] = None,
+        selection_methods: Optional[list[str]] = None,
         correlation_threshold: float = 0.95,
-        llm_config: Optional[Dict[str, Any]] = None,
+        llm_config: Optional[dict[str, Any]] = None,
         verbose: bool = False,
     ):
-        self.engines = engines or ['tabular']
+        self.engines = engines or ["tabular"]
         self.max_features = max_features
-        self.selection_methods = selection_methods or ['mutual_info', 'importance']
+        self.selection_methods = selection_methods or ["mutual_info", "importance"]
         self.correlation_threshold = correlation_threshold
         self.llm_config = llm_config or {}
         self.verbose = verbose
 
-        self._engine_instances: Dict[str, Any] = {}
+        self._engine_instances: dict[str, Any] = {}
         self._selector: Optional[FeatureSelector] = None
         self._feature_set = FeatureSet()
         self._is_fitted = False
-        self._column_descriptions: Dict[str, str] = {}
+        self._column_descriptions: dict[str, str] = {}
         self._task_description: str = ""
 
     def fit(
         self,
         X: Union[pd.DataFrame, np.ndarray],
         y: Optional[Union[pd.Series, np.ndarray]] = None,
-        column_descriptions: Optional[Dict[str, str]] = None,
+        column_descriptions: Optional[dict[str, str]] = None,
         task_description: str = "prediction task",
-        **fit_params
+        **fit_params,
     ) -> "AutoFeatureEngineer":
         """
         Fit the auto feature engineer.
-        
+
         Parameters
         ----------
         X : DataFrame or ndarray
@@ -157,7 +153,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             Description of the ML task (for LLM)
         **fit_params : dict
             Additional parameters
-            
+
         Returns
         -------
         self : AutoFeatureEngineer
@@ -173,12 +169,13 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         for engine_name in self.engines:
             engine = self._create_engine(engine_name)
 
-            if engine_name == 'llm':
+            if engine_name == "llm":
                 engine.fit(
-                    X, y,
+                    X,
+                    y,
                     column_descriptions=column_descriptions,
                     task_description=task_description,
-                    **fit_params
+                    **fit_params,
                 )
             else:
                 engine.fit(X, y, **fit_params)
@@ -193,47 +190,35 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
 
     def _create_engine(self, engine_name: str):
         """Create an engine instance."""
-        if engine_name == 'tabular':
-            return TabularEngine(
-                max_features=self.max_features,
-                verbose=self.verbose
-            )
-        elif engine_name == 'timeseries':
-            return TimeSeriesEngine(
-                max_features=self.max_features,
-                verbose=self.verbose
-            )
-        elif engine_name == 'text':
-            return TextEngine(
-                max_features=self.max_features,
-                verbose=self.verbose
-            )
-        elif engine_name == 'llm':
+        if engine_name == "tabular":
+            return TabularEngine(max_features=self.max_features, verbose=self.verbose)
+        elif engine_name == "timeseries":
+            return TimeSeriesEngine(max_features=self.max_features, verbose=self.verbose)
+        elif engine_name == "text":
+            return TextEngine(max_features=self.max_features, verbose=self.verbose)
+        elif engine_name == "llm":
             from featcopilot.llm.semantic_engine import SemanticEngine
+
             return SemanticEngine(
-                model=self.llm_config.get('model', 'gpt-5'),
-                max_suggestions=self.llm_config.get('max_suggestions', 20),
-                domain=self.llm_config.get('domain'),
-                verbose=self.verbose
+                model=self.llm_config.get("model", "gpt-5"),
+                max_suggestions=self.llm_config.get("max_suggestions", 20),
+                domain=self.llm_config.get("domain"),
+                verbose=self.verbose,
             )
         else:
             raise ValueError(f"Unknown engine: {engine_name}")
 
-    def transform(
-        self,
-        X: Union[pd.DataFrame, np.ndarray],
-        **transform_params
-    ) -> pd.DataFrame:
+    def transform(self, X: Union[pd.DataFrame, np.ndarray], **transform_params) -> pd.DataFrame:
         """
         Transform data using fitted engines.
-        
+
         Parameters
         ----------
         X : DataFrame or ndarray
             Input data
         **transform_params : dict
             Additional parameters
-            
+
         Returns
         -------
         X_transformed : DataFrame
@@ -268,14 +253,14 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         self,
         X: Union[pd.DataFrame, np.ndarray],
         y: Optional[Union[pd.Series, np.ndarray]] = None,
-        column_descriptions: Optional[Dict[str, str]] = None,
+        column_descriptions: Optional[dict[str, str]] = None,
         task_description: str = "prediction task",
         apply_selection: bool = True,
-        **fit_params
+        **fit_params,
     ) -> pd.DataFrame:
         """
         Fit and transform in one step.
-        
+
         Parameters
         ----------
         X : DataFrame or ndarray
@@ -290,7 +275,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             Whether to apply feature selection
         **fit_params : dict
             Additional parameters
-            
+
         Returns
         -------
         X_transformed : DataFrame
@@ -305,7 +290,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
                 methods=self.selection_methods,
                 max_features=self.max_features,
                 correlation_threshold=self.correlation_threshold,
-                verbose=self.verbose
+                verbose=self.verbose,
             )
             result = self._selector.fit_transform(result, y)
 
@@ -314,21 +299,21 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
 
         return result
 
-    def get_feature_names(self) -> List[str]:
+    def get_feature_names(self) -> list[str]:
         """Get names of all generated features."""
         names = []
         for engine in self._engine_instances.values():
             names.extend(engine.get_feature_names())
         return names
 
-    def get_feature_names_out(self, input_features=None) -> List[str]:
+    def get_feature_names_out(self, input_features=None) -> list[str]:
         """Sklearn-compatible method for feature names."""
         return self.get_feature_names()
 
-    def explain_features(self) -> Dict[str, str]:
+    def explain_features(self) -> dict[str, str]:
         """
         Get explanations for all features.
-        
+
         Returns
         -------
         explanations : dict
@@ -336,19 +321,19 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         """
         explanations = {}
 
-        for engine_name, engine in self._engine_instances.items():
-            if hasattr(engine, 'get_feature_explanations'):
+        for _, engine in self._engine_instances.items():
+            if hasattr(engine, "get_feature_explanations"):
                 explanations.update(engine.get_feature_explanations())
-            elif hasattr(engine, 'get_feature_set'):
+            elif hasattr(engine, "get_feature_set"):
                 feature_set = engine.get_feature_set()
                 explanations.update(feature_set.get_explanations())
 
         return explanations
 
-    def get_feature_code(self) -> Dict[str, str]:
+    def get_feature_code(self) -> dict[str, str]:
         """
         Get code for generated features.
-        
+
         Returns
         -------
         code : dict
@@ -356,40 +341,36 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         """
         code = {}
 
-        for engine_name, engine in self._engine_instances.items():
-            if hasattr(engine, 'get_feature_code'):
+        for _, engine in self._engine_instances.items():
+            if hasattr(engine, "get_feature_code"):
                 code.update(engine.get_feature_code())
 
         return code
 
-    def generate_custom_features(
-        self,
-        prompt: str,
-        n_features: int = 5
-    ) -> List[Dict[str, Any]]:
+    def generate_custom_features(self, prompt: str, n_features: int = 5) -> list[dict[str, Any]]:
         """
         Generate custom features via LLM prompt.
-        
+
         Parameters
         ----------
         prompt : str
             Natural language description of desired features
         n_features : int, default=5
             Number of features to generate
-            
+
         Returns
         -------
         features : list
             List of generated feature definitions
         """
-        if 'llm' not in self._engine_instances:
+        if "llm" not in self._engine_instances:
             raise RuntimeError("LLM engine not enabled. Add 'llm' to engines list.")
 
-        llm_engine = self._engine_instances['llm']
+        llm_engine = self._engine_instances["llm"]
         return llm_engine.suggest_more_features(prompt, n_features)
 
     @property
-    def feature_importances_(self) -> Optional[Dict[str, float]]:
+    def feature_importances_(self) -> Optional[dict[str, float]]:
         """Get feature importance scores if selection was applied."""
         if self._selector is not None:
             return self._selector.get_feature_scores()
@@ -398,12 +379,12 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
     def get_params(self, deep=True):
         """Get parameters for sklearn compatibility."""
         return {
-            'engines': self.engines,
-            'max_features': self.max_features,
-            'selection_methods': self.selection_methods,
-            'correlation_threshold': self.correlation_threshold,
-            'llm_config': self.llm_config,
-            'verbose': self.verbose,
+            "engines": self.engines,
+            "max_features": self.max_features,
+            "selection_methods": self.selection_methods,
+            "correlation_threshold": self.correlation_threshold,
+            "llm_config": self.llm_config,
+            "verbose": self.verbose,
         }
 
     def set_params(self, **params):

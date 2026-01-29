@@ -1,6 +1,6 @@
 """Redundancy elimination through correlation analysis."""
 
-from typing import Dict, List, Optional, Set, Union
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -11,17 +11,17 @@ from featcopilot.core.base import BaseSelector
 class RedundancyEliminator(BaseSelector):
     """
     Eliminate redundant features based on correlation.
-    
+
     Removes highly correlated features, keeping the one with
     higher importance (if provided) or the first one.
-    
+
     Parameters
     ----------
     correlation_threshold : float, default=0.95
         Correlation threshold for redundancy
     method : str, default='pearson'
         Correlation method ('pearson', 'spearman', 'kendall')
-        
+
     Examples
     --------
     >>> eliminator = RedundancyEliminator(correlation_threshold=0.95)
@@ -31,10 +31,10 @@ class RedundancyEliminator(BaseSelector):
     def __init__(
         self,
         correlation_threshold: float = 0.95,
-        method: str = 'pearson',
-        importance_scores: Optional[Dict[str, float]] = None,
+        method: str = "pearson",
+        importance_scores: Optional[dict[str, float]] = None,
         verbose: bool = False,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.correlation_threshold = correlation_threshold
@@ -47,7 +47,7 @@ class RedundancyEliminator(BaseSelector):
         self,
         X: Union[pd.DataFrame, np.ndarray],
         y: Optional[Union[pd.Series, np.ndarray]] = None,
-        **kwargs
+        **kwargs,
     ) -> pd.DataFrame:
         """Fit and transform in one step (y is optional for this selector)."""
         return self.fit(X, y, **kwargs).transform(X, **kwargs)
@@ -56,12 +56,12 @@ class RedundancyEliminator(BaseSelector):
         self,
         X: Union[pd.DataFrame, np.ndarray],
         y: Optional[Union[pd.Series, np.ndarray]] = None,
-        importance_scores: Optional[Dict[str, float]] = None,
-        **kwargs
+        importance_scores: Optional[dict[str, float]] = None,
+        **kwargs,
     ) -> "RedundancyEliminator":
         """
         Fit eliminator by computing correlations.
-        
+
         Parameters
         ----------
         X : DataFrame or ndarray
@@ -70,7 +70,7 @@ class RedundancyEliminator(BaseSelector):
             Target variable (unused)
         importance_scores : dict, optional
             Pre-computed importance scores
-            
+
         Returns
         -------
         self : RedundancyEliminator
@@ -90,16 +90,16 @@ class RedundancyEliminator(BaseSelector):
         self._is_fitted = True
         return self
 
-    def _find_redundant_features(self, columns: List[str]) -> None:
+    def _find_redundant_features(self, columns: list[str]) -> None:
         """Identify and mark redundant features for removal."""
-        to_remove: Set[str] = set()
-        checked_pairs: Set[tuple] = set()
+        to_remove: set[str] = set()
+        checked_pairs: set[tuple] = set()
 
         for i, col1 in enumerate(columns):
             if col1 in to_remove:
                 continue
 
-            for col2 in columns[i+1:]:
+            for col2 in columns[i + 1 :]:
                 if col2 in to_remove:
                     continue
 
@@ -133,11 +133,7 @@ class RedundancyEliminator(BaseSelector):
         if self.verbose:
             print(f"RedundancyEliminator: Removed {len(to_remove)} redundant features")
 
-    def transform(
-        self,
-        X: Union[pd.DataFrame, np.ndarray],
-        **kwargs
-    ) -> pd.DataFrame:
+    def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
         """Remove redundant features."""
         if not self._is_fitted:
             raise RuntimeError("Eliminator must be fitted before transform")
@@ -151,9 +147,9 @@ class RedundancyEliminator(BaseSelector):
 
         return X[keep_cols]
 
-    def get_removed_features(self) -> List[str]:
+    def get_removed_features(self) -> list[str]:
         """Get list of removed redundant features."""
-        return getattr(self, '_removed_features', [])
+        return getattr(self, "_removed_features", [])
 
     def get_correlation_matrix(self) -> Optional[pd.DataFrame]:
         """Get the computed correlation matrix."""

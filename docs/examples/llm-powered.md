@@ -34,7 +34,7 @@ from featcopilot import AutoFeatureEngineer
 def create_healthcare_data(n_samples=500):
     """Create synthetic healthcare dataset."""
     np.random.seed(42)
-    
+
     data = pd.DataFrame({
         'age': np.random.randint(20, 90, n_samples),
         'bmi': np.random.normal(26, 5, n_samples),
@@ -48,7 +48,7 @@ def create_healthcare_data(n_samples=500):
         'smoking_years': np.random.exponential(5, n_samples),
         'exercise_hours_weekly': np.random.exponential(3, n_samples),
     })
-    
+
     # Create diabetes risk target
     risk = (
         0.01 * (data['age'] - 40)
@@ -60,7 +60,7 @@ def create_healthcare_data(n_samples=500):
     )
     risk = 1 / (1 + np.exp(-risk))
     data['diabetes_risk'] = (np.random.random(n_samples) < risk).astype(int)
-    
+
     return data
 
 data = create_healthcare_data(500)

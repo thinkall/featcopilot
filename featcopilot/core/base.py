@@ -1,7 +1,7 @@
 """Base classes for feature engineering engines and selectors."""
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -20,15 +20,15 @@ class EngineConfig(BaseModel):
 class BaseEngine(ABC):
     """
     Abstract base class for feature engineering engines.
-    
+
     All engines (tabular, timeseries, relational, llm) inherit from this class.
     """
 
     def __init__(self, config: Optional[EngineConfig] = None, **kwargs):
         self.config = config or EngineConfig(name=self.__class__.__name__, **kwargs)
         self._is_fitted = False
-        self._feature_names: List[str] = []
-        self._feature_metadata: Dict[str, Any] = {}
+        self._feature_names: list[str] = []
+        self._feature_metadata: dict[str, Any] = {}
 
     @property
     def is_fitted(self) -> bool:
@@ -40,11 +40,11 @@ class BaseEngine(ABC):
         self,
         X: Union[pd.DataFrame, np.ndarray],
         y: Optional[Union[pd.Series, np.ndarray]] = None,
-        **kwargs
+        **kwargs,
     ) -> "BaseEngine":
         """
         Fit the engine to the data.
-        
+
         Parameters
         ----------
         X : DataFrame or ndarray
@@ -53,7 +53,7 @@ class BaseEngine(ABC):
             Target variable
         **kwargs : dict
             Additional parameters
-            
+
         Returns
         -------
         self : BaseEngine
@@ -62,21 +62,17 @@ class BaseEngine(ABC):
         pass
 
     @abstractmethod
-    def transform(
-        self,
-        X: Union[pd.DataFrame, np.ndarray],
-        **kwargs
-    ) -> pd.DataFrame:
+    def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
         """
         Transform data to generate new features.
-        
+
         Parameters
         ----------
         X : DataFrame or ndarray
             Input features
         **kwargs : dict
             Additional parameters
-            
+
         Returns
         -------
         X_transformed : DataFrame
@@ -88,16 +84,16 @@ class BaseEngine(ABC):
         self,
         X: Union[pd.DataFrame, np.ndarray],
         y: Optional[Union[pd.Series, np.ndarray]] = None,
-        **kwargs
+        **kwargs,
     ) -> pd.DataFrame:
         """Fit and transform in one step."""
         return self.fit(X, y, **kwargs).transform(X, **kwargs)
 
-    def get_feature_names(self) -> List[str]:
+    def get_feature_names(self) -> list[str]:
         """Get names of generated features."""
         return self._feature_names.copy()
 
-    def get_feature_metadata(self) -> Dict[str, Any]:
+    def get_feature_metadata(self) -> dict[str, Any]:
         """Get metadata for generated features."""
         return self._feature_metadata.copy()
 
@@ -123,15 +119,15 @@ class SelectorConfig(BaseModel):
 class BaseSelector(ABC):
     """
     Abstract base class for feature selection.
-    
+
     Handles selection of most important/relevant features from generated set.
     """
 
     def __init__(self, config: Optional[SelectorConfig] = None, **kwargs):
         self.config = config or SelectorConfig(**kwargs)
         self._is_fitted = False
-        self._selected_features: List[str] = []
-        self._feature_scores: Dict[str, float] = {}
+        self._selected_features: list[str] = []
+        self._feature_scores: dict[str, float] = {}
 
     @property
     def is_fitted(self) -> bool:
@@ -140,14 +136,11 @@ class BaseSelector(ABC):
 
     @abstractmethod
     def fit(
-        self,
-        X: Union[pd.DataFrame, np.ndarray],
-        y: Union[pd.Series, np.ndarray],
-        **kwargs
+        self, X: Union[pd.DataFrame, np.ndarray], y: Union[pd.Series, np.ndarray], **kwargs
     ) -> "BaseSelector":
         """
         Fit the selector to determine feature importance.
-        
+
         Parameters
         ----------
         X : DataFrame or ndarray
@@ -156,7 +149,7 @@ class BaseSelector(ABC):
             Target variable
         **kwargs : dict
             Additional parameters
-            
+
         Returns
         -------
         self : BaseSelector
@@ -165,21 +158,17 @@ class BaseSelector(ABC):
         pass
 
     @abstractmethod
-    def transform(
-        self,
-        X: Union[pd.DataFrame, np.ndarray],
-        **kwargs
-    ) -> pd.DataFrame:
+    def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
         """
         Transform data to keep only selected features.
-        
+
         Parameters
         ----------
         X : DataFrame or ndarray
             Input features
         **kwargs : dict
             Additional parameters
-            
+
         Returns
         -------
         X_selected : DataFrame
@@ -188,19 +177,16 @@ class BaseSelector(ABC):
         pass
 
     def fit_transform(
-        self,
-        X: Union[pd.DataFrame, np.ndarray],
-        y: Union[pd.Series, np.ndarray],
-        **kwargs
+        self, X: Union[pd.DataFrame, np.ndarray], y: Union[pd.Series, np.ndarray], **kwargs
     ) -> pd.DataFrame:
         """Fit and transform in one step."""
         return self.fit(X, y, **kwargs).transform(X, **kwargs)
 
-    def get_selected_features(self) -> List[str]:
+    def get_selected_features(self) -> list[str]:
         """Get names of selected features."""
         return self._selected_features.copy()
 
-    def get_feature_scores(self) -> Dict[str, float]:
+    def get_feature_scores(self) -> dict[str, float]:
         """Get importance scores for all features."""
         return self._feature_scores.copy()
 

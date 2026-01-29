@@ -28,7 +28,7 @@ from featcopilot import AutoFeatureEngineer
 def create_churn_data(n_samples=1000):
     """Create synthetic customer churn dataset."""
     np.random.seed(42)
-    
+
     data = pd.DataFrame({
         'age': np.random.randint(18, 80, n_samples),
         'income': np.random.exponential(50000, n_samples),
@@ -39,7 +39,7 @@ def create_churn_data(n_samples=1000):
         'num_products': np.random.randint(1, 6, n_samples),
         'support_tickets': np.random.poisson(2, n_samples),
     })
-    
+
     # Create target with some signal
     churn_prob = (
         0.3
@@ -50,7 +50,7 @@ def create_churn_data(n_samples=1000):
     )
     churn_prob = np.clip(churn_prob, 0.05, 0.95)
     data['churn'] = (np.random.random(n_samples) < churn_prob).astype(int)
-    
+
     return data
 
 # Create data
@@ -162,7 +162,7 @@ if engineer.feature_importances_:
         key=lambda x: x[1],
         reverse=True
     )
-    
+
     print("\nTop 10 Features:")
     for i, (name, score) in enumerate(importances[:10], 1):
         print(f"{i:2d}. {name}: {score:.4f}")

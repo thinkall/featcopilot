@@ -1,8 +1,7 @@
 """Parallel processing utilities."""
 
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, Optional
 
-import numpy as np
 import pandas as pd
 
 
@@ -11,11 +10,11 @@ def parallel_apply(
     data: pd.DataFrame,
     n_jobs: int = -1,
     batch_size: Optional[int] = None,
-    verbose: bool = False
-) -> List[Any]:
+    verbose: bool = False,
+) -> list[Any]:
     """
     Apply a function in parallel across DataFrame rows.
-    
+
     Parameters
     ----------
     func : callable
@@ -28,7 +27,7 @@ def parallel_apply(
         Batch size for processing
     verbose : bool, default=False
         Show progress
-        
+
     Returns
     -------
     results : list
@@ -39,6 +38,7 @@ def parallel_apply(
 
         if n_jobs == -1:
             import os
+
             n_jobs = os.cpu_count() or 1
 
         if batch_size is None:
@@ -59,14 +59,11 @@ def parallel_apply(
 
 
 def parallel_transform(
-    transformers: List[tuple],
-    X: pd.DataFrame,
-    n_jobs: int = -1,
-    verbose: bool = False
+    transformers: list[tuple], X: pd.DataFrame, n_jobs: int = -1, verbose: bool = False
 ) -> pd.DataFrame:
     """
     Apply multiple transformers in parallel.
-    
+
     Parameters
     ----------
     transformers : list
@@ -77,7 +74,7 @@ def parallel_transform(
         Number of parallel jobs
     verbose : bool, default=False
         Show progress
-        
+
     Returns
     -------
     X_combined : DataFrame
@@ -95,7 +92,7 @@ def parallel_transform(
 
         # Combine results
         combined = X.copy()
-        for name, transformed in results:
+        for _, transformed in results:
             new_cols = [c for c in transformed.columns if c not in combined.columns]
             for col in new_cols:
                 combined[col] = transformed[col]
@@ -105,7 +102,7 @@ def parallel_transform(
     except ImportError:
         # Sequential fallback
         combined = X.copy()
-        for name, transformer in transformers:
+        for _, transformer in transformers:
             transformed = transformer.transform(X)
             new_cols = [c for c in transformed.columns if c not in combined.columns]
             for col in new_cols:

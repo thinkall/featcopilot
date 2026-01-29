@@ -77,8 +77,11 @@ target-version = ["py39", "py310", "py311", "py312"]
 
 [tool.ruff]
 line-length = 100
-select = ["E", "F", "W", "I", "N", "UP", "B", "C4"]
+select = ["E", "F", "W", "I", "UP", "B", "C4"]
 ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["F841"]  # Allow unused variables in tests
 
 [tool.mypy]
 python_version = "3.9"

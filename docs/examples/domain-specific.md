@@ -213,14 +213,14 @@ X_fe = engineer.fit_transform(
     column_descriptions={...},
     task_description="""
     [Detailed task description]
-    
+
     Domain: [Your specific domain]
-    
+
     Business Context:
     - [Key business objectives]
     - [Important domain knowledge]
     - [Relevant industry standards]
-    
+
     Prediction Goal:
     - [What exactly to predict]
     - [Time horizon]

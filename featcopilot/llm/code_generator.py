@@ -4,9 +4,8 @@ Generates Python code for custom features based on natural language descriptions
 """
 
 import re
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
-import numpy as np
 import pandas as pd
 
 from featcopilot.core.feature import Feature, FeatureOrigin, FeatureType
@@ -16,17 +15,17 @@ from featcopilot.llm.copilot_client import SyncCopilotFeatureClient
 class FeatureCodeGenerator:
     """
     Generate Python code for features from natural language descriptions.
-    
+
     Uses LLM to understand feature requirements and generate
     working pandas code.
-    
+
     Parameters
     ----------
     model : str, default='gpt-5'
         LLM model to use
     validate : bool, default=True
         Whether to validate generated code
-        
+
     Examples
     --------
     >>> generator = FeatureCodeGenerator()
@@ -36,12 +35,7 @@ class FeatureCodeGenerator:
     ... )
     """
 
-    def __init__(
-        self,
-        model: str = "gpt-5",
-        validate: bool = True,
-        verbose: bool = False
-    ):
+    def __init__(self, model: str = "gpt-5", validate: bool = True, verbose: bool = False):
         self.model = model
         self.validate = validate
         self.verbose = verbose
@@ -56,13 +50,13 @@ class FeatureCodeGenerator:
     def generate(
         self,
         description: str,
-        columns: Dict[str, str],
-        constraints: Optional[List[str]] = None,
-        sample_data: Optional[pd.DataFrame] = None
+        columns: dict[str, str],
+        constraints: Optional[list[str]] = None,
+        sample_data: Optional[pd.DataFrame] = None,
     ) -> Feature:
         """
         Generate a feature from natural language description.
-        
+
         Parameters
         ----------
         description : str
@@ -73,7 +67,7 @@ class FeatureCodeGenerator:
             Code constraints (e.g., "avoid division by zero")
         sample_data : DataFrame, optional
             Sample data for validation
-            
+
         Returns
         -------
         feature : Feature
@@ -122,13 +116,13 @@ class FeatureCodeGenerator:
 
     def generate_batch(
         self,
-        descriptions: List[str],
-        columns: Dict[str, str],
-        sample_data: Optional[pd.DataFrame] = None
-    ) -> List[Feature]:
+        descriptions: list[str],
+        columns: dict[str, str],
+        sample_data: Optional[pd.DataFrame] = None,
+    ) -> list[Feature]:
         """
         Generate multiple features from descriptions.
-        
+
         Parameters
         ----------
         descriptions : list
@@ -137,7 +131,7 @@ class FeatureCodeGenerator:
             Available columns and their types
         sample_data : DataFrame, optional
             Sample data for validation
-            
+
         Returns
         -------
         features : list
@@ -160,10 +154,7 @@ class FeatureCodeGenerator:
         code = code.strip()
         if code.startswith("```"):
             lines = code.split("\n")
-            code = "\n".join(
-                line for line in lines
-                if not line.startswith("```")
-            )
+            code = "\n".join(line for line in lines if not line.startswith("```"))
 
         # Remove comments
         lines = []
@@ -177,7 +168,7 @@ class FeatureCodeGenerator:
             # Try to extract the expression and wrap it
             if "=" in code:
                 # Already has an assignment, replace variable name
-                code = re.sub(r'^(\w+)\s*=', 'result =', code)
+                code = re.sub(r"^(\w+)\s*=", "result =", code)
             else:
                 # Raw expression
                 code = f"result = {code}"
@@ -188,17 +179,20 @@ class FeatureCodeGenerator:
         """Generate a feature name from description."""
         # Take first few significant words
         words = description.lower().split()
-        significant = [w for w in words if len(w) > 2 and w not in 
-                      {'the', 'and', 'for', 'from', 'with', 'calculate', 'compute'}][:4]
+        significant = [
+            w
+            for w in words
+            if len(w) > 2 and w not in {"the", "and", "for", "from", "with", "calculate", "compute"}
+        ][:4]
 
         name = "_".join(significant)
         # Clean up
-        name = re.sub(r'[^a-z0-9_]', '', name)
-        name = re.sub(r'_+', '_', name)
+        name = re.sub(r"[^a-z0-9_]", "", name)
+        name = re.sub(r"_+", "_", name)
 
         return name or "custom_feature"
 
-    def _detect_source_columns(self, code: str, available_columns: List[str]) -> List[str]:
+    def _detect_source_columns(self, code: str, available_columns: list[str]) -> list[str]:
         """Detect which columns are used in the code."""
         sources = []
         for col in available_columns:
@@ -217,7 +211,7 @@ class FeatureCodeGenerator:
         """Try to fix common code issues."""
         if "division by zero" in error.lower():
             # Add small epsilon to divisors
-            code = re.sub(r'/\s*\(([^)]+)\)', r'/ (\1 + 1e-8)', code)
+            code = re.sub(r"/\s*\(([^)]+)\)", r"/ (\1 + 1e-8)", code)
             code = re.sub(r"/\s*df\['([^']+)'\]", r"/ (df['\1'] + 1e-8)", code)
 
         if "keyerror" in error.lower() or "not found" in error.lower():
@@ -232,14 +226,11 @@ class FeatureCodeGenerator:
         return code
 
     def generate_domain_features(
-        self,
-        domain: str,
-        columns: Dict[str, str],
-        n_features: int = 5
-    ) -> List[Feature]:
+        self, domain: str, columns: dict[str, str], n_features: int = 5
+    ) -> list[Feature]:
         """
         Generate domain-specific features.
-        
+
         Parameters
         ----------
         domain : str
@@ -248,7 +239,7 @@ class FeatureCodeGenerator:
             Available columns and their types
         n_features : int, default=5
             Number of features to generate
-            
+
         Returns
         -------
         features : list
@@ -285,11 +276,14 @@ class FeatureCodeGenerator:
             ],
         }
 
-        prompts = domain_prompts.get(domain.lower(), [
-            f"Create a useful feature for {domain} analytics",
-            f"Calculate a key metric for {domain}",
-            f"Create an interaction feature relevant to {domain}",
-        ])
+        prompts = domain_prompts.get(
+            domain.lower(),
+            [
+                f"Create a useful feature for {domain} analytics",
+                f"Calculate a key metric for {domain}",
+                f"Create an interaction feature relevant to {domain}",
+            ],
+        )
 
         # Select prompts based on available columns
         applicable_prompts = prompts[:n_features]

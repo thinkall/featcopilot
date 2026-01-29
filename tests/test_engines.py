@@ -15,12 +15,14 @@ class TestTabularEngine:
     def sample_data(self):
         """Create sample data for testing."""
         np.random.seed(42)
-        return pd.DataFrame({
-            "num1": np.random.randn(100),
-            "num2": np.random.randn(100) * 10,
-            "num3": np.random.randint(1, 100, 100),
-            "cat1": np.random.choice(["A", "B", "C"], 100),
-        })
+        return pd.DataFrame(
+            {
+                "num1": np.random.randn(100),
+                "num2": np.random.randn(100) * 10,
+                "num3": np.random.randint(1, 100, 100),
+                "cat1": np.random.choice(["A", "B", "C"], 100),
+            }
+        )
 
     def test_tabular_engine_fit(self, sample_data):
         """Test fitting tabular engine."""
@@ -32,10 +34,7 @@ class TestTabularEngine:
 
     def test_tabular_engine_transform(self, sample_data):
         """Test transforming with tabular engine."""
-        engine = TabularEngine(
-            polynomial_degree=2,
-            include_transforms=["log", "sqrt"]
-        )
+        engine = TabularEngine(polynomial_degree=2, include_transforms=["log", "sqrt"])
         result = engine.fit_transform(sample_data)
 
         # Should have original columns + generated features
@@ -52,10 +51,7 @@ class TestTabularEngine:
 
     def test_tabular_engine_max_features(self, sample_data):
         """Test max_features limit."""
-        engine = TabularEngine(
-            polynomial_degree=2,
-            max_features=10
-        )
+        engine = TabularEngine(polynomial_degree=2, max_features=10)
         result = engine.fit_transform(sample_data)
 
         # New features should be limited
@@ -64,11 +60,7 @@ class TestTabularEngine:
 
     def test_tabular_engine_interaction_only(self, sample_data):
         """Test interaction-only mode."""
-        engine = TabularEngine(
-            polynomial_degree=2,
-            interaction_only=True,
-            include_transforms=[]
-        )
+        engine = TabularEngine(polynomial_degree=2, interaction_only=True, include_transforms=[])
         result = engine.fit_transform(sample_data)
 
         # Should not have power features
@@ -83,10 +75,12 @@ class TestTimeSeriesEngine:
     def ts_data(self):
         """Create time series data."""
         np.random.seed(42)
-        return pd.DataFrame({
-            "series1": np.cumsum(np.random.randn(100)),
-            "series2": np.sin(np.linspace(0, 4 * np.pi, 100)) + np.random.randn(100) * 0.1,
-        })
+        return pd.DataFrame(
+            {
+                "series1": np.cumsum(np.random.randn(100)),
+                "series2": np.sin(np.linspace(0, 4 * np.pi, 100)) + np.random.randn(100) * 0.1,
+            }
+        )
 
     def test_timeseries_engine_fit(self, ts_data):
         """Test fitting time series engine."""

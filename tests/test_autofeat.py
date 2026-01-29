@@ -15,12 +15,14 @@ class TestAutoFeatureEngineer:
         """Create sample data."""
         np.random.seed(42)
         n = 200
-        X = pd.DataFrame({
-            "age": np.random.randint(18, 80, n),
-            "income": np.random.exponential(50000, n),
-            "tenure": np.random.randint(1, 120, n),
-            "balance": np.random.randn(n) * 10000,
-        })
+        X = pd.DataFrame(
+            {
+                "age": np.random.randint(18, 80, n),
+                "income": np.random.exponential(50000, n),
+                "tenure": np.random.randint(1, 120, n),
+                "balance": np.random.randn(n) * 10000,
+            }
+        )
         y = (X["income"] > 50000).astype(int)
         return X, y
 
@@ -36,10 +38,7 @@ class TestAutoFeatureEngineer:
     def test_with_max_features(self, sample_data):
         """Test with max_features limit."""
         X, y = sample_data
-        engineer = AutoFeatureEngineer(
-            engines=["tabular"],
-            max_features=20
-        )
+        engineer = AutoFeatureEngineer(engines=["tabular"], max_features=20)
         result = engineer.fit_transform(X, y)
 
         # Should have at most 20 features total
@@ -56,9 +55,6 @@ class TestAutoFeatureEngineer:
 
     def test_sklearn_compatibility(self, sample_data):
         """Test sklearn pipeline compatibility."""
-        from sklearn.pipeline import Pipeline
-        from sklearn.preprocessing import StandardScaler
-        from sklearn.linear_model import LogisticRegression
 
         X, y = sample_data
 
@@ -74,8 +70,7 @@ class TestAutoFeatureEngineer:
         """Test with multiple engines."""
         X, y = sample_data
         engineer = AutoFeatureEngineer(
-            engines=["tabular"],  # Only tabular for non-LLM test
-            max_features=30
+            engines=["tabular"], max_features=30  # Only tabular for non-LLM test
         )
         result = engineer.fit_transform(X, y)
 
@@ -88,11 +83,7 @@ class TestAutoFeatureEngineerParams:
 
     def test_get_params(self):
         """Test get_params method."""
-        engineer = AutoFeatureEngineer(
-            engines=["tabular"],
-            max_features=50,
-            verbose=True
-        )
+        engineer = AutoFeatureEngineer(engines=["tabular"], max_features=50, verbose=True)
         params = engineer.get_params()
 
         assert params["engines"] == ["tabular"]

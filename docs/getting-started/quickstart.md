@@ -46,8 +46,8 @@ print(engineer.get_feature_names()[:10])
 
 **Output:**
 ```
-['age_pow2', 'income_pow2', 'tenure_pow2', 'age_x_income', 
- 'age_x_tenure', 'income_x_tenure', 'age_log1p', 'income_log1p', 
+['age_pow2', 'income_pow2', 'tenure_pow2', 'age_x_income',
+ 'age_x_tenure', 'income_x_tenure', 'age_log1p', 'income_log1p',
  'tenure_log1p', 'age_sqrt']
 ```
 
@@ -63,7 +63,7 @@ if engineer.feature_importances_:
         key=lambda x: x[1],
         reverse=True
     )[:5]
-    
+
     for name, score in top_features:
         print(f"{name}: {score:.4f}")
 ```
@@ -90,9 +90,9 @@ X_fe = engineer.fit_transform(X, y).fillna(0)
 
 # Evaluate
 scores = cross_val_score(
-    LogisticRegression(), 
-    X_fe, y, 
-    cv=5, 
+    LogisticRegression(),
+    X_fe, y,
+    cv=5,
     scoring='roc_auc'
 )
 print(f"ROC-AUC: {scores.mean():.4f} (+/- {scores.std()*2:.4f})")

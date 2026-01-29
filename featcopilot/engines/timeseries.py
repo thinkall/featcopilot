@@ -4,29 +4,32 @@ Extracts statistical, frequency, and temporal features from time series data.
 Inspired by TSFresh but with better integration and LLM capabilities.
 """
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from featcopilot.core.base import BaseEngine, EngineConfig
-from featcopilot.core.feature import Feature, FeatureOrigin, FeatureSet, FeatureType
+from featcopilot.core.feature import FeatureSet
 
 
 class TimeSeriesEngineConfig(EngineConfig):
     """Configuration for time series feature engine."""
 
     name: str = "TimeSeriesEngine"
-    features: List[str] = Field(
+    features: list[str] = Field(
         default_factory=lambda: [
-            "basic_stats", "distribution", "autocorrelation", "peaks", "trends"
+            "basic_stats",
+            "distribution",
+            "autocorrelation",
+            "peaks",
+            "trends",
         ],
-        description="Feature groups to extract"
+        description="Feature groups to extract",
     )
-    window_sizes: List[int] = Field(
-        default_factory=lambda: [5, 10, 20],
-        description="Window sizes for rolling features"
+    window_sizes: list[int] = Field(
+        default_factory=lambda: [5, 10, 20], description="Window sizes for rolling features"
     )
     n_fft_coefficients: int = Field(default=10, description="Number of FFT coefficients")
     n_autocorr_lags: int = Field(default=10, description="Number of autocorrelation lags")
@@ -35,7 +38,7 @@ class TimeSeriesEngineConfig(EngineConfig):
 class TimeSeriesEngine(BaseEngine):
     """
     Time series feature engineering engine.
-    
+
     Extracts comprehensive features from time series data including:
     - Basic statistics (mean, std, min, max, etc.)
     - Distribution features (skewness, kurtosis, quantiles)
@@ -44,7 +47,7 @@ class TimeSeriesEngine(BaseEngine):
     - Peak and trough features
     - Trend features
     - Rolling window statistics
-    
+
     Parameters
     ----------
     features : list, default=['basic_stats', 'distribution', 'autocorrelation']
@@ -53,7 +56,7 @@ class TimeSeriesEngine(BaseEngine):
         Window sizes for rolling features
     max_features : int, optional
         Maximum number of features to generate
-        
+
     Examples
     --------
     >>> engine = TimeSeriesEngine(features=['basic_stats', 'autocorrelation'])
@@ -73,22 +76,22 @@ class TimeSeriesEngine(BaseEngine):
 
     def __init__(
         self,
-        features: Optional[List[str]] = None,
-        window_sizes: Optional[List[int]] = None,
+        features: Optional[list[str]] = None,
+        window_sizes: Optional[list[int]] = None,
         max_features: Optional[int] = None,
         verbose: bool = False,
-        **kwargs
+        **kwargs,
     ):
         config = TimeSeriesEngineConfig(
             features=features or ["basic_stats", "distribution", "autocorrelation"],
             window_sizes=window_sizes or [5, 10, 20],
             max_features=max_features,
             verbose=verbose,
-            **kwargs
+            **kwargs,
         )
         super().__init__(config=config)
         self.config: TimeSeriesEngineConfig = config
-        self._time_columns: List[str] = []
+        self._time_columns: list[str] = []
         self._feature_set = FeatureSet()
 
     def fit(
@@ -96,11 +99,11 @@ class TimeSeriesEngine(BaseEngine):
         X: Union[pd.DataFrame, np.ndarray],
         y: Optional[Union[pd.Series, np.ndarray]] = None,
         time_column: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> "TimeSeriesEngine":
         """
         Fit the engine to identify time series columns.
-        
+
         Parameters
         ----------
         X : DataFrame or ndarray
@@ -109,7 +112,7 @@ class TimeSeriesEngine(BaseEngine):
             Target variable
         time_column : str, optional
             Column containing timestamps
-            
+
         Returns
         -------
         self : TimeSeriesEngine
@@ -125,19 +128,15 @@ class TimeSeriesEngine(BaseEngine):
         self._is_fitted = True
         return self
 
-    def transform(
-        self,
-        X: Union[pd.DataFrame, np.ndarray],
-        **kwargs
-    ) -> pd.DataFrame:
+    def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
         """
         Extract time series features from input data.
-        
+
         Parameters
         ----------
         X : DataFrame or ndarray
             Input data
-            
+
         Returns
         -------
         X_features : DataFrame
@@ -208,7 +207,7 @@ class TimeSeriesEngine(BaseEngine):
 
         return pd.DataFrame(all_features)
 
-    def _extract_basic_stats(self, series: np.ndarray, col: str) -> Dict[str, float]:
+    def _extract_basic_stats(self, series: np.ndarray, col: str) -> dict[str, float]:
         """Extract basic statistical features."""
         features = {}
         prefix = col
@@ -234,7 +233,7 @@ class TimeSeriesEngine(BaseEngine):
 
         return features
 
-    def _extract_distribution(self, series: np.ndarray, col: str) -> Dict[str, float]:
+    def _extract_distribution(self, series: np.ndarray, col: str) -> dict[str, float]:
         """Extract distribution-based features."""
         from scipy import stats
 
@@ -262,7 +261,7 @@ class TimeSeriesEngine(BaseEngine):
 
         return features
 
-    def _extract_autocorrelation(self, series: np.ndarray, col: str) -> Dict[str, float]:
+    def _extract_autocorrelation(self, series: np.ndarray, col: str) -> dict[str, float]:
         """Extract autocorrelation features."""
         features = {}
         prefix = col
@@ -275,7 +274,6 @@ class TimeSeriesEngine(BaseEngine):
             return features
 
         # Compute autocorrelation for different lags
-        mean = np.mean(series_clean)
         var = np.var(series_clean)
 
         if var == 0:
@@ -288,7 +286,7 @@ class TimeSeriesEngine(BaseEngine):
 
         return features
 
-    def _extract_peaks(self, series: np.ndarray, col: str) -> Dict[str, float]:
+    def _extract_peaks(self, series: np.ndarray, col: str) -> dict[str, float]:
         """Extract peak and trough related features."""
         from scipy.signal import find_peaks
 
@@ -319,7 +317,7 @@ class TimeSeriesEngine(BaseEngine):
 
         return features
 
-    def _extract_trends(self, series: np.ndarray, col: str) -> Dict[str, float]:
+    def _extract_trends(self, series: np.ndarray, col: str) -> dict[str, float]:
         """Extract trend-related features."""
         features = {}
         prefix = col
@@ -350,7 +348,7 @@ class TimeSeriesEngine(BaseEngine):
 
         return features
 
-    def _extract_rolling(self, series: np.ndarray, col: str) -> Dict[str, float]:
+    def _extract_rolling(self, series: np.ndarray, col: str) -> dict[str, float]:
         """Extract rolling window features."""
         features = {}
         prefix = col
@@ -371,7 +369,7 @@ class TimeSeriesEngine(BaseEngine):
 
         return features
 
-    def _extract_fft(self, series: np.ndarray, col: str) -> Dict[str, float]:
+    def _extract_fft(self, series: np.ndarray, col: str) -> dict[str, float]:
         """Extract FFT (frequency domain) features."""
         features = {}
         prefix = col
@@ -391,10 +389,10 @@ class TimeSeriesEngine(BaseEngine):
             features[f"{prefix}_fft_coeff_{i}"] = fft_abs[i]
 
         # Spectral energy
-        features[f"{prefix}_spectral_energy"] = np.sum(fft_abs ** 2)
+        features[f"{prefix}_spectral_energy"] = np.sum(fft_abs**2)
 
         # Dominant frequency
-        dominant_idx = np.argmax(fft_abs[1:len(fft_abs)//2]) + 1
+        dominant_idx = np.argmax(fft_abs[1 : len(fft_abs) // 2]) + 1
         features[f"{prefix}_dominant_freq_idx"] = dominant_idx
 
         return features

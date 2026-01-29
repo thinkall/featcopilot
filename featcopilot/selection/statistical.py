@@ -1,24 +1,23 @@
 """Statistical feature selection methods."""
 
-from typing import Dict, List, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
-from scipy import stats
 
-from featcopilot.core.base import BaseSelector, SelectorConfig
+from featcopilot.core.base import BaseSelector
 
 
 class StatisticalSelector(BaseSelector):
     """
     Feature selector based on statistical tests.
-    
+
     Uses statistical tests to evaluate feature relevance:
     - Mutual information
     - Chi-square test (categorical)
     - F-test (ANOVA)
     - Correlation with target
-    
+
     Parameters
     ----------
     method : str, default='mutual_info'
@@ -27,22 +26,22 @@ class StatisticalSelector(BaseSelector):
         Maximum features to select
     threshold : float, optional
         Minimum score threshold
-        
+
     Examples
     --------
     >>> selector = StatisticalSelector(method='mutual_info', max_features=50)
     >>> X_selected = selector.fit_transform(X, y)
     """
 
-    METHODS = ['mutual_info', 'f_test', 'chi2', 'correlation']
+    METHODS = ["mutual_info", "f_test", "chi2", "correlation"]
 
     def __init__(
         self,
-        method: str = 'mutual_info',
+        method: str = "mutual_info",
         max_features: Optional[int] = None,
         threshold: Optional[float] = None,
         verbose: bool = False,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         if method not in self.METHODS:
@@ -54,21 +53,18 @@ class StatisticalSelector(BaseSelector):
         self.verbose = verbose
 
     def fit(
-        self,
-        X: Union[pd.DataFrame, np.ndarray],
-        y: Union[pd.Series, np.ndarray],
-        **kwargs
+        self, X: Union[pd.DataFrame, np.ndarray], y: Union[pd.Series, np.ndarray], **kwargs
     ) -> "StatisticalSelector":
         """
         Fit selector to compute feature scores.
-        
+
         Parameters
         ----------
         X : DataFrame or ndarray
             Input features
         y : Series or ndarray
             Target variable
-            
+
         Returns
         -------
         self : StatisticalSelector
@@ -77,13 +73,13 @@ class StatisticalSelector(BaseSelector):
         y = np.array(y)
 
         # Compute scores based on method
-        if self.method == 'mutual_info':
+        if self.method == "mutual_info":
             scores = self._compute_mutual_info(X, y)
-        elif self.method == 'f_test':
+        elif self.method == "f_test":
             scores = self._compute_f_test(X, y)
-        elif self.method == 'chi2':
+        elif self.method == "chi2":
             scores = self._compute_chi2(X, y)
-        elif self.method == 'correlation':
+        elif self.method == "correlation":
             scores = self._compute_correlation(X, y)
         else:
             raise ValueError(f"Unknown method: {self.method}")
@@ -102,7 +98,7 @@ class StatisticalSelector(BaseSelector):
 
         # Determine if classification or regression
         unique_y = len(np.unique(y))
-        is_classification = unique_y < 20 and y.dtype in [np.int32, np.int64, 'object']
+        is_classification = unique_y < 20 and y.dtype in [np.int32, np.int64, "object"]
 
         X_array = X.fillna(0).values
 
@@ -164,41 +160,32 @@ class StatisticalSelector(BaseSelector):
     def _select_features(self) -> None:
         """Select features based on scores."""
         # Sort features by score
-        sorted_features = sorted(
-            self._feature_scores.items(),
-            key=lambda x: x[1],
-            reverse=True
-        )
+        sorted_features = sorted(self._feature_scores.items(), key=lambda x: x[1], reverse=True)
 
         # Apply threshold
         if self.threshold is not None:
             sorted_features = [
-                (name, score) for name, score in sorted_features
-                if score >= self.threshold
+                (name, score) for name, score in sorted_features if score >= self.threshold
             ]
 
         # Apply max_features limit
         if self.max_features is not None:
-            sorted_features = sorted_features[:self.max_features]
+            sorted_features = sorted_features[: self.max_features]
 
         self._selected_features = [name for name, _ in sorted_features]
 
         if self.verbose:
             print(f"StatisticalSelector: Selected {len(self._selected_features)} features")
 
-    def transform(
-        self,
-        X: Union[pd.DataFrame, np.ndarray],
-        **kwargs
-    ) -> pd.DataFrame:
+    def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
         """
         Select features from data.
-        
+
         Parameters
         ----------
         X : DataFrame or ndarray
             Input features
-            
+
         Returns
         -------
         X_selected : DataFrame

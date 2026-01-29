@@ -6,7 +6,7 @@ designed for feature engineering tasks.
 
 import asyncio
 import json
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -24,20 +24,20 @@ class CopilotConfig(BaseModel):
 class CopilotFeatureClient:
     """
     GitHub Copilot SDK client wrapper for feature engineering.
-    
+
     Provides high-level methods for:
     - Generating feature suggestions
     - Explaining features
     - Generating feature code
     - Validating features
-    
+
     Parameters
     ----------
     config : CopilotConfig, optional
         Configuration for the client
     model : str, default='gpt-5'
         Model to use for generation
-        
+
     Examples
     --------
     >>> client = CopilotFeatureClient(model='gpt-5')
@@ -49,12 +49,7 @@ class CopilotFeatureClient:
     >>> await client.stop()
     """
 
-    def __init__(
-        self,
-        config: Optional[CopilotConfig] = None,
-        model: str = "gpt-5",
-        **kwargs
-    ):
+    def __init__(self, config: Optional[CopilotConfig] = None, model: str = "gpt-5", **kwargs):
         self.config = config or CopilotConfig(model=model, **kwargs)
         self._client = None
         self._session = None
@@ -64,7 +59,7 @@ class CopilotFeatureClient:
     async def start(self) -> "CopilotFeatureClient":
         """
         Start the Copilot client.
-        
+
         Returns
         -------
         self : CopilotFeatureClient
@@ -74,10 +69,12 @@ class CopilotFeatureClient:
 
             self._client = CopilotClient()
             await self._client.start()
-            self._session = await self._client.create_session({
-                "model": self.config.model,
-                "streaming": self.config.streaming,
-            })
+            self._session = await self._client.create_session(
+                {
+                    "model": self.config.model,
+                    "streaming": self.config.streaming,
+                }
+            )
             self._is_started = True
             self._copilot_available = True
 
@@ -106,12 +103,12 @@ class CopilotFeatureClient:
     async def send_prompt(self, prompt: str) -> str:
         """
         Send a prompt and get a response.
-        
+
         Parameters
         ----------
         prompt : str
             The prompt to send
-            
+
         Returns
         -------
         response : str
@@ -148,51 +145,62 @@ class CopilotFeatureClient:
         """Generate mock response when Copilot is unavailable."""
         # Extract column names from prompt if available
         import re
+
         columns = re.findall(r"- (\w+) \(", prompt)
-        
+
         if ("suggest" in prompt.lower() or "feature" in prompt.lower()) and columns:
             # Generate context-aware mock features based on actual columns
             features = []
             if len(columns) >= 2:
                 col1, col2 = columns[0], columns[1]
-                features.append({
-                    "name": f"{col1}_{col2}_ratio",
-                    "code": f"result = df['{col1}'] / (df['{col2}'] + 1e-8)",
-                    "explanation": f"Ratio of {col1} to {col2}, captures relative relationship",
-                    "source_columns": [col1, col2]
-                })
-                features.append({
-                    "name": f"{col1}_{col2}_product",
-                    "code": f"result = df['{col1}'] * df['{col2}']",
-                    "explanation": f"Interaction between {col1} and {col2}",
-                    "source_columns": [col1, col2]
-                })
+                features.append(
+                    {
+                        "name": f"{col1}_{col2}_ratio",
+                        "code": f"result = df['{col1}'] / (df['{col2}'] + 1e-8)",
+                        "explanation": f"Ratio of {col1} to {col2}, captures relative relationship",
+                        "source_columns": [col1, col2],
+                    }
+                )
+                features.append(
+                    {
+                        "name": f"{col1}_{col2}_product",
+                        "code": f"result = df['{col1}'] * df['{col2}']",
+                        "explanation": f"Interaction between {col1} and {col2}",
+                        "source_columns": [col1, col2],
+                    }
+                )
             if len(columns) >= 3:
                 col3 = columns[2]
-                features.append({
-                    "name": f"{col1}_normalized_by_{col3}",
-                    "code": f"result = (df['{col1}'] - df['{col1}'].mean()) / (df['{col3}'] + 1e-8)",
-                    "explanation": f"Normalized {col1} adjusted by {col3}",
-                    "source_columns": [col1, col3]
-                })
+                features.append(
+                    {
+                        "name": f"{col1}_normalized_by_{col3}",
+                        "code": f"result = (df['{col1}'] - df['{col1}'].mean()) / (df['{col3}'] + 1e-8)",
+                        "explanation": f"Normalized {col1} adjusted by {col3}",
+                        "source_columns": [col1, col3],
+                    }
+                )
             if len(columns) >= 1:
-                features.append({
-                    "name": f"{columns[0]}_zscore",
-                    "code": f"result = (df['{columns[0]}'] - df['{columns[0]}'].mean()) / (df['{columns[0]}'].std() + 1e-8)",
-                    "explanation": f"Z-score normalization of {columns[0]}",
-                    "source_columns": [columns[0]]
-                })
+                features.append(
+                    {
+                        "name": f"{columns[0]}_zscore",
+                        "code": f"result = (df['{columns[0]}'] - df['{columns[0]}'].mean()) / (df['{columns[0]}'].std() + 1e-8)",
+                        "explanation": f"Z-score normalization of {columns[0]}",
+                        "source_columns": [columns[0]],
+                    }
+                )
             return json.dumps({"features": features})
         elif "suggest" in prompt.lower() or "feature" in prompt.lower():
-            return json.dumps({
-                "features": [
-                    {
-                        "name": "feature_interaction",
-                        "code": "result = df.iloc[:, 0] * df.iloc[:, 1]",
-                        "explanation": "Interaction between first two features"
-                    }
-                ]
-            })
+            return json.dumps(
+                {
+                    "features": [
+                        {
+                            "name": "feature_interaction",
+                            "code": "result = df.iloc[:, 0] * df.iloc[:, 1]",
+                            "explanation": "Interaction between first two features",
+                        }
+                    ]
+                }
+            )
         elif "explain" in prompt.lower():
             return "This feature captures the relationship between the input variables."
         elif "code" in prompt.lower():
@@ -202,15 +210,15 @@ class CopilotFeatureClient:
 
     async def suggest_features(
         self,
-        column_info: Dict[str, str],
+        column_info: dict[str, str],
         task_description: str,
-        column_descriptions: Optional[Dict[str, str]] = None,
+        column_descriptions: Optional[dict[str, str]] = None,
         domain: Optional[str] = None,
-        max_suggestions: int = 10
-    ) -> List[Dict[str, Any]]:
+        max_suggestions: int = 10,
+    ) -> list[dict[str, Any]]:
         """
         Get LLM suggestions for new features.
-        
+
         Parameters
         ----------
         column_info : dict
@@ -223,7 +231,7 @@ class CopilotFeatureClient:
             Domain context (e.g., 'healthcare', 'finance')
         max_suggestions : int, default=10
             Maximum number of feature suggestions
-            
+
         Returns
         -------
         suggestions : list
@@ -238,11 +246,11 @@ class CopilotFeatureClient:
 
     def _build_suggestion_prompt(
         self,
-        column_info: Dict[str, str],
+        column_info: dict[str, str],
         task_description: str,
-        column_descriptions: Optional[Dict[str, str]] = None,
+        column_descriptions: Optional[dict[str, str]] = None,
         domain: Optional[str] = None,
-        max_suggestions: int = 10
+        max_suggestions: int = 10,
     ) -> str:
         """Build the prompt for feature suggestions."""
         prompt = f"""You are an expert data scientist specializing in feature engineering.
@@ -291,7 +299,7 @@ Return ONLY the JSON object, no other text.
 """
         return prompt
 
-    def _parse_suggestions(self, response: str) -> List[Dict[str, Any]]:
+    def _parse_suggestions(self, response: str) -> list[dict[str, Any]]:
         """Parse feature suggestions from LLM response."""
         try:
             # Try to extract JSON from response
@@ -307,7 +315,8 @@ Return ONLY the JSON object, no other text.
         except json.JSONDecodeError:
             # Try to extract JSON substring
             import re
-            json_match = re.search(r'\{.*\}', response, re.DOTALL)
+
+            json_match = re.search(r"\{.*\}", response, re.DOTALL)
             if json_match:
                 try:
                     data = json.loads(json_match.group())
@@ -321,12 +330,12 @@ Return ONLY the JSON object, no other text.
         self,
         feature_name: str,
         feature_code: str,
-        column_descriptions: Optional[Dict[str, str]] = None,
-        task_description: Optional[str] = None
+        column_descriptions: Optional[dict[str, str]] = None,
+        task_description: Optional[str] = None,
     ) -> str:
         """
         Get a human-readable explanation of a feature.
-        
+
         Parameters
         ----------
         feature_name : str
@@ -337,7 +346,7 @@ Return ONLY the JSON object, no other text.
             Descriptions of source columns
         task_description : str, optional
             Description of the ML task
-            
+
         Returns
         -------
         explanation : str
@@ -364,14 +373,11 @@ Provide a 2-3 sentence explanation of:
         return await self.send_prompt(prompt)
 
     async def generate_feature_code(
-        self,
-        description: str,
-        column_info: Dict[str, str],
-        constraints: Optional[List[str]] = None
+        self, description: str, column_info: dict[str, str], constraints: Optional[list[str]] = None
     ) -> str:
         """
         Generate Python code for a described feature.
-        
+
         Parameters
         ----------
         description : str
@@ -380,7 +386,7 @@ Provide a 2-3 sentence explanation of:
             Available columns and their types
         constraints : list, optional
             Constraints on the generated code
-            
+
         Returns
         -------
         code : str
@@ -428,27 +434,25 @@ result = df['col1'] / (df['col2'] + 1e-8)
         return code
 
     async def validate_feature_code(
-        self,
-        code: str,
-        sample_data: Optional[Dict[str, List]] = None
-    ) -> Dict[str, Any]:
+        self, code: str, sample_data: Optional[dict[str, list]] = None
+    ) -> dict[str, Any]:
         """
         Validate generated feature code.
-        
+
         Parameters
         ----------
         code : str
             Feature code to validate
         sample_data : dict, optional
             Sample data for testing
-            
+
         Returns
         -------
         result : dict
             Validation result with 'valid', 'error', and 'warnings' keys
         """
-        import pandas as pd
         import numpy as np
+        import pandas as pd
 
         result = {"valid": True, "error": None, "warnings": []}
 
@@ -465,7 +469,11 @@ result = df['col1'] / (df['col2'] + 1e-8)
             try:
                 df = pd.DataFrame(sample_data)
                 local_vars = {"df": df, "np": np, "pd": pd}
-                exec(code, {"__builtins__": {"len": len, "sum": sum, "max": max, "min": min}}, local_vars)
+                exec(
+                    code,
+                    {"__builtins__": {"len": len, "sum": sum, "max": max, "min": min}},
+                    local_vars,
+                )
 
                 if "result" not in local_vars:
                     result["warnings"].append("Code does not assign to 'result' variable")
@@ -501,14 +509,10 @@ class SyncCopilotFeatureClient:
         return self._get_loop().run_until_complete(self._async_client.stop())
 
     def suggest_features(self, **kwargs):
-        return self._get_loop().run_until_complete(
-            self._async_client.suggest_features(**kwargs)
-        )
+        return self._get_loop().run_until_complete(self._async_client.suggest_features(**kwargs))
 
     def explain_feature(self, **kwargs):
-        return self._get_loop().run_until_complete(
-            self._async_client.explain_feature(**kwargs)
-        )
+        return self._get_loop().run_until_complete(self._async_client.explain_feature(**kwargs))
 
     def generate_feature_code(self, **kwargs):
         return self._get_loop().run_until_complete(

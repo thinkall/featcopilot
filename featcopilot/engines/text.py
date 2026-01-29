@@ -3,23 +3,23 @@
 Generates features from text data using embeddings and NLP techniques.
 """
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 import pandas as pd
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from featcopilot.core.base import BaseEngine, EngineConfig
-from featcopilot.core.feature import Feature, FeatureOrigin, FeatureSet, FeatureType
+from featcopilot.core.feature import FeatureSet
 
 
 class TextEngineConfig(EngineConfig):
     """Configuration for text feature engine."""
 
     name: str = "TextEngine"
-    features: List[str] = Field(
+    features: list[str] = Field(
         default_factory=lambda: ["length", "word_count", "char_stats"],
-        description="Feature types to extract"
+        description="Feature types to extract",
     )
     max_vocab_size: int = Field(default=5000, description="Max vocabulary size for TF-IDF")
     n_components: int = Field(default=50, description="Components for dimensionality reduction")
@@ -28,21 +28,21 @@ class TextEngineConfig(EngineConfig):
 class TextEngine(BaseEngine):
     """
     Text feature engineering engine.
-    
+
     Extracts features from text columns including:
     - Length and character statistics
     - Word count features
     - TF-IDF features (optional)
     - Sentiment features (optional)
     - Embedding features (with LLM integration)
-    
+
     Parameters
     ----------
     features : list
         Feature types to extract
     max_vocab_size : int, default=5000
         Maximum vocabulary size for TF-IDF
-        
+
     Examples
     --------
     >>> engine = TextEngine(features=['length', 'word_count', 'tfidf'])
@@ -51,35 +51,35 @@ class TextEngine(BaseEngine):
 
     def __init__(
         self,
-        features: Optional[List[str]] = None,
+        features: Optional[list[str]] = None,
         max_vocab_size: int = 5000,
         max_features: Optional[int] = None,
         verbose: bool = False,
-        **kwargs
+        **kwargs,
     ):
         config = TextEngineConfig(
             features=features or ["length", "word_count", "char_stats"],
             max_vocab_size=max_vocab_size,
             max_features=max_features,
             verbose=verbose,
-            **kwargs
+            **kwargs,
         )
         super().__init__(config=config)
         self.config: TextEngineConfig = config
-        self._text_columns: List[str] = []
-        self._vectorizers: Dict[str, Any] = {}
+        self._text_columns: list[str] = []
+        self._vectorizers: dict[str, Any] = {}
         self._feature_set = FeatureSet()
 
     def fit(
         self,
         X: Union[pd.DataFrame, np.ndarray],
         y: Optional[Union[pd.Series, np.ndarray]] = None,
-        text_columns: Optional[List[str]] = None,
-        **kwargs
+        text_columns: Optional[list[str]] = None,
+        **kwargs,
     ) -> "TextEngine":
         """
         Fit the engine to identify and process text columns.
-        
+
         Parameters
         ----------
         X : DataFrame
@@ -88,7 +88,7 @@ class TextEngine(BaseEngine):
             Target variable
         text_columns : list, optional
             Specific columns to treat as text
-            
+
         Returns
         -------
         self : TextEngine
@@ -102,7 +102,8 @@ class TextEngine(BaseEngine):
             self._text_columns = X.select_dtypes(include=["object"]).columns.tolist()
             # Filter to likely text columns (not IDs, not low cardinality)
             self._text_columns = [
-                col for col in self._text_columns
+                col
+                for col in self._text_columns
                 if X[col].str.len().mean() > 10 and X[col].nunique() > 10
             ]
 
@@ -119,14 +120,13 @@ class TextEngine(BaseEngine):
     def _fit_tfidf(self, X: pd.DataFrame) -> None:
         """Fit TF-IDF vectorizers for text columns."""
         try:
-            from sklearn.feature_extraction.text import TfidfVectorizer
             from sklearn.decomposition import TruncatedSVD
+            from sklearn.feature_extraction.text import TfidfVectorizer
 
             for col in self._text_columns:
                 texts = X[col].fillna("").astype(str)
                 vectorizer = TfidfVectorizer(
-                    max_features=self.config.max_vocab_size,
-                    stop_words="english"
+                    max_features=self.config.max_vocab_size, stop_words="english"
                 )
                 tfidf_matrix = vectorizer.fit_transform(texts)
 
@@ -141,19 +141,15 @@ class TextEngine(BaseEngine):
             if self.config.verbose:
                 print("TextEngine: sklearn not available for TF-IDF, skipping")
 
-    def transform(
-        self,
-        X: Union[pd.DataFrame, np.ndarray],
-        **kwargs
-    ) -> pd.DataFrame:
+    def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
         """
         Extract text features.
-        
+
         Parameters
         ----------
         X : DataFrame
             Input data
-            
+
         Returns
         -------
         X_features : DataFrame

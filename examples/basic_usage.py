@@ -7,9 +7,9 @@ automated feature engineering on tabular data.
 
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, roc_auc_score
+from sklearn.metrics import roc_auc_score
+from sklearn.model_selection import train_test_split
 
 # Import FeatCopilot
 from featcopilot import AutoFeatureEngineer
@@ -19,16 +19,18 @@ def create_sample_data(n_samples=1000):
     """Create synthetic customer churn dataset."""
     np.random.seed(42)
 
-    data = pd.DataFrame({
-        "age": np.random.randint(18, 80, n_samples),
-        "income": np.random.exponential(50000, n_samples),
-        "tenure_months": np.random.randint(1, 120, n_samples),
-        "monthly_charges": np.random.uniform(20, 150, n_samples),
-        "total_charges": np.random.exponential(2000, n_samples),
-        "contract_length": np.random.choice([1, 12, 24], n_samples),
-        "num_products": np.random.randint(1, 6, n_samples),
-        "support_tickets": np.random.poisson(2, n_samples),
-    })
+    data = pd.DataFrame(
+        {
+            "age": np.random.randint(18, 80, n_samples),
+            "income": np.random.exponential(50000, n_samples),
+            "tenure_months": np.random.randint(1, 120, n_samples),
+            "monthly_charges": np.random.uniform(20, 150, n_samples),
+            "total_charges": np.random.exponential(2000, n_samples),
+            "contract_length": np.random.choice([1, 12, 24], n_samples),
+            "num_products": np.random.randint(1, 6, n_samples),
+            "support_tickets": np.random.poisson(2, n_samples),
+        }
+    )
 
     # Create target with some signal
     churn_prob = (
@@ -60,9 +62,7 @@ def main():
     print(f"   - Features: {list(X.columns)}")
 
     # Split data
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
-    )
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     # Baseline model (no feature engineering)
     print("\n2. Training baseline model (no feature engineering)...")
@@ -124,9 +124,7 @@ def main():
     if engineer.feature_importances_:
         print("\n5. Top 10 feature importance scores:")
         importances = sorted(
-            engineer.feature_importances_.items(),
-            key=lambda x: x[1],
-            reverse=True
+            engineer.feature_importances_.items(), key=lambda x: x[1], reverse=True
         )[:10]
         for i, (name, score) in enumerate(importances, 1):
             print(f"   {i:2d}. {name}: {score:.4f}")

@@ -1,6 +1,6 @@
 """Model-based feature importance selection."""
 
-from typing import Dict, List, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -11,9 +11,9 @@ from featcopilot.core.base import BaseSelector
 class ImportanceSelector(BaseSelector):
     """
     Feature selector based on model importance scores.
-    
+
     Uses tree-based models to evaluate feature importance.
-    
+
     Parameters
     ----------
     model : str, default='random_forest'
@@ -22,7 +22,7 @@ class ImportanceSelector(BaseSelector):
         Maximum features to select
     threshold : float, optional
         Minimum importance threshold
-        
+
     Examples
     --------
     >>> selector = ImportanceSelector(model='random_forest', max_features=50)
@@ -31,12 +31,12 @@ class ImportanceSelector(BaseSelector):
 
     def __init__(
         self,
-        model: str = 'random_forest',
+        model: str = "random_forest",
         max_features: Optional[int] = None,
         threshold: Optional[float] = None,
         n_estimators: int = 100,
         verbose: bool = False,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.model_type = model
@@ -47,21 +47,18 @@ class ImportanceSelector(BaseSelector):
         self._model = None
 
     def fit(
-        self,
-        X: Union[pd.DataFrame, np.ndarray],
-        y: Union[pd.Series, np.ndarray],
-        **kwargs
+        self, X: Union[pd.DataFrame, np.ndarray], y: Union[pd.Series, np.ndarray], **kwargs
     ) -> "ImportanceSelector":
         """
         Fit selector using a tree model.
-        
+
         Parameters
         ----------
         X : DataFrame or ndarray
             Input features
         y : Series or ndarray
             Target variable
-            
+
         Returns
         -------
         self : ImportanceSelector
@@ -92,50 +89,41 @@ class ImportanceSelector(BaseSelector):
 
     def _create_model(self, is_classification: bool):
         """Create the appropriate model."""
-        if self.model_type == 'random_forest':
+        if self.model_type == "random_forest":
             if is_classification:
                 from sklearn.ensemble import RandomForestClassifier
+
                 return RandomForestClassifier(
-                    n_estimators=self.n_estimators,
-                    random_state=42,
-                    n_jobs=-1
+                    n_estimators=self.n_estimators, random_state=42, n_jobs=-1
                 )
             else:
                 from sklearn.ensemble import RandomForestRegressor
+
                 return RandomForestRegressor(
-                    n_estimators=self.n_estimators,
-                    random_state=42,
-                    n_jobs=-1
+                    n_estimators=self.n_estimators, random_state=42, n_jobs=-1
                 )
 
-        elif self.model_type == 'gradient_boosting':
+        elif self.model_type == "gradient_boosting":
             if is_classification:
                 from sklearn.ensemble import GradientBoostingClassifier
-                return GradientBoostingClassifier(
-                    n_estimators=self.n_estimators,
-                    random_state=42
-                )
+
+                return GradientBoostingClassifier(n_estimators=self.n_estimators, random_state=42)
             else:
                 from sklearn.ensemble import GradientBoostingRegressor
-                return GradientBoostingRegressor(
-                    n_estimators=self.n_estimators,
-                    random_state=42
-                )
 
-        elif self.model_type == 'xgboost':
+                return GradientBoostingRegressor(n_estimators=self.n_estimators, random_state=42)
+
+        elif self.model_type == "xgboost":
             try:
                 import xgboost as xgb
+
                 if is_classification:
                     return xgb.XGBClassifier(
-                        n_estimators=self.n_estimators,
-                        random_state=42,
-                        n_jobs=-1
+                        n_estimators=self.n_estimators, random_state=42, n_jobs=-1
                     )
                 else:
                     return xgb.XGBRegressor(
-                        n_estimators=self.n_estimators,
-                        random_state=42,
-                        n_jobs=-1
+                        n_estimators=self.n_estimators, random_state=42, n_jobs=-1
                     )
             except ImportError:
                 if self.verbose:
@@ -149,38 +137,31 @@ class ImportanceSelector(BaseSelector):
         """Fallback to RandomForest."""
         if is_classification:
             from sklearn.ensemble import RandomForestClassifier
+
             return RandomForestClassifier(n_estimators=self.n_estimators, random_state=42)
         else:
             from sklearn.ensemble import RandomForestRegressor
+
             return RandomForestRegressor(n_estimators=self.n_estimators, random_state=42)
 
     def _select_features(self) -> None:
         """Select features based on importance."""
-        sorted_features = sorted(
-            self._feature_scores.items(),
-            key=lambda x: x[1],
-            reverse=True
-        )
+        sorted_features = sorted(self._feature_scores.items(), key=lambda x: x[1], reverse=True)
 
         if self.threshold is not None:
             sorted_features = [
-                (name, score) for name, score in sorted_features
-                if score >= self.threshold
+                (name, score) for name, score in sorted_features if score >= self.threshold
             ]
 
         if self.max_features is not None:
-            sorted_features = sorted_features[:self.max_features]
+            sorted_features = sorted_features[: self.max_features]
 
         self._selected_features = [name for name, _ in sorted_features]
 
         if self.verbose:
             print(f"ImportanceSelector: Selected {len(self._selected_features)} features")
 
-    def transform(
-        self,
-        X: Union[pd.DataFrame, np.ndarray],
-        **kwargs
-    ) -> pd.DataFrame:
+    def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
         """Select features from data."""
         if not self._is_fitted:
             raise RuntimeError("Selector must be fitted before transform")

@@ -2,10 +2,9 @@
 
 import hashlib
 import json
-import os
 import pickle
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import pandas as pd
 
@@ -13,17 +12,17 @@ import pandas as pd
 class FeatureCache:
     """
     Cache for computed features.
-    
+
     Stores computed features to avoid recomputation.
     Supports both in-memory and disk-based caching.
-    
+
     Parameters
     ----------
     cache_dir : str, optional
         Directory for disk cache
     max_memory_items : int, default=100
         Maximum items in memory cache
-        
+
     Examples
     --------
     >>> cache = FeatureCache(cache_dir='.feature_cache')
@@ -31,15 +30,11 @@ class FeatureCache:
     >>> data = cache.get('my_feature')
     """
 
-    def __init__(
-        self,
-        cache_dir: Optional[str] = None,
-        max_memory_items: int = 100
-    ):
+    def __init__(self, cache_dir: Optional[str] = None, max_memory_items: int = 100):
         self.cache_dir = Path(cache_dir) if cache_dir else None
         self.max_memory_items = max_memory_items
-        self._memory_cache: Dict[str, Any] = {}
-        self._metadata: Dict[str, Dict] = {}
+        self._memory_cache: dict[str, Any] = {}
+        self._metadata: dict[str, dict] = {}
 
         if self.cache_dir:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
@@ -58,21 +53,17 @@ class FeatureCache:
         combined = f"{shape_str}_{sample}"
         return hashlib.md5(combined.encode()).hexdigest()[:16]
 
-    def get(
-        self,
-        key: str,
-        data_hash: Optional[str] = None
-    ) -> Optional[Any]:
+    def get(self, key: str, data_hash: Optional[str] = None) -> Optional[Any]:
         """
         Get cached item.
-        
+
         Parameters
         ----------
         key : str
             Cache key
         data_hash : str, optional
             Data hash for validation
-            
+
         Returns
         -------
         value : Any or None
@@ -89,7 +80,7 @@ class FeatureCache:
             cache_path = self.cache_dir / f"{cache_key}.pkl"
             if cache_path.exists():
                 try:
-                    with open(cache_path, 'rb') as f:
+                    with open(cache_path, "rb") as f:
                         value = pickle.load(f)
                     # Store in memory cache
                     self._memory_cache[cache_key] = value
@@ -104,12 +95,12 @@ class FeatureCache:
         key: str,
         value: Any,
         data_hash: Optional[str] = None,
-        metadata: Optional[Dict] = None,
-        persist: bool = True
+        metadata: Optional[dict] = None,
+        persist: bool = True,
     ) -> None:
         """
         Set cached item.
-        
+
         Parameters
         ----------
         key : str
@@ -139,12 +130,12 @@ class FeatureCache:
         if persist and self.cache_dir:
             cache_path = self.cache_dir / f"{cache_key}.pkl"
             try:
-                with open(cache_path, 'wb') as f:
+                with open(cache_path, "wb") as f:
                     pickle.dump(value, f)
 
                 # Save metadata
                 meta_path = self.cache_dir / f"{cache_key}.meta.json"
-                with open(meta_path, 'w') as f:
+                with open(meta_path, "w") as f:
                     json.dump(metadata or {}, f)
             except Exception:
                 pass
@@ -156,14 +147,14 @@ class FeatureCache:
     def delete(self, key: str, data_hash: Optional[str] = None) -> bool:
         """
         Delete cached item.
-        
+
         Parameters
         ----------
         key : str
             Cache key
         data_hash : str, optional
             Data hash
-            
+
         Returns
         -------
         deleted : bool
@@ -201,7 +192,7 @@ class FeatureCache:
             for f in self.cache_dir.glob("*.meta.json"):
                 f.unlink()
 
-    def get_metadata(self, key: str, data_hash: Optional[str] = None) -> Optional[Dict]:
+    def get_metadata(self, key: str, data_hash: Optional[str] = None) -> Optional[dict]:
         """Get metadata for cached item."""
         cache_key = self._get_cache_key(key, data_hash)
 
@@ -212,7 +203,7 @@ class FeatureCache:
             meta_path = self.cache_dir / f"{cache_key}.meta.json"
             if meta_path.exists():
                 try:
-                    with open(meta_path, 'r') as f:
+                    with open(meta_path) as f:
                         return json.load(f)
                 except Exception:
                     pass

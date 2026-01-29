@@ -1,8 +1,6 @@
 """Tests for core module."""
 
-import numpy as np
 import pandas as pd
-import pytest
 
 from featcopilot.core.feature import Feature, FeatureOrigin, FeatureSet, FeatureType
 from featcopilot.core.registry import FeatureRegistry
@@ -19,7 +17,7 @@ class TestFeature:
             origin=FeatureOrigin.POLYNOMIAL,
             source_columns=["col1"],
             transformation="square",
-            explanation="Test explanation"
+            explanation="Test explanation",
         )
 
         assert feature.name == "test_feature"
@@ -42,7 +40,7 @@ class TestFeature:
             "dtype": "numeric",
             "origin": "polynomial",
             "source_columns": ["x"],
-            "transformation": "log"
+            "transformation": "log",
         }
         feature = Feature.from_dict(d)
 
@@ -51,10 +49,7 @@ class TestFeature:
 
     def test_feature_compute(self):
         """Test feature computation from code."""
-        feature = Feature(
-            name="col_squared",
-            code="result = df['col1'] ** 2"
-        )
+        feature = Feature(name="col_squared", code="result = df['col1'] ** 2")
 
         df = pd.DataFrame({"col1": [1, 2, 3, 4]})
         result = feature.compute(df)
@@ -80,22 +75,26 @@ class TestFeatureSet:
 
     def test_feature_set_filter_by_origin(self):
         """Test filtering by origin."""
-        fs = FeatureSet([
-            Feature(name="f1", origin=FeatureOrigin.POLYNOMIAL),
-            Feature(name="f2", origin=FeatureOrigin.INTERACTION),
-            Feature(name="f3", origin=FeatureOrigin.POLYNOMIAL),
-        ])
+        fs = FeatureSet(
+            [
+                Feature(name="f1", origin=FeatureOrigin.POLYNOMIAL),
+                Feature(name="f2", origin=FeatureOrigin.INTERACTION),
+                Feature(name="f3", origin=FeatureOrigin.POLYNOMIAL),
+            ]
+        )
 
         poly_features = fs.filter_by_origin(FeatureOrigin.POLYNOMIAL)
         assert len(poly_features) == 2
 
     def test_feature_set_get_names(self):
         """Test getting feature names."""
-        fs = FeatureSet([
-            Feature(name="a"),
-            Feature(name="b"),
-            Feature(name="c"),
-        ])
+        fs = FeatureSet(
+            [
+                Feature(name="a"),
+                Feature(name="b"),
+                Feature(name="c"),
+            ]
+        )
 
         names = fs.get_names()
         assert set(names) == {"a", "b", "c"}

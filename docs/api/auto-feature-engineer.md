@@ -8,7 +8,7 @@ The main entry point for FeatCopilot.
 class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
     """
     Main auto feature engineering class.
-    
+
     Combines multiple engines and selection methods for comprehensive
     automated feature engineering with LLM capabilities.
     """

@@ -4,11 +4,11 @@ Generates polynomial features, interaction terms, and mathematical transformatio
 """
 
 from itertools import combinations
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from featcopilot.core.base import BaseEngine, EngineConfig
 from featcopilot.core.feature import Feature, FeatureOrigin, FeatureSet, FeatureType
@@ -21,9 +21,9 @@ class TabularEngineConfig(EngineConfig):
     polynomial_degree: int = Field(default=2, ge=1, le=4, description="Max polynomial degree")
     interaction_only: bool = Field(default=False, description="Only interaction terms, no powers")
     include_bias: bool = Field(default=False, description="Include bias/intercept term")
-    include_transforms: List[str] = Field(
+    include_transforms: list[str] = Field(
         default_factory=lambda: ["log", "sqrt", "square"],
-        description="Mathematical transformations to apply"
+        description="Mathematical transformations to apply",
     )
     numeric_only: bool = Field(default=True, description="Only process numeric columns")
     min_unique_values: int = Field(default=5, description="Min unique values for continuous")
@@ -32,14 +32,14 @@ class TabularEngineConfig(EngineConfig):
 class TabularEngine(BaseEngine):
     """
     Tabular feature engineering engine.
-    
+
     Generates:
     - Polynomial features (x^2, x^3, etc.)
     - Interaction features (x1 * x2)
     - Mathematical transformations (log, sqrt, etc.)
     - Ratio features (x1 / x2)
     - Difference features (x1 - x2)
-    
+
     Parameters
     ----------
     polynomial_degree : int, default=2
@@ -50,7 +50,7 @@ class TabularEngine(BaseEngine):
         Mathematical transformations to apply
     max_features : int, optional
         Maximum number of features to generate
-    
+
     Examples
     --------
     >>> engine = TabularEngine(polynomial_degree=2, include_transforms=['log', 'sqrt'])
@@ -62,8 +62,8 @@ class TabularEngine(BaseEngine):
         "log": ("log1p", lambda x: np.log1p(np.abs(x))),
         "log10": ("log10", lambda x: np.log10(np.abs(x) + 1)),
         "sqrt": ("sqrt", lambda x: np.sqrt(np.abs(x))),
-        "square": ("sq", lambda x: x ** 2),
-        "cube": ("cb", lambda x: x ** 3),
+        "square": ("sq", lambda x: x**2),
+        "cube": ("cb", lambda x: x**3),
         "reciprocal": ("recip", lambda x: 1 / (x + 1e-8)),
         "exp": ("exp", lambda x: np.exp(np.clip(x, -50, 50))),
         "tanh": ("tanh", lambda x: np.tanh(x)),
@@ -75,10 +75,10 @@ class TabularEngine(BaseEngine):
         self,
         polynomial_degree: int = 2,
         interaction_only: bool = False,
-        include_transforms: Optional[List[str]] = None,
+        include_transforms: Optional[list[str]] = None,
         max_features: Optional[int] = None,
         verbose: bool = False,
-        **kwargs
+        **kwargs,
     ):
         config = TabularEngineConfig(
             polynomial_degree=polynomial_degree,
@@ -86,29 +86,29 @@ class TabularEngine(BaseEngine):
             include_transforms=include_transforms or ["log", "sqrt", "square"],
             max_features=max_features,
             verbose=verbose,
-            **kwargs
+            **kwargs,
         )
         super().__init__(config=config)
         self.config: TabularEngineConfig = config
-        self._numeric_columns: List[str] = []
+        self._numeric_columns: list[str] = []
         self._feature_set = FeatureSet()
 
     def fit(
         self,
         X: Union[pd.DataFrame, np.ndarray],
         y: Optional[Union[pd.Series, np.ndarray]] = None,
-        **kwargs
+        **kwargs,
     ) -> "TabularEngine":
         """
         Fit the engine to identify numeric columns and plan features.
-        
+
         Parameters
         ----------
         X : DataFrame or ndarray
             Input features
         y : Series or ndarray, optional
             Target variable (unused, for API compatibility)
-        
+
         Returns
         -------
         self : TabularEngine
@@ -120,7 +120,8 @@ class TabularEngine(BaseEngine):
 
         # Filter by unique values
         self._numeric_columns = [
-            col for col in self._numeric_columns
+            col
+            for col in self._numeric_columns
             if X[col].nunique() >= self.config.min_unique_values
         ]
 
@@ -210,19 +211,15 @@ class TabularEngine(BaseEngine):
         if self.config.verbose:
             print(f"TabularEngine: Planned {len(self._feature_set)} features")
 
-    def transform(
-        self,
-        X: Union[pd.DataFrame, np.ndarray],
-        **kwargs
-    ) -> pd.DataFrame:
+    def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
         """
         Generate new features from input data.
-        
+
         Parameters
         ----------
         X : DataFrame or ndarray
             Input features
-            
+
         Returns
         -------
         X_transformed : DataFrame

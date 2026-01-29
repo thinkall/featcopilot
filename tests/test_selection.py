@@ -20,12 +20,14 @@ class TestStatisticalSelector:
         """Create classification data."""
         np.random.seed(42)
         n = 200
-        X = pd.DataFrame({
-            "relevant1": np.random.randn(n),
-            "relevant2": np.random.randn(n),
-            "noise1": np.random.randn(n),
-            "noise2": np.random.randn(n),
-        })
+        X = pd.DataFrame(
+            {
+                "relevant1": np.random.randn(n),
+                "relevant2": np.random.randn(n),
+                "noise1": np.random.randn(n),
+                "noise2": np.random.randn(n),
+            }
+        )
         # Make target depend on relevant features
         y = (X["relevant1"] + X["relevant2"] > 0).astype(int)
         return X, y
@@ -67,11 +69,13 @@ class TestImportanceSelector:
         """Create regression data."""
         np.random.seed(42)
         n = 200
-        X = pd.DataFrame({
-            "important1": np.random.randn(n),
-            "important2": np.random.randn(n),
-            "unimportant": np.random.randn(n) * 0.01,
-        })
+        X = pd.DataFrame(
+            {
+                "important1": np.random.randn(n),
+                "important2": np.random.randn(n),
+                "unimportant": np.random.randn(n) * 0.01,
+            }
+        )
         y = X["important1"] * 2 + X["important2"] + np.random.randn(n) * 0.1
         return X, y
 
@@ -96,11 +100,13 @@ class TestRedundancyEliminator:
         np.random.seed(42)
         n = 200
         base = np.random.randn(n)
-        X = pd.DataFrame({
-            "original": base,
-            "duplicate": base + np.random.randn(n) * 0.01,  # Nearly identical
-            "independent": np.random.randn(n),
-        })
+        X = pd.DataFrame(
+            {
+                "original": base,
+                "duplicate": base + np.random.randn(n) * 0.01,  # Nearly identical
+                "independent": np.random.randn(n),
+            }
+        )
         return X
 
     def test_redundancy_elimination(self, correlated_data):
@@ -116,7 +122,7 @@ class TestRedundancyEliminator:
         """Test keeping more important feature."""
         eliminator = RedundancyEliminator(
             correlation_threshold=0.95,
-            importance_scores={"original": 0.8, "duplicate": 0.2, "independent": 0.5}
+            importance_scores={"original": 0.8, "duplicate": 0.2, "independent": 0.5},
         )
         X_reduced = eliminator.fit_transform(correlated_data)
 
@@ -133,19 +139,14 @@ class TestFeatureSelector:
         """Create data for testing."""
         np.random.seed(42)
         n = 200
-        X = pd.DataFrame({
-            f"feature_{i}": np.random.randn(n) for i in range(10)
-        })
+        X = pd.DataFrame({f"feature_{i}": np.random.randn(n) for i in range(10)})
         y = X["feature_0"] + X["feature_1"] + np.random.randn(n) * 0.1
         return X, y
 
     def test_unified_selector(self, mixed_data):
         """Test unified feature selection."""
         X, y = mixed_data
-        selector = FeatureSelector(
-            methods=["mutual_info", "importance"],
-            max_features=5
-        )
+        selector = FeatureSelector(methods=["mutual_info", "importance"], max_features=5)
         X_selected = selector.fit_transform(X, y)
 
         assert len(selector.get_selected_features()) == 5

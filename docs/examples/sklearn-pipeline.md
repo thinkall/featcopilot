@@ -173,14 +173,14 @@ from featcopilot import AutoFeatureEngineer
 
 class FeatCopilotTransformer(BaseEstimator, TransformerMixin):
     """Sklearn-compatible FeatCopilot wrapper."""
-    
+
     def __init__(self, engines=None, max_features=50, fill_value=0):
         self.engines = engines or ['tabular']
         self.max_features = max_features
         self.fill_value = fill_value
         self.engineer_ = None
         self.feature_names_ = None
-    
+
     def fit(self, X, y=None):
         self.engineer_ = AutoFeatureEngineer(
             engines=self.engines,
@@ -189,7 +189,7 @@ class FeatCopilotTransformer(BaseEstimator, TransformerMixin):
         X_fe = self.engineer_.fit_transform(X, y)
         self.feature_names_ = list(X_fe.columns)
         return self
-    
+
     def transform(self, X):
         X_fe = self.engineer_.transform(X)
         # Ensure consistent columns
@@ -198,7 +198,7 @@ class FeatCopilotTransformer(BaseEstimator, TransformerMixin):
                 X_fe[col] = self.fill_value
         X_fe = X_fe[self.feature_names_]
         return X_fe.fillna(self.fill_value).values
-    
+
     def get_feature_names_out(self, input_features=None):
         return self.feature_names_
 
@@ -220,25 +220,25 @@ def cv_with_feature_engineering(X, y, n_splits=5):
     """Cross-validation with feature engineering inside each fold."""
     kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
     scores = []
-    
+
     for train_idx, val_idx in kf.split(X):
         X_train, X_val = X.iloc[train_idx], X.iloc[val_idx]
         y_train, y_val = y.iloc[train_idx], y.iloc[val_idx]
-        
+
         # Feature engineering inside fold
         engineer = AutoFeatureEngineer(engines=['tabular'], max_features=30)
         X_train_fe = engineer.fit_transform(X_train, y_train).fillna(0)
         X_val_fe = engineer.transform(X_val).fillna(0)
-        
+
         # Align columns
         cols = [c for c in X_train_fe.columns if c in X_val_fe.columns]
-        
+
         # Train and evaluate
         model = LogisticRegression()
         model.fit(X_train_fe[cols], y_train)
         score = model.score(X_val_fe[cols], y_val)
         scores.append(score)
-    
+
     return np.mean(scores), np.std(scores)
 
 mean_score, std_score = cv_with_feature_engineering(X, y)

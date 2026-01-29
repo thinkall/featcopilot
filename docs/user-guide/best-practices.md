@@ -139,11 +139,11 @@ def feature_engineer_cv(X, y, cv=5):
     for train_idx, val_idx in KFold(cv).split(X):
         X_train, X_val = X.iloc[train_idx], X.iloc[val_idx]
         y_train, y_val = y.iloc[train_idx], y.iloc[val_idx]
-        
+
         engineer = AutoFeatureEngineer(engines=['tabular'])
         X_train_fe = engineer.fit_transform(X_train, y_train)
         X_val_fe = engineer.transform(X_val)
-        
+
         # ... train and evaluate model
     return scores
 ```

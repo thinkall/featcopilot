@@ -3,7 +3,7 @@
 Generates human-readable explanations for features.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 import pandas as pd
 
@@ -14,15 +14,15 @@ from featcopilot.llm.copilot_client import SyncCopilotFeatureClient
 class FeatureExplainer:
     """
     Generate human-readable explanations for features.
-    
+
     Uses LLM to create interpretable explanations that can be
     understood by non-technical stakeholders.
-    
+
     Parameters
     ----------
     model : str, default='gpt-5'
         LLM model to use
-        
+
     Examples
     --------
     >>> explainer = FeatureExplainer()
@@ -43,12 +43,12 @@ class FeatureExplainer:
     def explain_feature(
         self,
         feature: Feature,
-        column_descriptions: Optional[Dict[str, str]] = None,
-        task_description: Optional[str] = None
+        column_descriptions: Optional[dict[str, str]] = None,
+        task_description: Optional[str] = None,
     ) -> str:
         """
         Generate explanation for a single feature.
-        
+
         Parameters
         ----------
         feature : Feature
@@ -57,7 +57,7 @@ class FeatureExplainer:
             Descriptions of source columns
         task_description : str, optional
             ML task description
-            
+
         Returns
         -------
         explanation : str
@@ -77,13 +77,13 @@ class FeatureExplainer:
     def explain_features(
         self,
         features: FeatureSet,
-        column_descriptions: Optional[Dict[str, str]] = None,
+        column_descriptions: Optional[dict[str, str]] = None,
         task_description: Optional[str] = None,
-        batch_size: int = 5
-    ) -> Dict[str, str]:
+        batch_size: int = 5,
+    ) -> dict[str, str]:
         """
         Generate explanations for multiple features.
-        
+
         Parameters
         ----------
         features : FeatureSet
@@ -94,7 +94,7 @@ class FeatureExplainer:
             ML task description
         batch_size : int, default=5
             Number of features to explain in each LLM call
-            
+
         Returns
         -------
         explanations : dict
@@ -109,16 +109,16 @@ class FeatureExplainer:
                 continue
 
             try:
-                explanation = self.explain_feature(
-                    feature, column_descriptions, task_description
-                )
+                explanation = self.explain_feature(feature, column_descriptions, task_description)
                 explanations[feature.name] = explanation
                 feature.explanation = explanation
 
             except Exception as e:
                 if self.verbose:
                     print(f"Could not explain {feature.name}: {e}")
-                explanations[feature.name] = f"Feature based on: {', '.join(feature.source_columns)}"
+                explanations[feature.name] = (
+                    f"Feature based on: {', '.join(feature.source_columns)}"
+                )
 
         return explanations
 
@@ -126,12 +126,12 @@ class FeatureExplainer:
         self,
         features: FeatureSet,
         X: pd.DataFrame,
-        column_descriptions: Optional[Dict[str, str]] = None,
-        task_description: Optional[str] = None
+        column_descriptions: Optional[dict[str, str]] = None,
+        task_description: Optional[str] = None,
     ) -> str:
         """
         Generate a comprehensive report about features.
-        
+
         Parameters
         ----------
         features : FeatureSet
@@ -142,15 +142,13 @@ class FeatureExplainer:
             Descriptions of source columns
         task_description : str, optional
             ML task description
-            
+
         Returns
         -------
         report : str
             Markdown-formatted report
         """
-        explanations = self.explain_features(
-            features, column_descriptions, task_description
-        )
+        explanations = self.explain_features(features, column_descriptions, task_description)
 
         report = "# Feature Engineering Report\n\n"
 
@@ -180,7 +178,7 @@ class FeatureExplainer:
 
             if feature.name in X.columns:
                 report += f"- **Non-null Values:** {X[feature.name].notna().sum()}\n"
-                if X[feature.name].dtype in ['float64', 'int64']:
+                if X[feature.name].dtype in ["float64", "int64"]:
                     report += f"- **Mean:** {X[feature.name].mean():.4f}\n"
                     report += f"- **Std:** {X[feature.name].std():.4f}\n"
 

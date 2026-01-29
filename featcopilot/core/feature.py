@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
@@ -35,7 +35,7 @@ class FeatureOrigin(Enum):
 class Feature:
     """
     Represents a single feature with metadata.
-    
+
     Attributes
     ----------
     name : str
@@ -61,18 +61,18 @@ class Feature:
     name: str
     dtype: FeatureType = FeatureType.NUMERIC
     origin: FeatureOrigin = FeatureOrigin.ORIGINAL
-    source_columns: List[str] = field(default_factory=list)
+    source_columns: list[str] = field(default_factory=list)
     transformation: str = ""
     explanation: Optional[str] = None
     code: Optional[str] = None
     importance: Optional[float] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
         if not self.source_columns:
             self.source_columns = [self.name]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert feature to dictionary."""
         return {
             "name": self.name,
@@ -87,7 +87,7 @@ class Feature:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Feature":
+    def from_dict(cls, data: dict[str, Any]) -> "Feature":
         """Create feature from dictionary."""
         return cls(
             name=data["name"],
@@ -104,12 +104,12 @@ class Feature:
     def compute(self, df: pd.DataFrame) -> pd.Series:
         """
         Compute feature values from DataFrame using stored code.
-        
+
         Parameters
         ----------
         df : DataFrame
             Input data
-            
+
         Returns
         -------
         Series
@@ -127,12 +127,12 @@ class Feature:
 class FeatureSet:
     """
     Collection of features with operations for manipulation.
-    
+
     Provides methods for adding, removing, filtering, and combining features.
     """
 
-    def __init__(self, features: Optional[List[Feature]] = None):
-        self._features: Dict[str, Feature] = {}
+    def __init__(self, features: Optional[list[Feature]] = None):
+        self._features: dict[str, Feature] = {}
         if features:
             for f in features:
                 self.add(f)
@@ -161,7 +161,7 @@ class FeatureSet:
         """Get a feature by name."""
         return self._features.get(name)
 
-    def get_names(self) -> List[str]:
+    def get_names(self) -> list[str]:
         """Get all feature names."""
         return list(self._features.keys())
 
@@ -175,12 +175,15 @@ class FeatureSet:
 
     def filter_by_importance(self, min_importance: float) -> "FeatureSet":
         """Filter features by minimum importance."""
-        return FeatureSet([
-            f for f in self._features.values()
-            if f.importance is not None and f.importance >= min_importance
-        ])
+        return FeatureSet(
+            [
+                f
+                for f in self._features.values()
+                if f.importance is not None and f.importance >= min_importance
+            ]
+        )
 
-    def sort_by_importance(self, descending: bool = True) -> List[Feature]:
+    def sort_by_importance(self, descending: bool = True) -> list[Feature]:
         """Sort features by importance."""
         features = [f for f in self._features.values() if f.importance is not None]
         return sorted(features, key=lambda f: f.importance or 0, reverse=descending)
@@ -196,23 +199,19 @@ class FeatureSet:
         """Convert feature set to DataFrame with metadata."""
         return pd.DataFrame([f.to_dict() for f in self._features.values()])
 
-    def get_explanations(self) -> Dict[str, str]:
+    def get_explanations(self) -> dict[str, str]:
         """Get explanations for all features that have them."""
-        return {
-            f.name: f.explanation
-            for f in self._features.values()
-            if f.explanation
-        }
+        return {f.name: f.explanation for f in self._features.values() if f.explanation}
 
     def compute_all(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Compute all features that have code defined.
-        
+
         Parameters
         ----------
         df : DataFrame
             Input data
-            
+
         Returns
         -------
         DataFrame

@@ -3,16 +3,15 @@
 Uses contextual understanding of data to generate meaningful features.
 """
 
-import asyncio
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 import pandas as pd
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from featcopilot.core.base import BaseEngine, EngineConfig
 from featcopilot.core.feature import Feature, FeatureOrigin, FeatureSet, FeatureType
-from featcopilot.llm.copilot_client import CopilotFeatureClient, SyncCopilotFeatureClient
+from featcopilot.llm.copilot_client import SyncCopilotFeatureClient
 
 
 class SemanticEngineConfig(EngineConfig):
@@ -29,15 +28,15 @@ class SemanticEngineConfig(EngineConfig):
 class SemanticEngine(BaseEngine):
     """
     LLM-powered semantic feature engineering engine.
-    
+
     Uses GitHub Copilot SDK to:
     - Understand column semantics from names and descriptions
     - Generate domain-aware features
     - Create interpretable features with explanations
     - Generate custom Python code for complex transformations
-    
+
     This is the KEY DIFFERENTIATOR from existing libraries like CAAFE.
-    
+
     Parameters
     ----------
     model : str, default='gpt-5'
@@ -48,7 +47,7 @@ class SemanticEngine(BaseEngine):
         Whether to validate generated feature code
     domain : str, optional
         Domain context (e.g., 'healthcare', 'finance', 'retail')
-        
+
     Examples
     --------
     >>> engine = SemanticEngine(model='gpt-5', domain='healthcare')
@@ -66,7 +65,7 @@ class SemanticEngine(BaseEngine):
         validate_features: bool = True,
         domain: Optional[str] = None,
         verbose: bool = False,
-        **kwargs
+        **kwargs,
     ):
         config = SemanticEngineConfig(
             model=model,
@@ -74,15 +73,15 @@ class SemanticEngine(BaseEngine):
             validate_features=validate_features,
             domain=domain,
             verbose=verbose,
-            **kwargs
+            **kwargs,
         )
         super().__init__(config=config)
         self.config: SemanticEngineConfig = config
         self._client: Optional[SyncCopilotFeatureClient] = None
-        self._suggested_features: List[Dict[str, Any]] = []
+        self._suggested_features: list[dict[str, Any]] = []
         self._feature_set = FeatureSet()
-        self._column_info: Dict[str, str] = {}
-        self._column_descriptions: Dict[str, str] = {}
+        self._column_info: dict[str, str] = {}
+        self._column_descriptions: dict[str, str] = {}
         self._task_description: str = ""
 
     def _ensure_client(self) -> None:
@@ -95,13 +94,13 @@ class SemanticEngine(BaseEngine):
         self,
         X: Union[pd.DataFrame, np.ndarray],
         y: Optional[Union[pd.Series, np.ndarray]] = None,
-        column_descriptions: Optional[Dict[str, str]] = None,
+        column_descriptions: Optional[dict[str, str]] = None,
         task_description: str = "classification/regression task",
-        **kwargs
+        **kwargs,
     ) -> "SemanticEngine":
         """
         Fit the engine by analyzing data and generating feature suggestions.
-        
+
         Parameters
         ----------
         X : DataFrame
@@ -112,7 +111,7 @@ class SemanticEngine(BaseEngine):
             Human-readable descriptions of columns
         task_description : str
             Description of the ML task
-            
+
         Returns
         -------
         self : SemanticEngine
@@ -128,12 +127,12 @@ class SemanticEngine(BaseEngine):
         self._column_info = {}
         for col in X.columns:
             dtype = str(X[col].dtype)
-            if X[col].dtype == 'object':
-                dtype = 'string'
+            if X[col].dtype == "object":
+                dtype = "string"
             elif np.issubdtype(X[col].dtype, np.integer):
-                dtype = 'integer'
+                dtype = "integer"
             elif np.issubdtype(X[col].dtype, np.floating):
-                dtype = 'float'
+                dtype = "float"
             self._column_info[col] = dtype
 
         # Get LLM suggestions
@@ -176,7 +175,9 @@ class SemanticEngine(BaseEngine):
             if result["valid"]:
                 valid_features.append(feature)
             elif self.config.verbose:
-                print(f"SemanticEngine: Invalid feature '{feature.get('name', 'unknown')}': {result.get('error', 'unknown error')}")
+                print(
+                    f"SemanticEngine: Invalid feature '{feature.get('name', 'unknown')}': {result.get('error', 'unknown error')}"
+                )
 
         self._suggested_features = valid_features
 
@@ -199,19 +200,15 @@ class SemanticEngine(BaseEngine):
             )
             self._feature_set.add(feature)
 
-    def transform(
-        self,
-        X: Union[pd.DataFrame, np.ndarray],
-        **kwargs
-    ) -> pd.DataFrame:
+    def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
         """
         Generate LLM-suggested features.
-        
+
         Parameters
         ----------
         X : DataFrame
             Input data
-            
+
         Returns
         -------
         X_features : DataFrame
@@ -235,11 +232,26 @@ class SemanticEngine(BaseEngine):
             try:
                 # Execute feature code
                 local_vars = {"df": result, "np": np, "pd": pd}
-                exec(code, {"__builtins__": {
-                    "len": len, "sum": sum, "max": max, "min": min,
-                    "abs": abs, "round": round, "int": int, "float": float,
-                    "str": str, "list": list, "dict": dict, "set": set,
-                }}, local_vars)
+                exec(
+                    code,
+                    {
+                        "__builtins__": {
+                            "len": len,
+                            "sum": sum,
+                            "max": max,
+                            "min": min,
+                            "abs": abs,
+                            "round": round,
+                            "int": int,
+                            "float": float,
+                            "str": str,
+                            "list": list,
+                            "dict": dict,
+                            "set": set,
+                        }
+                    },
+                    local_vars,
+                )
 
                 if "result" in local_vars:
                     feature_values = local_vars["result"]
@@ -266,10 +278,10 @@ class SemanticEngine(BaseEngine):
 
         return result
 
-    def get_feature_explanations(self) -> Dict[str, str]:
+    def get_feature_explanations(self) -> dict[str, str]:
         """
         Get explanations for all generated features.
-        
+
         Returns
         -------
         explanations : dict
@@ -281,36 +293,30 @@ class SemanticEngine(BaseEngine):
             if s.get("name")
         }
 
-    def get_feature_code(self) -> Dict[str, str]:
+    def get_feature_code(self) -> dict[str, str]:
         """
         Get code for all generated features.
-        
+
         Returns
         -------
         code : dict
             Mapping of feature names to Python code
         """
         return {
-            s.get("name", ""): s.get("code", "")
-            for s in self._suggested_features
-            if s.get("name")
+            s.get("name", ""): s.get("code", "") for s in self._suggested_features if s.get("name")
         }
 
-    def suggest_more_features(
-        self,
-        focus_area: str,
-        n_features: int = 5
-    ) -> List[Dict[str, Any]]:
+    def suggest_more_features(self, focus_area: str, n_features: int = 5) -> list[dict[str, Any]]:
         """
         Request additional feature suggestions in a specific area.
-        
+
         Parameters
         ----------
         focus_area : str
             Area to focus on (e.g., 'interactions', 'ratios', 'time-based')
         n_features : int, default=5
             Number of additional features to suggest
-            
+
         Returns
         -------
         suggestions : list
@@ -332,20 +338,18 @@ class SemanticEngine(BaseEngine):
         return new_suggestions
 
     def generate_custom_feature(
-        self,
-        description: str,
-        constraints: Optional[List[str]] = None
-    ) -> Dict[str, Any]:
+        self, description: str, constraints: Optional[list[str]] = None
+    ) -> dict[str, Any]:
         """
         Generate a specific feature from natural language description.
-        
+
         Parameters
         ----------
         description : str
             Natural language description of desired feature
         constraints : list, optional
             Constraints on the generated code
-            
+
         Returns
         -------
         feature : dict

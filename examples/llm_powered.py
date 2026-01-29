@@ -10,9 +10,9 @@ CLI to be installed and authenticated.
 
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
+from sklearn.model_selection import train_test_split
 
 from featcopilot import AutoFeatureEngineer
 
@@ -21,19 +21,21 @@ def create_healthcare_data(n_samples=500):
     """Create synthetic healthcare dataset."""
     np.random.seed(42)
 
-    data = pd.DataFrame({
-        "age": np.random.randint(20, 90, n_samples),
-        "bmi": np.random.normal(26, 5, n_samples),
-        "blood_pressure_systolic": np.random.normal(120, 20, n_samples),
-        "blood_pressure_diastolic": np.random.normal(80, 12, n_samples),
-        "cholesterol_total": np.random.normal(200, 40, n_samples),
-        "cholesterol_hdl": np.random.normal(55, 15, n_samples),
-        "cholesterol_ldl": np.random.normal(120, 35, n_samples),
-        "glucose_fasting": np.random.normal(100, 25, n_samples),
-        "hba1c": np.random.normal(5.5, 1.2, n_samples),
-        "smoking_years": np.random.exponential(5, n_samples),
-        "exercise_hours_weekly": np.random.exponential(3, n_samples),
-    })
+    data = pd.DataFrame(
+        {
+            "age": np.random.randint(20, 90, n_samples),
+            "bmi": np.random.normal(26, 5, n_samples),
+            "blood_pressure_systolic": np.random.normal(120, 20, n_samples),
+            "blood_pressure_diastolic": np.random.normal(80, 12, n_samples),
+            "cholesterol_total": np.random.normal(200, 40, n_samples),
+            "cholesterol_hdl": np.random.normal(55, 15, n_samples),
+            "cholesterol_ldl": np.random.normal(120, 35, n_samples),
+            "glucose_fasting": np.random.normal(100, 25, n_samples),
+            "hba1c": np.random.normal(5.5, 1.2, n_samples),
+            "smoking_years": np.random.exponential(5, n_samples),
+            "exercise_hours_weekly": np.random.exponential(3, n_samples),
+        }
+    )
 
     # Create diabetes risk target
     risk = (
@@ -80,9 +82,7 @@ def main():
     }
 
     # Split data
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
-    )
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     # Feature engineering with LLM
     print("\n2. Applying LLM-powered feature engineering...")
