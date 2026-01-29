@@ -146,25 +146,57 @@ class CopilotFeatureClient:
 
     def _mock_response(self, prompt: str) -> str:
         """Generate mock response when Copilot is unavailable."""
-        if "suggest" in prompt.lower() or "feature" in prompt.lower():
+        # Extract column names from prompt if available
+        import re
+        columns = re.findall(r"- (\w+) \(", prompt)
+        
+        if ("suggest" in prompt.lower() or "feature" in prompt.lower()) and columns:
+            # Generate context-aware mock features based on actual columns
+            features = []
+            if len(columns) >= 2:
+                col1, col2 = columns[0], columns[1]
+                features.append({
+                    "name": f"{col1}_{col2}_ratio",
+                    "code": f"result = df['{col1}'] / (df['{col2}'] + 1e-8)",
+                    "explanation": f"Ratio of {col1} to {col2}, captures relative relationship",
+                    "source_columns": [col1, col2]
+                })
+                features.append({
+                    "name": f"{col1}_{col2}_product",
+                    "code": f"result = df['{col1}'] * df['{col2}']",
+                    "explanation": f"Interaction between {col1} and {col2}",
+                    "source_columns": [col1, col2]
+                })
+            if len(columns) >= 3:
+                col3 = columns[2]
+                features.append({
+                    "name": f"{col1}_normalized_by_{col3}",
+                    "code": f"result = (df['{col1}'] - df['{col1}'].mean()) / (df['{col3}'] + 1e-8)",
+                    "explanation": f"Normalized {col1} adjusted by {col3}",
+                    "source_columns": [col1, col3]
+                })
+            if len(columns) >= 1:
+                features.append({
+                    "name": f"{columns[0]}_zscore",
+                    "code": f"result = (df['{columns[0]}'] - df['{columns[0]}'].mean()) / (df['{columns[0]}'].std() + 1e-8)",
+                    "explanation": f"Z-score normalization of {columns[0]}",
+                    "source_columns": [columns[0]]
+                })
+            return json.dumps({"features": features})
+        elif "suggest" in prompt.lower() or "feature" in prompt.lower():
             return json.dumps({
                 "features": [
                     {
-                        "name": "age_income_ratio",
-                        "code": "df['age'] / (df['income'] + 1)",
-                        "explanation": "Ratio of age to income, may indicate life stage"
-                    },
-                    {
-                        "name": "is_high_income",
-                        "code": "(df['income'] > df['income'].median()).astype(int)",
-                        "explanation": "Binary flag for above-median income"
+                        "name": "feature_interaction",
+                        "code": "result = df.iloc[:, 0] * df.iloc[:, 1]",
+                        "explanation": "Interaction between first two features"
                     }
                 ]
             })
         elif "explain" in prompt.lower():
             return "This feature captures the relationship between the input variables."
         elif "code" in prompt.lower():
-            return "result = df['col1'] * df['col2']"
+            return "result = df.iloc[:, 0] * df.iloc[:, 1]"
         else:
             return "Mock response for: " + prompt[:100]
 
@@ -483,7 +515,7 @@ class SyncCopilotFeatureClient:
             self._async_client.generate_feature_code(**kwargs)
         )
 
-    def validate_feature_code(self, **kwargs):
+    def validate_feature_code(self, code: str, sample_data=None):
         return self._get_loop().run_until_complete(
-            self._async_client.validate_feature_code(**kwargs)
+            self._async_client.validate_feature_code(code=code, sample_data=sample_data)
         )
