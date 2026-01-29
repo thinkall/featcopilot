@@ -63,9 +63,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/autofeat/autofeat-plus"
-Documentation = "https://github.com/autofeat/autofeat-plus#readme"
-Repository = "https://github.com/autofeat/autofeat-plus"
+Homepage = "https://github.com/thinkall/featcopilot"
+Documentation = "https://github.com/thinkall/featcopilot#readme"
+Repository = "https://github.com/thinkall/featcopilot"
 
 [tool.setuptools.packages.find]
 where = ["."]
