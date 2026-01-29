@@ -43,13 +43,13 @@ dependencies = [
 
 [project.optional-dependencies]
 llm = [
-    "copilot-sdk>=0.1.0",
+    "github-copilot-sdk>=0.1.0",
 ]
 timeseries = [
     "statsmodels>=0.13.0",
 ]
 full = [
-    "copilot-sdk>=0.1.0",
+    "github-copilot-sdk>=0.1.0",
     "statsmodels>=0.13.0",
 ]
 dev = [
