@@ -287,11 +287,7 @@ class SemanticEngine(BaseEngine):
         explanations : dict
             Mapping of feature names to explanations
         """
-        return {
-            s.get("name", ""): s.get("explanation", "")
-            for s in self._suggested_features
-            if s.get("name")
-        }
+        return {s.get("name", ""): s.get("explanation", "") for s in self._suggested_features if s.get("name")}
 
     def get_feature_code(self) -> dict[str, str]:
         """
@@ -302,9 +298,7 @@ class SemanticEngine(BaseEngine):
         code : dict
             Mapping of feature names to Python code
         """
-        return {
-            s.get("name", ""): s.get("code", "") for s in self._suggested_features if s.get("name")
-        }
+        return {s.get("name", ""): s.get("code", "") for s in self._suggested_features if s.get("name")}
 
     def suggest_more_features(self, focus_area: str, n_features: int = 5) -> list[dict[str, Any]]:
         """
@@ -337,9 +331,7 @@ class SemanticEngine(BaseEngine):
 
         return new_suggestions
 
-    def generate_custom_feature(
-        self, description: str, constraints: Optional[list[str]] = None
-    ) -> dict[str, Any]:
+    def generate_custom_feature(self, description: str, constraints: Optional[list[str]] = None) -> dict[str, Any]:
         """
         Generate a specific feature from natural language description.
 

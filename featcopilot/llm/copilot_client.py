@@ -433,9 +433,7 @@ result = df['col1'] / (df['col2'] + 1e-8)
 
         return code
 
-    async def validate_feature_code(
-        self, code: str, sample_data: Optional[dict[str, list]] = None
-    ) -> dict[str, Any]:
+    async def validate_feature_code(self, code: str, sample_data: Optional[dict[str, list]] = None) -> dict[str, Any]:
         """
         Validate generated feature code.
 
@@ -515,9 +513,7 @@ class SyncCopilotFeatureClient:
         return self._get_loop().run_until_complete(self._async_client.explain_feature(**kwargs))
 
     def generate_feature_code(self, **kwargs):
-        return self._get_loop().run_until_complete(
-            self._async_client.generate_feature_code(**kwargs)
-        )
+        return self._get_loop().run_until_complete(self._async_client.generate_feature_code(**kwargs))
 
     def validate_feature_code(self, code: str, sample_data=None):
         return self._get_loop().run_until_complete(

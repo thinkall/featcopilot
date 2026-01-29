@@ -72,11 +72,11 @@ where = ["."]
 include = ["featcopilot*"]
 
 [tool.black]
-line-length = 100
+line-length = 120
 target-version = ["py39", "py310", "py311", "py312"]
 
 [tool.ruff]
-line-length = 100
+line-length = 120
 select = ["E", "F", "W", "I", "UP", "B", "C4"]
 ignore = ["E501"]
 

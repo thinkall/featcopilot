@@ -176,11 +176,7 @@ class FeatureSet:
     def filter_by_importance(self, min_importance: float) -> "FeatureSet":
         """Filter features by minimum importance."""
         return FeatureSet(
-            [
-                f
-                for f in self._features.values()
-                if f.importance is not None and f.importance >= min_importance
-            ]
+            [f for f in self._features.values() if f.importance is not None and f.importance >= min_importance]
         )
 
     def sort_by_importance(self, descending: bool = True) -> list[Feature]:

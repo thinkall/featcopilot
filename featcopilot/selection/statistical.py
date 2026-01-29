@@ -164,9 +164,7 @@ class StatisticalSelector(BaseSelector):
 
         # Apply threshold
         if self.threshold is not None:
-            sorted_features = [
-                (name, score) for name, score in sorted_features if score >= self.threshold
-            ]
+            sorted_features = [(name, score) for name, score in sorted_features if score >= self.threshold]
 
         # Apply max_features limit
         if self.max_features is not None:

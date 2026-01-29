@@ -69,9 +69,7 @@ class TestAutoFeatureEngineer:
     def test_multiple_engines(self, sample_data):
         """Test with multiple engines."""
         X, y = sample_data
-        engineer = AutoFeatureEngineer(
-            engines=["tabular"], max_features=30  # Only tabular for non-LLM test
-        )
+        engineer = AutoFeatureEngineer(engines=["tabular"], max_features=30)  # Only tabular for non-LLM test
         result = engineer.fit_transform(X, y)
 
         assert result is not None

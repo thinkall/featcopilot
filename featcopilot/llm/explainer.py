@@ -116,9 +116,7 @@ class FeatureExplainer:
             except Exception as e:
                 if self.verbose:
                     print(f"Could not explain {feature.name}: {e}")
-                explanations[feature.name] = (
-                    f"Feature based on: {', '.join(feature.source_columns)}"
-                )
+                explanations[feature.name] = f"Feature based on: {', '.join(feature.source_columns)}"
 
         return explanations
 

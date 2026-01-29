@@ -87,9 +87,7 @@ class FeatureRegistry:
         """List all registered generator names."""
         return list(self._generators.keys())
 
-    def create_feature(
-        self, name: str, transformation: str, source_columns: list[str], **kwargs
-    ) -> Feature:
+    def create_feature(self, name: str, transformation: str, source_columns: list[str], **kwargs) -> Feature:
         """
         Create a feature using a registered transformation.
 

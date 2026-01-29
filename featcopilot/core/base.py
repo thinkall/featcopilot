@@ -111,9 +111,7 @@ class SelectorConfig(BaseModel):
 
     max_features: Optional[int] = Field(default=None, description="Max features to select")
     min_importance: float = Field(default=0.0, description="Minimum importance threshold")
-    correlation_threshold: float = Field(
-        default=0.95, description="Threshold for correlation-based elimination"
-    )
+    correlation_threshold: float = Field(default=0.95, description="Threshold for correlation-based elimination")
 
 
 class BaseSelector(ABC):
@@ -135,9 +133,7 @@ class BaseSelector(ABC):
         return self._is_fitted
 
     @abstractmethod
-    def fit(
-        self, X: Union[pd.DataFrame, np.ndarray], y: Union[pd.Series, np.ndarray], **kwargs
-    ) -> "BaseSelector":
+    def fit(self, X: Union[pd.DataFrame, np.ndarray], y: Union[pd.Series, np.ndarray], **kwargs) -> "BaseSelector":
         """
         Fit the selector to determine feature importance.
 

@@ -102,9 +102,7 @@ class TextEngine(BaseEngine):
             self._text_columns = X.select_dtypes(include=["object"]).columns.tolist()
             # Filter to likely text columns (not IDs, not low cardinality)
             self._text_columns = [
-                col
-                for col in self._text_columns
-                if X[col].str.len().mean() > 10 and X[col].nunique() > 10
+                col for col in self._text_columns if X[col].str.len().mean() > 10 and X[col].nunique() > 10
             ]
 
         if self.config.verbose:
@@ -125,9 +123,7 @@ class TextEngine(BaseEngine):
 
             for col in self._text_columns:
                 texts = X[col].fillna("").astype(str)
-                vectorizer = TfidfVectorizer(
-                    max_features=self.config.max_vocab_size, stop_words="english"
-                )
+                vectorizer = TfidfVectorizer(max_features=self.config.max_vocab_size, stop_words="english")
                 tfidf_matrix = vectorizer.fit_transform(texts)
 
                 # Reduce dimensions with SVD
@@ -174,21 +170,15 @@ class TextEngine(BaseEngine):
                 result[f"{col}_uppercase_ratio"] = texts.apply(
                     lambda x: sum(1 for c in x if c.isupper()) / max(len(x), 1)
                 )
-                result[f"{col}_digit_ratio"] = texts.apply(
-                    lambda x: sum(1 for c in x if c.isdigit()) / max(len(x), 1)
-                )
-                result[f"{col}_space_ratio"] = texts.apply(
-                    lambda x: sum(1 for c in x if c.isspace()) / max(len(x), 1)
-                )
+                result[f"{col}_digit_ratio"] = texts.apply(lambda x: sum(1 for c in x if c.isdigit()) / max(len(x), 1))
+                result[f"{col}_space_ratio"] = texts.apply(lambda x: sum(1 for c in x if c.isspace()) / max(len(x), 1))
                 result[f"{col}_special_char_count"] = texts.apply(
                     lambda x: sum(1 for c in x if not c.isalnum() and not c.isspace())
                 )
 
             # Word count features
             if "word_count" in self.config.features:
-                result[f"{col}_avg_word_length"] = texts.apply(
-                    lambda x: np.mean([len(w) for w in x.split()] or [0])
-                )
+                result[f"{col}_avg_word_length"] = texts.apply(lambda x: np.mean([len(w) for w in x.split()] or [0]))
                 result[f"{col}_unique_word_ratio"] = texts.apply(
                     lambda x: len(set(x.lower().split())) / max(len(x.split()), 1)
                 )

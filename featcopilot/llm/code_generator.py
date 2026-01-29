@@ -180,9 +180,7 @@ class FeatureCodeGenerator:
         # Take first few significant words
         words = description.lower().split()
         significant = [
-            w
-            for w in words
-            if len(w) > 2 and w not in {"the", "and", "for", "from", "with", "calculate", "compute"}
+            w for w in words if len(w) > 2 and w not in {"the", "and", "for", "from", "with", "calculate", "compute"}
         ][:4]
 
         name = "_".join(significant)
@@ -225,9 +223,7 @@ class FeatureCodeGenerator:
 
         return code
 
-    def generate_domain_features(
-        self, domain: str, columns: dict[str, str], n_features: int = 5
-    ) -> list[Feature]:
+    def generate_domain_features(self, domain: str, columns: dict[str, str], n_features: int = 5) -> list[Feature]:
         """
         Generate domain-specific features.
 

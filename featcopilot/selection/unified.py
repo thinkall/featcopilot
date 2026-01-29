@@ -55,9 +55,7 @@ class FeatureSelector(BaseSelector):
         self._selectors: dict[str, BaseSelector] = {}
         self._method_scores: dict[str, dict[str, float]] = {}
 
-    def fit(
-        self, X: Union[pd.DataFrame, np.ndarray], y: Union[pd.Series, np.ndarray], **kwargs
-    ) -> "FeatureSelector":
+    def fit(self, X: Union[pd.DataFrame, np.ndarray], y: Union[pd.Series, np.ndarray], **kwargs) -> "FeatureSelector":
         """
         Fit all selection methods.
 
@@ -94,9 +92,7 @@ class FeatureSelector(BaseSelector):
             )
             eliminator.fit(X)
             non_redundant = set(eliminator.get_selected_features())
-            self._feature_scores = {
-                k: v for k, v in self._feature_scores.items() if k in non_redundant
-            }
+            self._feature_scores = {k: v for k, v in self._feature_scores.items() if k in non_redundant}
 
         # Final selection
         self._final_selection()

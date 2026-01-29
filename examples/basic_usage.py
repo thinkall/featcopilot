@@ -123,9 +123,7 @@ def main():
     # Show top features
     if engineer.feature_importances_:
         print("\n5. Top 10 feature importance scores:")
-        importances = sorted(
-            engineer.feature_importances_.items(), key=lambda x: x[1], reverse=True
-        )[:10]
+        importances = sorted(engineer.feature_importances_.items(), key=lambda x: x[1], reverse=True)[:10]
         for i, (name, score) in enumerate(importances, 1):
             print(f"   {i:2d}. {name}: {score:.4f}")
 

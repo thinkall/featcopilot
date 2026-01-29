@@ -44,9 +44,7 @@ def parallel_apply(
         if batch_size is None:
             batch_size = max(1, len(data) // (n_jobs * 4))
 
-        results = Parallel(n_jobs=n_jobs, verbose=1 if verbose else 0)(
-            delayed(func)(row) for _, row in data.iterrows()
-        )
+        results = Parallel(n_jobs=n_jobs, verbose=1 if verbose else 0)(delayed(func)(row) for _, row in data.iterrows())
 
         return results
 

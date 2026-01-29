@@ -93,15 +93,11 @@ class ImportanceSelector(BaseSelector):
             if is_classification:
                 from sklearn.ensemble import RandomForestClassifier
 
-                return RandomForestClassifier(
-                    n_estimators=self.n_estimators, random_state=42, n_jobs=-1
-                )
+                return RandomForestClassifier(n_estimators=self.n_estimators, random_state=42, n_jobs=-1)
             else:
                 from sklearn.ensemble import RandomForestRegressor
 
-                return RandomForestRegressor(
-                    n_estimators=self.n_estimators, random_state=42, n_jobs=-1
-                )
+                return RandomForestRegressor(n_estimators=self.n_estimators, random_state=42, n_jobs=-1)
 
         elif self.model_type == "gradient_boosting":
             if is_classification:
@@ -118,13 +114,9 @@ class ImportanceSelector(BaseSelector):
                 import xgboost as xgb
 
                 if is_classification:
-                    return xgb.XGBClassifier(
-                        n_estimators=self.n_estimators, random_state=42, n_jobs=-1
-                    )
+                    return xgb.XGBClassifier(n_estimators=self.n_estimators, random_state=42, n_jobs=-1)
                 else:
-                    return xgb.XGBRegressor(
-                        n_estimators=self.n_estimators, random_state=42, n_jobs=-1
-                    )
+                    return xgb.XGBRegressor(n_estimators=self.n_estimators, random_state=42, n_jobs=-1)
             except ImportError:
                 if self.verbose:
                     print("XGBoost not available, falling back to RandomForest")
@@ -149,9 +141,7 @@ class ImportanceSelector(BaseSelector):
         sorted_features = sorted(self._feature_scores.items(), key=lambda x: x[1], reverse=True)
 
         if self.threshold is not None:
-            sorted_features = [
-                (name, score) for name, score in sorted_features if score >= self.threshold
-            ]
+            sorted_features = [(name, score) for name, score in sorted_features if score >= self.threshold]
 
         if self.max_features is not None:
             sorted_features = sorted_features[: self.max_features]

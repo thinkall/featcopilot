@@ -120,9 +120,7 @@ class TabularEngine(BaseEngine):
 
         # Filter by unique values
         self._numeric_columns = [
-            col
-            for col in self._numeric_columns
-            if X[col].nunique() >= self.config.min_unique_values
+            col for col in self._numeric_columns if X[col].nunique() >= self.config.min_unique_values
         ]
 
         if self.config.verbose:
