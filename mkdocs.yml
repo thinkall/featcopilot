@@ -1,0 +1,84 @@
+site_name: FeatCopilot
+site_description: Next-Generation LLM-Powered Auto Feature Engineering with GitHub Copilot SDK
+site_url: https://yourusername.github.io/featcopilot
+repo_url: https://github.com/yourusername/featcopilot
+repo_name: featcopilot
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quickstart.md
+    - Authentication: getting-started/authentication.md
+  - User Guide:
+    - Overview: user-guide/overview.md
+    - Engines: user-guide/engines.md
+    - LLM Features: user-guide/llm-features.md
+    - Feature Selection: user-guide/selection.md
+    - Best Practices: user-guide/best-practices.md
+  - Examples:
+    - Basic Usage: examples/basic.md
+    - LLM-Powered: examples/llm-powered.md
+    - Sklearn Pipeline: examples/sklearn-pipeline.md
+    - Domain-Specific: examples/domain-specific.md
+  - API Reference:
+    - AutoFeatureEngineer: api/auto-feature-engineer.md
+    - Engines: api/engines.md
+    - LLM Module: api/llm.md
+    - Selection: api/selection.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/yourusername/featcopilot
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/featcopilot/
