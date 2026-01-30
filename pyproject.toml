@@ -55,6 +55,7 @@ full = [
 benchmark = [
     "flaml[automl,blendsearch]>=2.0.0",
     "autogluon.tabular>=1.0.0",
+    "auto-sklearn>=0.15.0",
     "h2o>=3.40.0",
 ]
 dev = [
