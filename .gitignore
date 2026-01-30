@@ -76,6 +76,9 @@ dmypy.json
 # CatBoost
 catboost_*/
 
+# AutoGluon
+AutogluonModels/
+
 # Local development
 .feature_cache/
 test.py
