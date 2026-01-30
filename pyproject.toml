@@ -52,6 +52,11 @@ full = [
     "github-copilot-sdk>=0.1.0",
     "statsmodels>=0.13.0",
 ]
+benchmark = [
+    "flaml[automl,blendsearch]>=2.0.0",
+    "autogluon.tabular>=1.0.0",
+    "h2o>=3.40.0",
+]
 dev = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
