@@ -37,34 +37,38 @@ def create_sample_data(n_samples=1000):
         }
     )
 
-    # Create target based on INTERACTIONS and RATIOS (not just linear)
-    # These relationships benefit significantly from feature engineering
+    # Create target based on MULTIPLICATIVE INTERACTIONS and RATIOS
+    # Tree models struggle with these without explicit feature engineering
 
-    # Ratio: charges relative to income (financial stress indicator)
-    charge_to_income = data["monthly_charges"] / (data["income"] / 12)
+    # Key ratio: monthly charges as percentage of monthly income
+    charge_ratio = data["monthly_charges"] / (data["income"] / 12 + 1)
 
-    # Ratio: value per product
-    value_per_product = data["total_charges"] / (data["num_products"] + 1)
+    # Key ratio: average charge per product (value density)
+    charge_per_product = data["monthly_charges"] / (data["num_products"] + 0.5)
 
-    # Interaction: short tenure + high tickets = high churn risk
-    tenure_ticket_interaction = data["support_tickets"] / (data["tenure_months"] + 1)
+    # Key interaction: tickets per month of tenure (complaint rate)
+    complaint_rate = data["support_tickets"] / (data["tenure_months"] + 1)
 
-    # Interaction: young + short contract = higher churn
-    age_contract_interaction = (80 - data["age"]) * (24 - data["contract_length"]) / 1000
+    # Key interaction: product of normalized age and contract
+    # (young people on short contracts churn more)
+    age_norm = (data["age"] - 18) / (80 - 18)
+    contract_norm = data["contract_length"] / 24
+    loyalty_score = age_norm * contract_norm
 
-    # Non-linear tenure effect (very new or very old customers behave differently)
-    tenure_nonlinear = np.abs(data["tenure_months"] - 60) / 60
+    # Multiplicative interaction (hard for trees without engineering)
+    # High charges + low tenure + tickets = very high churn
+    risk_product = charge_ratio * complaint_rate * 10
 
     churn_prob = (
-        0.15
-        + 0.8 * charge_to_income  # Financial stress
-        - 0.00005 * value_per_product  # Higher value = lower churn
-        + 0.5 * tenure_ticket_interaction  # Support issues early = bad
-        + 0.3 * age_contract_interaction  # Young + short contract
-        + 0.15 * tenure_nonlinear  # Very new or very old
-        - 0.02 * data["num_products"]  # More products = stickier
+        0.1
+        + 1.5 * charge_ratio  # High relative charges
+        + 0.003 * charge_per_product  # Paying more per product
+        + 2.0 * complaint_rate  # Complaints early = bad
+        - 0.4 * loyalty_score  # Older + long contract = loyal
+        + 0.8 * risk_product  # Multiplicative risk
+        - 0.01 * data["tenure_months"]  # Tenure helps
     )
-    churn_prob = np.clip(churn_prob, 0.05, 0.95)
+    churn_prob = np.clip(churn_prob, 0.02, 0.98)
     data["churn"] = (np.random.random(n_samples) < churn_prob).astype(int)
 
     return data
