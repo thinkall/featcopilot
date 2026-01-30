@@ -302,7 +302,9 @@ def run_automl_benchmark(
 
     # Predict
     y_pred = runner.predict(X_test)
-    y_prob = runner.predict_proba(X_test)
+    y_prob = None
+    if "classification" in task:
+        y_prob = runner.predict_proba(X_test)
 
     # Evaluate
     if "classification" in task:
@@ -380,7 +382,9 @@ def run_automl_with_featcopilot(
 
     # Predict
     y_pred = runner.predict(X_test_fe)
-    y_prob = runner.predict_proba(X_test_fe)
+    y_prob = None
+    if "classification" in task:
+        y_prob = runner.predict_proba(X_test_fe)
 
     # Evaluate
     if "classification" in task:
@@ -553,14 +557,14 @@ def generate_report(results: pd.DataFrame, output_path: str = None) -> str:
             f"| {row['dataset']} | {row['framework']} | "
             f"{row['baseline_score']:.4f} | {row['featcopilot_score']:.4f} | "
             f"{row['improvement_pct']:+.2f}% | "
-            f"{row['n_features_original']}→{row['n_features_engineered']} | "
+            f"{row['n_features_original']}->{row['n_features_engineered']} | "
             f"{row['featcopilot_time']:.1f} |\n"
         )
 
     report_text = "".join(report)
 
     if output_path:
-        with open(output_path, "w") as f:
+        with open(output_path, "w", encoding="utf-8") as f:
             f.write(report_text)
         print(f"Report saved to {output_path}")
 

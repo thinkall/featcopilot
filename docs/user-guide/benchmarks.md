@@ -282,6 +282,40 @@ Based on our benchmarks, FeatCopilot provides the most value when:
 | Small feature sets needing expansion | **Medium** (+1-3%) |
 | Tree-based models on clean data | **Low** (0-1%) |
 
+## AutoML Integration
+
+FeatCopilot can be combined with AutoML frameworks to potentially improve results further.
+
+### FLAML Integration Results
+
+| Dataset | Task | FLAML Baseline | FLAML + FeatCopilot | Change |
+|---------|------|----------------|---------------------|--------|
+| Titanic | Classification | 0.9665 | 0.9665 | +0.00% |
+| House Prices | Regression | 0.9195 | 0.9136 | -0.65% |
+| Credit Card Fraud | Classification | 0.9860 | 0.9860 | +0.00% |
+| Bike Sharing | Regression | 0.8426 | 0.8359 | -0.79% |
+| Employee Attrition | Classification | 0.9796 | 0.9762 | -0.35% |
+| Medical Diagnosis | Classification | 0.8567 | 0.8600 | +0.39% |
+
+!!! note "AutoML Note"
+    AutoML frameworks like FLAML already perform extensive feature selection and model tuning.
+    The additional features from FeatCopilot may not always improve results when AutoML
+    can already find optimal models. FeatCopilot provides the most value when:
+
+    - Using simpler models (LogisticRegression, Ridge)
+    - Working with domain-specific feature requirements
+    - Needing interpretable feature transformations
+
+### Running AutoML Benchmarks
+
+```bash
+# Install FLAML
+pip install flaml
+
+# Run benchmarks
+python benchmarks/automl/run_automl_benchmark.py --frameworks flaml --time-budget 60
+```
+
 ## Comparison with Other Tools
 
 | Feature | FeatCopilot | Featuretools | TSFresh | AutoFeat | OpenFE | CAAFE |
