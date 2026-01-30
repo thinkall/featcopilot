@@ -5,7 +5,9 @@ A unified feature engineering framework combining traditional approaches
 with novel LLM-powered capabilities via GitHub Copilot SDK.
 """
 
-__version__ = "0.1.0"
+from importlib.metadata import version
+
+__version__ = version("featcopilot")
 __author__ = "FeatCopilot Contributors"
 
 from featcopilot.core.base import BaseEngine, BaseSelector
