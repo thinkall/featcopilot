@@ -82,7 +82,7 @@ X_test_fe = engineer.transform(X_test)
 # 1. Initialize with LLM
 engineer = AutoFeatureEngineer(
     engines=['tabular', 'llm'],
-    llm_config={'model': 'gpt-5', 'domain': 'finance'}
+    llm_config={'model': 'gpt-5.2', 'domain': 'finance'}
 )
 
 # 2. Fit with context
@@ -165,7 +165,7 @@ AutoFeatureEngineer(
 
 ```python
 llm_config = {
-    'model': 'gpt-5',           # Model to use
+    'model': 'gpt-5.2',           # Model to use
     'max_suggestions': 20,       # Features to suggest
     'domain': 'healthcare',      # Domain context
     'validate_features': True    # Validate generated code

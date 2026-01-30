@@ -11,7 +11,7 @@ logger = get_logger(__name__)
 _cached_models: Optional[list[dict]] = None
 
 # Default model
-DEFAULT_MODEL = "gpt-5"
+DEFAULT_MODEL = "gpt-5.2"
 
 
 async def _fetch_models_from_copilot() -> list[dict]:
@@ -162,7 +162,7 @@ def get_model_info(model_name: str, force_refresh: bool = False) -> Optional[dic
     Examples
     --------
     >>> from featcopilot.utils import get_model_info
-    >>> info = get_model_info('gpt-5')
+    >>> info = get_model_info('gpt-5.2')
     >>> if info:
     ...     print(info)
     """
@@ -193,7 +193,7 @@ def get_default_model() -> str:
     --------
     >>> from featcopilot.utils import get_default_model
     >>> model = get_default_model()
-    >>> print(model)  # 'gpt-5'
+    >>> print(model)  # 'gpt-5.2'
     """
     return DEFAULT_MODEL
 
@@ -248,7 +248,7 @@ def is_valid_model(model_name: str, force_refresh: bool = False) -> bool:
     Examples
     --------
     >>> from featcopilot.utils import is_valid_model
-    >>> is_valid_model('gpt-5')
+    >>> is_valid_model('gpt-5.2')
     """
     models = fetch_models(force_refresh=force_refresh)
 

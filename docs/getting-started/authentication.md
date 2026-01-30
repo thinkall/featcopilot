@@ -71,7 +71,7 @@ from featcopilot import AutoFeatureEngineer
 
 engineer = AutoFeatureEngineer(
     engines=['llm'],
-    llm_config={'model': 'gpt-5'}
+    llm_config={'model': 'gpt-5.2'}
 )
 
 # If authentication works, you'll see LLM-generated features

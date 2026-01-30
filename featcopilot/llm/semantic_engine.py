@@ -21,7 +21,7 @@ class SemanticEngineConfig(EngineConfig):
     """Configuration for semantic feature engine."""
 
     name: str = "SemanticEngine"
-    model: str = Field(default="gpt-5", description="LLM model to use")
+    model: str = Field(default="gpt-5.2", description="LLM model to use")
     max_suggestions: int = Field(default=20, description="Max features to suggest")
     validate_features: bool = Field(default=True, description="Validate generated code")
     domain: Optional[str] = Field(default=None, description="Domain context")
@@ -42,7 +42,7 @@ class SemanticEngine(BaseEngine):
 
     Parameters
     ----------
-    model : str, default='gpt-5'
+    model : str, default='gpt-5.2'
         LLM model to use
     max_suggestions : int, default=20
         Maximum number of features to suggest
@@ -53,7 +53,7 @@ class SemanticEngine(BaseEngine):
 
     Examples
     --------
-    >>> engine = SemanticEngine(model='gpt-5', domain='healthcare')
+    >>> engine = SemanticEngine(model='gpt-5.2', domain='healthcare')
     >>> X_features = engine.fit_transform(
     ...     X, y,
     ...     column_descriptions={'age': 'Patient age', 'bmi': 'Body mass index'},
@@ -63,7 +63,7 @@ class SemanticEngine(BaseEngine):
 
     def __init__(
         self,
-        model: str = "gpt-5",
+        model: str = "gpt-5.2",
         max_suggestions: int = 20,
         validate_features: bool = True,
         domain: Optional[str] = None,

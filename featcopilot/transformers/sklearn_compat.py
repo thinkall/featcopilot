@@ -105,7 +105,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
     >>> engineer = AutoFeatureEngineer(
     ...     engines=['tabular', 'llm'],
     ...     max_features=100,
-    ...     llm_config={'model': 'gpt-5', 'enable_semantic': True}
+    ...     llm_config={'model': 'gpt-5.2', 'enable_semantic': True}
     ... )
     >>> X_transformed = engineer.fit_transform(X, y)
     """
@@ -203,7 +203,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             from featcopilot.llm.semantic_engine import SemanticEngine
 
             return SemanticEngine(
-                model=self.llm_config.get("model", "gpt-5"),
+                model=self.llm_config.get("model", "gpt-5.2"),
                 max_suggestions=self.llm_config.get("max_suggestions", 20),
                 domain=self.llm_config.get("domain"),
                 verbose=self.verbose,

@@ -24,7 +24,7 @@ class FeatureCodeGenerator:
 
     Parameters
     ----------
-    model : str, default='gpt-5'
+    model : str, default='gpt-5.2'
         LLM model to use
     validate : bool, default=True
         Whether to validate generated code
@@ -38,7 +38,7 @@ class FeatureCodeGenerator:
     ... )
     """
 
-    def __init__(self, model: str = "gpt-5", validate: bool = True, verbose: bool = False):
+    def __init__(self, model: str = "gpt-5.2", validate: bool = True, verbose: bool = False):
         self.model = model
         self.validate = validate
         self.verbose = verbose

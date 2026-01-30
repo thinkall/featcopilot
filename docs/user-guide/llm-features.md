@@ -20,7 +20,7 @@ The core LLM-powered engine:
 from featcopilot.llm import SemanticEngine
 
 engine = SemanticEngine(
-    model='gpt-5',
+    model='gpt-5.2',
     max_suggestions=20,
     validate_features=True,
     domain='healthcare',
@@ -45,7 +45,7 @@ X_features = engine.fit_transform(
 
 ```python
 llm_config = {
-    'model': 'gpt-5',           # Model: gpt-5, gpt-4.1, etc.
+    'model': 'gpt-5.2',           # Model: gpt-5.2, gpt-4.1, etc.
     'max_suggestions': 20,       # Max features to suggest
     'domain': 'healthcare',      # Domain context
     'validate_features': True,   # Validate generated code
@@ -76,7 +76,7 @@ list_models(verbose=True)
 # Output:
 # Available models from Copilot:
 # ------------------------------------------------------------
-#   gpt-5 (OpenAI) - Latest GPT-5 model...
+#   gpt-5.2 (OpenAI) - Latest gpt-5.2 model...
 #   claude-sonnet-4 (Anthropic) - Claude Sonnet 4...
 #   ...
 # ------------------------------------------------------------
@@ -84,14 +84,14 @@ list_models(verbose=True)
 
 # Get just the model names/identifiers
 model_names = get_model_names()
-print(model_names)  # ['gpt-5', 'claude-sonnet-4', ...]
+print(model_names)  # ['gpt-5.2', 'claude-sonnet-4', ...]
 
 # Filter by provider
 openai_models = list_models(provider='OpenAI')
 claude_models = list_models(provider='Anthropic')
 
 # Get info about a specific model
-info = get_model_info('gpt-5')
+info = get_model_info('gpt-5.2')
 if info:
     print(info)
 
@@ -100,7 +100,7 @@ models = list_models(force_refresh=True)
 
 # Check if a model is valid
 from featcopilot.utils import is_valid_model
-if is_valid_model('gpt-5'):
+if is_valid_model('gpt-5.2'):
     print("Model is available")
 ```
 
@@ -110,8 +110,8 @@ The available models are retrieved dynamically from the Copilot client. Common m
 
 | Model | Provider | Description |
 |-------|----------|-------------|
-| `gpt-5` | OpenAI | Latest GPT-5 model (default) |
-| `gpt-5-mini` | OpenAI | Smaller, faster GPT-5 variant |
+| `gpt-5.2` | OpenAI | Latest gpt-5.2 model (default) |
+| `gpt-5.2-mini` | OpenAI | Smaller, faster gpt-5.2 variant |
 | `gpt-5.1-codex` | OpenAI | Optimized for code generation |
 | `gpt-4.1` | OpenAI | Fast and efficient |
 | `claude-sonnet-4` | Anthropic | Balanced performance |
@@ -127,7 +127,7 @@ The available models are retrieved dynamically from the Copilot client. Common m
 ```python
 from featcopilot.utils import get_default_model, get_model_names
 
-# Use the default model (gpt-5)
+# Use the default model (gpt-5.2)
 llm_config = {'model': get_default_model()}
 
 # Or choose from available models
@@ -135,7 +135,7 @@ available = get_model_names()
 print(f"Available models: {available}")
 
 # Pick based on your needs:
-# - gpt-5: Best all-around choice (default)
+# - gpt-5.2: Best all-around choice (default)
 # - gpt-5.1-codex: Best for code generation tasks
 # - claude-sonnet-4: Alternative with strong reasoning
 # - gpt-4.1 / claude-haiku-4.5: Faster, lower cost
@@ -266,7 +266,7 @@ Generate features from natural language:
 ```python
 from featcopilot.llm import FeatureCodeGenerator
 
-generator = FeatureCodeGenerator(model='gpt-5')
+generator = FeatureCodeGenerator(model='gpt-5.2')
 
 # Generate single feature
 feature = generator.generate(
@@ -292,7 +292,7 @@ Generate reports:
 ```python
 from featcopilot.llm import FeatureExplainer
 
-explainer = FeatureExplainer(model='gpt-5')
+explainer = FeatureExplainer(model='gpt-5.2')
 
 # Generate comprehensive report
 report = explainer.generate_feature_report(

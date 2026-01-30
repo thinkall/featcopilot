@@ -8,17 +8,17 @@
 - Improvements > 0: 8/18 (44%)
 
 **Regression Tasks:**
-- Average R² Improvement: **+0.65%**
+- Average Rï¿½ Improvement: **+0.65%**
 - Max Improvement: +5.57%
 - Improvements > 0: 3/9 (33%)
 
 **Time Series Tasks:**
-- Regression Avg R² Improvement: **+1.51%** (7/9 wins)
+- Regression Avg Rï¿½ Improvement: **+1.51%** (7/9 wins)
 
 **Text/Semantic Tasks (with Text Engine):**
 - Classification Avg Improvement: **+12.44%** (12/12 wins)
 - Max Improvement: +49.02%
-- Regression Avg R² Improvement: **+1.44%** (3/6 wins)
+- Regression Avg Rï¿½ Improvement: **+1.44%** (3/6 wins)
 - Max Improvement: +7.58%
 
 ## Detailed Results
@@ -60,7 +60,7 @@
 
 ### Regression Datasets
 
-| Dataset | Model | Baseline R² | FeatCopilot R² | Improvement | Baseline RMSE | FeatCopilot RMSE |
+| Dataset | Model | Baseline Rï¿½ | FeatCopilot Rï¿½ | Improvement | Baseline RMSE | FeatCopilot RMSE |
 |---------|-------|-------------|----------------|-------------|---------------|------------------|
 | House Prices (Kaggle-style) | Ridge | 0.9306 | 0.9297 | -0.10% | 20407.82 | 20546.02 |
 | House Prices (Kaggle-style) | RandomForest | 0.8700 | 0.8941 | +2.77% | 27940.29 | 25219.52 |
@@ -118,7 +118,7 @@
   - Regression: mutual_info selection, max 30 features, correlation_threshold=0.90
 - **Preprocessing**: StandardScaler applied to all features
 - **Models**: LogisticRegression/Ridge, RandomForest, GradientBoosting
-- **Metrics**: Accuracy/R², F1-score/RMSE, ROC-AUC/MAE
+- **Metrics**: Accuracy/Rï¿½, F1-score/RMSE, ROC-AUC/MAE
 
 ## Datasets
 

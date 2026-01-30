@@ -18,7 +18,7 @@ logger = get_logger(__name__)
 class CopilotConfig(BaseModel):
     """Configuration for Copilot client."""
 
-    model: str = Field(default="gpt-5", description="Model to use")
+    model: str = Field(default="gpt-5.2", description="Model to use")
     temperature: float = Field(default=0.3, ge=0, le=1, description="Temperature for generation")
     max_tokens: int = Field(default=4096, description="Maximum tokens in response")
     timeout: float = Field(default=60.0, description="Timeout in seconds")
@@ -39,12 +39,12 @@ class CopilotFeatureClient:
     ----------
     config : CopilotConfig, optional
         Configuration for the client
-    model : str, default='gpt-5'
+    model : str, default='gpt-5.2'
         Model to use for generation
 
     Examples
     --------
-    >>> client = CopilotFeatureClient(model='gpt-5')
+    >>> client = CopilotFeatureClient(model='gpt-5.2')
     >>> await client.start()
     >>> suggestions = await client.suggest_features(
     ...     column_info={'age': 'int', 'income': 'float'},
@@ -53,7 +53,7 @@ class CopilotFeatureClient:
     >>> await client.stop()
     """
 
-    def __init__(self, config: Optional[CopilotConfig] = None, model: str = "gpt-5", **kwargs):
+    def __init__(self, config: Optional[CopilotConfig] = None, model: str = "gpt-5.2", **kwargs):
         self.config = config or CopilotConfig(model=model, **kwargs)
         self._client = None
         self._session = None

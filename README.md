@@ -126,7 +126,7 @@ Uses GitHub Copilot SDK for intelligent feature generation.
 from featcopilot.llm import SemanticEngine
 
 engine = SemanticEngine(
-    model='gpt-5',
+    model='gpt-5.2',
     max_suggestions=20,
     validate_features=True
 )

@@ -12,7 +12,7 @@ from featcopilot import AutoFeatureEngineer
 engineer = AutoFeatureEngineer(
     engines=['tabular', 'llm'],
     llm_config={
-        'model': 'gpt-5',
+        'model': 'gpt-5.2',
         'domain': 'healthcare',
         'max_suggestions': 15
     }
@@ -203,7 +203,7 @@ For domains not in the preset list:
 engineer = AutoFeatureEngineer(
     engines=['llm'],
     llm_config={
-        'model': 'gpt-5',
+        'model': 'gpt-5.2',
         'max_suggestions': 20
     }
 )

@@ -23,7 +23,7 @@ class FeatureExplainer:
 
     Parameters
     ----------
-    model : str, default='gpt-5'
+    model : str, default='gpt-5.2'
         LLM model to use
 
     Examples
@@ -32,7 +32,7 @@ class FeatureExplainer:
     >>> explanations = explainer.explain_features(feature_set, task='predict churn')
     """
 
-    def __init__(self, model: str = "gpt-5", verbose: bool = False):
+    def __init__(self, model: str = "gpt-5.2", verbose: bool = False):
         self.model = model
         self.verbose = verbose
         self._client: Optional[SyncCopilotFeatureClient] = None

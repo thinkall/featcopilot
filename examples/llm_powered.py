@@ -92,7 +92,7 @@ def main():
         engines=["tabular", "llm"],
         max_features=40,
         llm_config={
-            "model": "gpt-5",
+            "model": "gpt-5.2",
             "max_suggestions": 15,
             "domain": "healthcare",
         },

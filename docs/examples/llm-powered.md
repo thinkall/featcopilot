@@ -95,7 +95,7 @@ engineer = AutoFeatureEngineer(
     engines=['tabular', 'llm'],
     max_features=40,
     llm_config={
-        'model': 'gpt-5',
+        'model': 'gpt-5.2',
         'max_suggestions': 15,
         'domain': 'healthcare',
         'validate_features': True
@@ -220,7 +220,7 @@ for feat in custom_features:
 ```python
 from featcopilot.llm import FeatureExplainer
 
-explainer = FeatureExplainer(model='gpt-5')
+explainer = FeatureExplainer(model='gpt-5.2')
 
 report = explainer.generate_feature_report(
     features=engineer._engine_instances['llm'].get_feature_set(),
@@ -268,7 +268,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 engineer = AutoFeatureEngineer(
     engines=['tabular', 'llm'],
     max_features=30,
-    llm_config={'model': 'gpt-5', 'domain': 'healthcare'}
+    llm_config={'model': 'gpt-5.2', 'domain': 'healthcare'}
 )
 
 X_train_fe = engineer.fit_transform(
