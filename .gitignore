@@ -79,6 +79,9 @@ catboost_*/
 # AutoGluon
 AutogluonModels/
 
+# OpenFE
+openfe_tmp_data*
+
 # Local development
 .feature_cache/
 test.py

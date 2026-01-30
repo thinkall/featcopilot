@@ -72,6 +72,22 @@ def check_tool_availability() -> dict[str, Optional[str]]:
     except ImportError:
         available["autofeat"] = None
 
+    # openfe
+    try:
+        import openfe
+
+        available["openfe"] = openfe.__version__
+    except ImportError:
+        available["openfe"] = None
+
+    # caafe
+    try:
+        import caafe  # noqa: F401
+
+        available["caafe"] = "0.1.6"  # caafe doesn't expose __version__
+    except ImportError:
+        available["caafe"] = None
+
     return available
 
 
@@ -473,6 +489,176 @@ class AutofeatRunner(FeatureEngineeringRunner):
             return X_numeric[self._feature_columns] if self._feature_columns else X_numeric
 
 
+class OpenFERunner(FeatureEngineeringRunner):
+    """OpenFE feature engineering runner."""
+
+    name = "openfe"
+
+    def __init__(self, max_features: int = 50, random_state: int = 42):
+        super().__init__(max_features, random_state)
+        self._features = None
+        self._original_columns = None
+
+    def fit_transform(self, X_train: pd.DataFrame, y_train: pd.Series) -> pd.DataFrame:
+        from openfe import OpenFE, transform
+
+        start = time.time()
+
+        # Ensure numeric data
+        X_numeric = X_train.select_dtypes(include=[np.number]).copy()
+        X_numeric = X_numeric.replace([np.inf, -np.inf], np.nan).fillna(0)
+        self._original_columns = X_numeric.columns.tolist()
+
+        if X_numeric.shape[1] == 0:
+            self.fit_time = time.time() - start
+            self.n_features_generated = X_train.shape[1]
+            return X_train.copy()
+
+        try:
+            ofe = OpenFE()
+            self._features = ofe.fit(X_numeric, y_train, n_jobs=1, verbose=False)
+
+            if self._features:
+                n_features_to_use = min(self.max_features, len(self._features))
+                X_new, _ = transform(X_numeric, self._features[:n_features_to_use], n_jobs=1)
+            else:
+                X_new = X_numeric.copy()
+
+            X_new = X_new.replace([np.inf, -np.inf], np.nan).fillna(0)
+            self.fit_time = time.time() - start
+            self.n_features_generated = X_new.shape[1]
+
+            return X_new
+
+        except Exception:
+            self.fit_time = time.time() - start
+            self.n_features_generated = X_numeric.shape[1]
+            self._features = None
+            return X_numeric
+
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        from openfe import transform as ofe_transform
+
+        start = time.time()
+
+        X_numeric = X.select_dtypes(include=[np.number]).copy()
+        X_numeric = X_numeric.replace([np.inf, -np.inf], np.nan).fillna(0)
+
+        if self._features is None or len(self._features) == 0:
+            self.transform_time = time.time() - start
+            return X_numeric
+
+        try:
+            n_features_to_use = min(self.max_features, len(self._features))
+            X_new, _ = ofe_transform(X_numeric, self._features[:n_features_to_use], n_jobs=1)
+            X_new = X_new.replace([np.inf, -np.inf], np.nan).fillna(0)
+            self.transform_time = time.time() - start
+            return X_new
+
+        except Exception:
+            self.transform_time = time.time() - start
+            return X_numeric
+
+
+class CAAFERunner(FeatureEngineeringRunner):
+    """CAAFE (Context-Aware Automated Feature Engineering) runner.
+
+    Note: CAAFE requires OpenAI API access for LLM-based feature generation.
+    Falls back to original features if API is not available.
+    """
+
+    name = "caafe"
+
+    def __init__(self, max_features: int = 50, random_state: int = 42):
+        super().__init__(max_features, random_state)
+        self._feature_columns = None
+        self._model = None
+
+    def fit_transform(self, X_train: pd.DataFrame, y_train: pd.Series) -> pd.DataFrame:
+        start = time.time()
+
+        # Ensure numeric data
+        X_numeric = X_train.select_dtypes(include=[np.number]).copy()
+        X_numeric = X_numeric.replace([np.inf, -np.inf], np.nan).fillna(0)
+        self._feature_columns = X_numeric.columns.tolist()
+
+        if X_numeric.shape[1] == 0:
+            self.fit_time = time.time() - start
+            self.n_features_generated = X_train.shape[1]
+            return X_train.copy()
+
+        try:
+            from caafe import CAAFEClassifier
+
+            # Determine if classification
+            unique_values = y_train.nunique()
+            if unique_values > 10:
+                # CAAFE only supports classification, fallback for regression
+                self.fit_time = time.time() - start
+                self.n_features_generated = X_numeric.shape[1]
+                return X_numeric
+
+            self._model = CAAFEClassifier(
+                iterations=2,
+                llm_model="gpt-3.5-turbo",
+            )
+
+            # CAAFE needs specific format
+            X_result = self._model.fit_transform(X_numeric, y_train)
+
+            if isinstance(X_result, pd.DataFrame):
+                self._feature_columns = X_result.columns.tolist()
+            else:
+                X_result = pd.DataFrame(X_result, index=X_train.index)
+                self._feature_columns = X_result.columns.tolist()
+
+            X_result = X_result.replace([np.inf, -np.inf], np.nan).fillna(0)
+
+            if X_result.shape[1] > self.max_features:
+                X_result = X_result.iloc[:, : self.max_features]
+                self._feature_columns = X_result.columns.tolist()
+
+            self.fit_time = time.time() - start
+            self.n_features_generated = X_result.shape[1]
+
+            return X_result
+
+        except Exception:
+            # Fallback - CAAFE requires OpenAI API key
+            self.fit_time = time.time() - start
+            self.n_features_generated = X_numeric.shape[1]
+            self._model = None
+            return X_numeric
+
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        start = time.time()
+
+        X_numeric = X.select_dtypes(include=[np.number]).copy()
+        X_numeric = X_numeric.replace([np.inf, -np.inf], np.nan).fillna(0)
+
+        if self._model is None:
+            self.transform_time = time.time() - start
+            return X_numeric[self._feature_columns] if self._feature_columns else X_numeric
+
+        try:
+            X_result = self._model.transform(X_numeric)
+
+            if not isinstance(X_result, pd.DataFrame):
+                X_result = pd.DataFrame(X_result, index=X.index)
+
+            X_result = X_result.replace([np.inf, -np.inf], np.nan).fillna(0)
+
+            if X_result.shape[1] > self.max_features:
+                X_result = X_result.iloc[:, : self.max_features]
+
+            self.transform_time = time.time() - start
+            return X_result
+
+        except Exception:
+            self.transform_time = time.time() - start
+            return X_numeric[self._feature_columns] if self._feature_columns else X_numeric
+
+
 def get_runner(tool_name: str, max_features: int = 50) -> FeatureEngineeringRunner:
     """Get feature engineering runner by tool name."""
     runners = {
@@ -481,6 +667,8 @@ def get_runner(tool_name: str, max_features: int = 50) -> FeatureEngineeringRunn
         "featuretools": FeaturetoolsRunner,
         "tsfresh": TsfreshRunner,
         "autofeat": AutofeatRunner,
+        "openfe": OpenFERunner,
+        "caafe": CAAFERunner,
     }
     if tool_name not in runners:
         raise ValueError(f"Unknown tool: {tool_name}. Available: {list(runners.keys())}")
@@ -729,6 +917,8 @@ def generate_report(results: pd.DataFrame, output_path: Optional[str] = None) ->
         "featuretools": "Featuretools - Deep Feature Synthesis",
         "tsfresh": "tsfresh - Time series feature extraction",
         "autofeat": "autofeat - Automatic feature generation",
+        "openfe": "OpenFE - Automated feature generation with LightGBM",
+        "caafe": "CAAFE - Context-Aware Automated Feature Engineering (LLM)",
     }
     for tool in tools_tested:
         desc = tool_descriptions.get(tool, "Unknown tool")
