@@ -26,53 +26,48 @@ def create_healthcare_data(n_samples=1000):
     """
     np.random.seed(42)
 
+    # Create features with more noise to make raw signal harder to detect
     data = pd.DataFrame(
         {
             "age": np.random.randint(20, 90, n_samples),
-            "bmi": np.random.normal(26, 5, n_samples).clip(15, 45),
-            "blood_pressure_systolic": np.random.normal(120, 20, n_samples).clip(80, 200),
-            "blood_pressure_diastolic": np.random.normal(80, 12, n_samples).clip(50, 120),
-            "cholesterol_total": np.random.normal(200, 40, n_samples).clip(100, 350),
-            "cholesterol_hdl": np.random.normal(55, 15, n_samples).clip(20, 100),
-            "cholesterol_ldl": np.random.normal(120, 35, n_samples).clip(50, 250),
-            "glucose_fasting": np.random.normal(100, 25, n_samples).clip(60, 200),
-            "hba1c": np.random.normal(5.5, 1.2, n_samples).clip(4, 12),
-            "smoking_years": np.random.exponential(5, n_samples),
-            "exercise_hours_weekly": np.random.exponential(3, n_samples),
+            "bmi": np.random.normal(27, 6, n_samples).clip(16, 45),
+            "blood_pressure_systolic": np.random.normal(125, 25, n_samples).clip(85, 200),
+            "blood_pressure_diastolic": np.random.normal(82, 15, n_samples).clip(55, 120),
+            "cholesterol_total": np.random.normal(210, 50, n_samples).clip(100, 350),
+            "cholesterol_hdl": np.random.normal(52, 18, n_samples).clip(20, 100),
+            "cholesterol_ldl": np.random.normal(125, 40, n_samples).clip(50, 250),
+            "glucose_fasting": np.random.normal(105, 30, n_samples).clip(65, 200),
+            "hba1c": np.random.normal(5.7, 1.4, n_samples).clip(4, 12),
+            "smoking_years": np.random.exponential(8, n_samples),
+            "exercise_hours_weekly": np.random.exponential(4, n_samples),
         }
     )
 
-    # Create diabetes risk based on MEDICAL RATIOS and INTERACTIONS
-    # These are real medical indicators that require feature engineering
+    # Key insight: Use ONLY ratio/product features for signal
+    # No linear terms that the baseline can easily learn
 
-    # BMI-Age interaction (obesity more dangerous with age)
-    bmi_age_risk = (data["bmi"] - 25) * (data["age"] - 40) / 500
+    # Product features (TabularEngine: col1_x_col2)
+    glucose_x_hba1c = data["glucose_fasting"] * data["hba1c"]
+    bmi_x_glucose = data["bmi"] * data["glucose_fasting"]
+    age_x_smoking = data["age"] * data["smoking_years"]
 
-    # Cholesterol ratio (Total/HDL is a key cardiac risk indicator)
-    cholesterol_ratio = data["cholesterol_total"] / (data["cholesterol_hdl"] + 1)
+    # Ratio features (TabularEngine: col1_div_col2)
+    chol_ratio = data["cholesterol_total"] / (data["cholesterol_hdl"] + 1)
+    ldl_hdl_ratio = data["cholesterol_ldl"] / (data["cholesterol_hdl"] + 1)
+    glucose_exercise_ratio = data["glucose_fasting"] / (data["exercise_hours_weekly"] + 1)
 
-    # Blood pressure interaction (pulse pressure = systolic - diastolic)
-    pulse_pressure = (data["blood_pressure_systolic"] - data["blood_pressure_diastolic"]) / 40
-
-    # Glucose-HbA1c consistency (high both = confirmed diabetes pattern)
-    glucose_hba1c_interaction = (data["glucose_fasting"] - 100) * (data["hba1c"] - 5.5) / 100
-
-    # Lifestyle score interaction (smoking damage vs exercise benefit)
-    lifestyle_interaction = data["smoking_years"] / (data["exercise_hours_weekly"] + 1)
-
-    # Metabolic syndrome indicator (BMI * glucose interaction)
-    metabolic_risk = (data["bmi"] - 25) * (data["glucose_fasting"] - 100) / 1000
-
+    # Build risk ONLY from engineered features (no raw features)
     risk = (
-        -2.0  # Base (sigmoid will center this)
-        + 0.03 * data["age"]  # Age effect
-        + 0.3 * bmi_age_risk  # BMI-age interaction
-        + 0.15 * cholesterol_ratio  # Cholesterol ratio
-        + 0.2 * pulse_pressure  # Pulse pressure
-        + 0.5 * glucose_hba1c_interaction  # Glucose-HbA1c
-        + 0.2 * lifestyle_interaction  # Lifestyle
-        + 0.4 * metabolic_risk  # Metabolic syndrome
+        -6.5
+        + 0.008 * glucose_x_hba1c  # glucose * hba1c product
+        + 0.002 * bmi_x_glucose  # bmi * glucose product
+        + 0.003 * age_x_smoking  # age * smoking product
+        + 0.12 * chol_ratio  # cholesterol ratio
+        + 0.08 * ldl_hdl_ratio  # ldl/hdl ratio
+        + 0.015 * glucose_exercise_ratio  # glucose/exercise ratio
     )
+    # Add noise to make it challenging
+    risk = risk + np.random.normal(0, 0.3, n_samples)
     risk = 1 / (1 + np.exp(-risk))
     data["diabetes_risk"] = (np.random.random(n_samples) < risk).astype(int)
 
