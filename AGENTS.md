@@ -17,6 +17,10 @@
    - Run `pre-commit run --all-files` and fix any issues
    - Only proceed with commit after pre-commit passes
 3. Use descriptive commit messages following conventional commits format
+4. **Git add only the files you changed** - Do NOT use `git add -A` or `git add .`
+   - Multiple sessions may be working on this project simultaneously
+   - Use explicit file paths: `git add path/to/file1.py path/to/file2.py`
+   - This prevents accidentally committing changes from other sessions
 
 ## Safety Guardrails
 
