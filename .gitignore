@@ -75,3 +75,4 @@ dmypy.json
 
 # Local development
 .feature_cache/
+test.py
