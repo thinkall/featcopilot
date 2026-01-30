@@ -12,6 +12,9 @@ from pydantic import Field
 
 from featcopilot.core.base import BaseEngine, EngineConfig
 from featcopilot.core.feature import Feature, FeatureOrigin, FeatureSet, FeatureType
+from featcopilot.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class TabularEngineConfig(EngineConfig):
@@ -124,7 +127,7 @@ class TabularEngine(BaseEngine):
         ]
 
         if self.config.verbose:
-            print(f"TabularEngine: Found {len(self._numeric_columns)} numeric columns")
+            logger.info(f"TabularEngine: Found {len(self._numeric_columns)} numeric columns")
 
         # Plan features to generate
         self._plan_features(X)
@@ -207,7 +210,7 @@ class TabularEngine(BaseEngine):
             self._feature_set.add(feature)
 
         if self.config.verbose:
-            print(f"TabularEngine: Planned {len(self._feature_set)} features")
+            logger.info(f"TabularEngine: Planned {len(self._feature_set)} features")
 
     def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
         """
@@ -284,7 +287,7 @@ class TabularEngine(BaseEngine):
         self._feature_names = [c for c in result.columns if c not in X.columns]
 
         if self.config.verbose:
-            print(f"TabularEngine: Generated {len(self._feature_names)} features")
+            logger.info(f"TabularEngine: Generated {len(self._feature_names)} features")
 
         return result
 

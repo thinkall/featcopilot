@@ -15,6 +15,9 @@ from featcopilot.engines.tabular import TabularEngine
 from featcopilot.engines.text import TextEngine
 from featcopilot.engines.timeseries import TimeSeriesEngine
 from featcopilot.selection.unified import FeatureSelector
+from featcopilot.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class FeatureEngineerTransformer(BaseEstimator, TransformerMixin):
@@ -183,7 +186,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             self._engine_instances[engine_name] = engine
 
             if self.verbose:
-                print(f"Fitted {engine_name} engine")
+                logger.info(f"Fitted {engine_name} engine")
 
         self._is_fitted = True
         return self
@@ -242,7 +245,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
                 result[col] = transformed[col]
 
             if self.verbose:
-                print(f"{engine_name}: Added {len(new_cols)} features")
+                logger.info(f"{engine_name}: Added {len(new_cols)} features")
 
         # Handle infinities and NaNs
         result = result.replace([np.inf, -np.inf], np.nan)
@@ -302,7 +305,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             result = self._selector.fit_transform(result, y)
 
             if self.verbose:
-                print(f"Selected {len(self._selector.get_selected_features())} features")
+                logger.info(f"Selected {len(self._selector.get_selected_features())} features")
 
         return result
 

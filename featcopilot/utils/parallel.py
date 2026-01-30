@@ -4,6 +4,10 @@ from typing import Any, Callable, Optional
 
 import pandas as pd
 
+from featcopilot.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 def parallel_apply(
     func: Callable,
@@ -51,7 +55,7 @@ def parallel_apply(
     except ImportError:
         # Fallback to sequential processing
         if verbose:
-            print("joblib not available, using sequential processing")
+            logger.warning("joblib not available, using sequential processing")
 
         return [func(row) for _, row in data.iterrows()]
 

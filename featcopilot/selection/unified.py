@@ -9,6 +9,9 @@ from featcopilot.core.base import BaseSelector
 from featcopilot.selection.importance import ImportanceSelector
 from featcopilot.selection.redundancy import RedundancyEliminator
 from featcopilot.selection.statistical import StatisticalSelector
+from featcopilot.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class FeatureSelector(BaseSelector):
@@ -152,7 +155,7 @@ class FeatureSelector(BaseSelector):
         self._selected_features = [name for name, _ in sorted_features]
 
         if self.verbose:
-            print(f"FeatureSelector: Selected {len(self._selected_features)} features")
+            logger.info(f"FeatureSelector: Selected {len(self._selected_features)} features")
 
     def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
         """Select features from data."""

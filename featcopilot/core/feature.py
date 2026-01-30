@@ -7,6 +7,10 @@ from typing import Any, Optional
 import numpy as np
 import pandas as pd
 
+from featcopilot.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 class FeatureType(Enum):
     """Types of features."""
@@ -220,5 +224,5 @@ class FeatureSet:
                     result[feature.name] = feature.compute(df)
                 except Exception as e:
                     # Log warning but continue
-                    print(f"Warning: Could not compute feature {feature.name}: {e}")
+                    logger.warning(f"Could not compute feature {feature.name}: {e}")
         return result

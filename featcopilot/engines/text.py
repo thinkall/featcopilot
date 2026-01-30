@@ -11,6 +11,9 @@ from pydantic import Field
 
 from featcopilot.core.base import BaseEngine, EngineConfig
 from featcopilot.core.feature import FeatureSet
+from featcopilot.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class TextEngineConfig(EngineConfig):
@@ -106,7 +109,7 @@ class TextEngine(BaseEngine):
             ]
 
         if self.config.verbose:
-            print(f"TextEngine: Found {len(self._text_columns)} text columns")
+            logger.info(f"TextEngine: Found {len(self._text_columns)} text columns")
 
         # Fit TF-IDF vectorizers if needed
         if "tfidf" in self.config.features:
@@ -135,7 +138,7 @@ class TextEngine(BaseEngine):
 
         except ImportError:
             if self.config.verbose:
-                print("TextEngine: sklearn not available for TF-IDF, skipping")
+                logger.warning("TextEngine: sklearn not available for TF-IDF, skipping")
 
     def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
         """
@@ -191,7 +194,7 @@ class TextEngine(BaseEngine):
         self._feature_names = [c for c in result.columns if c not in X.columns]
 
         if self.config.verbose:
-            print(f"TextEngine: Extracted {len(self._feature_names)} features")
+            logger.info(f"TextEngine: Extracted {len(self._feature_names)} features")
 
         return result
 

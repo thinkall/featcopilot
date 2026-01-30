@@ -11,6 +11,9 @@ from pydantic import Field
 
 from featcopilot.core.base import BaseEngine, EngineConfig
 from featcopilot.core.feature import FeatureSet
+from featcopilot.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class RelationalEngineConfig(EngineConfig):
@@ -141,7 +144,7 @@ class RelationalEngine(BaseEngine):
         self._primary_columns = X.columns.tolist()
 
         if self.config.verbose:
-            print(f"RelationalEngine: {len(self._relationships)} relationships defined")
+            logger.info(f"RelationalEngine: {len(self._relationships)} relationships defined")
 
         self._is_fitted = True
         return self
@@ -191,7 +194,7 @@ class RelationalEngine(BaseEngine):
         self._feature_names = [c for c in result.columns if c not in X.columns]
 
         if self.config.verbose:
-            print(f"RelationalEngine: Generated {len(self._feature_names)} features")
+            logger.info(f"RelationalEngine: Generated {len(self._feature_names)} features")
 
         return result
 

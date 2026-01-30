@@ -12,6 +12,9 @@ from pydantic import Field
 
 from featcopilot.core.base import BaseEngine, EngineConfig
 from featcopilot.core.feature import FeatureSet
+from featcopilot.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class TimeSeriesEngineConfig(EngineConfig):
@@ -123,7 +126,7 @@ class TimeSeriesEngine(BaseEngine):
         self._time_columns = X.select_dtypes(include=[np.number]).columns.tolist()
 
         if self.config.verbose:
-            print(f"TimeSeriesEngine: Found {len(self._time_columns)} numeric columns")
+            logger.info(f"TimeSeriesEngine: Found {len(self._time_columns)} numeric columns")
 
         self._is_fitted = True
         return self
@@ -177,7 +180,7 @@ class TimeSeriesEngine(BaseEngine):
         self._feature_names = list(result.columns)
 
         if self.config.verbose:
-            print(f"TimeSeriesEngine: Extracted {len(self._feature_names)} features")
+            logger.info(f"TimeSeriesEngine: Extracted {len(self._feature_names)} features")
 
         return result
 

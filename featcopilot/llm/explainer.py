@@ -9,6 +9,9 @@ import pandas as pd
 
 from featcopilot.core.feature import Feature, FeatureSet
 from featcopilot.llm.copilot_client import SyncCopilotFeatureClient
+from featcopilot.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class FeatureExplainer:
@@ -115,7 +118,7 @@ class FeatureExplainer:
 
             except Exception as e:
                 if self.verbose:
-                    print(f"Could not explain {feature.name}: {e}")
+                    logger.error(f"Could not explain {feature.name}: {e}")
                 explanations[feature.name] = f"Feature based on: {', '.join(feature.source_columns)}"
 
         return explanations

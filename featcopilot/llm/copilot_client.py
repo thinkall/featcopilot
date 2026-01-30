@@ -10,6 +10,10 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
+from featcopilot.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 class CopilotConfig(BaseModel):
     """Configuration for Copilot client."""
@@ -82,13 +86,13 @@ class CopilotFeatureClient:
             # Copilot SDK not installed - use mock mode
             self._copilot_available = False
             self._is_started = True
-            print("Warning: copilot-sdk not installed. Using mock LLM responses.")
+            logger.warning("copilot-sdk not installed. Using mock LLM responses.")
 
         except Exception as e:
             # Copilot not available - use mock mode
             self._copilot_available = False
             self._is_started = True
-            print(f"Warning: Could not connect to Copilot: {e}. Using mock LLM responses.")
+            logger.warning(f"Could not connect to Copilot: {e}. Using mock LLM responses.")
 
         return self
 

@@ -6,6 +6,9 @@ import numpy as np
 import pandas as pd
 
 from featcopilot.core.base import BaseSelector
+from featcopilot.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class ImportanceSelector(BaseSelector):
@@ -119,7 +122,7 @@ class ImportanceSelector(BaseSelector):
                     return xgb.XGBRegressor(n_estimators=self.n_estimators, random_state=42, n_jobs=-1)
             except ImportError:
                 if self.verbose:
-                    print("XGBoost not available, falling back to RandomForest")
+                    logger.warning("XGBoost not available, falling back to RandomForest")
                 return self._create_model_fallback(is_classification)
 
         else:
@@ -149,7 +152,7 @@ class ImportanceSelector(BaseSelector):
         self._selected_features = [name for name, _ in sorted_features]
 
         if self.verbose:
-            print(f"ImportanceSelector: Selected {len(self._selected_features)} features")
+            logger.info(f"ImportanceSelector: Selected {len(self._selected_features)} features")
 
     def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
         """Select features from data."""

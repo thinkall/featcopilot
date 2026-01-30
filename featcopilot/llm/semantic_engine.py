@@ -12,6 +12,9 @@ from pydantic import Field
 from featcopilot.core.base import BaseEngine, EngineConfig
 from featcopilot.core.feature import Feature, FeatureOrigin, FeatureSet, FeatureType
 from featcopilot.llm.copilot_client import SyncCopilotFeatureClient
+from featcopilot.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class SemanticEngineConfig(EngineConfig):
@@ -137,7 +140,7 @@ class SemanticEngine(BaseEngine):
 
         # Get LLM suggestions
         if self.config.verbose:
-            print("SemanticEngine: Requesting feature suggestions from LLM...")
+            logger.info("SemanticEngine: Requesting feature suggestions from LLM...")
 
         self._suggested_features = self._client.suggest_features(
             column_info=self._column_info,
@@ -148,7 +151,7 @@ class SemanticEngine(BaseEngine):
         )
 
         if self.config.verbose:
-            print(f"SemanticEngine: Received {len(self._suggested_features)} suggestions")
+            logger.info(f"SemanticEngine: Received {len(self._suggested_features)} suggestions")
 
         # Validate features if enabled
         if self.config.validate_features:
@@ -175,14 +178,14 @@ class SemanticEngine(BaseEngine):
             if result["valid"]:
                 valid_features.append(feature)
             elif self.config.verbose:
-                print(
+                logger.warning(
                     f"SemanticEngine: Invalid feature '{feature.get('name', 'unknown')}': {result.get('error', 'unknown error')}"
                 )
 
         self._suggested_features = valid_features
 
         if self.config.verbose:
-            print(f"SemanticEngine: {len(valid_features)} valid features after validation")
+            logger.info(f"SemanticEngine: {len(valid_features)} valid features after validation")
 
     def _build_feature_set(self) -> None:
         """Build FeatureSet from suggestions."""
@@ -266,7 +269,7 @@ class SemanticEngine(BaseEngine):
 
             except Exception as e:
                 if self.config.verbose:
-                    print(f"SemanticEngine: Error computing '{name}': {e}")
+                    logger.error(f"SemanticEngine: Error computing '{name}': {e}")
 
         # Handle infinities and NaNs
         result = result.replace([np.inf, -np.inf], np.nan)
@@ -274,7 +277,7 @@ class SemanticEngine(BaseEngine):
         self._feature_names = successful_features
 
         if self.config.verbose:
-            print(f"SemanticEngine: Successfully generated {len(successful_features)} features")
+            logger.info(f"SemanticEngine: Successfully generated {len(successful_features)} features")
 
         return result
 

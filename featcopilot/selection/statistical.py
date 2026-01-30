@@ -6,6 +6,9 @@ import numpy as np
 import pandas as pd
 
 from featcopilot.core.base import BaseSelector
+from featcopilot.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class StatisticalSelector(BaseSelector):
@@ -173,7 +176,7 @@ class StatisticalSelector(BaseSelector):
         self._selected_features = [name for name, _ in sorted_features]
 
         if self.verbose:
-            print(f"StatisticalSelector: Selected {len(self._selected_features)} features")
+            logger.info(f"StatisticalSelector: Selected {len(self._selected_features)} features")
 
     def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
         """

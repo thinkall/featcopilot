@@ -10,6 +10,9 @@ import pandas as pd
 
 from featcopilot.core.feature import Feature, FeatureOrigin, FeatureType
 from featcopilot.llm.copilot_client import SyncCopilotFeatureClient
+from featcopilot.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class FeatureCodeGenerator:
@@ -98,7 +101,7 @@ class FeatureCodeGenerator:
             )
             if not validation["valid"]:
                 if self.verbose:
-                    print(f"Code validation failed: {validation['error']}")
+                    logger.warning(f"Code validation failed: {validation['error']}")
                 # Try to fix common issues
                 code = self._fix_common_issues(code, validation["error"])
 
@@ -144,7 +147,7 @@ class FeatureCodeGenerator:
                 features.append(feature)
             except Exception as e:
                 if self.verbose:
-                    print(f"Failed to generate feature for '{desc}': {e}")
+                    logger.error(f"Failed to generate feature for '{desc}': {e}")
 
         return features
 

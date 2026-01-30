@@ -6,6 +6,9 @@ import numpy as np
 import pandas as pd
 
 from featcopilot.core.base import BaseSelector
+from featcopilot.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class RedundancyEliminator(BaseSelector):
@@ -119,11 +122,11 @@ class RedundancyEliminator(BaseSelector):
                     if imp1 >= imp2:
                         to_remove.add(col2)
                         if self.verbose:
-                            print(f"Removing {col2} (corr={corr:.3f} with {col1})")
+                            logger.info(f"Removing {col2} (corr={corr:.3f} with {col1})")
                     else:
                         to_remove.add(col1)
                         if self.verbose:
-                            print(f"Removing {col1} (corr={corr:.3f} with {col2})")
+                            logger.info(f"Removing {col1} (corr={corr:.3f} with {col2})")
                         break  # col1 is removed, move to next
 
         # Selected features are those not removed
@@ -131,7 +134,7 @@ class RedundancyEliminator(BaseSelector):
         self._removed_features = list(to_remove)
 
         if self.verbose:
-            print(f"RedundancyEliminator: Removed {len(to_remove)} redundant features")
+            logger.info(f"RedundancyEliminator: Removed {len(to_remove)} redundant features")
 
     def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
         """Remove redundant features."""
