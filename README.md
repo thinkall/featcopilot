@@ -4,6 +4,20 @@
 
 FeatCopilot is a unified feature engineering framework that combines the best approaches from existing libraries (Featuretools, TSFresh, AutoFeat, OpenFE) with novel LLM-powered capabilities via GitHub Copilot SDK.
 
+## 📊 Benchmark Highlights
+
+| Task Type | Average Improvement | Best Case |
+|-----------|--------------------:|----------:|
+| **Text Classification** | **+12.44%** | +49.02% (News Headlines) |
+| Classification | +0.54% | +4.35% |
+| Regression | +0.65% | +5.57% |
+
+- ✅ **12/12 wins** on text/semantic classification tasks
+- ⚡ **<1 second** feature engineering time for most datasets
+- 📈 Largest gains with simple models (LogisticRegression, Ridge)
+
+[View Full Benchmark Results](https://thinkall.github.io/featcopilot/user-guide/benchmarks/)
+
 ## Key Features
 
 - 🔧 **Multi-Engine Architecture**: Tabular, time series, relational, and text feature engines

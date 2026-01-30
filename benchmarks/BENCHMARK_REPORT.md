@@ -8,18 +8,18 @@
 - Improvements > 0: 8/18 (44%)
 
 **Regression Tasks:**
-- Average R² Improvement: **+0.65%**
+- Average Rï¿½ Improvement: **+0.65%**
 - Max Improvement: +5.57%
 - Improvements > 0: 3/9 (33%)
 
 **Time Series Tasks:**
 - Classification Avg Improvement: **-6.28%** (0/3 wins)
-- Regression Avg R² Improvement: **-0.08%** (3/6 wins)
+- Regression Avg Rï¿½ Improvement: **-0.08%** (3/6 wins)
 
 **Text/Semantic Tasks (with Text Engine):**
 - Classification Avg Improvement: **+12.44%** (12/12 wins)
 - Max Improvement: +49.02%
-- Regression Avg R² Improvement: **+1.44%** (3/6 wins)
+- Regression Avg Rï¿½ Improvement: **+1.44%** (3/6 wins)
 - Max Improvement: +7.58%
 
 ## Detailed Results
@@ -64,7 +64,7 @@
 
 ### Regression Datasets
 
-| Dataset | Model | Baseline R² | FeatCopilot R² | Improvement | Baseline RMSE | FeatCopilot RMSE |
+| Dataset | Model | Baseline Rï¿½ | FeatCopilot Rï¿½ | Improvement | Baseline RMSE | FeatCopilot RMSE |
 |---------|-------|-------------|----------------|-------------|---------------|------------------|
 | House Prices (Kaggle-style) | Ridge | 0.9306 | 0.9297 | -0.10% | 20407.82 | 20546.02 |
 | House Prices (Kaggle-style) | RandomForest | 0.8700 | 0.8941 | +2.77% | 27940.29 | 25219.52 |
@@ -119,26 +119,32 @@
   - Regression: mutual_info selection, max 30 features, correlation_threshold=0.90
 - **Preprocessing**: StandardScaler applied to all features
 - **Models**: LogisticRegression/Ridge, RandomForest, GradientBoosting
-- **Metrics**: Accuracy/R², F1-score/RMSE, ROC-AUC/MAE
+- **Metrics**: Accuracy/RÂ², F1-score/RMSE, ROC-AUC/MAE
 
 ## Datasets
 
-### Real-world Datasets
-- Diabetes (sklearn) - Medical regression
-- Breast Cancer (sklearn) - Medical classification
-- Titanic (Kaggle-style) - Survival classification
-- House Prices (Kaggle-style) - Price regression
-- Credit Card Fraud (Kaggle-style) - Imbalanced classification
-- Bike Sharing (Kaggle-style) - Demand regression
+### Kaggle-style Datasets
+- Titanic - Survival classification
+- House Prices - Price regression
+- Credit Card Fraud - Imbalanced classification
+- Bike Sharing - Demand regression
 - Employee Attrition (IBM HR) - HR classification
 
 ### Synthetic Datasets
 - Credit Risk - Financial classification
 - Medical Diagnosis - Healthcare classification
 - Complex Regression - Non-linear regression
-- Complex Classification - Imbalanced classification
+- Complex Classification - Multi-class classification
 
 ### Time Series Datasets
 - Energy Consumption - Forecasting regression
 - Stock Price Direction - Movement classification
 - Website Traffic - Traffic regression
+
+### Text/Semantic Datasets
+- Product Reviews - Sentiment classification
+- News Headlines - Category classification
+- Customer Support Tickets - Priority classification
+- Medical Notes - Diagnosis classification
+- Job Postings - Salary regression
+- E-commerce Products - Rating regression

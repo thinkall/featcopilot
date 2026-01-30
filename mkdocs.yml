@@ -65,6 +65,7 @@ nav:
     - Engines: user-guide/engines.md
     - LLM Features: user-guide/llm-features.md
     - Feature Selection: user-guide/selection.md
+    - Benchmarks: user-guide/benchmarks.md
     - Best Practices: user-guide/best-practices.md
   - Examples:
     - Basic Usage: examples/basic.md

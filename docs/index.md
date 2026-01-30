@@ -7,6 +7,34 @@
 
 ---
 
+## Benchmark Highlights
+
+<div class="grid cards" markdown>
+
+-   :material-chart-areaspline:{ .lg .middle } __+49% on Text Data__
+
+    ---
+
+    News headline classification improved from 40.8% to 60.8% accuracy
+
+-   :material-check-all:{ .lg .middle } __12/12 Text Wins__
+
+    ---
+
+    100% improvement rate on text/semantic classification tasks
+
+-   :material-speedometer:{ .lg .middle } __<1s Processing__
+
+    ---
+
+    Feature engineering completes in under 1 second for most datasets
+
+</div>
+
+[:octicons-arrow-right-24: View Full Benchmark Results](user-guide/benchmarks.md)
+
+---
+
 ## What is FeatCopilot?
 
 FeatCopilot is a comprehensive Python library for automated feature engineering that combines traditional approaches with cutting-edge LLM-powered capabilities via GitHub Copilot SDK.
