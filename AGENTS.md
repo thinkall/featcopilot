@@ -18,6 +18,15 @@
    - Only proceed with commit after pre-commit passes
 3. Use descriptive commit messages following conventional commits format
 
+## Safety Guardrails
+
+**NEVER do the following without explicit user approval:**
+
+- `git push --force` or `git push -f` - Always use regular push; if rejected, ask user for guidance
+- Remove/delete folders or directories - Always ask for permission first
+- Delete multiple files at once - Confirm with user before bulk deletions
+- Run destructive commands (e.g., `rm -rf`, `git reset --hard`)
+
 ## Additional Configurations
 
 <!-- Add more configurations below as needed -->
