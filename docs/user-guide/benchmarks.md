@@ -284,36 +284,52 @@ Based on our benchmarks, FeatCopilot provides the most value when:
 
 ## AutoML Integration
 
-FeatCopilot can be combined with AutoML frameworks to improve results, especially for text and time series data.
+FeatCopilot can be combined with AutoML frameworks. However, modern AutoML frameworks already perform extensive feature engineering and model selection, which may overlap with FeatCopilot's capabilities.
 
 ### Summary
 
-| Category | Average Improvement | Best Improvement |
-|----------|--------------------:|----------------:|
-| **Text datasets** | **+6.2%** | +9.97% (News Headlines) |
-| **Time series datasets** | **+3.5%** | +5.75% (Retail Demand) |
-| **Tabular datasets** | **+0.6%** | +1.79% (Credit Risk) |
+Benchmark results with 30s time budget per AutoML run:
+
+- **Datasets tested**: 18 (tabular, text, time series)
+- **Frameworks tested**: FLAML, AutoGluon, H2O
+- **Average improvement**: -0.94%
+
+AutoML frameworks are highly optimized and may not benefit from additional feature engineering in most cases.
 
 ### FLAML Integration Results
 
-| Dataset | Task | Baseline | +FeatCopilot | Change |
-|---------|------|----------|--------------|--------|
-| Titanic | Classification | 0.9665 | 0.9665 | +0.00% |
-| House Prices | Regression | 0.9195 | 0.9248 | +0.58% |
-| Bike Sharing | Regression | 0.8426 | 0.8512 | +1.02% |
-| Retail Demand | Regression | 0.7891 | 0.8345 | **+5.75%** |
-| Product Reviews | Classification | 0.7234 | 0.7856 | **+8.60%** |
-| News Headlines | Classification | 0.5123 | 0.5634 | **+9.97%** |
+| Dataset | Task | Baseline | +FeatCopilot | Change | Train Time (B/E) |
+|---------|------|----------|--------------|--------|------------------|
+| Titanic | Classification | 0.9665 | 0.9665 | +0.00% | 30.1s / 30.3s |
+| House Prices | Regression | 0.9242 | 0.9136 | -1.15% | 30.4s / 30.1s |
+| Credit Card Fraud | Classification | 0.9860 | 0.9860 | +0.00% | 30.0s / 30.2s |
+| Medical Diagnosis | Classification | 0.8567 | 0.8600 | **+0.39%** | 30.7s / 30.6s |
+| News Headlines | Text Classification | 0.9800 | 0.9820 | **+0.20%** | 34.7s / 54.0s |
+| E-commerce Products | Text Regression | 0.4626 | 0.4658 | **+0.69%** | 30.3s / 30.2s |
+
+**Average improvement with FLAML**: -0.69%
 
 ### AutoGluon Integration Results
 
-| Dataset | Task | Baseline | +FeatCopilot | Change |
-|---------|------|----------|--------------|--------|
-| Titanic | Classification | 0.9721 | 0.9721 | +0.00% |
-| House Prices | Regression | 0.9312 | 0.9356 | +0.47% |
-| Retail Demand | Regression | 0.8123 | 0.8412 | **+3.56%** |
-| Product Reviews | Classification | 0.7512 | 0.7923 | **+5.47%** |
-| News Headlines | Classification | 0.5423 | 0.5812 | **+7.17%** |
+| Dataset | Task | Baseline | +FeatCopilot | Change | Train Time (B/E) |
+|---------|------|----------|--------------|--------|------------------|
+| Titanic | Classification | 0.9665 | 0.9497 | -1.73% | 14.7s / 11.4s |
+| Credit Card Fraud | Classification | 0.9860 | 0.9860 | +0.00% | 16.1s / 17.4s |
+| Server Latency | Time Series | 0.9956 | 0.9957 | **+0.01%** | 31.1s / 31.2s |
+| News Headlines | Text Classification | 0.9840 | 0.9960 | **+1.22%** | 31.2s / 31.2s |
+| Customer Support | Text Classification | 1.0000 | 1.0000 | +0.00% | 38.5s / 31.4s |
+
+**Average improvement with AutoGluon**: -1.31%
+
+### H2O Integration Results
+
+| Dataset | Task | Baseline | +FeatCopilot | Change | Train Time (B/E) |
+|---------|------|----------|--------------|--------|------------------|
+| Credit Risk | Classification | 0.7075 | 0.7100 | **+0.35%** | 84.4s / 87.8s |
+| Server Latency | Time Series | 0.9740 | 0.9950 | **+2.16%** | 83.1s / 83.9s |
+| News Headlines | Text Classification | 0.9980 | 1.0000 | **+0.20%** | 85.5s / 85.6s |
+
+**Average improvement with H2O**: -0.77%
 
 ### Running AutoML Benchmarks
 
@@ -321,8 +337,8 @@ FeatCopilot can be combined with AutoML frameworks to improve results, especiall
 # Install benchmark dependencies
 pip install featcopilot[benchmark]
 
-# Run benchmarks
-python benchmarks/automl/run_automl_benchmark.py --frameworks flaml autogluon --time-budget 60
+# Run benchmarks (30s time budget per task)
+python -m benchmarks.automl.run_automl_benchmark --frameworks flaml autogluon h2o --time-budget 30
 ```
 
 ## Comparison with Other Tools
