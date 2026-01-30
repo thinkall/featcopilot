@@ -27,6 +27,15 @@
 - Delete multiple files at once - Confirm with user before bulk deletions
 - Run destructive commands (e.g., `rm -rf`, `git reset --hard`)
 
+## Coding Standards
+
+### Logging
+
+- **Never use `print()` for logging** - Use the dedicated logger module instead
+- Import the logger from the project's logger module in each file
+- Logger must include source information (filename, line number) in output
+- Use appropriate log levels: `debug`, `info`, `warning`, `error`, `critical`
+
 ## Additional Configurations
 
 <!-- Add more configurations below as needed -->
