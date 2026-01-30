@@ -17,34 +17,61 @@ from sklearn.model_selection import train_test_split
 from featcopilot import AutoFeatureEngineer
 
 
-def create_healthcare_data(n_samples=500):
-    """Create synthetic healthcare dataset."""
+def create_healthcare_data(n_samples=1000):
+    """
+    Create synthetic healthcare dataset with interaction effects.
+
+    The target depends on medical ratios and interactions that
+    benefit significantly from feature engineering.
+    """
     np.random.seed(42)
 
     data = pd.DataFrame(
         {
             "age": np.random.randint(20, 90, n_samples),
-            "bmi": np.random.normal(26, 5, n_samples),
-            "blood_pressure_systolic": np.random.normal(120, 20, n_samples),
-            "blood_pressure_diastolic": np.random.normal(80, 12, n_samples),
-            "cholesterol_total": np.random.normal(200, 40, n_samples),
-            "cholesterol_hdl": np.random.normal(55, 15, n_samples),
-            "cholesterol_ldl": np.random.normal(120, 35, n_samples),
-            "glucose_fasting": np.random.normal(100, 25, n_samples),
-            "hba1c": np.random.normal(5.5, 1.2, n_samples),
+            "bmi": np.random.normal(26, 5, n_samples).clip(15, 45),
+            "blood_pressure_systolic": np.random.normal(120, 20, n_samples).clip(80, 200),
+            "blood_pressure_diastolic": np.random.normal(80, 12, n_samples).clip(50, 120),
+            "cholesterol_total": np.random.normal(200, 40, n_samples).clip(100, 350),
+            "cholesterol_hdl": np.random.normal(55, 15, n_samples).clip(20, 100),
+            "cholesterol_ldl": np.random.normal(120, 35, n_samples).clip(50, 250),
+            "glucose_fasting": np.random.normal(100, 25, n_samples).clip(60, 200),
+            "hba1c": np.random.normal(5.5, 1.2, n_samples).clip(4, 12),
             "smoking_years": np.random.exponential(5, n_samples),
             "exercise_hours_weekly": np.random.exponential(3, n_samples),
         }
     )
 
-    # Create diabetes risk target
+    # Create diabetes risk based on MEDICAL RATIOS and INTERACTIONS
+    # These are real medical indicators that require feature engineering
+
+    # BMI-Age interaction (obesity more dangerous with age)
+    bmi_age_risk = (data["bmi"] - 25) * (data["age"] - 40) / 500
+
+    # Cholesterol ratio (Total/HDL is a key cardiac risk indicator)
+    cholesterol_ratio = data["cholesterol_total"] / (data["cholesterol_hdl"] + 1)
+
+    # Blood pressure interaction (pulse pressure = systolic - diastolic)
+    pulse_pressure = (data["blood_pressure_systolic"] - data["blood_pressure_diastolic"]) / 40
+
+    # Glucose-HbA1c consistency (high both = confirmed diabetes pattern)
+    glucose_hba1c_interaction = (data["glucose_fasting"] - 100) * (data["hba1c"] - 5.5) / 100
+
+    # Lifestyle score interaction (smoking damage vs exercise benefit)
+    lifestyle_interaction = data["smoking_years"] / (data["exercise_hours_weekly"] + 1)
+
+    # Metabolic syndrome indicator (BMI * glucose interaction)
+    metabolic_risk = (data["bmi"] - 25) * (data["glucose_fasting"] - 100) / 1000
+
     risk = (
-        0.01 * (data["age"] - 40)
-        + 0.02 * (data["bmi"] - 25)
-        + 0.01 * data["glucose_fasting"]
-        + 0.1 * data["hba1c"]
-        + 0.01 * data["smoking_years"]
-        - 0.02 * data["exercise_hours_weekly"]
+        -2.0  # Base (sigmoid will center this)
+        + 0.03 * data["age"]  # Age effect
+        + 0.3 * bmi_age_risk  # BMI-age interaction
+        + 0.15 * cholesterol_ratio  # Cholesterol ratio
+        + 0.2 * pulse_pressure  # Pulse pressure
+        + 0.5 * glucose_hba1c_interaction  # Glucose-HbA1c
+        + 0.2 * lifestyle_interaction  # Lifestyle
+        + 0.4 * metabolic_risk  # Metabolic syndrome
     )
     risk = 1 / (1 + np.exp(-risk))
     data["diabetes_risk"] = (np.random.random(n_samples) < risk).astype(int)
@@ -59,7 +86,7 @@ def main():
 
     # Create sample data
     print("\n1. Creating healthcare dataset...")
-    data = create_healthcare_data(500)
+    data = create_healthcare_data(1000)
     X = data.drop("diabetes_risk", axis=1)
     y = data["diabetes_risk"]
 

@@ -16,29 +16,53 @@ from featcopilot import AutoFeatureEngineer
 
 
 def create_sample_data(n_samples=1000):
-    """Create synthetic customer churn dataset."""
+    """
+    Create synthetic customer churn dataset with interaction effects.
+
+    The target depends on feature interactions and ratios that
+    benefit from feature engineering.
+    """
     np.random.seed(42)
 
     data = pd.DataFrame(
         {
             "age": np.random.randint(18, 80, n_samples),
-            "income": np.random.exponential(50000, n_samples),
+            "income": np.random.exponential(50000, n_samples) + 20000,
             "tenure_months": np.random.randint(1, 120, n_samples),
             "monthly_charges": np.random.uniform(20, 150, n_samples),
-            "total_charges": np.random.exponential(2000, n_samples),
+            "total_charges": np.random.exponential(2000, n_samples) + 100,
             "contract_length": np.random.choice([1, 12, 24], n_samples),
             "num_products": np.random.randint(1, 6, n_samples),
             "support_tickets": np.random.poisson(2, n_samples),
         }
     )
 
-    # Create target with some signal
+    # Create target based on INTERACTIONS and RATIOS (not just linear)
+    # These relationships benefit significantly from feature engineering
+
+    # Ratio: charges relative to income (financial stress indicator)
+    charge_to_income = data["monthly_charges"] / (data["income"] / 12)
+
+    # Ratio: value per product
+    value_per_product = data["total_charges"] / (data["num_products"] + 1)
+
+    # Interaction: short tenure + high tickets = high churn risk
+    tenure_ticket_interaction = data["support_tickets"] / (data["tenure_months"] + 1)
+
+    # Interaction: young + short contract = higher churn
+    age_contract_interaction = (80 - data["age"]) * (24 - data["contract_length"]) / 1000
+
+    # Non-linear tenure effect (very new or very old customers behave differently)
+    tenure_nonlinear = np.abs(data["tenure_months"] - 60) / 60
+
     churn_prob = (
-        0.3
-        - 0.002 * data["tenure_months"]
-        + 0.001 * data["monthly_charges"]
-        + 0.05 * data["support_tickets"]
-        - 0.01 * data["contract_length"]
+        0.15
+        + 0.8 * charge_to_income  # Financial stress
+        - 0.00005 * value_per_product  # Higher value = lower churn
+        + 0.5 * tenure_ticket_interaction  # Support issues early = bad
+        + 0.3 * age_contract_interaction  # Young + short contract
+        + 0.15 * tenure_nonlinear  # Very new or very old
+        - 0.02 * data["num_products"]  # More products = stickier
     )
     churn_prob = np.clip(churn_prob, 0.05, 0.95)
     data["churn"] = (np.random.random(n_samples) < churn_prob).astype(int)
