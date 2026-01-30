@@ -561,6 +561,643 @@ def get_timeseries_datasets():
     ]
 
 
+# =============================================================================
+# Text & Semantic Datasets
+# =============================================================================
+
+
+def create_product_reviews_dataset(n_samples=2000, random_state=42):
+    """
+    Product reviews dataset - sentiment classification with text.
+    Tests text feature engineering capabilities.
+    """
+    np.random.seed(random_state)
+
+    # Product categories
+    categories = ["Electronics", "Clothing", "Home & Kitchen", "Books", "Sports"]
+    category = np.random.choice(categories, n_samples)
+
+    # Generate realistic review texts
+    positive_phrases = [
+        "excellent product",
+        "highly recommend",
+        "great quality",
+        "amazing value",
+        "works perfectly",
+        "exceeded expectations",
+        "love it",
+        "best purchase",
+        "fantastic",
+        "wonderful",
+        "impressed",
+        "satisfied customer",
+    ]
+    negative_phrases = [
+        "disappointed",
+        "poor quality",
+        "waste of money",
+        "doesn't work",
+        "broken",
+        "terrible",
+        "avoid",
+        "worst purchase",
+        "defective",
+        "not as described",
+        "returned it",
+        "very unhappy",
+    ]
+    neutral_phrases = [
+        "okay product",
+        "average",
+        "nothing special",
+        "decent",
+        "expected better",
+        "it's fine",
+        "does the job",
+        "acceptable",
+    ]
+
+    reviews = []
+    sentiments = []
+
+    for i in range(n_samples):
+        sentiment_score = np.random.random()
+        if sentiment_score > 0.6:
+            # Positive review
+            n_phrases = np.random.randint(2, 5)
+            phrases = np.random.choice(positive_phrases, n_phrases, replace=True)
+            review = " ".join(phrases) + ". " + f"Great {category[i].lower()} product!"
+            sentiments.append(1)
+        elif sentiment_score < 0.3:
+            # Negative review
+            n_phrases = np.random.randint(2, 4)
+            phrases = np.random.choice(negative_phrases, n_phrases, replace=True)
+            review = " ".join(phrases) + ". " + f"Bad {category[i].lower()} experience."
+            sentiments.append(0)
+        else:
+            # Neutral review
+            n_phrases = np.random.randint(1, 3)
+            phrases = np.random.choice(neutral_phrases, n_phrases, replace=True)
+            review = " ".join(phrases) + "."
+            sentiments.append(np.random.choice([0, 1]))
+
+        reviews.append(review)
+
+    # Numeric features
+    price = np.random.lognormal(3.5, 1, n_samples)
+    rating = np.clip(
+        np.where(
+            np.array(sentiments) == 1, np.random.normal(4.2, 0.5, n_samples), np.random.normal(2.5, 0.8, n_samples)
+        ),
+        1,
+        5,
+    )
+    helpful_votes = np.random.poisson(5, n_samples)
+    review_length = np.array([len(r.split()) for r in reviews])
+
+    X = pd.DataFrame(
+        {
+            "review_text": reviews,
+            "category": category,
+            "price": price,
+            "rating": rating,
+            "helpful_votes": helpful_votes,
+            "review_length": review_length,
+        }
+    )
+
+    y = pd.Series(sentiments, name="sentiment")
+
+    return X, y, "text_classification", "Product Reviews (text)"
+
+
+def create_job_postings_dataset(n_samples=1500, random_state=42):
+    """
+    Job postings dataset - salary prediction with text descriptions.
+    Tests semantic feature extraction from job descriptions.
+    """
+    np.random.seed(random_state)
+
+    # Job titles and descriptions
+    titles = [
+        "Software Engineer",
+        "Data Scientist",
+        "Product Manager",
+        "Marketing Manager",
+        "Sales Representative",
+        "HR Specialist",
+        "Financial Analyst",
+        "Operations Manager",
+        "Customer Support",
+        "UX Designer",
+        "DevOps Engineer",
+        "Business Analyst",
+    ]
+
+    skills_map = {
+        "Software Engineer": ["Python", "Java", "JavaScript", "SQL", "AWS", "Docker"],
+        "Data Scientist": ["Python", "Machine Learning", "SQL", "Statistics", "TensorFlow"],
+        "Product Manager": ["Agile", "Roadmap", "Stakeholder Management", "Analytics"],
+        "Marketing Manager": ["SEO", "Social Media", "Content Strategy", "Analytics"],
+        "Sales Representative": ["CRM", "Negotiation", "Cold Calling", "Pipeline"],
+        "HR Specialist": ["Recruiting", "Onboarding", "HRIS", "Employee Relations"],
+        "Financial Analyst": ["Excel", "Financial Modeling", "SQL", "Forecasting"],
+        "Operations Manager": ["Process Improvement", "Logistics", "KPIs", "Lean"],
+        "Customer Support": ["Zendesk", "Communication", "Problem Solving", "Empathy"],
+        "UX Designer": ["Figma", "User Research", "Prototyping", "Design Systems"],
+        "DevOps Engineer": ["Kubernetes", "CI/CD", "AWS", "Terraform", "Linux"],
+        "Business Analyst": ["Requirements", "SQL", "Process Mapping", "Stakeholders"],
+    }
+
+    experience_levels = ["Entry", "Mid", "Senior", "Lead", "Director"]
+    locations = ["San Francisco", "New York", "Seattle", "Austin", "Remote", "Chicago"]
+    company_sizes = ["Startup", "Small", "Medium", "Large", "Enterprise"]
+
+    job_titles = []
+    descriptions = []
+    experience = []
+    location = []
+    company_size = []
+
+    for _ in range(n_samples):
+        title = np.random.choice(titles)
+        exp_level = np.random.choice(experience_levels, p=[0.15, 0.30, 0.30, 0.15, 0.10])
+        loc = np.random.choice(locations)
+        size = np.random.choice(company_sizes)
+
+        # Generate description
+        skills = np.random.choice(skills_map[title], min(3, len(skills_map[title])), replace=False)
+        desc = f"{exp_level} {title} position. Required skills: {', '.join(skills)}. "
+        desc += f"Location: {loc}. Company size: {size}."
+
+        job_titles.append(title)
+        descriptions.append(desc)
+        experience.append(experience_levels.index(exp_level))
+        location.append(loc)
+        company_size.append(size)
+
+    # Calculate salary based on various factors
+    base_salaries = {
+        "Software Engineer": 120000,
+        "Data Scientist": 130000,
+        "Product Manager": 140000,
+        "Marketing Manager": 100000,
+        "Sales Representative": 70000,
+        "HR Specialist": 65000,
+        "Financial Analyst": 85000,
+        "Operations Manager": 95000,
+        "Customer Support": 50000,
+        "UX Designer": 110000,
+        "DevOps Engineer": 135000,
+        "Business Analyst": 90000,
+    }
+
+    location_multipliers = {
+        "San Francisco": 1.3,
+        "New York": 1.25,
+        "Seattle": 1.2,
+        "Austin": 1.0,
+        "Remote": 1.05,
+        "Chicago": 1.05,
+    }
+
+    salaries = []
+    for i in range(n_samples):
+        base = base_salaries[job_titles[i]]
+        loc_mult = location_multipliers[location[i]]
+        exp_mult = 1 + experience[i] * 0.2
+        size_mult = 1 + company_sizes.index(company_size[i]) * 0.05
+        salary = base * loc_mult * exp_mult * size_mult
+        salary += np.random.normal(0, salary * 0.1)
+        salaries.append(max(salary, 40000))
+
+    X = pd.DataFrame(
+        {
+            "job_title": job_titles,
+            "description": descriptions,
+            "experience_level": experience,
+            "location": location,
+            "company_size": company_size,
+        }
+    )
+
+    y = pd.Series(salaries, name="salary")
+
+    return X, y, "text_regression", "Job Postings (text)"
+
+
+def create_news_classification_dataset(n_samples=2500, random_state=42):
+    """
+    News headlines classification - multi-class with text.
+    Categories: Business, Technology, Sports, Entertainment, Politics.
+    """
+    np.random.seed(random_state)
+
+    categories = ["Business", "Technology", "Sports", "Entertainment", "Politics"]
+
+    headlines_templates = {
+        "Business": [
+            "Stock market {action} as {company} reports {result}",
+            "{company} announces {number}B acquisition of {target}",
+            "Fed {action} interest rates amid {condition}",
+            "{company} CEO {action} after {event}",
+            "Oil prices {action} on {reason}",
+        ],
+        "Technology": [
+            "{company} launches new {product} with {feature}",
+            "AI breakthrough: {achievement} announced",
+            "{company} faces {issue} concerns over {topic}",
+            "New {technology} promises to {benefit}",
+            "{company} unveils {product} at {event}",
+        ],
+        "Sports": [
+            "{team} defeats {opponent} {score} in {event}",
+            "{player} signs {number}M contract with {team}",
+            "{team} advances to {event} finals",
+            "{player} breaks {record} record",
+            "Injury update: {player} out for {duration}",
+        ],
+        "Entertainment": [
+            "{movie} breaks box office records with {number}M opening",
+            "{celebrity} announces {event}",
+            "{show} renewed for {number} more seasons",
+            "{celebrity} wins {award} at {event}",
+            "New {genre} film from {director} premieres",
+        ],
+        "Politics": [
+            "{politician} proposes new {policy} legislation",
+            "Election results: {party} wins {location}",
+            "{country} and {country2} sign {agreement}",
+            "Debate: candidates clash over {topic}",
+            "{politician} addresses {issue} in speech",
+        ],
+    }
+
+    fill_values = {
+        "action": ["rises", "falls", "surges", "drops", "stabilizes"],
+        "company": ["Apple", "Google", "Microsoft", "Amazon", "Tesla", "Meta"],
+        "result": ["strong earnings", "weak guidance", "record profits", "losses"],
+        "number": ["1", "2", "5", "10", "50", "100"],
+        "target": ["startup", "competitor", "tech firm"],
+        "condition": ["inflation concerns", "economic uncertainty", "growth outlook"],
+        "event": ["scandal", "announcement", "quarterly report"],
+        "reason": ["supply concerns", "demand surge", "geopolitical tensions"],
+        "product": ["smartphone", "AI assistant", "tablet", "smartwatch", "laptop"],
+        "feature": ["revolutionary AI", "longer battery", "better camera"],
+        "achievement": ["language model", "protein folding", "autonomous driving"],
+        "issue": ["privacy", "antitrust", "security"],
+        "topic": ["data collection", "market dominance", "user safety"],
+        "technology": ["quantum computing", "blockchain", "AR glasses"],
+        "benefit": ["revolutionize healthcare", "transform education", "enhance productivity"],
+        "team": ["Lakers", "Yankees", "Patriots", "Warriors", "Chiefs"],
+        "opponent": ["Celtics", "Red Sox", "Eagles", "Suns", "Ravens"],
+        "score": ["3-2", "24-21", "105-98", "2-1"],
+        "player": ["LeBron", "Brady", "Messi", "Curry", "Mahomes"],
+        "record": ["scoring", "passing", "home run", "touchdown"],
+        "duration": ["6 weeks", "season", "2 months"],
+        "movie": ["Avatar 3", "Marvel film", "Pixar movie", "Nolan epic"],
+        "celebrity": ["Taylor Swift", "Tom Hanks", "Beyoncé", "DiCaprio"],
+        "show": ["Stranger Things", "The Crown", "Succession"],
+        "award": ["Oscar", "Emmy", "Grammy", "Golden Globe"],
+        "genre": ["sci-fi", "drama", "comedy", "action"],
+        "director": ["Spielberg", "Nolan", "Scorsese", "Tarantino"],
+        "politician": ["President", "Senator", "Governor", "Mayor"],
+        "policy": ["healthcare", "tax", "climate", "immigration"],
+        "party": ["Democrats", "Republicans"],
+        "location": ["Senate seat", "key state", "local election"],
+        "country": ["US", "China", "EU", "UK"],
+        "country2": ["Japan", "India", "Canada", "Australia"],
+        "agreement": ["trade deal", "climate accord", "security pact"],
+    }
+
+    headlines = []
+    labels = []
+    word_counts = []
+    has_numbers = []
+
+    for _ in range(n_samples):
+        cat = np.random.choice(categories)
+        template = np.random.choice(headlines_templates[cat])
+
+        # Fill in template
+        headline = template
+        for key, values in fill_values.items():
+            if "{" + key + "}" in headline:
+                headline = headline.replace("{" + key + "}", np.random.choice(values), 1)
+
+        headlines.append(headline)
+        labels.append(categories.index(cat))
+        word_counts.append(len(headline.split()))
+        has_numbers.append(1 if any(c.isdigit() for c in headline) else 0)
+
+    # Additional features
+    hour_published = np.random.randint(0, 24, n_samples)
+    source_credibility = np.random.uniform(0.5, 1.0, n_samples)
+
+    X = pd.DataFrame(
+        {
+            "headline": headlines,
+            "word_count": word_counts,
+            "has_numbers": has_numbers,
+            "hour_published": hour_published,
+            "source_credibility": source_credibility,
+        }
+    )
+
+    y = pd.Series(labels, name="category")
+
+    return X, y, "text_classification", "News Headlines (text)"
+
+
+def create_customer_support_dataset(n_samples=2000, random_state=42):
+    """
+    Customer support tickets - priority classification with text.
+    Tests extraction of urgency and sentiment from support messages.
+    """
+    np.random.seed(random_state)
+
+    priorities = ["Low", "Medium", "High", "Critical"]
+
+    templates = {
+        "Low": [
+            "Question about {feature}",
+            "How do I {action}?",
+            "General inquiry about {topic}",
+            "Feature request: {feature}",
+        ],
+        "Medium": [
+            "Issue with {feature} not working correctly",
+            "Need help with {action}",
+            "Problem: {issue} happening sometimes",
+            "Can't figure out how to {action}",
+        ],
+        "High": [
+            "URGENT: {feature} is broken",
+            "{feature} stopped working completely",
+            "Critical issue: can't {action}",
+            "Major problem with {issue}",
+        ],
+        "Critical": [
+            "EMERGENCY: System down, can't access anything",
+            "Data loss: {issue} caused problems",
+            "Security breach detected in {feature}",
+            "Production is DOWN - need immediate help",
+        ],
+    }
+
+    fill_values = {
+        "feature": ["login", "dashboard", "reports", "API", "billing", "notifications"],
+        "action": ["export data", "reset password", "update settings", "integrate API"],
+        "topic": ["pricing", "features", "billing", "account"],
+        "issue": ["error messages", "slow loading", "crashes", "data sync"],
+    }
+
+    tickets = []
+    priority_labels = []
+    ticket_lengths = []
+    contains_urgent = []
+    customer_tiers = []
+
+    for _ in range(n_samples):
+        priority_idx = np.random.choice([0, 1, 2, 3], p=[0.35, 0.35, 0.20, 0.10])
+        priority = priorities[priority_idx]
+        template = np.random.choice(templates[priority])
+
+        # Fill template
+        ticket = template
+        for key, values in fill_values.items():
+            if "{" + key + "}" in ticket:
+                ticket = ticket.replace("{" + key + "}", np.random.choice(values), 1)
+
+        tickets.append(ticket)
+        priority_labels.append(priority_idx)
+        ticket_lengths.append(len(ticket.split()))
+        contains_urgent.append(
+            1 if any(w in ticket.upper() for w in ["URGENT", "EMERGENCY", "CRITICAL", "DOWN"]) else 0
+        )
+        customer_tiers.append(np.random.choice(["Free", "Basic", "Pro", "Enterprise"], p=[0.3, 0.3, 0.25, 0.15]))
+
+    # Additional features
+    response_time_hours = np.random.exponential(4, n_samples)
+    previous_tickets = np.random.poisson(3, n_samples)
+
+    X = pd.DataFrame(
+        {
+            "ticket_text": tickets,
+            "ticket_length": ticket_lengths,
+            "contains_urgent_words": contains_urgent,
+            "customer_tier": customer_tiers,
+            "response_time_hours": response_time_hours,
+            "previous_tickets": previous_tickets,
+        }
+    )
+
+    y = pd.Series(priority_labels, name="priority")
+
+    return X, y, "text_classification", "Customer Support Tickets (text)"
+
+
+def create_medical_notes_dataset(n_samples=1500, random_state=42):
+    """
+    Medical notes dataset - diagnosis prediction with clinical text.
+    Tests domain-specific semantic understanding.
+    """
+    np.random.seed(random_state)
+
+    conditions = ["Healthy", "Diabetes", "Hypertension", "Heart Disease", "Respiratory"]
+
+    symptoms_map = {
+        "Healthy": ["routine checkup", "no complaints", "feeling well", "annual physical"],
+        "Diabetes": ["increased thirst", "frequent urination", "fatigue", "blurred vision", "high blood sugar"],
+        "Hypertension": ["headaches", "high blood pressure", "dizziness", "chest discomfort", "shortness of breath"],
+        "Heart Disease": ["chest pain", "irregular heartbeat", "fatigue", "swelling", "shortness of breath"],
+        "Respiratory": ["coughing", "wheezing", "shortness of breath", "chest tightness", "mucus production"],
+    }
+
+    notes = []
+    labels = []
+    ages = []
+    bmis = []
+    systolic_bps = []
+    glucose_levels = []
+
+    for _ in range(n_samples):
+        condition = np.random.choice(conditions, p=[0.30, 0.20, 0.20, 0.15, 0.15])
+        symptoms = np.random.choice(symptoms_map[condition], np.random.randint(2, 4), replace=False)
+
+        # Generate clinical note
+        age = np.random.randint(25, 80)
+        note = f"Patient presents with {', '.join(symptoms)}. "
+
+        if condition == "Diabetes":
+            glucose = np.random.randint(140, 250)
+            note += f"Fasting glucose: {glucose} mg/dL. "
+        elif condition == "Hypertension":
+            bp = np.random.randint(150, 190)
+            note += f"Blood pressure elevated: {bp}/{np.random.randint(90, 110)}. "
+        elif condition == "Heart Disease":
+            note += "ECG shows abnormalities. "
+        elif condition == "Respiratory":
+            note += "Lung sounds diminished. "
+        else:
+            note += "Vitals within normal limits. "
+
+        notes.append(note)
+        labels.append(conditions.index(condition))
+        ages.append(age)
+
+        # Generate correlated numeric features
+        if condition == "Diabetes":
+            bmis.append(np.random.normal(30, 5))
+            glucose_levels.append(np.random.randint(140, 250))
+            systolic_bps.append(np.random.randint(120, 150))
+        elif condition == "Hypertension":
+            bmis.append(np.random.normal(28, 4))
+            glucose_levels.append(np.random.randint(90, 130))
+            systolic_bps.append(np.random.randint(150, 190))
+        elif condition == "Heart Disease":
+            bmis.append(np.random.normal(29, 5))
+            glucose_levels.append(np.random.randint(100, 150))
+            systolic_bps.append(np.random.randint(130, 170))
+        else:
+            bmis.append(np.random.normal(25, 4))
+            glucose_levels.append(np.random.randint(80, 110))
+            systolic_bps.append(np.random.randint(110, 130))
+
+    X = pd.DataFrame(
+        {
+            "clinical_notes": notes,
+            "age": ages,
+            "bmi": bmis,
+            "systolic_bp": systolic_bps,
+            "glucose_level": glucose_levels,
+        }
+    )
+
+    y = pd.Series(labels, name="condition")
+
+    return X, y, "text_classification", "Medical Notes (text)"
+
+
+def create_ecommerce_product_dataset(n_samples=2000, random_state=42):
+    """
+    E-commerce product dataset - sales prediction with descriptions.
+    Tests extraction of product attributes from text.
+    """
+    np.random.seed(random_state)
+
+    categories = ["Electronics", "Clothing", "Home", "Sports", "Beauty"]
+
+    product_templates = {
+        "Electronics": [
+            "{brand} {adjective} {product} with {feature}",
+            "Premium {product} - {feature} technology",
+            "{adjective} {product} for {use_case}",
+        ],
+        "Clothing": [
+            "{brand} {adjective} {product} - {material}",
+            "{adjective} {product} for {season}",
+            "Designer {product} with {feature}",
+        ],
+        "Home": [
+            "{brand} {adjective} {product} - {feature}",
+            "{adjective} {product} for {room}",
+            "Modern {product} with {material} finish",
+        ],
+        "Sports": [
+            "{brand} {adjective} {product} for {activity}",
+            "Professional {product} - {feature}",
+            "{adjective} {product} with {technology}",
+        ],
+        "Beauty": [
+            "{brand} {adjective} {product} - {benefit}",
+            "Natural {product} with {ingredient}",
+            "{adjective} {product} for {skin_type} skin",
+        ],
+    }
+
+    fill_values = {
+        "brand": ["Premium", "Elite", "Pro", "Ultra", "Essential"],
+        "adjective": ["innovative", "sleek", "powerful", "compact", "advanced"],
+        "product": ["device", "item", "accessory", "gear", "solution"],
+        "feature": ["smart connectivity", "long battery", "HD display", "fast charging"],
+        "use_case": ["everyday use", "professionals", "beginners", "experts"],
+        "material": ["cotton", "leather", "synthetic", "organic", "recycled"],
+        "season": ["summer", "winter", "all seasons", "spring"],
+        "room": ["living room", "bedroom", "kitchen", "bathroom"],
+        "activity": ["running", "training", "yoga", "outdoor sports"],
+        "technology": ["moisture-wicking", "compression", "breathable"],
+        "benefit": ["anti-aging", "moisturizing", "brightening", "hydrating"],
+        "ingredient": ["vitamin C", "retinol", "hyaluronic acid", "niacinamide"],
+        "skin_type": ["dry", "oily", "sensitive", "normal"],
+    }
+
+    descriptions = []
+    cats = []
+    prices = []
+    ratings = []
+    reviews_count = []
+
+    base_prices = {"Electronics": 200, "Clothing": 50, "Home": 80, "Sports": 60, "Beauty": 40}
+
+    for _ in range(n_samples):
+        cat = np.random.choice(categories)
+        template = np.random.choice(product_templates[cat])
+
+        # Fill template
+        desc = template
+        for key, values in fill_values.items():
+            if "{" + key + "}" in desc:
+                desc = desc.replace("{" + key + "}", np.random.choice(values), 1)
+
+        descriptions.append(desc)
+        cats.append(cat)
+
+        # Generate correlated features
+        price = base_prices[cat] * np.random.lognormal(0, 0.5)
+        prices.append(price)
+        ratings.append(np.clip(np.random.normal(4.0, 0.7), 1, 5))
+        reviews_count.append(np.random.poisson(50))
+
+    # Calculate sales based on multiple factors
+    sales = []
+    for i in range(n_samples):
+        base_sales = 100
+        price_effect = -0.1 * (prices[i] / base_prices[cats[i]] - 1)
+        rating_effect = 0.3 * (ratings[i] - 3)
+        review_effect = 0.1 * np.log1p(reviews_count[i])
+
+        sale = base_sales * (1 + price_effect + rating_effect + review_effect)
+        sale = max(sale + np.random.normal(0, 20), 1)
+        sales.append(int(sale))
+
+    X = pd.DataFrame(
+        {
+            "description": descriptions,
+            "category": cats,
+            "price": prices,
+            "rating": ratings,
+            "reviews_count": reviews_count,
+        }
+    )
+
+    y = pd.Series(sales, name="monthly_sales")
+
+    return X, y, "text_regression", "E-commerce Products (text)"
+
+
+def get_text_datasets():
+    """Return text/semantic benchmark datasets."""
+    return [
+        create_product_reviews_dataset,
+        create_job_postings_dataset,
+        create_news_classification_dataset,
+        create_customer_support_dataset,
+        create_medical_notes_dataset,
+        create_ecommerce_product_dataset,
+    ]
+
+
 def get_dataset_info():
     """Get information about all benchmark datasets."""
     info = []

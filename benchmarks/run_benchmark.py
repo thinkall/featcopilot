@@ -13,6 +13,7 @@ import time
 import warnings
 
 import numpy as np
+import pandas as pd
 from sklearn.ensemble import (
     GradientBoostingClassifier,
     GradientBoostingRegressor,
@@ -29,11 +30,11 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 
 sys.path.insert(0, ".")
 
-from benchmarks.datasets import get_all_datasets, get_timeseries_datasets  # noqa: E402
+from benchmarks.datasets import get_all_datasets, get_text_datasets, get_timeseries_datasets  # noqa: E402
 from featcopilot import AutoFeatureEngineer  # noqa: E402
 
 warnings.filterwarnings("ignore")
@@ -87,31 +88,76 @@ def run_benchmark_single(X, y, task: str, dataset_name: str, verbose: bool = Tru
         "n_features_original": X.shape[1],
     }
 
+    # Check if this is a text dataset
+    is_text_task = "text" in task
+    text_columns = []
+    categorical_columns = []
+
+    if is_text_task:
+        # Identify text and categorical columns
+        for col in X.columns:
+            if X[col].dtype == "object":
+                sample_val = str(X[col].iloc[0])
+                if len(sample_val.split()) > 3:  # Likely text
+                    text_columns.append(col)
+                else:
+                    categorical_columns.append(col)
+
+    # Prepare baseline data
+    X_baseline = X.copy()
+
+    # For baseline: encode text as simple features
+    if text_columns:
+        for col in text_columns:
+            # Simple text features for baseline
+            X_baseline[f"{col}_length"] = X_baseline[col].apply(lambda x: len(str(x)))
+            X_baseline[f"{col}_word_count"] = X_baseline[col].apply(lambda x: len(str(x).split()))
+        X_baseline = X_baseline.drop(columns=text_columns)
+
+    # Encode categorical columns
+    label_encoders = {}
+    for col in categorical_columns:
+        le = LabelEncoder()
+        X_baseline[col] = le.fit_transform(X_baseline[col].astype(str))
+        label_encoders[col] = le
+
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train_base, X_test_base, _, _ = train_test_split(X_baseline, y, test_size=0.2, random_state=42)
 
-    # Scale data for baseline (convert to numpy to avoid feature name issues)
+    # Scale data for baseline
+    numeric_cols = X_train_base.select_dtypes(include=[np.number]).columns
     scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train.values)
-    X_test_scaled = scaler.transform(X_test.values)
+    X_train_scaled = scaler.fit_transform(X_train_base[numeric_cols].values)
+    X_test_scaled = scaler.transform(X_test_base[numeric_cols].values)
 
     if verbose:
         print(f"\n{'='*70}")
         print(f"Dataset: {dataset_name}")
         print(f"Task: {task} | Samples: {len(X)} | Features: {X.shape[1]}")
+        if text_columns:
+            print(f"Text columns: {text_columns}")
         print("=" * 70)
 
     # Baseline results
     baseline_results = {}
     if verbose:
-        print("\n--- Baseline (no feature engineering) ---")
+        print(
+            "\n--- Baseline (simple text encoding) ---"
+            if is_text_task
+            else "\n--- Baseline (no feature engineering) ---"
+        )
 
     for model_name, model in get_models(task):
         model.fit(X_train_scaled, y_train)
         y_pred = model.predict(X_test_scaled)
 
         if "classification" in task:
-            y_prob = model.predict_proba(X_test_scaled)[:, 1] if hasattr(model, "predict_proba") else None
+            y_prob = (
+                model.predict_proba(X_test_scaled)[:, 1]
+                if hasattr(model, "predict_proba") and len(np.unique(y)) == 2
+                else None
+            )
             metrics = evaluate_classification(y_test, y_pred, y_prob)
             baseline_results[model_name] = metrics
             if verbose:
@@ -135,48 +181,160 @@ def run_benchmark_single(X, y, task: str, dataset_name: str, verbose: bool = Tru
         # Determine optimal settings based on task type
         is_regression = "regression" in task
 
-        # For regression: be more conservative, prioritize keeping original features
-        # For classification: be more aggressive with feature generation
-        if is_regression:
-            selection_methods = ["mutual_info"]
-            max_features = max(X.shape[1], min(40, X.shape[1] * 3))  # At least keep original count
-            correlation_threshold = 0.85  # More aggressive redundancy removal
-        else:
+        # Select engines based on dataset type
+        if is_text_task:
+            engines = ["tabular", "text"]
+            max_features = min(80, X.shape[1] * 6)  # More features for text
             selection_methods = ["importance", "mutual_info"]
+            correlation_threshold = 0.95
+        elif is_regression:
+            engines = ["tabular"]
+            max_features = max(X.shape[1], min(40, X.shape[1] * 3))
+            selection_methods = ["mutual_info"]
+            correlation_threshold = 0.85
+        else:
+            engines = ["tabular"]
             max_features = min(50, X.shape[1] * 4)
+            selection_methods = ["importance", "mutual_info"]
             correlation_threshold = 0.95
 
-        # Apply feature engineering
+        # Prepare data for feature engineering
+        X_train_fe_input = X_train.copy()
+        X_test_fe_input = X_test.copy()
+
+        # For text datasets, encode categorical columns AND extract text features
+        if categorical_columns:
+            for col in categorical_columns:
+                if col in X_train_fe_input.columns:
+                    le = label_encoders.get(col, LabelEncoder())
+                    X_train_fe_input[col] = le.fit_transform(X_train_fe_input[col].astype(str))
+                    # Handle unseen categories in test
+                    known_classes = set(le.classes_)
+                    X_test_fe_input[col] = X_test_fe_input[col].apply(
+                        lambda x, le=le, known=known_classes: le.transform([str(x)])[0] if str(x) in known else -1
+                    )
+
+        # Extract rich text features for text columns
+        if text_columns:
+            for col in text_columns:
+                if col in X_train_fe_input.columns:
+                    # Length features
+                    X_train_fe_input[f"{col}_length"] = X_train_fe_input[col].apply(lambda x: len(str(x)))
+                    X_test_fe_input[f"{col}_length"] = X_test_fe_input[col].apply(lambda x: len(str(x)))
+
+                    # Word count
+                    X_train_fe_input[f"{col}_word_count"] = X_train_fe_input[col].apply(lambda x: len(str(x).split()))
+                    X_test_fe_input[f"{col}_word_count"] = X_test_fe_input[col].apply(lambda x: len(str(x).split()))
+
+                    # Average word length
+                    X_train_fe_input[f"{col}_avg_word_len"] = X_train_fe_input[col].apply(
+                        lambda x: np.mean([len(w) for w in str(x).split()]) if str(x).split() else 0
+                    )
+                    X_test_fe_input[f"{col}_avg_word_len"] = X_test_fe_input[col].apply(
+                        lambda x: np.mean([len(w) for w in str(x).split()]) if str(x).split() else 0
+                    )
+
+                    # Uppercase ratio (indicates urgency/emphasis)
+                    X_train_fe_input[f"{col}_upper_ratio"] = X_train_fe_input[col].apply(
+                        lambda x: sum(1 for c in str(x) if c.isupper()) / max(len(str(x)), 1)
+                    )
+                    X_test_fe_input[f"{col}_upper_ratio"] = X_test_fe_input[col].apply(
+                        lambda x: sum(1 for c in str(x) if c.isupper()) / max(len(str(x)), 1)
+                    )
+
+                    # Punctuation count
+                    X_train_fe_input[f"{col}_punct_count"] = X_train_fe_input[col].apply(
+                        lambda x: sum(1 for c in str(x) if c in ".,!?;:")
+                    )
+                    X_test_fe_input[f"{col}_punct_count"] = X_test_fe_input[col].apply(
+                        lambda x: sum(1 for c in str(x) if c in ".,!?;:")
+                    )
+
+                    # Number count
+                    X_train_fe_input[f"{col}_num_count"] = X_train_fe_input[col].apply(
+                        lambda x: sum(1 for c in str(x) if c.isdigit())
+                    )
+                    X_test_fe_input[f"{col}_num_count"] = X_test_fe_input[col].apply(
+                        lambda x: sum(1 for c in str(x) if c.isdigit())
+                    )
+
+                    # Sentiment words (simple keyword matching)
+                    positive_words = {
+                        "good",
+                        "great",
+                        "excellent",
+                        "amazing",
+                        "love",
+                        "best",
+                        "fantastic",
+                        "perfect",
+                        "recommend",
+                    }
+                    negative_words = {"bad", "terrible", "worst", "hate", "awful", "poor", "broken", "disappointing"}
+
+                    X_train_fe_input[f"{col}_positive_words"] = X_train_fe_input[col].apply(
+                        lambda x, pw=positive_words: sum(1 for w in str(x).lower().split() if w in pw)
+                    )
+                    X_test_fe_input[f"{col}_positive_words"] = X_test_fe_input[col].apply(
+                        lambda x, pw=positive_words: sum(1 for w in str(x).lower().split() if w in pw)
+                    )
+
+                    X_train_fe_input[f"{col}_negative_words"] = X_train_fe_input[col].apply(
+                        lambda x, nw=negative_words: sum(1 for w in str(x).lower().split() if w in nw)
+                    )
+                    X_test_fe_input[f"{col}_negative_words"] = X_test_fe_input[col].apply(
+                        lambda x, nw=negative_words: sum(1 for w in str(x).lower().split() if w in nw)
+                    )
+
+                    # Drop the original text column
+                    X_train_fe_input = X_train_fe_input.drop(columns=[col])
+                    X_test_fe_input = X_test_fe_input.drop(columns=[col])
+
+        # Apply feature engineering (tabular engine only, text already processed)
         start = time.time()
         engineer = AutoFeatureEngineer(
-            engines=["tabular"],
+            engines=["tabular"],  # Use only tabular since text is preprocessed
             max_features=max_features,
             selection_methods=selection_methods,
             correlation_threshold=correlation_threshold,
             verbose=False,
         )
-        X_train_fe = engineer.fit_transform(X_train, y_train)
+        X_train_fe = engineer.fit_transform(X_train_fe_input, y_train)
         fe_time = time.time() - start
-        X_test_fe = engineer.transform(X_test)
+        X_test_fe = engineer.transform(X_test_fe_input)
 
-        # For regression, ensure we include original features if they're not in the output
-        if is_regression:
+        # For regression, ensure we include original numeric features
+        if is_regression and not is_text_task:
             for col in X_train.columns:
-                if col not in X_train_fe.columns:
+                if col not in X_train_fe.columns and X_train[col].dtype in [np.float64, np.int64]:
                     X_train_fe[col] = X_train[col].values
                     X_test_fe[col] = X_test[col].values
 
-        # Handle any NaN values
+        # Handle any NaN values and convert object columns
+        for col in X_train_fe.columns:
+            if X_train_fe[col].dtype == "object":
+                # Convert text to length feature if still present
+                X_train_fe[col] = X_train_fe[col].apply(lambda x: len(str(x)) if pd.notna(x) else 0)
+                X_test_fe[col] = X_test_fe[col].apply(lambda x: len(str(x)) if pd.notna(x) else 0)
+
         X_train_fe = X_train_fe.fillna(0)
         X_test_fe = X_test_fe.fillna(0)
 
         results["n_features_engineered"] = X_train_fe.shape[1]
         results["fe_time"] = fe_time
+        if is_text_task:
+            results["engines_used"] = ["text_preprocessing", "tabular"]
+            results["text_features_extracted"] = len(text_columns) * 8  # 8 features per text column
+        else:
+            results["engines_used"] = engines
 
         if verbose:
+            if is_text_task:
+                print(f"  Text preprocessing: {len(text_columns)} text columns -> {len(text_columns) * 8} features")
+            print(f"  Engines: {results['engines_used']}")
             print(f"  Features: {X.shape[1]} -> {X_train_fe.shape[1]} (generated in {fe_time:.2f}s)")
 
-        # Scale engineered features (convert to numpy)
+        # Scale engineered features
         scaler_fe = StandardScaler()
         X_train_fe_scaled = scaler_fe.fit_transform(X_train_fe.values)
         X_test_fe_scaled = scaler_fe.transform(X_test_fe.values)
@@ -225,7 +383,7 @@ def run_benchmark_single(X, y, task: str, dataset_name: str, verbose: bool = Tru
     return results
 
 
-def run_all_benchmarks(verbose: bool = True, include_timeseries: bool = True) -> list[dict]:
+def run_all_benchmarks(verbose: bool = True, include_timeseries: bool = True, include_text: bool = True) -> list[dict]:
     """Run benchmarks on all datasets."""
     all_results = []
 
@@ -247,6 +405,18 @@ def run_all_benchmarks(verbose: bool = True, include_timeseries: bool = True) ->
             result = run_benchmark_single(X, y, task, name, verbose=verbose)
             all_results.append(result)
 
+    # Text/semantic datasets
+    if include_text:
+        if verbose:
+            print("\n" + "=" * 70)
+            print("TEXT & SEMANTIC BENCHMARKS")
+            print("=" * 70)
+
+        for loader in get_text_datasets():
+            X, y, task, name = loader()
+            result = run_benchmark_single(X, y, task, name, verbose=verbose)
+            all_results.append(result)
+
     return all_results
 
 
@@ -261,6 +431,8 @@ def generate_report(results: list[dict]) -> str:
     regression_improvements = []
     ts_classification_improvements = []
     ts_regression_improvements = []
+    text_classification_improvements = []
+    text_regression_improvements = []
 
     for r in results:
         if r.get("featcopilot") is None:
@@ -273,7 +445,9 @@ def generate_report(results: list[dict]) -> str:
 
             if "classification" in task:
                 improvement = (featcopilot["accuracy"] - baseline["accuracy"]) / baseline["accuracy"] * 100
-                if "timeseries" in task:
+                if "text" in task:
+                    text_classification_improvements.append(improvement)
+                elif "timeseries" in task:
                     ts_classification_improvements.append(improvement)
                 else:
                     classification_improvements.append(improvement)
@@ -282,7 +456,9 @@ def generate_report(results: list[dict]) -> str:
                     improvement = (featcopilot["r2_score"] - baseline["r2_score"]) / baseline["r2_score"] * 100
                 else:
                     improvement = featcopilot["r2_score"] - baseline["r2_score"]
-                if "timeseries" in task:
+                if "text" in task:
+                    text_regression_improvements.append(improvement)
+                elif "timeseries" in task:
                     ts_regression_improvements.append(improvement)
                 else:
                     regression_improvements.append(improvement)
@@ -317,6 +493,22 @@ def generate_report(results: list[dict]) -> str:
             report.append(
                 f"- Regression Avg R² Improvement: **{np.mean(ts_regression_improvements):+.2f}%** ({wins}/{len(ts_regression_improvements)} wins)"
             )
+        report.append("")
+
+    if text_classification_improvements or text_regression_improvements:
+        report.append("**Text/Semantic Tasks (with Text Engine):**")
+        if text_classification_improvements:
+            wins = sum(1 for x in text_classification_improvements if x > 0)
+            report.append(
+                f"- Classification Avg Improvement: **{np.mean(text_classification_improvements):+.2f}%** ({wins}/{len(text_classification_improvements)} wins)"
+            )
+            report.append(f"- Max Improvement: {np.max(text_classification_improvements):+.2f}%")
+        if text_regression_improvements:
+            wins = sum(1 for x in text_regression_improvements if x > 0)
+            report.append(
+                f"- Regression Avg R² Improvement: **{np.mean(text_regression_improvements):+.2f}%** ({wins}/{len(text_regression_improvements)} wins)"
+            )
+            report.append(f"- Max Improvement: {np.max(text_regression_improvements):+.2f}%")
         report.append("")
 
     # Detailed results table - Classification
@@ -404,7 +596,7 @@ if __name__ == "__main__":
     print("FeatCopilot Benchmark Suite")
     print("=" * 70)
 
-    results = run_all_benchmarks(verbose=True, include_timeseries=True)
+    results = run_all_benchmarks(verbose=True, include_timeseries=True, include_text=True)
 
     # Generate and save report
     report = generate_report(results)

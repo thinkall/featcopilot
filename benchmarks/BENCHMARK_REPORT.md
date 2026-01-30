@@ -8,13 +8,19 @@
 - Improvements > 0: 8/21 (38%)
 
 **Regression Tasks:**
-- Average R² Improvement: **-0.97%**
-- Max Improvement: +7.52%
+- Average R² Improvement: **-1.12%**
+- Max Improvement: +5.57%
 - Improvements > 0: 3/12 (25%)
 
 **Time Series Tasks:**
 - Classification Avg Improvement: **-6.28%** (0/3 wins)
-- Regression Avg R² Improvement: **+0.04%** (3/6 wins)
+- Regression Avg R² Improvement: **-0.08%** (3/6 wins)
+
+**Text/Semantic Tasks (with Text Engine):**
+- Classification Avg Improvement: **+12.44%** (12/12 wins)
+- Max Improvement: +49.02%
+- Regression Avg R² Improvement: **+1.44%** (3/6 wins)
+- Max Improvement: +7.58%
 
 ## Detailed Results
 
@@ -46,6 +52,18 @@
 | Stock Price Direction (time series) | LogisticRegression | 0.5633 | 0.5433 | -3.55% | 0.5051 | 0.4905 |
 | Stock Price Direction (time series) | RandomForest | 0.5500 | 0.5100 | -7.27% | 0.5475 | 0.5084 |
 | Stock Price Direction (time series) | GradientBoosting | 0.5400 | 0.4967 | -8.02% | 0.5326 | 0.4909 |
+| Product Reviews (text) | LogisticRegression | 0.9175 | 0.9650 | +5.18% | 0.9174 | 0.9649 |
+| Product Reviews (text) | RandomForest | 0.9225 | 0.9625 | +4.34% | 0.9222 | 0.9623 |
+| Product Reviews (text) | GradientBoosting | 0.9200 | 0.9575 | +4.08% | 0.9200 | 0.9574 |
+| News Headlines (text) | LogisticRegression | 0.4080 | 0.6080 | +49.02% | 0.3750 | 0.6075 |
+| News Headlines (text) | RandomForest | 0.6440 | 0.8580 | +33.23% | 0.6448 | 0.8581 |
+| News Headlines (text) | GradientBoosting | 0.6700 | 0.8560 | +27.76% | 0.6678 | 0.8558 |
+| Customer Support Tickets (text) | LogisticRegression | 0.8600 | 0.9000 | +4.65% | 0.8547 | 0.8951 |
+| Customer Support Tickets (text) | RandomForest | 0.9350 | 0.9925 | +6.15% | 0.9338 | 0.9925 |
+| Customer Support Tickets (text) | GradientBoosting | 0.9475 | 0.9975 | +5.28% | 0.9474 | 0.9975 |
+| Medical Notes (text) | LogisticRegression | 0.9233 | 0.9833 | +6.50% | 0.9220 | 0.9833 |
+| Medical Notes (text) | RandomForest | 0.9733 | 0.9967 | +2.40% | 0.9730 | 0.9967 |
+| Medical Notes (text) | GradientBoosting | 0.9800 | 0.9867 | +0.68% | 0.9799 | 0.9868 |
 
 ### Regression Datasets
 
@@ -54,40 +72,52 @@
 | Diabetes (sklearn) | Ridge | 0.4541 | 0.4421 | -2.66% | 53.78 | 54.37 |
 | Diabetes (sklearn) | RandomForest | 0.4415 | 0.4399 | -0.36% | 54.40 | 54.48 |
 | Diabetes (sklearn) | GradientBoosting | 0.4530 | 0.3792 | -16.28% | 53.83 | 57.35 |
-| House Prices (Kaggle-style) | Ridge | 0.9306 | 0.9297 | -0.10% | 20407.82 | 20548.55 |
-| House Prices (Kaggle-style) | RandomForest | 0.8700 | 0.8942 | +2.78% | 27940.29 | 25205.06 |
-| House Prices (Kaggle-style) | GradientBoosting | 0.9135 | 0.9090 | -0.49% | 22785.85 | 23371.12 |
-| Bike Sharing (Kaggle-style) | Ridge | 0.7211 | 0.7753 | +7.52% | 39.98 | 35.88 |
-| Bike Sharing (Kaggle-style) | RandomForest | 0.8074 | 0.8019 | -0.69% | 33.22 | 33.69 |
-| Bike Sharing (Kaggle-style) | GradientBoosting | 0.8305 | 0.8321 | +0.20% | 31.17 | 31.01 |
+| House Prices (Kaggle-style) | Ridge | 0.9306 | 0.9297 | -0.10% | 20407.82 | 20546.02 |
+| House Prices (Kaggle-style) | RandomForest | 0.8700 | 0.8941 | +2.77% | 27940.29 | 25219.52 |
+| House Prices (Kaggle-style) | GradientBoosting | 0.9135 | 0.9099 | -0.40% | 22785.85 | 23261.81 |
+| Bike Sharing (Kaggle-style) | Ridge | 0.7211 | 0.7613 | +5.57% | 39.98 | 36.99 |
+| Bike Sharing (Kaggle-style) | RandomForest | 0.8074 | 0.8025 | -0.61% | 33.22 | 33.64 |
+| Bike Sharing (Kaggle-style) | GradientBoosting | 0.8305 | 0.8323 | +0.22% | 31.17 | 31.00 |
 | Complex Regression (synthetic) | Ridge | 0.9967 | 0.9966 | -0.01% | 10.43 | 10.53 |
 | Complex Regression (synthetic) | RandomForest | 0.8117 | 0.7995 | -1.50% | 78.85 | 81.37 |
 | Complex Regression (synthetic) | GradientBoosting | 0.9137 | 0.9132 | -0.05% | 53.39 | 53.54 |
-| Energy Consumption (time series) | Ridge | 0.3895 | 0.3824 | -1.83% | 10.24 | 10.30 |
-| Energy Consumption (time series) | RandomForest | 0.7974 | 0.8099 | +1.57% | 5.90 | 5.71 |
-| Energy Consumption (time series) | GradientBoosting | 0.8357 | 0.8338 | -0.23% | 5.31 | 5.34 |
+| Energy Consumption (time series) | Ridge | 0.3895 | 0.3844 | -1.29% | 10.24 | 10.28 |
+| Energy Consumption (time series) | RandomForest | 0.7974 | 0.8056 | +1.04% | 5.90 | 5.78 |
+| Energy Consumption (time series) | GradientBoosting | 0.8357 | 0.8277 | -0.96% | 5.31 | 5.44 |
 | Website Traffic (time series) | Ridge | 0.7179 | 0.7153 | -0.35% | 262.39 | 263.57 |
 | Website Traffic (time series) | RandomForest | 0.8447 | 0.8485 | +0.46% | 194.70 | 192.26 |
 | Website Traffic (time series) | GradientBoosting | 0.9076 | 0.9132 | +0.61% | 150.14 | 145.54 |
+| Job Postings (text) | Ridge | 0.3885 | 0.4179 | +7.58% | 49094.19 | 47898.14 |
+| Job Postings (text) | RandomForest | 0.8627 | 0.8408 | -2.53% | 23265.97 | 25049.07 |
+| Job Postings (text) | GradientBoosting | 0.8835 | 0.8595 | -2.72% | 21432.15 | 23535.03 |
+| E-commerce Products (text) | Ridge | 0.4626 | 0.4626 | -0.00% | 20.41 | 20.41 |
+| E-commerce Products (text) | RandomForest | 0.3890 | 0.4024 | +3.45% | 21.76 | 21.52 |
+| E-commerce Products (text) | GradientBoosting | 0.4539 | 0.4669 | +2.86% | 20.57 | 20.32 |
 
 ## Feature Engineering Statistics
 
 | Dataset | Original Features | Engineered Features | FE Time (s) |
 |---------|-------------------|---------------------|-------------|
-| Diabetes (sklearn) | 10 | 31 | 0.16 |
-| Breast Cancer (sklearn) | 30 | 48 | 0.54 |
-| Titanic (Kaggle-style) | 7 | 25 | 0.41 |
-| House Prices (Kaggle-style) | 14 | 37 | 0.40 |
-| Credit Card Fraud (Kaggle-style) | 30 | 50 | 1.68 |
-| Bike Sharing (Kaggle-style) | 10 | 27 | 0.37 |
-| Employee Attrition (IBM HR) | 11 | 40 | 0.58 |
+| Diabetes (sklearn) | 10 | 31 | 0.14 |
+| Breast Cancer (sklearn) | 30 | 48 | 0.53 |
+| Titanic (Kaggle-style) | 7 | 25 | 0.42 |
+| House Prices (Kaggle-style) | 14 | 35 | 0.41 |
+| Credit Card Fraud (Kaggle-style) | 30 | 50 | 1.63 |
+| Bike Sharing (Kaggle-style) | 10 | 24 | 0.37 |
+| Employee Attrition (IBM HR) | 11 | 40 | 0.61 |
 | Credit Risk (synthetic) | 10 | 40 | 0.64 |
-| Medical Diagnosis (synthetic) | 12 | 47 | 0.62 |
-| Complex Regression (synthetic) | 15 | 40 | 0.54 |
-| Complex Classification (synthetic) | 15 | 50 | 0.75 |
-| Energy Consumption (time series) | 9 | 21 | 0.34 |
-| Stock Price Direction (time series) | 10 | 10 | 0.56 |
+| Medical Diagnosis (synthetic) | 12 | 47 | 0.63 |
+| Complex Regression (synthetic) | 15 | 40 | 0.55 |
+| Complex Classification (synthetic) | 15 | 50 | 0.74 |
+| Energy Consumption (time series) | 9 | 20 | 0.34 |
+| Stock Price Direction (time series) | 10 | 10 | 0.55 |
 | Website Traffic (time series) | 9 | 23 | 0.34 |
+| Product Reviews (text) | 6 | 32 | 0.62 |
+| Job Postings (text) | 5 | 22 | 0.54 |
+| News Headlines (text) | 5 | 23 | 0.74 |
+| Customer Support Tickets (text) | 6 | 27 | 0.69 |
+| Medical Notes (text) | 5 | 26 | 0.62 |
+| E-commerce Products (text) | 5 | 27 | 0.71 |
 
 ## Methodology
 
