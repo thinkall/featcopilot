@@ -4,28 +4,32 @@ FeatCopilot provides a unified framework for automated feature engineering, comb
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    AutoFeatureEngineer                      │
-│                    (Main Entry Point)                       │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
-│  │ Tabular  │  │TimeSeries│  │Relational│  │   LLM    │   │
-│  │ Engine   │  │  Engine  │  │  Engine  │  │  Engine  │   │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘   │
-│       │             │             │             │          │
-│       └─────────────┴─────────────┴─────────────┘          │
-│                          │                                  │
-│                  Feature Generation                         │
-│                          │                                  │
-│              ┌───────────┴───────────┐                     │
-│              │   Feature Selection   │                     │
-│              │  (Statistical + ML)   │                     │
-│              └───────────┬───────────┘                     │
-│                          │                                  │
-│                   Selected Features                         │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph AE[AutoFeatureEngineer]
+        direction TB
+        AE_LABEL[Main Entry Point]
+
+        subgraph Engines[Feature Engines]
+            direction LR
+            TE[Tabular<br/>Engine]
+            TSE[TimeSeries<br/>Engine]
+            RE[Relational<br/>Engine]
+            LE[LLM<br/>Engine]
+        end
+
+        FG[Feature Generation]
+
+        subgraph FS[Feature Selection]
+            FS_LABEL[Statistical + ML]
+        end
+
+        SF[Selected Features]
+
+        Engines --> FG
+        FG --> FS
+        FS --> SF
+    end
 ```
 
 ## Core Components
