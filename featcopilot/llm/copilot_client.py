@@ -473,7 +473,37 @@ result = df['col1'] / (df['col2'] + 1e-8)
                 local_vars = {"df": df, "np": np, "pd": pd}
                 exec(
                     code,
-                    {"__builtins__": {"len": len, "sum": sum, "max": max, "min": min}},
+                    {
+                        "__builtins__": {
+                            "len": len,
+                            "sum": sum,
+                            "max": max,
+                            "min": min,
+                            "int": int,
+                            "float": float,
+                            "str": str,
+                            "bool": bool,
+                            "abs": abs,
+                            "round": round,
+                            "pow": pow,
+                            "range": range,
+                            "list": list,
+                            "dict": dict,
+                            "set": set,
+                            "tuple": tuple,
+                            "sorted": sorted,
+                            "reversed": reversed,
+                            "enumerate": enumerate,
+                            "zip": zip,
+                            "any": any,
+                            "all": all,
+                            "map": map,
+                            "filter": filter,
+                            "isinstance": isinstance,
+                            "hasattr": hasattr,
+                            "getattr": getattr,
+                        }
+                    },
                     local_vars,
                 )
 
