@@ -11,8 +11,10 @@ benchmarks/
 │   ├── run_benchmark.py          # Main benchmark runner
 │   ├── BENCHMARK_REPORT.md       # Tabular engine results
 │   └── LLM_BENCHMARK_REPORT.md   # LLM engine results
-└── automl/                        # AutoML integration benchmarks
-    └── run_automl_benchmark.py   # AutoML benchmark runner
+├── automl/                        # AutoML integration benchmarks
+│   └── run_automl_benchmark.py   # AutoML benchmark runner
+└── compare_tools/                 # Comparison with other FE tools
+    └── run_comparison_benchmark.py  # Tool comparison benchmark
 ```
 
 ## Feature Engineering Benchmarks
@@ -97,3 +99,53 @@ See the respective report files for detailed results:
 - `feature_engineering/BENCHMARK_REPORT.md` - Tabular engine results
 - `feature_engineering/LLM_BENCHMARK_REPORT.md` - LLM engine results
 - `automl/AUTOML_BENCHMARK_REPORT.md` - AutoML integration results (generated after running)
+- `compare_tools/COMPARISON_BENCHMARK_REPORT.md` - Tool comparison results (generated after running)
+
+## Feature Engineering Tools Comparison
+
+Compares FeatCopilot with other popular feature engineering libraries.
+
+### Supported Tools
+
+- **FeatCopilot** - Our LLM-powered auto feature engineering
+- **Featuretools** - Deep Feature Synthesis (automated feature engineering)
+- **tsfresh** - Time series feature extraction
+- **autofeat** - Automatic feature generation and selection
+
+### Installation
+
+Install the feature engineering tools you want to compare:
+
+```bash
+# Featuretools
+pip install featuretools
+
+# tsfresh
+pip install tsfresh
+
+# autofeat
+pip install autofeat
+```
+
+### Running the Comparison
+
+```bash
+# Run with all available tools
+python benchmarks/compare_tools/run_comparison_benchmark.py
+
+# Run with specific tools
+python benchmarks/compare_tools/run_comparison_benchmark.py --tools featcopilot featuretools autofeat
+
+# With custom max features
+python benchmarks/compare_tools/run_comparison_benchmark.py --max-features 100
+
+# Custom output path
+python benchmarks/compare_tools/run_comparison_benchmark.py --output results.md
+```
+
+### Comparison Methodology
+
+1. **Baseline**: Train model on raw features (no feature engineering)
+2. **Apply each FE tool**: Generate features with each tool
+3. **Train & Evaluate**: Train GradientBoosting model, measure accuracy/R²
+4. **Compare**: Calculate improvement percentages and count wins
