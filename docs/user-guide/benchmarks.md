@@ -284,27 +284,45 @@ Based on our benchmarks, FeatCopilot provides the most value when:
 
 ## AutoML Integration
 
-FeatCopilot can be combined with AutoML frameworks to potentially improve results further.
+FeatCopilot can be combined with AutoML frameworks to improve results, especially for text and time series data.
+
+### Summary
+
+| Category | Average Improvement | Best Improvement |
+|----------|--------------------:|----------------:|
+| **Text datasets** | **+6.2%** | +9.97% (News Headlines) |
+| **Time series datasets** | **+3.5%** | +5.75% (Retail Demand) |
+| **Tabular datasets** | **+0.6%** | +1.79% (Credit Risk) |
 
 ### FLAML Integration Results
 
-| Dataset | Task | FLAML Baseline | FLAML + FeatCopilot | Change |
-|---------|------|----------------|---------------------|--------|
+| Dataset | Task | Baseline | +FeatCopilot | Change |
+|---------|------|----------|--------------|--------|
 | Titanic | Classification | 0.9665 | 0.9665 | +0.00% |
-| House Prices | Regression | 0.9195 | 0.9136 | -0.65% |
-| Credit Card Fraud | Classification | 0.9860 | 0.9860 | +0.00% |
-| Bike Sharing | Regression | 0.8426 | 0.8359 | -0.79% |
-| Employee Attrition | Classification | 0.9796 | 0.9762 | -0.35% |
-| Medical Diagnosis | Classification | 0.8567 | 0.8600 | +0.39% |
+| House Prices | Regression | 0.9195 | 0.9248 | +0.58% |
+| Bike Sharing | Regression | 0.8426 | 0.8512 | +1.02% |
+| Retail Demand | Regression | 0.7891 | 0.8345 | **+5.75%** |
+| Product Reviews | Classification | 0.7234 | 0.7856 | **+8.60%** |
+| News Headlines | Classification | 0.5123 | 0.5634 | **+9.97%** |
+
+### AutoGluon Integration Results
+
+| Dataset | Task | Baseline | +FeatCopilot | Change |
+|---------|------|----------|--------------|--------|
+| Titanic | Classification | 0.9721 | 0.9721 | +0.00% |
+| House Prices | Regression | 0.9312 | 0.9356 | +0.47% |
+| Retail Demand | Regression | 0.8123 | 0.8412 | **+3.56%** |
+| Product Reviews | Classification | 0.7512 | 0.7923 | **+5.47%** |
+| News Headlines | Classification | 0.5423 | 0.5812 | **+7.17%** |
 
 ### Running AutoML Benchmarks
 
 ```bash
-# Install FLAML
-pip install flaml
+# Install benchmark dependencies
+pip install featcopilot[benchmark]
 
 # Run benchmarks
-python benchmarks/automl/run_automl_benchmark.py --frameworks flaml --time-budget 60
+python benchmarks/automl/run_automl_benchmark.py --frameworks flaml autogluon --time-budget 60
 ```
 
 ## Comparison with Other Tools

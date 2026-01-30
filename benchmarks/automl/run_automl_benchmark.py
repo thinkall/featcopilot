@@ -26,7 +26,7 @@ from sklearn.preprocessing import LabelEncoder
 
 sys.path.insert(0, ".")
 
-from benchmarks.datasets import get_all_datasets
+from benchmarks.datasets import get_all_datasets, get_text_datasets, get_timeseries_datasets
 
 warnings.filterwarnings("ignore")
 
@@ -329,15 +329,21 @@ def run_automl_with_featcopilot(
     random_state: int = 42,
     enable_llm: bool = False,
     max_features: int = 50,
+    engines: list[str] = None,
 ) -> dict[str, Any]:
     """Run AutoML with FeatCopilot feature engineering."""
     from featcopilot import AutoFeatureEngineer
 
     # Configure engines
-    engines = ["tabular"]
+    if engines is None:
+        engines = ["tabular"]
+    else:
+        engines = list(engines)  # Make a copy
+
     llm_config = None
     if enable_llm:
-        engines.append("llm")
+        if "llm" not in engines:
+            engines.append("llm")
         llm_config = {"model": "gpt-5.2", "max_suggestions": 10}
 
     # Encode categorical columns first
@@ -441,15 +447,21 @@ def run_all_automl_benchmarks(
     print(f"LLM enabled: {enable_llm}")
     print("-" * 60)
 
-    # Get datasets
-    datasets = get_all_datasets()
+    # Get all datasets
+    datasets = []
+    for func in get_all_datasets():
+        datasets.append((func, ["tabular"]))
+    for func in get_timeseries_datasets():
+        datasets.append((func, ["tabular", "timeseries"]))
+    for func in get_text_datasets():
+        datasets.append((func, ["tabular", "text"]))
 
     results = []
 
-    for dataset_func in datasets:
+    for dataset_func, engines in datasets:
         X, y, task, name = dataset_func()
         print(f"\nDataset: {name} ({task})")
-        print(f"  Shape: {X.shape}")
+        print(f"  Shape: {X.shape}, Engines: {engines}")
 
         for framework in frameworks:
             if available.get(framework) is None:
@@ -472,6 +484,7 @@ def run_all_automl_benchmarks(
                     time_budget=time_budget,
                     enable_llm=enable_llm,
                     max_features=max_features,
+                    engines=engines,
                 )
                 print(f"done ({with_fe['total_time']:.1f}s)")
 
