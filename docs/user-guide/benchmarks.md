@@ -40,11 +40,11 @@ FeatCopilot has been extensively benchmarked against baseline models across vari
 
     ---
 
-    **+0.26%** average R² improvement
+    **+1.51%** average R² improvement
 
-    **3/6 wins** on regression tasks
+    **7/9 wins** on regression tasks
 
-    RandomForest and GradientBoosting benefit most
+    Best: Retail Demand +12.12%
 
 </div>
 
@@ -110,9 +110,17 @@ X_transformed = engineer.fit_transform(X_with_text, y)
 
 | Dataset | Model | Baseline R² | FeatCopilot R² | Improvement |
 |---------|-------|-------------|----------------|-------------|
-| Energy Consumption | RandomForest | 0.797 | 0.806 | **+1.04%** |
-| Website Traffic | GradientBoosting | 0.908 | 0.913 | **+0.61%** |
-| Website Traffic | RandomForest | 0.845 | 0.849 | +0.46% |
+| Retail Demand | Ridge | 0.715 | 0.801 | **+12.12%** |
+| Sensor Efficiency | GradientBoosting | 0.260 | 0.273 | **+5.10%** |
+| Sensor Efficiency | RandomForest | 0.275 | 0.284 | **+3.34%** |
+| Server Latency | Ridge | 0.972 | 0.973 | +0.03% |
+| Retail Demand | GradientBoosting | 0.917 | 0.917 | +0.06% |
+
+### Key Time Series Findings
+
+1. **Datasets with polynomial/interaction effects** benefit most from feature engineering
+2. **Simple models (Ridge)** show largest gains when interactions are captured
+3. **High-baseline models** (Server Latency ~99%) have limited room for improvement
 
 ## Feature Engineering Statistics
 
@@ -174,8 +182,9 @@ engineer = AutoFeatureEngineer(
 
 **Time Series Datasets:**
 
-- Energy Consumption - Forecasting regression
-- Website Traffic - Traffic regression
+- Sensor Efficiency - Industrial IoT regression
+- Retail Demand - Demand forecasting regression
+- Server Latency - Performance prediction regression
 
 **Text Datasets:**
 

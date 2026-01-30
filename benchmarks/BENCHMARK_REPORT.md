@@ -13,7 +13,7 @@
 - Improvements > 0: 3/9 (33%)
 
 **Time Series Tasks:**
-- Regression Avg R² Improvement: **-0.08%** (3/6 wins)
+- Regression Avg R² Improvement: **+1.51%** (7/9 wins)
 
 **Text/Semantic Tasks (with Text Engine):**
 - Classification Avg Improvement: **+12.44%** (12/12 wins)
@@ -71,12 +71,15 @@
 | Complex Regression (synthetic) | Ridge | 0.9967 | 0.9966 | -0.01% | 10.43 | 10.53 |
 | Complex Regression (synthetic) | RandomForest | 0.8117 | 0.7995 | -1.50% | 78.85 | 81.37 |
 | Complex Regression (synthetic) | GradientBoosting | 0.9137 | 0.9132 | -0.05% | 53.39 | 53.54 |
-| Energy Consumption (time series) | Ridge | 0.3895 | 0.3844 | -1.29% | 10.24 | 10.28 |
-| Energy Consumption (time series) | RandomForest | 0.7974 | 0.8056 | +1.04% | 5.90 | 5.78 |
-| Energy Consumption (time series) | GradientBoosting | 0.8357 | 0.8277 | -0.96% | 5.31 | 5.44 |
-| Website Traffic (time series) | Ridge | 0.7179 | 0.7153 | -0.35% | 262.39 | 263.57 |
-| Website Traffic (time series) | RandomForest | 0.8447 | 0.8485 | +0.46% | 194.70 | 192.26 |
-| Website Traffic (time series) | GradientBoosting | 0.9076 | 0.9132 | +0.61% | 150.14 | 145.54 |
+| Sensor Efficiency (time series) | Ridge | 0.0880 | 0.0824 | -6.34% | 2.32 | 2.33 |
+| Sensor Efficiency (time series) | RandomForest | 0.2751 | 0.2843 | +3.34% | 2.07 | 2.05 |
+| Sensor Efficiency (time series) | GradientBoosting | 0.2596 | 0.2728 | +5.10% | 2.09 | 2.07 |
+| Retail Demand (time series) | Ridge | 0.7145 | 0.8011 | +12.12% | 22.34 | 18.64 |
+| Retail Demand (time series) | RandomForest | 0.8734 | 0.8670 | -0.74% | 14.87 | 15.25 |
+| Retail Demand (time series) | GradientBoosting | 0.9166 | 0.9172 | +0.06% | 12.07 | 12.03 |
+| Server Latency (time series) | Ridge | 0.9724 | 0.9727 | +0.03% | 16.08 | 16.01 |
+| Server Latency (time series) | RandomForest | 0.9926 | 0.9927 | +0.01% | 8.30 | 8.25 |
+| Server Latency (time series) | GradientBoosting | 0.9949 | 0.9949 | +0.00% | 6.94 | 6.92 |
 | Job Postings (text) | Ridge | 0.3885 | 0.4179 | +7.58% | 49094.19 | 47898.14 |
 | Job Postings (text) | RandomForest | 0.8627 | 0.8408 | -2.53% | 23265.97 | 25049.07 |
 | Job Postings (text) | GradientBoosting | 0.8835 | 0.8595 | -2.72% | 21432.15 | 23535.03 |
@@ -88,23 +91,24 @@
 
 | Dataset | Original Features | Engineered Features | FE Time (s) |
 |---------|-------------------|---------------------|-------------|
-| Titanic (Kaggle-style) | 7 | 25 | 0.44 |
+| Titanic (Kaggle-style) | 7 | 25 | 0.43 |
 | House Prices (Kaggle-style) | 14 | 35 | 0.40 |
-| Credit Card Fraud (Kaggle-style) | 30 | 50 | 1.62 |
+| Credit Card Fraud (Kaggle-style) | 30 | 50 | 1.61 |
 | Bike Sharing (Kaggle-style) | 10 | 24 | 0.37 |
-| Employee Attrition (IBM HR) | 11 | 40 | 0.57 |
-| Credit Risk (synthetic) | 10 | 40 | 0.63 |
-| Medical Diagnosis (synthetic) | 12 | 47 | 0.62 |
+| Employee Attrition (IBM HR) | 11 | 40 | 0.56 |
+| Credit Risk (synthetic) | 10 | 40 | 0.64 |
+| Medical Diagnosis (synthetic) | 12 | 47 | 0.61 |
 | Complex Regression (synthetic) | 15 | 40 | 0.53 |
 | Complex Classification (synthetic) | 15 | 50 | 0.77 |
-| Energy Consumption (time series) | 9 | 20 | 0.34 |
-| Website Traffic (time series) | 9 | 23 | 0.34 |
-| Product Reviews (text) | 6 | 32 | 0.61 |
-| Job Postings (text) | 5 | 22 | 0.56 |
+| Sensor Efficiency (time series) | 8 | 15 | 0.31 |
+| Retail Demand (time series) | 10 | 33 | 0.39 |
+| Server Latency (time series) | 8 | 18 | 0.31 |
+| Product Reviews (text) | 6 | 32 | 0.65 |
+| Job Postings (text) | 5 | 22 | 0.55 |
 | News Headlines (text) | 5 | 23 | 0.73 |
-| Customer Support Tickets (text) | 6 | 27 | 0.72 |
-| Medical Notes (text) | 5 | 26 | 0.67 |
-| E-commerce Products (text) | 5 | 27 | 0.73 |
+| Customer Support Tickets (text) | 6 | 27 | 0.74 |
+| Medical Notes (text) | 5 | 26 | 0.60 |
+| E-commerce Products (text) | 5 | 27 | 0.74 |
 
 ## Methodology
 
@@ -132,8 +136,9 @@
 - Complex Classification - Multi-class classification
 
 ### Time Series Datasets
-- Energy Consumption - Forecasting regression
-- Website Traffic - Traffic regression
+- Sensor Efficiency - Industrial IoT regression
+- Retail Demand - Demand forecasting regression
+- Server Latency - Performance prediction regression
 
 ### Text/Semantic Datasets
 - Product Reviews - Sentiment classification

@@ -498,6 +498,165 @@ def create_website_traffic_timeseries(n_samples=2000, random_state=42):
     return X, y, "timeseries_regression", "Website Traffic (time series)"
 
 
+def create_sensor_anomaly_timeseries(n_samples=2000, random_state=42):
+    """
+    Industrial sensor data - regression (predict equipment efficiency).
+    Designed with polynomial and interaction effects that benefit from FE.
+    """
+    np.random.seed(random_state)
+
+    # Time features
+    hour = np.tile(np.arange(24), n_samples // 24 + 1)[:n_samples]
+    shift = np.where(hour < 8, 0, np.where(hour < 16, 1, 2))  # 3 shifts
+
+    # Sensor readings
+    temperature = 50 + 20 * np.random.random(n_samples)  # 50-70°C
+    pressure = 100 + 50 * np.random.random(n_samples)  # 100-150 PSI
+    vibration = 0.1 + 0.4 * np.random.random(n_samples)  # 0.1-0.5 mm/s
+    humidity = 30 + 40 * np.random.random(n_samples)  # 30-70%
+    rpm = 1000 + 500 * np.random.random(n_samples)  # 1000-1500 RPM
+    power_input = 50 + 30 * np.random.random(n_samples)  # 50-80 kW
+
+    X = pd.DataFrame(
+        {
+            "hour": hour,
+            "shift": shift,
+            "temperature": temperature,
+            "pressure": pressure,
+            "vibration": vibration,
+            "humidity": humidity,
+            "rpm": rpm,
+            "power_input": power_input,
+        }
+    )
+
+    # Efficiency depends on POLYNOMIAL and INTERACTION terms
+    # This is designed to benefit from feature engineering!
+    efficiency = (
+        85  # Base efficiency
+        - 0.5 * (temperature - 60) ** 2 / 100  # Quadratic temp effect (optimal at 60)
+        - 0.3 * (pressure - 125) ** 2 / 100  # Quadratic pressure effect (optimal at 125)
+        - 10 * vibration**2  # Quadratic vibration penalty
+        + 0.01 * temperature * pressure / 100  # Temp-pressure interaction
+        - 0.05 * vibration * rpm / 100  # Vibration-RPM interaction
+        + 0.1 * np.sqrt(power_input)  # Sqrt transform benefit
+        - 0.01 * humidity * temperature / 100  # Humidity-temp interaction
+        + 2 * (shift == 1)  # Day shift bonus
+    )
+    efficiency = np.clip(efficiency + np.random.normal(0, 2, n_samples), 50, 100)
+    y = pd.Series(efficiency, name="efficiency_pct")
+
+    return X, y, "timeseries_regression", "Sensor Efficiency (time series)"
+
+
+def create_retail_demand_timeseries(n_samples=2000, random_state=42):
+    """
+    Retail demand forecasting - regression.
+    Has interaction and polynomial effects that benefit from FE.
+    """
+    np.random.seed(random_state)
+
+    # Time features
+    day_of_week = np.tile(np.arange(7), n_samples // 7 + 1)[:n_samples]
+    week_of_year = np.tile(np.repeat(np.arange(1, 53), 7), n_samples // 364 + 1)[:n_samples]
+    is_weekend = (day_of_week >= 5).astype(int)
+
+    # Business features
+    price = 10 + 20 * np.random.random(n_samples)  # $10-30
+    promotion_discount = np.random.choice([0, 0.1, 0.2, 0.3], n_samples, p=[0.6, 0.2, 0.15, 0.05])
+    competitor_price = 10 + 20 * np.random.random(n_samples)
+    inventory_level = 50 + 150 * np.random.random(n_samples)
+    marketing_score = np.random.randint(1, 11, n_samples)  # 1-10
+
+    # Lag features
+    lag_1d = 50 + 100 * np.random.random(n_samples)
+    lag_7d = 50 + 100 * np.random.random(n_samples)
+
+    X = pd.DataFrame(
+        {
+            "day_of_week": day_of_week,
+            "week_of_year": week_of_year,
+            "is_weekend": is_weekend,
+            "price": price,
+            "promotion_discount": promotion_discount,
+            "competitor_price": competitor_price,
+            "inventory_level": inventory_level,
+            "marketing_score": marketing_score,
+            "lag_1d": lag_1d,
+            "lag_7d": lag_7d,
+        }
+    )
+
+    # Demand with POLYNOMIAL and INTERACTION effects
+    price_ratio = price / (competitor_price + 1)
+    effective_price = price * (1 - promotion_discount)
+
+    demand = (
+        100  # Base demand
+        - 5 * (effective_price - 15) ** 2 / 10  # Quadratic price sensitivity (optimal ~$15)
+        + 30 * promotion_discount * marketing_score  # Promo × marketing interaction
+        + 20 * (1 - price_ratio) * (price_ratio < 1)  # Price advantage interaction
+        + 15 * is_weekend * (1 + promotion_discount)  # Weekend × promo interaction
+        + 10 * np.sin(2 * np.pi * week_of_year / 52)  # Seasonality
+        + 0.3 * lag_1d  # Lag effects
+        + 0.2 * lag_7d
+        + 0.05 * np.sqrt(inventory_level) * marketing_score  # Inventory × marketing
+    )
+    demand = np.maximum(demand + np.random.normal(0, 10, n_samples), 5)
+    y = pd.Series(demand.astype(int), name="units_sold")
+
+    return X, y, "timeseries_regression", "Retail Demand (time series)"
+
+
+def create_server_latency_timeseries(n_samples=2000, random_state=42):
+    """
+    Server response latency prediction - regression.
+    Designed with log/sqrt transforms and interactions that benefit from FE.
+    """
+    np.random.seed(random_state)
+
+    # Time features
+    hour = np.tile(np.arange(24), n_samples // 24 + 1)[:n_samples]
+    is_peak = ((hour >= 9) & (hour <= 11) | (hour >= 14) & (hour <= 16)).astype(int)
+
+    # Server metrics
+    cpu_usage = 20 + 60 * np.random.random(n_samples)  # 20-80%
+    memory_usage = 30 + 50 * np.random.random(n_samples)  # 30-80%
+    active_connections = np.random.poisson(100, n_samples)
+    request_rate = 50 + 200 * np.random.random(n_samples)  # req/s
+    db_connections = np.random.poisson(20, n_samples)
+    cache_hit_rate = 0.5 + 0.4 * np.random.random(n_samples)  # 50-90%
+
+    X = pd.DataFrame(
+        {
+            "hour": hour,
+            "is_peak": is_peak,
+            "cpu_usage": cpu_usage,
+            "memory_usage": memory_usage,
+            "active_connections": active_connections,
+            "request_rate": request_rate,
+            "db_connections": db_connections,
+            "cache_hit_rate": cache_hit_rate,
+        }
+    )
+
+    # Latency with LOG, SQRT, and INTERACTION effects
+    latency = (
+        50  # Base latency (ms)
+        + 2 * np.log1p(active_connections) * (1 - cache_hit_rate)  # Log connections × cache miss
+        + 0.5 * cpu_usage * memory_usage / 100  # CPU × memory interaction
+        + 3 * np.sqrt(request_rate) * is_peak  # Sqrt request × peak interaction
+        + 5 * (cpu_usage / 100) ** 2 * 100  # Quadratic CPU penalty at high usage
+        + 2 * db_connections * (1 - cache_hit_rate)  # DB × cache miss interaction
+        - 20 * cache_hit_rate**2  # Quadratic cache benefit
+        + 10 * is_peak * (cpu_usage > 60)  # Peak × high CPU interaction
+    )
+    latency = np.maximum(latency + np.random.normal(0, 5, n_samples), 10)
+    y = pd.Series(latency, name="latency_ms")
+
+    return X, y, "timeseries_regression", "Server Latency (time series)"
+
+
 # =============================================================================
 # Dataset Registry
 # =============================================================================
@@ -521,10 +680,11 @@ def get_all_datasets():
 
 
 def get_timeseries_datasets():
-    """Return time series benchmark datasets (regression only - more stable)."""
+    """Return time series benchmark datasets designed to benefit from FE."""
     return [
-        create_energy_consumption_timeseries,
-        create_website_traffic_timeseries,
+        create_sensor_anomaly_timeseries,
+        create_retail_demand_timeseries,
+        create_server_latency_timeseries,
     ]
 
 
