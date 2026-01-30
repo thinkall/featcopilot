@@ -5,26 +5,15 @@ FeatCopilot provides a unified framework for automated feature engineering, comb
 ## Architecture
 
 ```mermaid
-flowchart TB
-    subgraph AE["AutoFeatureEngineer (Main Entry Point)"]
-        direction TB
-
-        subgraph Engines[" "]
-            direction LR
-            TE[Tabular Engine]
-            TSE[TimeSeries Engine]
-            RE[Relational Engine]
-            LE[LLM Engine]
-        end
-
-        FG[Feature Generation]
-        FS[Feature Selection<br/>Statistical + ML]
-        SF[Selected Features]
-
-        Engines --> FG --> FS --> SF
+graph TD
+    subgraph AE[AutoFeatureEngineer - Main Entry Point]
+        TE[Tabular Engine] --> FG[Feature Generation]
+        TSE[TimeSeries Engine] --> FG
+        RE[Relational Engine] --> FG
+        LE[LLM Engine] --> FG
+        FG --> FS[Feature Selection]
+        FS --> SF[Selected Features]
     end
-
-    style Engines fill:none,stroke:none
 ```
 
 ## Core Components
