@@ -52,7 +52,7 @@ For contributing to FeatCopilot:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/featcopilot.git
+git clone https://github.com/thinkall/featcopilot.git
 cd featcopilot
 
 # Install in development mode

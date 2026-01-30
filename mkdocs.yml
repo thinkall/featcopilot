@@ -1,7 +1,7 @@
 site_name: FeatCopilot
 site_description: Next-Generation LLM-Powered Auto Feature Engineering with GitHub Copilot SDK
 site_url: https://yourusername.github.io/featcopilot
-repo_url: https://github.com/yourusername/featcopilot
+repo_url: https://github.com/thinkall/featcopilot
 repo_name: featcopilot
 
 theme:
@@ -79,6 +79,6 @@ nav:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/yourusername/featcopilot
+      link: https://github.com/thinkall/featcopilot
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/featcopilot/

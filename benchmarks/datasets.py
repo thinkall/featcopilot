@@ -1,45 +1,16 @@
 """
 Benchmark datasets for FeatCopilot evaluation.
 
-Includes real-world datasets (sklearn, Kaggle-style), synthetic datasets,
-and time series datasets for comprehensive benchmarking.
+Includes real-world datasets (Kaggle-style), synthetic datasets,
+time series datasets, and text/semantic datasets for comprehensive benchmarking.
 """
 
 import numpy as np
 import pandas as pd
 from sklearn.datasets import (
-    load_breast_cancer,
-    load_diabetes,
     make_classification,
     make_regression,
 )
-
-# =============================================================================
-# Real-world Datasets (sklearn built-in)
-# =============================================================================
-
-
-def load_diabetes_dataset():
-    """
-    Diabetes dataset - regression task.
-    Used by: AutoFeat, OpenFE, Featuretools benchmarks.
-    """
-    data = load_diabetes()
-    X = pd.DataFrame(data.data, columns=data.feature_names)
-    y = pd.Series(data.target, name="target")
-    return X, y, "regression", "Diabetes (sklearn)"
-
-
-def load_breast_cancer_dataset():
-    """
-    Breast cancer dataset - binary classification.
-    Used by: AutoFeat, CAAFE, OpenFE benchmarks.
-    """
-    data = load_breast_cancer()
-    X = pd.DataFrame(data.data, columns=data.feature_names)
-    y = pd.Series(data.target, name="target")
-    return X, y, "classification", "Breast Cancer (sklearn)"
-
 
 # =============================================================================
 # Kaggle-style Real-world Datasets (embedded data)
@@ -535,9 +506,6 @@ def create_website_traffic_timeseries(n_samples=2000, random_state=42):
 def get_all_datasets():
     """Return all benchmark datasets (excluding time series)."""
     return [
-        # Real-world (sklearn)
-        load_diabetes_dataset,
-        load_breast_cancer_dataset,
         # Kaggle-style
         load_titanic_dataset,
         load_house_prices_dataset,
