@@ -80,6 +80,11 @@ nav:
     - LLM-Powered: examples/llm-powered.md
     - Sklearn Pipeline: examples/sklearn-pipeline.md
     - Domain-Specific: examples/domain-specific.md
+  - API Reference:
+    - AutoFeatureEngineer: api/auto-feature-engineer.md
+    - Engines: api/engines.md
+    - LLM Module: api/llm.md
+    - Selection: api/selection.md
 
 extra:
   social:
