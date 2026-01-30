@@ -17,21 +17,69 @@
 
     News headline classification improved from 40.8% to 60.8% accuracy
 
+-   :material-robot:{ .lg .middle } __+19.7% with LLM Engine__
+
+    ---
+
+    Retail demand forecasting with semantic feature generation
+
 -   :material-check-all:{ .lg .middle } __12/12 Text Wins__
 
     ---
 
     100% improvement rate on text/semantic classification tasks
 
--   :material-speedometer:{ .lg .middle } __<1s Processing__
+-   :material-speedometer:{ .lg .middle } __Flexible Speed__
 
     ---
 
-    Feature engineering completes in under 1 second for most datasets
+    <1s (tabular) or 30-60s (with LLM) based on your needs
 
 </div>
 
 [:octicons-arrow-right-24: View Full Benchmark Results](user-guide/benchmarks.md)
+
+---
+
+## Two Modes of Operation
+
+=== "⚡ Fast Mode (Tabular Only)"
+
+    Sub-second feature engineering using rule-based transformations:
+
+    ```python
+    from featcopilot import AutoFeatureEngineer
+
+    # Fast, deterministic feature engineering
+    engineer = AutoFeatureEngineer(
+        engines=['tabular'],
+        max_features=50
+    )
+    X_transformed = engineer.fit_transform(X, y)  # <1 second
+    ```
+
+    **Best for:** Production pipelines, real-time inference, reproducible results
+
+=== "🧠 LLM Mode (With Copilot)"
+
+    Domain-aware semantic feature generation with GitHub Copilot:
+
+    ```python
+    from featcopilot import AutoFeatureEngineer
+
+    # LLM-powered semantic features
+    engineer = AutoFeatureEngineer(
+        engines=['tabular', 'llm'],
+        max_features=50
+    )
+    X_transformed = engineer.fit_transform(
+        X, y,
+        column_descriptions={'age': 'Patient age in years'},
+        task_description='Predict heart disease risk'
+    )  # 30-60 seconds
+    ```
+
+    **Best for:** Exploratory analysis, domain-specific features, maximum accuracy
 
 ---
 
@@ -80,34 +128,6 @@ FeatCopilot is a comprehensive Python library for automated feature engineering 
 | Sklearn Compatible | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | Interpretable | ✅ | ⚠️ | ⚠️ | ⚠️ | ❌ | ✅ |
 
-## Quick Example
-
-```python
-from featcopilot import AutoFeatureEngineer
-
-# Initialize with LLM capabilities
-engineer = AutoFeatureEngineer(
-    engines=['tabular', 'llm'],
-    max_features=50,
-    llm_config={'model': 'gpt-5', 'domain': 'healthcare'}
-)
-
-# Fit and transform with semantic understanding
-X_transformed = engineer.fit_transform(
-    X, y,
-    column_descriptions={
-        'age': 'Patient age in years',
-        'bmi': 'Body Mass Index',
-        'glucose': 'Fasting blood glucose level'
-    },
-    task_description='Predict diabetes risk'
-)
-
-# Get human-readable explanations
-for feature, explanation in engineer.explain_features().items():
-    print(f"{feature}: {explanation}")
-```
-
 ## Installation
 
 ```bash
@@ -148,6 +168,14 @@ pip install featcopilot[full]
     Set up GitHub Copilot for LLM features
 
     [:octicons-arrow-right-24: Authentication](getting-started/authentication.md)
+
+-   :material-chart-line:{ .lg .middle } __Benchmarks__
+
+    ---
+
+    See performance improvements across datasets
+
+    [:octicons-arrow-right-24: Benchmark Results](user-guide/benchmarks.md)
 
 </div>
 

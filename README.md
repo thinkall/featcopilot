@@ -6,14 +6,25 @@ FeatCopilot is a unified feature engineering framework that combines the best ap
 
 ## 📊 Benchmark Highlights
 
+### Tabular Engine (Fast Mode - <1s)
+
 | Task Type | Average Improvement | Best Case |
 |-----------|--------------------:|----------:|
 | **Text Classification** | **+12.44%** | +49.02% (News Headlines) |
+| Time Series | +1.51% | +12.12% (Retail Demand) |
 | Classification | +0.54% | +4.35% |
 | Regression | +0.65% | +5.57% |
 
-- ✅ **12/12 wins** on text/semantic classification tasks
-- ⚡ **<1 second** feature engineering time for most datasets
+### LLM Engine (With Copilot - 30-60s)
+
+| Task Type | Average Improvement | Best Case |
+|-----------|--------------------:|----------:|
+| **Regression** | **+7.79%** | +19.66% (Retail Demand) |
+| Classification | +2.38% | +2.87% |
+
+- ✅ **12/12 wins** on text classification (tabular mode)
+- 🧠 **+19.66% max improvement** with LLM-powered features
+- ⚡ **<1 second** (tabular) or **30-60s** (with LLM) processing time
 - 📈 Largest gains with simple models (LogisticRegression, Ridge)
 
 [View Full Benchmark Results](https://thinkall.github.io/featcopilot/user-guide/benchmarks/)
@@ -41,69 +52,45 @@ pip install featcopilot[full]
 
 ## Quick Start
 
-### Basic Usage
+### Fast Mode (Tabular Only)
 
 ```python
 from featcopilot import AutoFeatureEngineer
 
-# Initialize the engineer
+# Sub-second feature engineering
 engineer = AutoFeatureEngineer(
-    engines=['tabular', 'timeseries'],
+    engines=['tabular'],
     max_features=50
 )
 
-# Fit and transform
-X_transformed = engineer.fit_transform(X, y)
-
-# Get feature names and importances
-print(engineer.get_feature_names())
-print(engineer.feature_importances_)
+X_transformed = engineer.fit_transform(X, y)  # <1 second
+print(f"Features: {X.shape[1]} -> {X_transformed.shape[1]}")
 ```
 
-### LLM-Powered Feature Engineering
+### LLM Mode (With Copilot)
 
 ```python
 from featcopilot import AutoFeatureEngineer
 
-# Enable LLM capabilities
+# LLM-powered semantic features (+19.66% max improvement)
 engineer = AutoFeatureEngineer(
     engines=['tabular', 'llm'],
-    llm_config={
-        'enable_semantic': True,
-        'enable_code_gen': True,
-        'model': 'gpt-5'
-    }
+    max_features=50
 )
 
-# Provide column descriptions for semantic understanding
 X_transformed = engineer.fit_transform(
     X, y,
     column_descriptions={
         'age': 'Customer age in years',
         'income': 'Annual household income in USD',
         'tenure': 'Months as customer',
-        'last_purchase': 'Date of most recent purchase'
     },
-    task_description="Predict customer churn for telecom company"
-)
+    task_description="Predict customer churn"
+)  # 30-60 seconds
 
 # Get LLM-generated explanations
 for feature, explanation in engineer.explain_features().items():
     print(f"{feature}: {explanation}")
-```
-
-### Generate Custom Features
-
-```python
-# Let LLM suggest domain-specific features
-custom_features = engineer.generate_custom_features(
-    domain="healthcare",
-    task="Predict patient readmission risk",
-    existing_columns=['age', 'diagnosis_code', 'length_of_stay', 'num_medications']
-)
-
-# Apply the generated features
-X_with_custom = engineer.apply_custom_features(X, custom_features)
 ```
 
 ## Engines
@@ -171,6 +158,10 @@ X_selected = selector.fit_transform(X, y)
 | Code Generation | ✅ | ❌ | ❌ | ❌ | ❌ | ⚠️ |
 | Sklearn Compatible | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | Interpretable | ✅ | ⚠️ | ⚠️ | ⚠️ | ❌ | ✅ |
+
+## Documentation
+
+📖 **Full Documentation**: [https://thinkall.github.io/featcopilot/](https://thinkall.github.io/featcopilot/)
 
 ## Requirements
 
