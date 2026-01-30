@@ -53,15 +53,10 @@ full = [
     "statsmodels>=0.13.0",
 ]
 benchmark = [
+    "github-copilot-sdk>=0.1.0",
+    "statsmodels>=0.13.0",
     "flaml[automl,blendsearch]>=2.0.0",
     "autogluon.tabular>=1.0.0",
-    "h2o>=3.40.0",
-]
-# auto-sklearn only works on Linux, install separately: pip install auto-sklearn>=0.15.0
-benchmark-linux = [
-    "flaml[automl,blendsearch]>=2.0.0",
-    "autogluon.tabular>=1.0.0",
-    "auto-sklearn>=0.15.0",
     "h2o>=3.40.0",
 ]
 dev = [
