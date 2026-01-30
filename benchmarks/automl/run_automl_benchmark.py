@@ -610,13 +610,15 @@ def run_all_automl_benchmarks(
     return pd.DataFrame(results)
 
 
-def generate_report(results: pd.DataFrame, output_path: str = None) -> str:
+def generate_report(results: pd.DataFrame, output_path: str = None, time_budget: int = None) -> str:
     """Generate markdown report from benchmark results."""
+    if time_budget is None:
+        time_budget = DEFAULT_TIME_BUDGET
     report = []
     report.append("# AutoML Integration Benchmark Report\n")
     report.append("## Overview\n")
     report.append("This benchmark evaluates FeatCopilot's impact on AutoML framework performance.\n")
-    report.append(f"Time budget: {DEFAULT_TIME_BUDGET}s per AutoML run (excludes FeatCopilot preprocessing time)\n")
+    report.append(f"Time budget: {time_budget}s per AutoML run (excludes FeatCopilot preprocessing time)\n")
 
     # Summary statistics
     report.append("\n## Summary\n")
@@ -769,5 +771,5 @@ if __name__ == "__main__":
 
     # Step 3: Generate report
     print("\n" + "=" * 60)
-    report = generate_report(results, args.output)
+    report = generate_report(results, args.output, args.time_budget)
     print(report)
