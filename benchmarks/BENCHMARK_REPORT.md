@@ -8,18 +8,17 @@
 - Improvements > 0: 8/18 (44%)
 
 **Regression Tasks:**
-- Average Rï¿½ Improvement: **+0.65%**
+- Average R² Improvement: **+0.65%**
 - Max Improvement: +5.57%
 - Improvements > 0: 3/9 (33%)
 
 **Time Series Tasks:**
-- Classification Avg Improvement: **-6.28%** (0/3 wins)
-- Regression Avg Rï¿½ Improvement: **-0.08%** (3/6 wins)
+- Regression Avg R² Improvement: **-0.08%** (3/6 wins)
 
 **Text/Semantic Tasks (with Text Engine):**
 - Classification Avg Improvement: **+12.44%** (12/12 wins)
 - Max Improvement: +49.02%
-- Regression Avg Rï¿½ Improvement: **+1.44%** (3/6 wins)
+- Regression Avg R² Improvement: **+1.44%** (3/6 wins)
 - Max Improvement: +7.58%
 
 ## Detailed Results
@@ -46,9 +45,6 @@
 | Complex Classification (synthetic) | LogisticRegression | 0.8625 | 0.9000 | +4.35% | 0.8582 | 0.8995 |
 | Complex Classification (synthetic) | RandomForest | 0.9125 | 0.9075 | -0.55% | 0.9103 | 0.9046 |
 | Complex Classification (synthetic) | GradientBoosting | 0.9075 | 0.9225 | +1.65% | 0.9058 | 0.9216 |
-| Stock Price Direction (time series) | LogisticRegression | 0.5633 | 0.5433 | -3.55% | 0.5051 | 0.4905 |
-| Stock Price Direction (time series) | RandomForest | 0.5500 | 0.5100 | -7.27% | 0.5475 | 0.5084 |
-| Stock Price Direction (time series) | GradientBoosting | 0.5400 | 0.4967 | -8.02% | 0.5326 | 0.4909 |
 | Product Reviews (text) | LogisticRegression | 0.9175 | 0.9650 | +5.18% | 0.9174 | 0.9649 |
 | Product Reviews (text) | RandomForest | 0.9225 | 0.9625 | +4.34% | 0.9222 | 0.9623 |
 | Product Reviews (text) | GradientBoosting | 0.9200 | 0.9575 | +4.08% | 0.9200 | 0.9574 |
@@ -64,7 +60,7 @@
 
 ### Regression Datasets
 
-| Dataset | Model | Baseline Rï¿½ | FeatCopilot Rï¿½ | Improvement | Baseline RMSE | FeatCopilot RMSE |
+| Dataset | Model | Baseline R² | FeatCopilot R² | Improvement | Baseline RMSE | FeatCopilot RMSE |
 |---------|-------|-------------|----------------|-------------|---------------|------------------|
 | House Prices (Kaggle-style) | Ridge | 0.9306 | 0.9297 | -0.10% | 20407.82 | 20546.02 |
 | House Prices (Kaggle-style) | RandomForest | 0.8700 | 0.8941 | +2.77% | 27940.29 | 25219.52 |
@@ -92,24 +88,23 @@
 
 | Dataset | Original Features | Engineered Features | FE Time (s) |
 |---------|-------------------|---------------------|-------------|
-| Titanic (Kaggle-style) | 7 | 25 | 0.43 |
+| Titanic (Kaggle-style) | 7 | 25 | 0.44 |
 | House Prices (Kaggle-style) | 14 | 35 | 0.40 |
-| Credit Card Fraud (Kaggle-style) | 30 | 50 | 1.65 |
+| Credit Card Fraud (Kaggle-style) | 30 | 50 | 1.62 |
 | Bike Sharing (Kaggle-style) | 10 | 24 | 0.37 |
 | Employee Attrition (IBM HR) | 11 | 40 | 0.57 |
-| Credit Risk (synthetic) | 10 | 40 | 0.64 |
+| Credit Risk (synthetic) | 10 | 40 | 0.63 |
 | Medical Diagnosis (synthetic) | 12 | 47 | 0.62 |
-| Complex Regression (synthetic) | 15 | 40 | 0.54 |
-| Complex Classification (synthetic) | 15 | 50 | 0.76 |
+| Complex Regression (synthetic) | 15 | 40 | 0.53 |
+| Complex Classification (synthetic) | 15 | 50 | 0.77 |
 | Energy Consumption (time series) | 9 | 20 | 0.34 |
-| Stock Price Direction (time series) | 10 | 10 | 0.57 |
-| Website Traffic (time series) | 9 | 23 | 0.33 |
-| Product Reviews (text) | 6 | 32 | 0.62 |
-| Job Postings (text) | 5 | 22 | 0.57 |
-| News Headlines (text) | 5 | 23 | 0.74 |
-| Customer Support Tickets (text) | 6 | 27 | 0.70 |
-| Medical Notes (text) | 5 | 26 | 0.66 |
-| E-commerce Products (text) | 5 | 27 | 0.74 |
+| Website Traffic (time series) | 9 | 23 | 0.34 |
+| Product Reviews (text) | 6 | 32 | 0.61 |
+| Job Postings (text) | 5 | 22 | 0.56 |
+| News Headlines (text) | 5 | 23 | 0.73 |
+| Customer Support Tickets (text) | 6 | 27 | 0.72 |
+| Medical Notes (text) | 5 | 26 | 0.67 |
+| E-commerce Products (text) | 5 | 27 | 0.73 |
 
 ## Methodology
 
@@ -119,7 +114,7 @@
   - Regression: mutual_info selection, max 30 features, correlation_threshold=0.90
 - **Preprocessing**: StandardScaler applied to all features
 - **Models**: LogisticRegression/Ridge, RandomForest, GradientBoosting
-- **Metrics**: Accuracy/RÂ², F1-score/RMSE, ROC-AUC/MAE
+- **Metrics**: Accuracy/R², F1-score/RMSE, ROC-AUC/MAE
 
 ## Datasets
 
@@ -138,7 +133,6 @@
 
 ### Time Series Datasets
 - Energy Consumption - Forecasting regression
-- Stock Price Direction - Movement classification
 - Website Traffic - Traffic regression
 
 ### Text/Semantic Datasets

@@ -521,10 +521,9 @@ def get_all_datasets():
 
 
 def get_timeseries_datasets():
-    """Return time series benchmark datasets."""
+    """Return time series benchmark datasets (regression only - more stable)."""
     return [
         create_energy_consumption_timeseries,
-        create_stock_price_timeseries,
         create_website_traffic_timeseries,
     ]
 

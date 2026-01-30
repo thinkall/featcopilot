@@ -36,6 +36,16 @@ FeatCopilot has been extensively benchmarked against baseline models across vari
 
     Consistent gains across datasets
 
+-   :material-clock-outline:{ .lg .middle } __Time Series Tasks__
+
+    ---
+
+    **+0.26%** average R² improvement
+
+    **3/6 wins** on regression tasks
+
+    RandomForest and GradientBoosting benefit most
+
 </div>
 
 ## Text & Semantic Datasets
@@ -96,15 +106,23 @@ X_transformed = engineer.fit_transform(X_with_text, y)
 | Job Postings (text) | Ridge | 0.389 | 0.418 | **+7.58%** |
 | E-commerce (text) | RandomForest | 0.389 | 0.402 | +3.45% |
 
+## Time Series Benchmarks
+
+| Dataset | Model | Baseline R² | FeatCopilot R² | Improvement |
+|---------|-------|-------------|----------------|-------------|
+| Energy Consumption | RandomForest | 0.797 | 0.806 | **+1.04%** |
+| Website Traffic | GradientBoosting | 0.908 | 0.913 | **+0.61%** |
+| Website Traffic | RandomForest | 0.845 | 0.849 | +0.46% |
+
 ## Feature Engineering Statistics
 
 FeatCopilot efficiently generates and selects features:
 
 | Dataset | Original | Engineered | Time (s) |
 |---------|----------|------------|----------|
-| Credit Card Fraud | 30 | 50 | 1.65 |
-| Complex Classification | 15 | 50 | 0.76 |
-| News Headlines (text) | 5 | 23 | 0.74 |
+| Credit Card Fraud | 30 | 50 | 1.61 |
+| Complex Classification | 15 | 50 | 0.74 |
+| News Headlines (text) | 5 | 23 | 0.75 |
 | Employee Attrition | 11 | 40 | 0.57 |
 | Titanic | 7 | 25 | 0.43 |
 
@@ -153,6 +171,11 @@ engineer = AutoFeatureEngineer(
 - Medical Diagnosis - Healthcare classification
 - Complex Regression - Non-linear regression
 - Complex Classification - Multi-class classification
+
+**Time Series Datasets:**
+
+- Energy Consumption - Forecasting regression
+- Website Traffic - Traffic regression
 
 **Text Datasets:**
 
