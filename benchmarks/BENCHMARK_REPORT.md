@@ -91,24 +91,24 @@
 
 | Dataset | Original Features | Engineered Features | FE Time (s) |
 |---------|-------------------|---------------------|-------------|
-| Titanic (Kaggle-style) | 7 | 25 | 0.43 |
-| House Prices (Kaggle-style) | 14 | 35 | 0.40 |
-| Credit Card Fraud (Kaggle-style) | 30 | 50 | 1.61 |
-| Bike Sharing (Kaggle-style) | 10 | 24 | 0.37 |
-| Employee Attrition (IBM HR) | 11 | 40 | 0.56 |
-| Credit Risk (synthetic) | 10 | 40 | 0.64 |
-| Medical Diagnosis (synthetic) | 12 | 47 | 0.61 |
-| Complex Regression (synthetic) | 15 | 40 | 0.53 |
-| Complex Classification (synthetic) | 15 | 50 | 0.77 |
+| Titanic (Kaggle-style) | 7 | 25 | 0.44 |
+| House Prices (Kaggle-style) | 14 | 35 | 0.42 |
+| Credit Card Fraud (Kaggle-style) | 30 | 50 | 1.70 |
+| Bike Sharing (Kaggle-style) | 10 | 24 | 0.38 |
+| Employee Attrition (IBM HR) | 11 | 40 | 0.57 |
+| Credit Risk (synthetic) | 10 | 40 | 0.66 |
+| Medical Diagnosis (synthetic) | 12 | 47 | 0.63 |
+| Complex Regression (synthetic) | 15 | 40 | 0.54 |
+| Complex Classification (synthetic) | 15 | 50 | 0.76 |
 | Sensor Efficiency (time series) | 8 | 15 | 0.31 |
-| Retail Demand (time series) | 10 | 33 | 0.39 |
-| Server Latency (time series) | 8 | 18 | 0.31 |
-| Product Reviews (text) | 6 | 32 | 0.65 |
+| Retail Demand (time series) | 10 | 33 | 0.40 |
+| Server Latency (time series) | 8 | 18 | 0.30 |
+| Product Reviews (text) | 6 | 32 | 0.62 |
 | Job Postings (text) | 5 | 22 | 0.55 |
-| News Headlines (text) | 5 | 23 | 0.73 |
-| Customer Support Tickets (text) | 6 | 27 | 0.74 |
-| Medical Notes (text) | 5 | 26 | 0.60 |
-| E-commerce Products (text) | 5 | 27 | 0.74 |
+| News Headlines (text) | 5 | 23 | 0.79 |
+| Customer Support Tickets (text) | 6 | 27 | 0.69 |
+| Medical Notes (text) | 5 | 26 | 0.61 |
+| E-commerce Products (text) | 5 | 27 | 0.71 |
 
 ## Methodology
 

@@ -108,7 +108,34 @@ X_transformed = engineer.fit_transform(
 # - product_mention_count, comparison_phrases, recommendation_strength
 ```
 
-## Classification Benchmarks
+## LLM-Powered Benchmarks
+
+When using the **SemanticEngine** with GitHub Copilot (or mock responses), feature generation takes longer but can provide additional improvements:
+
+| Dataset | Model | Baseline | With LLM | Improvement | FE Time |
+|---------|-------|----------|----------|-------------|---------|
+| **Retail Demand** | Ridge | 0.715 | 0.855 | **+19.66%** | 41.8s |
+| Credit Risk | GradientBoosting | 0.698 | 0.718 | **+2.87%** | 33.0s |
+| Credit Risk | LogisticRegression | 0.703 | 0.723 | **+2.85%** | 33.0s |
+| Retail Demand | RandomForest | 0.873 | 0.897 | **+2.65%** | 41.8s |
+| Credit Risk | RandomForest | 0.705 | 0.715 | +1.42% | 33.0s |
+
+**LLM Benchmark Summary:**
+
+- Average Improvement: **+2.15%**
+- Max Improvement: **+19.66%** (Retail Demand with Ridge)
+- Win Rate: **8/12** (67%)
+- Feature Generation Time: **33-43 seconds** (includes LLM API latency)
+
+!!! tip "When to Use LLM Engine"
+    Use the LLM engine when:
+
+    - You have **rich column descriptions** that convey domain meaning
+    - You need **domain-specific features** (healthcare, finance, retail)
+    - **Latency is acceptable** (30-60s per fit)
+    - You want **interpretable feature explanations**
+
+## Classification Benchmarks (Tabular Only)
 
 | Dataset | Model | Baseline Acc | FeatCopilot Acc | Improvement |
 |---------|-------|--------------|-----------------|-------------|

@@ -420,6 +420,364 @@ def run_all_benchmarks(verbose: bool = True, include_timeseries: bool = True, in
     return all_results
 
 
+def run_llm_benchmark_single(
+    X: pd.DataFrame,
+    y: pd.Series,
+    task: str,
+    name: str,
+    column_descriptions: dict = None,
+    task_description: str = None,
+    verbose: bool = True,
+) -> dict:
+    """
+    Run benchmark with LLM-powered feature engineering.
+
+    This uses the SemanticEngine which calls GitHub Copilot (or mock if unavailable).
+    """
+
+    results = {
+        "dataset": name,
+        "task": task,
+        "n_samples": len(X),
+        "n_features": X.shape[1],
+        "uses_llm": True,
+    }
+
+    if verbose:
+        print(f"\n{'=' * 70}")
+        print(f"Dataset: {name} (with LLM Engine)")
+        print(f"Task: {task} | Samples: {len(X)} | Features: {X.shape[1]}")
+        print("=" * 70)
+
+    # Prepare data
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Handle categorical encoding
+    for col in X_train.select_dtypes(include=["object", "category"]).columns:
+        le = LabelEncoder()
+        known_classes = set(X_train[col].dropna().unique())
+        X_train[col] = le.fit_transform(X_train[col].astype(str))
+        X_test[col] = X_test[col].apply(
+            lambda x, le=le, known=known_classes: le.transform([str(x)])[0] if x in known else -1
+        )
+
+    # Handle target encoding for classification
+    if "classification" in task:
+        le_y = LabelEncoder()
+        y_train = le_y.fit_transform(y_train)
+        y_test = le_y.transform(y_test)
+
+    # Baseline
+    X_train_num = X_train.select_dtypes(include=["number"]).fillna(0)
+    X_test_num = X_test.select_dtypes(include=["number"]).fillna(0)
+
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train_num)
+    X_test_scaled = scaler.transform(X_test_num)
+
+    if verbose:
+        print("\n--- Baseline (no feature engineering) ---")
+
+    baseline_results = {}
+    for model_name, model in get_models(task):
+        model.fit(X_train_scaled, y_train)
+        y_pred = model.predict(X_test_scaled)
+        y_prob = model.predict_proba(X_test_scaled) if hasattr(model, "predict_proba") else None
+
+        if "classification" in task:
+            metrics = evaluate_classification(y_test, y_pred, y_prob)
+            if verbose:
+                print(f"  {model_name}: Acc={metrics['accuracy']:.4f}, F1={metrics['f1_score']:.4f}")
+        else:
+            metrics = evaluate_regression(y_test, y_pred)
+            if verbose:
+                print(f"  {model_name}: R2={metrics['r2_score']:.4f}, RMSE={metrics['rmse']:.2f}")
+
+        baseline_results[model_name] = metrics
+
+    results["baseline"] = baseline_results
+
+    # With LLM Feature Engineering
+    if verbose:
+        print("\n--- With LLM-Powered FeatCopilot ---")
+
+    try:
+        # Auto-generate column descriptions if not provided
+        if column_descriptions is None:
+            column_descriptions = {col: f"{col} feature" for col in X.columns}
+
+        if task_description is None:
+            if "classification" in task:
+                task_description = (
+                    f"Classify samples into categories based on {', '.join(X.columns[:3])} and other features"
+                )
+            else:
+                task_description = f"Predict target value based on {', '.join(X.columns[:3])} and other features"
+
+        # Use AutoFeatureEngineer with LLM engine
+        start = time.time()
+        engineer = AutoFeatureEngineer(
+            engines=["tabular", "llm"],
+            max_features=50 if "classification" in task else 40,
+            correlation_threshold=0.95 if "classification" in task else 0.85,
+            verbose=False,
+        )
+
+        X_train_fe = engineer.fit_transform(
+            X_train.copy(),
+            y_train,
+            column_descriptions=column_descriptions,
+            task_description=task_description,
+        )
+        X_test_fe = engineer.transform(X_test.copy())
+        fe_time = time.time() - start
+
+        # Align columns
+        common_cols = [c for c in X_train_fe.columns if c in X_test_fe.columns]
+        X_train_fe = X_train_fe[common_cols].fillna(0)
+        X_test_fe = X_test_fe[common_cols].fillna(0)
+
+        results["n_features_engineered"] = X_train_fe.shape[1]
+        results["fe_time"] = fe_time
+        results["engines_used"] = ["tabular", "llm"]
+
+        if verbose:
+            print("  Engines: ['tabular', 'llm']")
+            print(f"  Features: {X.shape[1]} -> {X_train_fe.shape[1]} (generated in {fe_time:.2f}s)")
+
+        # Scale and evaluate
+        scaler_fe = StandardScaler()
+        X_train_fe_scaled = scaler_fe.fit_transform(X_train_fe.values)
+        X_test_fe_scaled = scaler_fe.transform(X_test_fe.values)
+
+        featcopilot_results = {}
+        for model_name, model in get_models(task):
+            model.fit(X_train_fe_scaled, y_train)
+            y_pred = model.predict(X_test_fe_scaled)
+            y_prob = model.predict_proba(X_test_fe_scaled) if hasattr(model, "predict_proba") else None
+
+            if "classification" in task:
+                metrics = evaluate_classification(y_test, y_pred, y_prob)
+                baseline = baseline_results[model_name]["accuracy"]
+                improvement = (metrics["accuracy"] - baseline) / baseline * 100 if baseline > 0 else 0
+                if verbose:
+                    print(
+                        f"  {model_name}: Acc={metrics['accuracy']:.4f} ({improvement:+.2f}%), F1={metrics['f1_score']:.4f}"
+                    )
+            else:
+                metrics = evaluate_regression(y_test, y_pred)
+                baseline = baseline_results[model_name]["r2_score"]
+                improvement = (metrics["r2_score"] - baseline) / abs(baseline) * 100 if baseline != 0 else 0
+                if verbose:
+                    print(
+                        f"  {model_name}: R2={metrics['r2_score']:.4f} ({improvement:+.2f}%), RMSE={metrics['rmse']:.2f}"
+                    )
+
+            metrics["improvement"] = improvement
+            featcopilot_results[model_name] = metrics
+
+        results["featcopilot"] = featcopilot_results
+
+    except Exception as e:
+        if verbose:
+            print(f"  Error: {e}")
+        results["featcopilot"] = None
+        results["error"] = str(e)
+
+    return results
+
+
+def run_llm_benchmarks(verbose: bool = True) -> list[dict]:
+    """
+    Run benchmarks specifically with LLM-powered feature engineering.
+
+    Uses a subset of datasets with rich column descriptions to showcase LLM capabilities.
+    """
+    all_results = []
+
+    if verbose:
+        print("\n" + "=" * 70)
+        print("LLM-POWERED FEATURE ENGINEERING BENCHMARKS")
+        print("=" * 70)
+        print("Note: Uses SemanticEngine with GitHub Copilot (or mock if unavailable)")
+        print("=" * 70)
+
+    # Healthcare dataset with rich descriptions
+    from benchmarks.datasets import create_medical_diagnosis_dataset
+
+    X, y, task, name = create_medical_diagnosis_dataset()
+    column_descriptions = {
+        "age": "Patient age in years",
+        "blood_pressure_systolic": "Systolic blood pressure in mmHg",
+        "blood_pressure_diastolic": "Diastolic blood pressure in mmHg",
+        "cholesterol_total": "Total cholesterol level in mg/dL",
+        "cholesterol_hdl": "HDL (good) cholesterol in mg/dL",
+        "cholesterol_ldl": "LDL (bad) cholesterol in mg/dL",
+        "glucose_fasting": "Fasting blood glucose in mg/dL",
+        "bmi": "Body Mass Index",
+        "heart_rate": "Resting heart rate in bpm",
+        "smoking_status": "Smoking status (0=never, 1=former, 2=current)",
+        "family_history": "Family history of heart disease (0=no, 1=yes)",
+        "exercise_hours": "Weekly exercise hours",
+    }
+    result = run_llm_benchmark_single(
+        X,
+        y,
+        task,
+        f"{name} (LLM)",
+        column_descriptions=column_descriptions,
+        task_description="Predict heart disease risk based on patient health indicators",
+        verbose=verbose,
+    )
+    all_results.append(result)
+
+    # Financial dataset
+    from benchmarks.datasets import create_credit_risk_dataset
+
+    X, y, task, name = create_credit_risk_dataset()
+    column_descriptions = {
+        "age": "Applicant age in years",
+        "income": "Annual income in dollars",
+        "employment_length": "Years at current employer",
+        "debt_to_income": "Debt-to-income ratio",
+        "credit_score": "Credit score (300-850)",
+        "num_credit_lines": "Number of open credit lines",
+        "credit_utilization": "Credit utilization percentage",
+        "num_late_payments": "Number of late payments in last 2 years",
+        "loan_amount": "Requested loan amount",
+        "loan_term": "Loan term in months",
+    }
+    result = run_llm_benchmark_single(
+        X,
+        y,
+        task,
+        f"{name} (LLM)",
+        column_descriptions=column_descriptions,
+        task_description="Predict credit default risk for loan applicants",
+        verbose=verbose,
+    )
+    all_results.append(result)
+
+    # Retail dataset
+    from benchmarks.datasets import create_retail_demand_timeseries
+
+    X, y, task, name = create_retail_demand_timeseries()
+    column_descriptions = {
+        "day_of_week": "Day of week (0=Monday, 6=Sunday)",
+        "week_of_year": "Week number in year (1-52)",
+        "is_weekend": "Weekend indicator (0=weekday, 1=weekend)",
+        "price": "Product price in dollars",
+        "promotion_discount": "Discount percentage (0-0.3)",
+        "competitor_price": "Competitor's price for similar product",
+        "inventory_level": "Current inventory level",
+        "marketing_score": "Marketing campaign intensity (1-10)",
+        "lag_1d": "Sales from previous day",
+        "lag_7d": "Sales from same day last week",
+    }
+    result = run_llm_benchmark_single(
+        X,
+        y,
+        task,
+        f"{name} (LLM)",
+        column_descriptions=column_descriptions,
+        task_description="Forecast retail product demand based on pricing, promotions, and historical sales",
+        verbose=verbose,
+    )
+    all_results.append(result)
+
+    # Text dataset with semantic content
+    from benchmarks.datasets import create_product_reviews_dataset
+
+    X, y, task, name = create_product_reviews_dataset()
+    column_descriptions = {
+        "review_text": "Customer review text describing product experience",
+        "rating": "Star rating given by customer (1-5)",
+        "verified_purchase": "Whether purchase is verified (0=no, 1=yes)",
+        "helpful_votes": "Number of helpful votes on review",
+        "review_length": "Length of review in characters",
+    }
+    result = run_llm_benchmark_single(
+        X,
+        y,
+        task,
+        f"{name} (LLM)",
+        column_descriptions=column_descriptions,
+        task_description="Classify product reviews as positive or negative sentiment",
+        verbose=verbose,
+    )
+    all_results.append(result)
+
+    return all_results
+
+
+def generate_llm_report(results: list[dict]) -> str:
+    """Generate a markdown report for LLM benchmarks."""
+    report = []
+    report.append("# FeatCopilot LLM-Powered Benchmark Report\n")
+    report.append("## Overview\n")
+    report.append("This report shows results using the **SemanticEngine** with GitHub Copilot integration.\n")
+    report.append("When Copilot is unavailable, intelligent mock responses are used based on column semantics.\n")
+
+    # Summary
+    improvements = []
+    for r in results:
+        if r.get("featcopilot"):
+            for _model, metrics in r["featcopilot"].items():
+                if "improvement" in metrics:
+                    improvements.append(metrics["improvement"])
+
+    if improvements:
+        avg_improvement = np.mean(improvements)
+        max_improvement = max(improvements)
+        wins = sum(1 for i in improvements if i > 0)
+        report.append("\n**Summary:**\n")
+        report.append(f"- Average Improvement: **{avg_improvement:+.2f}%**\n")
+        report.append(f"- Max Improvement: **{max_improvement:+.2f}%**\n")
+        report.append(f"- Wins: **{wins}/{len(improvements)}** ({wins/len(improvements)*100:.0f}%)\n")
+
+    # Detailed results
+    report.append("\n## Detailed Results\n")
+    report.append("| Dataset | Model | Baseline | LLM FeatCopilot | Improvement | FE Time |\n")
+    report.append("|---------|-------|----------|-----------------|-------------|--------|\n")
+
+    for r in results:
+        if r.get("baseline") and r.get("featcopilot"):
+            fe_time = r.get("fe_time", 0)
+            for model in r["baseline"]:
+                if "classification" in r["task"]:
+                    baseline = r["baseline"][model]["accuracy"]
+                    fc = r["featcopilot"][model]["accuracy"]
+                    improvement = r["featcopilot"][model].get("improvement", 0)
+                    report.append(
+                        f"| {r['dataset']} | {model} | {baseline:.4f} | {fc:.4f} | {improvement:+.2f}% | {fe_time:.2f}s |\n"
+                    )
+                else:
+                    baseline = r["baseline"][model]["r2_score"]
+                    fc = r["featcopilot"][model]["r2_score"]
+                    improvement = r["featcopilot"][model].get("improvement", 0)
+                    report.append(
+                        f"| {r['dataset']} | {model} | {baseline:.4f} | {fc:.4f} | {improvement:+.2f}% | {fe_time:.2f}s |\n"
+                    )
+
+    # Feature engineering details
+    report.append("\n## Feature Engineering Details\n")
+    report.append("| Dataset | Original Features | Engineered Features | Generation Time |\n")
+    report.append("|---------|-------------------|---------------------|----------------|\n")
+
+    for r in results:
+        if r.get("n_features_engineered"):
+            report.append(
+                f"| {r['dataset']} | {r['n_features']} | {r['n_features_engineered']} | {r.get('fe_time', 0):.2f}s |\n"
+            )
+
+    report.append("\n## Notes\n")
+    report.append("- LLM engine adds latency due to API calls (or mock generation)\n")
+    report.append("- Column descriptions help LLM generate more relevant features\n")
+    report.append("- Task descriptions provide context for domain-specific features\n")
+
+    return "".join(report)
+
+
 def generate_report(results: list[dict]) -> str:
     """Generate a markdown benchmark report."""
     report = []
@@ -611,4 +969,18 @@ if __name__ == "__main__":
 
     print("\n" + "=" * 70)
     print("Benchmark complete! Report saved to benchmarks/BENCHMARK_REPORT.md")
+    print("=" * 70)
+
+    # Run LLM benchmarks
+    print("\n")
+    llm_results = run_llm_benchmarks(verbose=True)
+
+    # Generate LLM report
+    llm_report = generate_llm_report(llm_results)
+
+    with open("benchmarks/LLM_BENCHMARK_REPORT.md", "w") as f:
+        f.write(llm_report)
+
+    print("\n" + "=" * 70)
+    print("LLM Benchmark complete! Report saved to benchmarks/LLM_BENCHMARK_REPORT.md")
     print("=" * 70)
