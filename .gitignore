@@ -73,6 +73,9 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
+# CatBoost
+catboost_*/
+
 # Local development
 .feature_cache/
 test.py
