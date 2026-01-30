@@ -91,16 +91,30 @@ class FLAMLRunner(AutoMLRunner):
         from flaml import AutoML
 
         self.model = AutoML()
-        flaml_task = "classification" if "classification" in task else "regression"
 
-        self.model.fit(
-            X,
-            y,
-            task=flaml_task,
-            time_budget=self.time_budget,
-            seed=self.random_state,
-            verbose=0,
-        )
+        # Map task to FLAML task type
+        if "classification" in task:
+            flaml_task = "classification"
+        elif "timeseries" in task:
+            # FLAML supports ts_forecast for time series
+            flaml_task = "ts_forecast" if "regression" in task else "ts_forecast_classification"
+        else:
+            flaml_task = "regression"
+
+        # Configure fit parameters
+        fit_kwargs = {
+            "task": flaml_task,
+            "time_budget": self.time_budget,
+            "seed": self.random_state,
+            "verbose": 0,
+        }
+
+        # Time series specific configuration
+        if flaml_task.startswith("ts_forecast"):
+            # For time series, FLAML expects period parameter
+            fit_kwargs["period"] = min(12, len(y) // 10)  # Use reasonable period
+
+        self.model.fit(X, y, **fit_kwargs)
 
     def predict(self, X: pd.DataFrame) -> np.ndarray:
         return self.model.predict(X)
