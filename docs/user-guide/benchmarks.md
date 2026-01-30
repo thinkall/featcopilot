@@ -284,13 +284,13 @@ Based on our benchmarks, FeatCopilot provides the most value when:
 
 ## Comparison with Other Tools
 
-FeatCopilot combines the best of multiple approaches:
-
-| Capability | FeatCopilot | Featuretools | AutoFeat | OpenFE |
-|------------|-------------|--------------|----------|--------|
-| Tabular features | ✅ | ❌ | ✅ | ✅ |
-| Text features | ✅ | ❌ | ❌ | ❌ |
-| Time series | ✅ | ❌ | ❌ | ❌ |
-| LLM-powered | ✅ | ❌ | ❌ | ❌ |
-| Sklearn compatible | ✅ | ✅ | ✅ | ✅ |
-| Feature selection | ✅ | ❌ | ✅ | ✅ |
+| Feature | FeatCopilot | Featuretools | TSFresh | AutoFeat | OpenFE | CAAFE |
+|---------|-------------|--------------|---------|----------|--------|-------|
+| Tabular Features | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ |
+| Time Series | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Relational | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| LLM-Powered | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Semantic Understanding | ✅ | ❌ | ❌ | ❌ | ❌ | ⚠️ |
+| Code Generation | ✅ | ❌ | ❌ | ❌ | ❌ | ⚠️ |
+| Sklearn Compatible | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Interpretable | ✅ | ⚠️ | ⚠️ | ⚠️ | ❌ | ✅ |

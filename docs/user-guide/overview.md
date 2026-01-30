@@ -6,25 +6,25 @@ FeatCopilot provides a unified framework for automated feature engineering, comb
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    AutoFeatureEngineer                       │
-│                   (Main Entry Point)                         │
+│                    AutoFeatureEngineer                      │
+│                    (Main Entry Point)                       │
 ├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐    │
-│  │ Tabular  │  │TimeSeries│  │Relational│  │   LLM    │    │
-│  │ Engine   │  │  Engine  │  │  Engine  │  │ Engine   │    │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘    │
-│       │             │             │             │           │
-│       └─────────────┴─────────────┴─────────────┘           │
-│                          │                                   │
-│                  Feature Generation                          │
-│                          │                                   │
-│              ┌───────────┴───────────┐                      │
-│              │   Feature Selection   │                      │
-│              │  (Statistical + ML)   │                      │
-│              └───────────┬───────────┘                      │
-│                          │                                   │
-│                   Selected Features                          │
+│                                                             │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
+│  │ Tabular  │  │TimeSeries│  │Relational│  │   LLM    │   │
+│  │ Engine   │  │  Engine  │  │  Engine  │  │  Engine  │   │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘   │
+│       │             │             │             │          │
+│       └─────────────┴─────────────┴─────────────┘          │
+│                          │                                  │
+│                  Feature Generation                         │
+│                          │                                  │
+│              ┌───────────┴───────────┐                     │
+│              │   Feature Selection   │                     │
+│              │  (Statistical + ML)   │                     │
+│              └───────────┬───────────┘                     │
+│                          │                                  │
+│                   Selected Features                         │
 └─────────────────────────────────────────────────────────────┘
 ```
 
