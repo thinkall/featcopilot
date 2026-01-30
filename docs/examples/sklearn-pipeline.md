@@ -161,6 +161,36 @@ pipeline = Pipeline([
 ])
 ```
 
+## FeatureEngineerTransformer
+
+Use the built-in `FeatureEngineerTransformer` for single-engine pipelines:
+
+```python
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+
+from featcopilot import FeatureEngineerTransformer
+
+# Single engine transformer
+pipeline = Pipeline([
+    ('features', FeatureEngineerTransformer(engine='tabular', max_features=30)),
+    ('scaler', StandardScaler()),
+    ('classifier', LogisticRegression())
+])
+
+# With time series engine
+ts_pipeline = Pipeline([
+    ('features', FeatureEngineerTransformer(engine='timeseries', window_sizes=[3, 7, 14])),
+    ('scaler', StandardScaler()),
+    ('classifier', LogisticRegression())
+])
+
+# Fit and predict
+pipeline.fit(X_train, y_train)
+predictions = pipeline.predict(X_test)
+```
+
 ## Custom Transformer Wrapper
 
 Create a fully sklearn-compatible transformer:
