@@ -236,8 +236,16 @@ class TsfreshRunner(FeatureEngineeringRunner):
 
     def __init__(self, max_features: int = 50, random_state: int = 42):
         super().__init__(max_features, random_state)
-        self._relevant_features = None
         self._feature_columns = None
+        self._numeric_cols = None
+
+    def _create_ts_format(self, X: pd.DataFrame) -> pd.DataFrame:
+        """Convert tabular data to tsfresh time series format."""
+        ts_data = []
+        for idx in range(len(X)):
+            for t, col in enumerate(self._numeric_cols):
+                ts_data.append({"id": idx, "time": t, "value": X[col].iloc[idx], "variable": col})
+        return pd.DataFrame(ts_data)
 
     def fit_transform(self, X_train: pd.DataFrame, y_train: pd.Series) -> pd.DataFrame:
         from tsfresh import extract_features
@@ -246,27 +254,25 @@ class TsfreshRunner(FeatureEngineeringRunner):
 
         start = time.time()
 
-        # tsfresh expects time series data - we'll adapt tabular data
-        # by treating each row as a short "series" with artificial time
-        numeric_cols = X_train.select_dtypes(include=[np.number]).columns.tolist()
-        if len(numeric_cols) == 0:
+        # Get numeric columns
+        self._numeric_cols = X_train.select_dtypes(include=[np.number]).columns.tolist()
+        if len(self._numeric_cols) == 0:
             self.fit_time = time.time() - start
             self.n_features_generated = X_train.shape[1]
             self._feature_columns = X_train.columns.tolist()
             return X_train.copy()
 
-        # Create a "time series" format where each row is its own series
-        ts_data = []
-        for idx, row in X_train[numeric_cols].iterrows():
-            for t, col in enumerate(numeric_cols):
-                ts_data.append({"id": idx, "time": t, "value": row[col], "variable": col})
-
-        ts_df = pd.DataFrame(ts_data)
-
-        # Use minimal feature extraction for speed
-        settings = MinimalFCParameters()
-
         try:
+            # Reset index to ensure consistent IDs
+            X_reset = X_train.reset_index(drop=True)
+            y_reset = y_train.reset_index(drop=True)
+
+            # Create time series format
+            ts_df = self._create_ts_format(X_reset)
+
+            # Use minimal feature extraction for speed
+            settings = MinimalFCParameters()
+
             extracted = extract_features(
                 ts_df,
                 column_id="id",
@@ -278,21 +284,32 @@ class TsfreshRunner(FeatureEngineeringRunner):
                 n_jobs=1,
             )
 
-            # Select relevant features
+            # Clean up extracted features
             extracted = extracted.replace([np.inf, -np.inf], np.nan).fillna(0)
-            extracted.index = X_train.index
 
+            # Drop columns with zero variance
+            non_zero_var = extracted.var() > 0
+            extracted = extracted.loc[:, non_zero_var]
+
+            if extracted.shape[1] == 0:
+                raise ValueError("No features extracted")
+
+            # Select relevant features
             try:
-                selected = select_features(extracted, y_train)
+                selected = select_features(extracted, y_reset)
+                if selected.shape[1] == 0:
+                    selected = extracted
                 if selected.shape[1] > self.max_features:
                     selected = selected.iloc[:, : self.max_features]
             except Exception:
-                selected = extracted.iloc[:, : self.max_features]
+                selected = extracted.iloc[:, : min(self.max_features, extracted.shape[1])]
 
             self._feature_columns = selected.columns.tolist()
             self.fit_time = time.time() - start
             self.n_features_generated = selected.shape[1]
 
+            # Restore original index
+            selected.index = X_train.index
             return selected
 
         except Exception:
@@ -308,20 +325,15 @@ class TsfreshRunner(FeatureEngineeringRunner):
 
         start = time.time()
 
-        numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
-        if len(numeric_cols) == 0 or self._feature_columns == X.columns.tolist():
+        if self._numeric_cols is None or len(self._numeric_cols) == 0:
             self.transform_time = time.time() - start
             return X[self._feature_columns].copy() if self._feature_columns else X.copy()
 
-        ts_data = []
-        for idx, row in X[numeric_cols].iterrows():
-            for t, col in enumerate(numeric_cols):
-                ts_data.append({"id": idx, "time": t, "value": row[col], "variable": col})
-
-        ts_df = pd.DataFrame(ts_data)
-        settings = MinimalFCParameters()
-
         try:
+            X_reset = X.reset_index(drop=True)
+            ts_df = self._create_ts_format(X_reset)
+            settings = MinimalFCParameters()
+
             extracted = extract_features(
                 ts_df,
                 column_id="id",
@@ -334,7 +346,6 @@ class TsfreshRunner(FeatureEngineeringRunner):
             )
 
             extracted = extracted.replace([np.inf, -np.inf], np.nan).fillna(0)
-            extracted.index = X.index
 
             # Align columns with training features
             for col in self._feature_columns:
@@ -342,7 +353,9 @@ class TsfreshRunner(FeatureEngineeringRunner):
                     extracted[col] = 0
 
             self.transform_time = time.time() - start
-            return extracted[self._feature_columns]
+            result = extracted[self._feature_columns]
+            result.index = X.index
+            return result
 
         except Exception:
             self.transform_time = time.time() - start
@@ -358,6 +371,7 @@ class AutofeatRunner(FeatureEngineeringRunner):
         super().__init__(max_features, random_state)
         self._model = None
         self._is_classifier = False
+        self._feature_columns = None
 
     def fit_transform(self, X_train: pd.DataFrame, y_train: pd.Series) -> pd.DataFrame:
         from autofeat import AutoFeatClassifier, AutoFeatRegressor
@@ -368,39 +382,65 @@ class AutofeatRunner(FeatureEngineeringRunner):
         unique_values = y_train.nunique()
         self._is_classifier = unique_values <= 10
 
-        if self._is_classifier:
-            self._model = AutoFeatClassifier(
-                feateng_steps=2,
-                max_gb=1,
-                transformations=["1/", "log", "sqrt", "^2"],
-                n_jobs=1,
-                verbose=0,
-            )
-        else:
-            self._model = AutoFeatRegressor(
-                feateng_steps=2,
-                max_gb=1,
-                transformations=["1/", "log", "sqrt", "^2"],
-                n_jobs=1,
-                verbose=0,
-            )
-
         # Ensure numeric data
         X_numeric = X_train.select_dtypes(include=[np.number]).copy()
         X_numeric = X_numeric.replace([np.inf, -np.inf], np.nan).fillna(0)
 
-        result = self._model.fit_transform(X_numeric, y_train)
-        result = pd.DataFrame(result, columns=self._model.get_feature_names_out(), index=X_train.index)
-        result = result.replace([np.inf, -np.inf], np.nan).fillna(0)
+        if X_numeric.shape[1] == 0:
+            self.fit_time = time.time() - start
+            self.n_features_generated = X_train.shape[1]
+            self._feature_columns = X_train.columns.tolist()
+            return X_train.copy()
 
-        # Limit features if needed
-        if result.shape[1] > self.max_features:
-            result = result.iloc[:, : self.max_features]
+        try:
+            if self._is_classifier:
+                self._model = AutoFeatClassifier(
+                    feateng_steps=2,
+                    max_gb=1,
+                    transformations=["1/", "log", "sqrt", "^2"],
+                    n_jobs=1,
+                    verbose=0,
+                )
+            else:
+                self._model = AutoFeatRegressor(
+                    feateng_steps=2,
+                    max_gb=1,
+                    transformations=["1/", "log", "sqrt", "^2"],
+                    n_jobs=1,
+                    verbose=0,
+                )
 
-        self.fit_time = time.time() - start
-        self.n_features_generated = result.shape[1]
+            result = self._model.fit_transform(X_numeric, y_train)
 
-        return result
+            # autofeat returns DataFrame directly with column names
+            if isinstance(result, pd.DataFrame):
+                self._feature_columns = result.columns.tolist()
+            else:
+                # If numpy array, use original columns + new feature columns
+                if hasattr(self._model, "all_columns_"):
+                    self._feature_columns = self._model.all_columns_
+                else:
+                    self._feature_columns = X_numeric.columns.tolist()
+                result = pd.DataFrame(result, columns=self._feature_columns, index=X_train.index)
+
+            result = result.replace([np.inf, -np.inf], np.nan).fillna(0)
+
+            # Limit features if needed
+            if result.shape[1] > self.max_features:
+                result = result.iloc[:, : self.max_features]
+                self._feature_columns = result.columns.tolist()
+
+            self.fit_time = time.time() - start
+            self.n_features_generated = result.shape[1]
+
+            return result
+
+        except Exception:
+            # Fallback to original features
+            self.fit_time = time.time() - start
+            self.n_features_generated = X_numeric.shape[1]
+            self._feature_columns = X_numeric.columns.tolist()
+            return X_numeric
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
         start = time.time()
@@ -408,15 +448,29 @@ class AutofeatRunner(FeatureEngineeringRunner):
         X_numeric = X.select_dtypes(include=[np.number]).copy()
         X_numeric = X_numeric.replace([np.inf, -np.inf], np.nan).fillna(0)
 
-        result = self._model.transform(X_numeric)
-        result = pd.DataFrame(result, columns=self._model.get_feature_names_out(), index=X.index)
-        result = result.replace([np.inf, -np.inf], np.nan).fillna(0)
+        if self._model is None:
+            self.transform_time = time.time() - start
+            return X_numeric[self._feature_columns] if self._feature_columns else X_numeric
 
-        if result.shape[1] > self.max_features:
-            result = result.iloc[:, : self.max_features]
+        try:
+            result = self._model.transform(X_numeric)
 
-        self.transform_time = time.time() - start
-        return result
+            if isinstance(result, pd.DataFrame):
+                pass  # Already a DataFrame
+            else:
+                result = pd.DataFrame(result, columns=self._feature_columns, index=X.index)
+
+            result = result.replace([np.inf, -np.inf], np.nan).fillna(0)
+
+            if result.shape[1] > self.max_features:
+                result = result.iloc[:, : self.max_features]
+
+            self.transform_time = time.time() - start
+            return result
+
+        except Exception:
+            self.transform_time = time.time() - start
+            return X_numeric[self._feature_columns] if self._feature_columns else X_numeric
 
 
 def get_runner(tool_name: str, max_features: int = 50) -> FeatureEngineeringRunner:
