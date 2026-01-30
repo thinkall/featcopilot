@@ -297,15 +297,6 @@ FeatCopilot can be combined with AutoML frameworks to potentially improve result
 | Employee Attrition | Classification | 0.9796 | 0.9762 | -0.35% |
 | Medical Diagnosis | Classification | 0.8567 | 0.8600 | +0.39% |
 
-!!! note "AutoML Note"
-    AutoML frameworks like FLAML already perform extensive feature selection and model tuning.
-    The additional features from FeatCopilot may not always improve results when AutoML
-    can already find optimal models. FeatCopilot provides the most value when:
-
-    - Using simpler models (LogisticRegression, Ridge)
-    - Working with domain-specific feature requirements
-    - Needing interpretable feature transformations
-
 ### Running AutoML Benchmarks
 
 ```bash
