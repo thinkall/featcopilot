@@ -27,6 +27,9 @@ def get_logger(name: str | None = None) -> logging.Logger:
         A configured logger instance.
     """
     if name:
+        # Strip 'featcopilot.' prefix if present to avoid duplication
+        if name.startswith("featcopilot."):
+            name = name[len("featcopilot.") :]
         return logging.getLogger(f"featcopilot.{name}")
     return logger
 
