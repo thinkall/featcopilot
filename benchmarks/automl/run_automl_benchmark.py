@@ -459,9 +459,12 @@ def run_benchmark_on_prepared_data(
 
     # Run baseline
     runner = get_automl_runner(framework, time_budget)
-    actual_time = runner.fit(baseline["X_train"], baseline["y_train"], task)
+    train_time = runner.fit(baseline["X_train"], baseline["y_train"], task)
+
+    predict_start = time.time()
     y_pred = runner.predict(baseline["X_test"])
     y_prob = runner.predict_proba(baseline["X_test"]) if "classification" in task else None
+    predict_time = time.time() - predict_start
 
     if "classification" in task:
         baseline_metrics = evaluate_classification(baseline["y_test"], y_pred, y_prob)
@@ -469,13 +472,17 @@ def run_benchmark_on_prepared_data(
         baseline_metrics = evaluate_regression(baseline["y_test"], y_pred)
 
     results["baseline_score"] = baseline_metrics.get("accuracy" if "classification" in task else "r2_score", 0)
-    results["baseline_time"] = actual_time
+    results["baseline_train_time"] = train_time
+    results["baseline_predict_time"] = predict_time
 
     # Run with enhanced features
     runner = get_automl_runner(framework, time_budget)
-    actual_time = runner.fit(enhanced["X_train"], enhanced["y_train"], task)
+    train_time = runner.fit(enhanced["X_train"], enhanced["y_train"], task)
+
+    predict_start = time.time()
     y_pred = runner.predict(enhanced["X_test"])
     y_prob = runner.predict_proba(enhanced["X_test"]) if "classification" in task else None
+    predict_time = time.time() - predict_start
 
     if "classification" in task:
         enhanced_metrics = evaluate_classification(enhanced["y_test"], y_pred, y_prob)
@@ -483,7 +490,8 @@ def run_benchmark_on_prepared_data(
         enhanced_metrics = evaluate_regression(enhanced["y_test"], y_pred)
 
     results["featcopilot_score"] = enhanced_metrics.get("accuracy" if "classification" in task else "r2_score", 0)
-    results["featcopilot_automl_time"] = actual_time
+    results["featcopilot_train_time"] = train_time
+    results["featcopilot_predict_time"] = predict_time
 
     # Calculate improvement
     if results["baseline_score"] > 0:
@@ -589,8 +597,8 @@ def run_all_automl_benchmarks(
                 print(f"  {framework}...", end=" ", flush=True)
                 result = run_benchmark_on_prepared_data(data, framework, time_budget)
                 print(
-                    f"done (baseline: {result['baseline_time']:.1f}s, "
-                    f"enhanced: {result['featcopilot_automl_time']:.1f}s, "
+                    f"done (train: {result['baseline_train_time']:.1f}s/{result['featcopilot_train_time']:.1f}s, "
+                    f"predict: {result['baseline_predict_time']:.2f}s/{result['featcopilot_predict_time']:.2f}s, "
                     f"improvement: {result['improvement_pct']:+.2f}%)"
                 )
                 results.append(result)
@@ -629,15 +637,20 @@ def generate_report(results: pd.DataFrame, output_path: str = None) -> str:
     for framework in results["framework"].unique():
         fw_results = results[results["framework"] == framework]
         report.append(f"\n### {framework.upper()}\n")
-        report.append("| Dataset | Task | Baseline | +FeatCopilot | Improvement | Baseline Time | Enhanced Time |\n")
-        report.append("|---------|------|----------|--------------|-------------|---------------|---------------|\n")
+        report.append(
+            "| Dataset | Task | Baseline | +FeatCopilot | Improvement | Train Time (B/E) | Predict Time (B/E) |\n"
+        )
+        report.append(
+            "|---------|------|----------|--------------|-------------|------------------|--------------------|\n"
+        )
 
         for _, row in fw_results.iterrows():
             report.append(
                 f"| {row['dataset']} | {row['task']} | "
                 f"{row['baseline_score']:.4f} | {row['featcopilot_score']:.4f} | "
                 f"{row['improvement_pct']:+.2f}% | "
-                f"{row['baseline_time']:.1f}s | {row['featcopilot_automl_time']:.1f}s |\n"
+                f"{row['baseline_train_time']:.1f}s / {row['featcopilot_train_time']:.1f}s | "
+                f"{row['baseline_predict_time']:.2f}s / {row['featcopilot_predict_time']:.2f}s |\n"
             )
 
         avg = fw_results["improvement_pct"].mean()
@@ -646,10 +659,10 @@ def generate_report(results: pd.DataFrame, output_path: str = None) -> str:
     # Detailed results table
     report.append("\n## Detailed Results\n")
     report.append(
-        "| Dataset | Framework | Baseline | +FeatCopilot | Improvement | Features | FE Time | AutoML Time |\n"
+        "| Dataset | Framework | Baseline | +FeatCopilot | Improvement | Features | FE Time | Train Time | Predict Time |\n"
     )
     report.append(
-        "|---------|-----------|----------|--------------|-------------|----------|---------|-------------|\n"
+        "|---------|-----------|----------|--------------|-------------|----------|---------|------------|---------------|\n"
     )
 
     for _, row in results.iterrows():
@@ -658,7 +671,7 @@ def generate_report(results: pd.DataFrame, output_path: str = None) -> str:
             f"{row['baseline_score']:.4f} | {row['featcopilot_score']:.4f} | "
             f"{row['improvement_pct']:+.2f}% | "
             f"{row['n_features_original']}->{row['n_features_engineered']} | "
-            f"{row['fe_time']:.1f}s | {row['featcopilot_automl_time']:.1f}s |\n"
+            f"{row['fe_time']:.1f}s | {row['featcopilot_train_time']:.1f}s | {row['featcopilot_predict_time']:.2f}s |\n"
         )
 
     report_text = "".join(report)
