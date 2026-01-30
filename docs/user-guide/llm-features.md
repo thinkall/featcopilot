@@ -58,13 +58,87 @@ engineer = AutoFeatureEngineer(
 )
 ```
 
+### Listing Available Models
+
+Use the `list_models()` utility to discover all supported models:
+
+```python
+from featcopilot.utils import list_models, get_model_info, get_recommended_models
+
+# List all available models
+models = list_models()
+for m in models:
+    print(f"{m['name']}: {m['description']}")
+
+# List with verbose table output
+list_models(verbose=True)
+# Output:
+# -------------------------------------------------------------------------
+# Model                     Provider     Speed        Quality      Recommended
+# -------------------------------------------------------------------------
+# gpt-5                     OpenAI       fast         excellent    ✓
+# gpt-5.1-codex             OpenAI       fast         excellent    ✓
+# claude-sonnet-4           Anthropic    medium       excellent    ✓
+# ...
+
+# Get only recommended models
+recommended = get_recommended_models()
+print(recommended)  # ['gpt-5', 'gpt-5.1-codex', 'claude-sonnet-4']
+
+# Filter by provider
+claude_models = list_models(provider='Anthropic')
+openai_models = list_models(provider='OpenAI')
+
+# Get info about a specific model
+info = get_model_info('gpt-5')
+print(info)
+# {'name': 'gpt-5', 'provider': 'OpenAI', 'description': '...', 'speed': 'fast', ...}
+
+# Check if a model is valid
+from featcopilot.utils import is_valid_model
+is_valid_model('gpt-5')  # True
+is_valid_model('invalid')  # False
+```
+
 ### Supported Models
 
-| Model | Description | Speed | Quality |
-|-------|-------------|-------|---------|
-| `gpt-5` | Latest GPT model | Fast | Excellent |
-| `gpt-4.1` | GPT-4.1 | Fast | Very Good |
-| `claude-sonnet-4` | Claude Sonnet | Medium | Excellent |
+| Model | Provider | Description | Speed | Quality |
+|-------|----------|-------------|-------|---------|
+| `gpt-5` ⭐ | OpenAI | Latest GPT-5 model (default) | Fast | Excellent |
+| `gpt-5-mini` | OpenAI | Smaller, faster GPT-5 variant | Very Fast | Very Good |
+| `gpt-5.1` | OpenAI | GPT-5.1 with improved reasoning | Fast | Excellent |
+| `gpt-5.1-codex` ⭐ | OpenAI | Optimized for code generation | Fast | Excellent |
+| `gpt-5.1-codex-mini` | OpenAI | Smaller Codex variant | Very Fast | Good |
+| `gpt-5.2` | OpenAI | GPT-5.2 with enhanced capabilities | Fast | Excellent |
+| `gpt-5.2-codex` | OpenAI | GPT-5.2 Codex for advanced code | Fast | Excellent |
+| `gpt-4.1` | OpenAI | Fast and efficient | Very Fast | Good |
+| `claude-sonnet-4` ⭐ | Anthropic | Balanced performance | Medium | Excellent |
+| `claude-sonnet-4.5` | Anthropic | Improved reasoning | Medium | Excellent |
+| `claude-haiku-4.5` | Anthropic | Fast and efficient | Very Fast | Good |
+| `claude-opus-4.5` | Anthropic | Premium quality | Slow | Premium |
+| `gemini-3-pro-preview` | Google | Gemini 3 Pro Preview | Medium | Excellent |
+
+⭐ = Recommended models
+
+### Choosing a Model
+
+```python
+from featcopilot.utils import get_default_model, get_recommended_models
+
+# Use the default model (gpt-5)
+llm_config = {'model': get_default_model()}
+
+# Or choose from recommended models based on your needs:
+# - gpt-5: Best all-around choice
+# - gpt-5.1-codex: Best for code generation tasks
+# - claude-sonnet-4: Alternative with strong reasoning
+
+# For faster processing (lower quality)
+llm_config = {'model': 'gpt-4.1'}  # Very fast, good quality
+
+# For premium quality (slower)
+llm_config = {'model': 'claude-opus-4.5'}  # Slow, premium quality
+```
 
 ## Providing Context
 
