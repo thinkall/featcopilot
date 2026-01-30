@@ -84,8 +84,16 @@ def main():
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
+    # Baseline model (no feature engineering)
+    print("\n2. Training baseline model (no feature engineering)...")
+    baseline_model = GradientBoostingClassifier(n_estimators=100, random_state=42)
+    baseline_model.fit(X_train, y_train)
+    baseline_preds = baseline_model.predict_proba(X_test)[:, 1]
+    baseline_auc = roc_auc_score(y_test, baseline_preds)
+    print(f"   - Baseline ROC-AUC: {baseline_auc:.4f}")
+
     # Feature engineering with LLM
-    print("\n2. Applying LLM-powered feature engineering...")
+    print("\n3. Applying LLM-powered feature engineering...")
     print("   (Note: If Copilot SDK not available, mock responses will be used)")
 
     engineer = AutoFeatureEngineer(
@@ -117,22 +125,23 @@ def main():
     print(f"\n   - Final features: {len(X_train_fe.columns)}")
 
     # Show LLM-generated explanations
-    print("\n3. Feature explanations from LLM:")
+    print("\n4. Feature explanations from LLM:")
     explanations = engineer.explain_features()
     for i, (name, explanation) in enumerate(list(explanations.items())[:5], 1):
         print(f"\n   {i}. {name}:")
         print(f"      {explanation[:100]}..." if len(explanation) > 100 else f"      {explanation}")
 
-    # Train model
-    print("\n4. Training model...")
+    # Train model with engineered features
+    print("\n5. Training model with engineered features...")
     model = GradientBoostingClassifier(n_estimators=100, random_state=42)
     model.fit(X_train_fe, y_train)
     preds = model.predict_proba(X_test_fe)[:, 1]
     auc = roc_auc_score(y_test, preds)
-    print(f"   - ROC-AUC: {auc:.4f}")
+    print(f"   - Engineered ROC-AUC: {auc:.4f}")
+    print(f"   - Improvement: {(auc - baseline_auc) / baseline_auc * 100:+.2f}%")
 
     # Show generated feature code
-    print("\n5. Sample generated feature code:")
+    print("\n6. Sample generated feature code:")
     feature_code = engineer.get_feature_code()
     for i, (name, code) in enumerate(list(feature_code.items())[:3], 1):
         print(f"\n   {i}. {name}:")
