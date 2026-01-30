@@ -9,18 +9,22 @@ flowchart TB
     subgraph AE["AutoFeatureEngineer (Main Entry Point)"]
         direction TB
 
-        TE[Tabular<br/>Engine] ~~~ TSE[TimeSeries<br/>Engine] ~~~ RE[Relational<br/>Engine] ~~~ LE[LLM<br/>Engine]
+        subgraph Engines[" "]
+            direction LR
+            TE[Tabular Engine]
+            TSE[TimeSeries Engine]
+            RE[Relational Engine]
+            LE[LLM Engine]
+        end
 
         FG[Feature Generation]
-
         FS[Feature Selection<br/>Statistical + ML]
-
         SF[Selected Features]
 
-        TE & TSE & RE & LE --> FG
-        FG --> FS
-        FS --> SF
+        Engines --> FG --> FS --> SF
     end
+
+    style Engines fill:none,stroke:none
 ```
 
 ## Core Components
