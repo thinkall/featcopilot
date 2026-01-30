@@ -50,7 +50,10 @@ FeatCopilot has been extensively benchmarked against baseline models across vari
 
 ## Text & Semantic Datasets
 
-FeatCopilot excels at extracting meaningful features from text data. The text preprocessing extracts 8 features per text column including word counts, sentiment indicators, and structural features.
+FeatCopilot excels at extracting meaningful features from text data. The benchmark uses **basic text preprocessing** (no LLM calls) which extracts 8 features per text column in <1 second.
+
+!!! note "LLM-Powered Features"
+    These benchmarks use only the **tabular engine with text preprocessing** - fast, deterministic feature extraction without API calls. When GitHub Copilot is authenticated, the **SemanticEngine** can generate additional domain-aware features using LLM, which would add latency but potentially improve results further.
 
 | Dataset | Model | Baseline | FeatCopilot | Improvement |
 |---------|-------|----------|-------------|-------------|
@@ -61,9 +64,9 @@ FeatCopilot excels at extracting meaningful features from text data. The text pr
 | Customer Support | GradientBoosting | 0.948 | 0.998 | **+5.28%** |
 | Product Reviews | LogisticRegression | 0.918 | 0.965 | **+5.18%** |
 
-### Text Features Extracted
+### Text Features Extracted (No LLM)
 
-For each text column, FeatCopilot extracts:
+For each text column, FeatCopilot extracts these **rule-based features** in milliseconds:
 
 - **Length features**: character count, word count, average word length
 - **Structure features**: uppercase ratio, punctuation count, number count
@@ -72,13 +75,37 @@ For each text column, FeatCopilot extracts:
 ```python
 from featcopilot import AutoFeatureEngineer
 
-# Text data with semantic content
+# Basic text feature extraction (no LLM, <1s)
 engineer = AutoFeatureEngineer(
     engines=['tabular'],  # Text preprocessing is automatic
     max_features=50
 )
 
 X_transformed = engineer.fit_transform(X_with_text, y)
+```
+
+### LLM-Powered Features (With Copilot)
+
+When authenticated with GitHub Copilot, enable the `llm` engine for semantic feature generation:
+
+```python
+from featcopilot import AutoFeatureEngineer
+
+# LLM-powered feature engineering (requires Copilot auth, adds latency)
+engineer = AutoFeatureEngineer(
+    engines=['tabular', 'llm'],
+    llm_config={'max_suggestions': 10}
+)
+
+X_transformed = engineer.fit_transform(
+    X_with_text, y,
+    column_descriptions={'review': 'Customer product review text'},
+    task_description='Predict customer satisfaction score'
+)
+
+# LLM generates domain-aware features like:
+# - sentiment_intensity, sarcasm_indicator, urgency_score
+# - product_mention_count, comparison_phrases, recommendation_strength
 ```
 
 ## Classification Benchmarks
@@ -143,12 +170,15 @@ FeatCopilot efficiently generates and selects features:
 - **Models Tested**: LogisticRegression/Ridge, RandomForest, GradientBoosting
 - **Metrics**: Accuracy/R², F1-score/RMSE, ROC-AUC/MAE
 
+!!! info "No LLM in Benchmarks"
+    All benchmarks use only the **TabularEngine** with rule-based text preprocessing. No GitHub Copilot or LLM API calls are made, ensuring reproducible results and sub-second feature generation times.
+
 ### Feature Engineering Configuration
 
 ```python
 # Classification tasks
 engineer = AutoFeatureEngineer(
-    engines=['tabular'],
+    engines=['tabular'],  # No 'llm' engine in benchmarks
     max_features=50,
     selection_methods=['importance', 'mutual_info'],
     correlation_threshold=0.95
