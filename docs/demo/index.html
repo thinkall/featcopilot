@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FeatCopilot Demo - LLM-Powered Auto Feature Engineering</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/theme/night.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/monokai.min.css">
+    <style>
+        :root {
+            --r-heading-color: #58a6ff;
+            --r-link-color: #58a6ff;
+        }
+        .reveal h1, .reveal h2, .reveal h3 {
+            text-transform: none;
+        }
+        .reveal pre {
+            width: 100%;
+            font-size: 0.55em;
+        }
+        .reveal pre code {
+            max-height: 500px;
+            padding: 20px;
+        }
+        .highlight-blue { color: #58a6ff; }
+        .highlight-green { color: #3fb950; }
+        .highlight-purple { color: #a371f7; }
+        .highlight-orange { color: #d29922; }
+        .small { font-size: 0.7em; }
+        .left-align { text-align: left; }
+        .comparison-table {
+            margin: 0 auto;
+            border-collapse: collapse;
+        }
+        .comparison-table th, .comparison-table td {
+            padding: 15px 25px;
+            border: 1px solid #444;
+        }
+        .comparison-table th {
+            background: #238636;
+        }
+        .comparison-table tr:nth-child(even) {
+            background: rgba(255,255,255,0.05);
+        }
+        .feature-box {
+            background: rgba(88, 166, 255, 0.1);
+            border: 1px solid #58a6ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px;
+            display: inline-block;
+            width: 200px;
+            vertical-align: top;
+        }
+        .emoji { font-size: 2em; }
+        .logo-text {
+            font-size: 1.5em;
+            font-weight: bold;
+            background: linear-gradient(90deg, #58a6ff, #a371f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .tagline {
+            font-size: 0.8em;
+            color: #8b949e;
+            margin-top: 10px;
+        }
+        .big-number {
+            font-size: 3em;
+            font-weight: bold;
+            color: #3fb950;
+        }
+        .code-output {
+            background: #161b22;
+            border-left: 3px solid #3fb950;
+            padding: 15px;
+            margin: 10px 0;
+            text-align: left;
+            font-family: monospace;
+            font-size: 0.6em;
+        }
+        .workflow-step {
+            display: inline-block;
+            width: 150px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .workflow-arrow {
+            display: inline-block;
+            font-size: 2em;
+            color: #58a6ff;
+            vertical-align: middle;
+        }
+        .full-image img {
+            max-height: 500px;
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            <!-- Title Slide -->
+            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
+                <h1>
+                    <span class="logo-text">🚀 FeatCopilot</span>
+                </h1>
+                <h3>Next-Generation LLM-Powered<br>Auto Feature Engineering</h3>
+                <p class="tagline">Transform your ML pipeline with intelligent feature generation</p>
+                <p class="small" style="margin-top: 50px;">
+                    <span class="highlight-blue">pip install featcopilot</span>
+                </p>
+            </section>
+
+            <!-- Problem Statement -->
+            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
+                <h2>😤 The Feature Engineering Problem</h2>
+                <div class="fragment">
+                    <p><span class="highlight-orange">80%</span> of data science time spent on feature engineering</p>
+                </div>
+                <div class="fragment" style="margin-top: 30px;">
+                    <div class="feature-box">
+                        <p>📊 Manual</p>
+                        <p class="small">Tedious trial & error</p>
+                    </div>
+                    <div class="feature-box">
+                        <p>🧠 Domain Knowledge</p>
+                        <p class="small">Requires expertise</p>
+                    </div>
+                    <div class="feature-box">
+                        <p>⏰ Time Consuming</p>
+                        <p class="small">Days to weeks</p>
+                    </div>
+                </div>
+                <p class="fragment" style="margin-top: 40px;">
+                    <em>What if AI could do this for you?</em>
+                </p>
+            </section>
+
+            <!-- Solution -->
+            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
+                <h2>✨ FeatCopilot: The Solution</h2>
+                <div style="margin: 40px 0;">
+                    <div class="workflow-step fragment">
+                        <p class="emoji">📁</p>
+                        <p>Raw Data</p>
+                    </div>
+                    <span class="workflow-arrow fragment">→</span>
+                    <div class="workflow-step fragment">
+                        <p class="emoji">🤖</p>
+                        <p>FeatCopilot</p>
+                    </div>
+                    <span class="workflow-arrow fragment">→</span>
+                    <div class="workflow-step fragment">
+                        <p class="emoji">🎯</p>
+                        <p>Better Models</p>
+                    </div>
+                </div>
+                <div class="fragment">
+                    <p class="highlight-green" style="font-size: 1.3em;">
+                        Intelligent feature engineering in seconds, not days
+                    </p>
+                </div>
+            </section>
+
+            <!-- Key Features -->
+            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
+                <h2>🎯 Key Capabilities</h2>
+                <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; margin-top: 30px;">
+                    <div class="feature-box fragment">
+                        <p class="emoji">🔧</p>
+                        <p><strong>Tabular Engine</strong></p>
+                        <p class="small">Polynomials, interactions, ratios</p>
+                    </div>
+                    <div class="feature-box fragment">
+                        <p class="emoji">🧠</p>
+                        <p><strong>LLM Engine</strong></p>
+                        <p class="small">Semantic understanding</p>
+                    </div>
+                    <div class="feature-box fragment">
+                        <p class="emoji">📚</p>
+                        <p><strong>Explanations</strong></p>
+                        <p class="small">Human-readable insights</p>
+                    </div>
+                    <div class="feature-box fragment">
+                        <p class="emoji">🏪</p>
+                        <p><strong>Feature Store</strong></p>
+                        <p class="small">Feast integration</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Code Demo - Simple -->
+            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
+                <h2>💻 It's This Simple</h2>
+                <pre><code class="python" data-trim data-noescape>
+from featcopilot import AutoFeatureEngineer
+
+# Initialize with LLM support
+engineer = AutoFeatureEngineer(
+    engines=['tabular', 'llm'],
+    llm_config={'model': 'gpt-4o', 'domain': 'healthcare'}
+)
+
+# Transform your data
+X_enhanced = engineer.fit_transform(X_train, y_train)
+
+# That's it! 🎉
+print(f"Features: {X_train.shape[1]} → {X_enhanced.shape[1]}")
+                </code></pre>
+                <div class="code-output fragment">
+                    <span class="highlight-green">✓</span> Features: 10 → 48
+                </div>
+            </section>
+
+            <!-- LLM Intelligence -->
+            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
+                <h2>🧠 LLM-Powered Intelligence</h2>
+                <p class="small">Tell the LLM about your data:</p>
+                <pre><code class="python" data-trim>
+column_descriptions = {
+    'age': 'Patient age in years',
+    'bmi': 'Body Mass Index',
+    'glucose': 'Fasting blood glucose mg/dL',
+    'hba1c': 'HbA1c percentage'
+}
+
+X_enhanced = engineer.fit_transform(
+    X_train, y_train,
+    column_descriptions=column_descriptions,
+    task_description="Predict diabetes risk"
+)
+                </code></pre>
+                <p class="fragment highlight-blue">
+                    The LLM understands your domain and creates meaningful features!
+                </p>
+            </section>
+
+            <!-- Feature Explanations -->
+            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
+                <h2>📖 Human-Readable Explanations</h2>
+                <pre><code class="python" data-trim>
+explanations = engineer.explain_features()
+                </code></pre>
+                <div class="code-output" style="margin-top: 20px;">
+                    <p><span class="highlight-blue">📊 glucose_hba1c_interaction</span></p>
+                    <p style="margin-left: 20px;">Product of fasting glucose and HbA1c - captures<br>
+                    overall glycemic control. High values indicate diabetes risk.</p>
+                    <br>
+                    <p><span class="highlight-blue">📊 cholesterol_ratio</span></p>
+                    <p style="margin-left: 20px;">Ratio of total to HDL cholesterol - key cardiovascular<br>
+                    risk indicator used by clinicians.</p>
+                    <br>
+                    <p><span class="highlight-blue">📊 bmi_age_risk</span></p>
+                    <p style="margin-left: 20px;">Interaction of BMI and age - obesity is more dangerous<br>
+                    at older ages due to metabolic changes.</p>
+                </div>
+            </section>
+
+            <!-- Generated Code -->
+            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
+                <h2>🔍 Inspect Generated Code</h2>
+                <pre><code class="python" data-trim>
+feature_code = engineer.get_feature_code()
+                </code></pre>
+                <div class="code-output" style="margin-top: 20px;">
+<pre style="margin: 0; background: transparent;">
+<span class="highlight-purple"># glucose_hba1c_interaction</span>
+result = df['glucose'] * df['hba1c']
+
+<span class="highlight-purple"># cholesterol_ratio</span>
+result = df['cholesterol_total'] / (df['cholesterol_hdl'] + 1e-8)
+
+<span class="highlight-purple"># pulse_pressure</span>
+result = df['bp_systolic'] - df['bp_diastolic']
+</pre>
+                </div>
+                <p class="fragment small highlight-green">
+                    Transparent, auditable, reproducible ✓
+                </p>
+            </section>
+
+            <!-- Results - Performance -->
+            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
+                <h2>📈 Real Performance Gains</h2>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Features</th>
+                            <th>ROC-AUC</th>
+                            <th>Improvement</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Original</td>
+                            <td>10</td>
+                            <td>0.612</td>
+                            <td>-</td>
+                        </tr>
+                        <tr class="fragment">
+                            <td>Tabular Engine</td>
+                            <td>48</td>
+                            <td>0.658</td>
+                            <td class="highlight-green">+7.5%</td>
+                        </tr>
+                        <tr class="fragment">
+                            <td>LLM Engine</td>
+                            <td>52</td>
+                            <td>0.665</td>
+                            <td class="highlight-green">+8.7%</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="fragment" style="margin-top: 30px;">
+                    <span class="big-number">~9%</span>
+                    <br><span class="small">improvement with zero manual effort</span>
+                </p>
+            </section>
+
+            <!-- Feature Store -->
+            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
+                <h2>🏪 Production-Ready with Feast</h2>
+                <pre><code class="python" data-trim>
+from featcopilot.stores import FeastFeatureStore
+
+# Save features to Feast
+store = FeastFeatureStore(
+    project_name='diabetes_prediction',
+    entity_columns=['patient_id']
+)
+
+store.save_features(df, feature_view_name='patient_features')
+
+# Retrieve for inference
+features = store.get_online_features(
+    entity_dict={'patient_id': [1, 2, 3]}
+)
+                </code></pre>
+                <p class="fragment highlight-green">
+                    From notebook to production in minutes!
+                </p>
+            </section>
+
+            <!-- LLM Flexibility -->
+            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
+                <h2>🔌 100+ LLM Providers</h2>
+                <p class="small">Use any LLM you prefer:</p>
+                <pre><code class="python" data-trim>
+# OpenAI
+llm_config = {'model': 'gpt-4o', 'backend': 'litellm'}
+
+# Anthropic Claude
+llm_config = {'model': 'claude-3-opus', 'backend': 'litellm'}
+
+# GitHub Copilot
+llm_config = {'model': 'gpt-5.2', 'backend': 'copilot'}
+
+# Azure OpenAI
+llm_config = {'model': 'azure/gpt-4o', 'backend': 'litellm'}
+
+# Local Ollama
+llm_config = {'model': 'ollama/llama2', 'backend': 'litellm',
+              'api_base': 'http://localhost:11434'}
+                </code></pre>
+            </section>
+
+            <!-- Comparison with Others -->
+            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
+                <h2>🏆 Why FeatCopilot?</h2>
+                <table class="comparison-table" style="font-size: 0.7em;">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>FeatCopilot</th>
+                            <th>Others</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="fragment">
+                            <td>LLM-Powered</td>
+                            <td class="highlight-green">✓ Multiple backends</td>
+                            <td>Limited or none</td>
+                        </tr>
+                        <tr class="fragment">
+                            <td>Explanations</td>
+                            <td class="highlight-green">✓ Human-readable</td>
+                            <td>Technical only</td>
+                        </tr>
+                        <tr class="fragment">
+                            <td>Feature Store</td>
+                            <td class="highlight-green">✓ Feast built-in</td>
+                            <td>Manual setup</td>
+                        </tr>
+                        <tr class="fragment">
+                            <td>Domain Context</td>
+                            <td class="highlight-green">✓ Semantic aware</td>
+                            <td>Generic transforms</td>
+                        </tr>
+                        <tr class="fragment">
+                            <td>Code Inspection</td>
+                            <td class="highlight-green">✓ Transparent</td>
+                            <td>Black box</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Demo Visualization -->
+            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
+                <h2>📊 Visual Results</h2>
+                <div class="full-image">
+                    <img src="../examples/images/featcopilot_summary.png" alt="FeatCopilot Summary">
+                </div>
+            </section>
+
+            <!-- Use Cases -->
+            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
+                <h2>🎯 Perfect For</h2>
+                <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 30px; margin-top: 40px;">
+                    <div class="feature-box fragment">
+                        <p class="emoji">🏥</p>
+                        <p><strong>Healthcare</strong></p>
+                        <p class="small">Patient risk scoring</p>
+                    </div>
+                    <div class="feature-box fragment">
+                        <p class="emoji">💰</p>
+                        <p><strong>Finance</strong></p>
+                        <p class="small">Fraud detection</p>
+                    </div>
+                    <div class="feature-box fragment">
+                        <p class="emoji">🛒</p>
+                        <p><strong>E-commerce</strong></p>
+                        <p class="small">Churn prediction</p>
+                    </div>
+                    <div class="feature-box fragment">
+                        <p class="emoji">🏭</p>
+                        <p><strong>Manufacturing</strong></p>
+                        <p class="small">Predictive maintenance</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Getting Started -->
+            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
+                <h2>🚀 Get Started in 30 Seconds</h2>
+                <pre><code class="bash" data-trim>
+# Install
+pip install featcopilot[full]
+
+# Set your API key
+export OPENAI_API_KEY="your-key"
+                </code></pre>
+                <pre><code class="python" data-trim>
+# Use it!
+from featcopilot import AutoFeatureEngineer
+
+engineer = AutoFeatureEngineer(engines=['tabular', 'llm'])
+X_enhanced = engineer.fit_transform(X, y)
+
+# Done! 🎉
+                </code></pre>
+            </section>
+
+            <!-- Call to Action -->
+            <section data-background-gradient="linear-gradient(135deg, #238636 0%, #2ea043 100%)">
+                <h1>Ready to Transform Your ML Pipeline?</h1>
+                <p style="font-size: 1.5em; margin: 40px 0;">
+                    <code style="background: rgba(0,0,0,0.3); padding: 10px 20px; border-radius: 5px;">
+                        pip install featcopilot
+                    </code>
+                </p>
+                <div style="margin-top: 50px;">
+                    <p>
+                        <a href="https://github.com/thinkall/featcopilot" style="color: white;">
+                            GitHub: github.com/thinkall/featcopilot
+                        </a>
+                    </p>
+                    <p>
+                        <a href="https://thinkall.github.io/featcopilot" style="color: white;">
+                            Docs: thinkall.github.io/featcopilot
+                        </a>
+                    </p>
+                </div>
+                <p style="margin-top: 50px; font-size: 2em;">
+                    ⭐ Star us on GitHub!
+                </p>
+            </section>
+
+            <!-- Thank You -->
+            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
+                <h1>Thank You! 🙏</h1>
+                <p style="font-size: 1.3em; margin-top: 50px;">
+                    <span class="logo-text">FeatCopilot</span>
+                </p>
+                <p class="tagline">
+                    Next-Generation LLM-Powered Auto Feature Engineering
+                </p>
+                <p style="margin-top: 50px;">
+                    Questions? Let's discuss!
+                </p>
+            </section>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/plugin/highlight/highlight.min.js"></script>
+    <script>
+        Reveal.initialize({
+            hash: true,
+            slideNumber: true,
+            transition: 'slide',
+            plugins: [ RevealHighlight ],
+            // Auto-advance for video recording
+            // autoSlide: 5000,
+            // autoSlideStoppable: true,
+        });
+    </script>
+</body>
+</html>
