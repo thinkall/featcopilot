@@ -159,6 +159,17 @@ def main():
     #     "max_suggestions": 15,
     #     "domain": "healthcare",
     # }
+    #
+    # Option 6: LiteLLM with GitHub Copilot
+    # Access GitHub Copilot models via LiteLLM using the 'github/' prefix.
+    # This allows using GitHub Copilot's model offerings through the unified
+    # LiteLLM interface. Requires GITHUB_API_KEY environment variable.
+    # llm_config = {
+    #     "model": "github/gpt-4o",  # or github/gpt-4o-mini, github/claude-3.5-sonnet
+    #     "backend": "litellm",
+    #     "max_suggestions": 15,
+    #     "domain": "healthcare",
+    # }
 
     print("\n3. Applying LLM-powered feature engineering...")
     print("   (Note: If LLM SDK not available, mock responses will be used)")
@@ -172,7 +183,10 @@ def main():
             "domain": "healthcare",
             # Uncomment the following lines to use LiteLLM instead:
             # "backend": "litellm",
-            # "model": "gpt-4o",  # or "claude-3-opus", "ollama/llama2", etc.
+            # "model": "gpt-4o",  # OpenAI
+            # "model": "claude-3-opus",  # Anthropic
+            # "model": "github/gpt-4o",  # GitHub Copilot via LiteLLM
+            # "model": "ollama/llama2",  # Local Ollama
         },
         verbose=True,
     )

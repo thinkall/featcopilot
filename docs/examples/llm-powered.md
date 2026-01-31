@@ -1,12 +1,37 @@
 # LLM-Powered Example
 
-Demonstrates FeatCopilot's unique LLM capabilities using LiteLLM (supports OpenAI, Azure, Anthropic, and more).
+Demonstrates FeatCopilot's unique LLM capabilities using LiteLLM (supports OpenAI, Azure, Anthropic, GitHub Copilot, and more).
 
 ## Prerequisites
 
-- LLM provider API key (e.g., OpenAI, Azure, Anthropic)
-- `featcopilot[llm]` installed
+- LLM provider API key (e.g., OpenAI, Azure, Anthropic, GitHub)
+- `featcopilot[litellm]` installed
 - API key configured via environment variable
+
+## LLM Backend Options
+
+FeatCopilot supports multiple LLM backends:
+
+```python
+# Option 1: GitHub Copilot SDK (default)
+llm_config = {'model': 'gpt-5.2'}
+
+# Option 2: LiteLLM with OpenAI
+llm_config = {'model': 'gpt-4o', 'backend': 'litellm'}
+
+# Option 3: LiteLLM with Anthropic
+llm_config = {'model': 'claude-3-opus', 'backend': 'litellm'}
+
+# Option 4: LiteLLM with GitHub Copilot
+llm_config = {'model': 'github/gpt-4o', 'backend': 'litellm'}
+
+# Option 5: LiteLLM with local Ollama
+llm_config = {
+    'model': 'ollama/llama2',
+    'backend': 'litellm',
+    'api_base': 'http://localhost:11434'
+}
+```
 
 ## The Problem
 
@@ -90,6 +115,8 @@ column_descriptions = {
 
 ## Initialize with LLM
 
+### Using GitHub Copilot SDK (Default)
+
 ```python
 engineer = AutoFeatureEngineer(
     engines=['tabular', 'llm'],
@@ -99,6 +126,90 @@ engineer = AutoFeatureEngineer(
         'max_suggestions': 15,
         'domain': 'healthcare',
         'validate_features': True
+    },
+    verbose=True
+)
+```
+
+### Using LiteLLM with GitHub Copilot
+
+Access GitHub Copilot models via LiteLLM using the `github/` prefix:
+
+```python
+import os
+os.environ['GITHUB_API_KEY'] = 'your-github-token'
+
+engineer = AutoFeatureEngineer(
+    engines=['tabular', 'llm'],
+    max_features=40,
+    llm_config={
+        'model': 'github/gpt-4o',      # GitHub Copilot's GPT-4o
+        'backend': 'litellm',
+        'max_suggestions': 15,
+        'domain': 'healthcare',
+        'validate_features': True
+    },
+    verbose=True
+)
+```
+
+Available GitHub Copilot models via LiteLLM:
+- `github/gpt-4o` - GPT-4o
+- `github/gpt-4o-mini` - Lighter, faster GPT-4o
+- `github/o1-preview` - OpenAI o1 preview
+- `github/o1-mini` - Lighter o1 model
+- `github/claude-3.5-sonnet` - Claude 3.5 Sonnet
+
+### Using LiteLLM with OpenAI
+
+```python
+import os
+os.environ['OPENAI_API_KEY'] = 'your-openai-key'
+
+engineer = AutoFeatureEngineer(
+    engines=['tabular', 'llm'],
+    max_features=40,
+    llm_config={
+        'model': 'gpt-4o',
+        'backend': 'litellm',
+        'max_suggestions': 15,
+        'domain': 'healthcare',
+    },
+    verbose=True
+)
+```
+
+### Using LiteLLM with Anthropic Claude
+
+```python
+import os
+os.environ['ANTHROPIC_API_KEY'] = 'your-anthropic-key'
+
+engineer = AutoFeatureEngineer(
+    engines=['tabular', 'llm'],
+    max_features=40,
+    llm_config={
+        'model': 'claude-3-opus',
+        'backend': 'litellm',
+        'max_suggestions': 15,
+        'domain': 'healthcare',
+    },
+    verbose=True
+)
+```
+
+### Using LiteLLM with Local Ollama
+
+```python
+engineer = AutoFeatureEngineer(
+    engines=['tabular', 'llm'],
+    max_features=40,
+    llm_config={
+        'model': 'ollama/llama2',
+        'backend': 'litellm',
+        'api_base': 'http://localhost:11434',
+        'max_suggestions': 15,
+        'domain': 'healthcare',
     },
     verbose=True
 )

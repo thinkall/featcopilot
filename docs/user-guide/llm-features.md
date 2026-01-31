@@ -1,6 +1,6 @@
 # LLM-Powered Features
 
-FeatCopilot's LLM integration via LiteLLM enables semantic understanding and intelligent feature generation with support for 100+ LLM providers.
+FeatCopilot's LLM integration via LiteLLM enables semantic understanding and intelligent feature generation with support for 100+ LLM providers including GitHub Copilot.
 
 ## Overview
 
@@ -12,6 +12,21 @@ The LLM engine provides:
 - **Code Generation**: Automatic Python code for custom features
 - **Iterative Refinement**: Improve features based on feedback
 
+## LLM Backend Options
+
+FeatCopilot supports two LLM backends:
+
+1. **GitHub Copilot SDK** (default): Native integration with GitHub Copilot
+2. **LiteLLM**: Universal interface supporting 100+ providers including:
+   - OpenAI (GPT-4o, GPT-4, GPT-3.5)
+   - Anthropic (Claude 3 Opus, Sonnet, Haiku)
+   - Azure OpenAI
+   - Google (Gemini Pro, Gemini Ultra)
+   - **GitHub Copilot** (via `github/` prefix)
+   - AWS Bedrock
+   - Ollama (local models)
+   - And many more...
+
 ## SemanticEngine
 
 The core LLM-powered engine:
@@ -19,10 +34,20 @@ The core LLM-powered engine:
 ```python
 from featcopilot.llm import SemanticEngine
 
+# Using GitHub Copilot SDK (default)
 engine = SemanticEngine(
     model='gpt-5.2',
     max_suggestions=20,
     validate_features=True,
+    domain='healthcare',
+    verbose=True
+)
+
+# Using LiteLLM backend
+engine = SemanticEngine(
+    model='gpt-4o',
+    backend='litellm',
+    max_suggestions=20,
     domain='healthcare',
     verbose=True
 )
@@ -39,17 +64,71 @@ X_features = engine.fit_transform(
 )
 ```
 
+## Using GitHub Copilot via LiteLLM
+
+You can access GitHub Copilot models through LiteLLM using the `github/` prefix:
+
+```python
+from featcopilot import AutoFeatureEngineer
+
+# GitHub Copilot via LiteLLM
+engineer = AutoFeatureEngineer(
+    engines=['tabular', 'llm'],
+    llm_config={
+        'model': 'github/gpt-4o',  # GitHub Copilot's GPT-4o
+        'backend': 'litellm',
+        'max_suggestions': 15,
+        'domain': 'healthcare',
+    }
+)
+```
+
+### Available GitHub Copilot Models
+
+| Model | Description |
+|-------|-------------|
+| `github/gpt-4o` | GPT-4o via GitHub Copilot |
+| `github/gpt-4o-mini` | Faster, lighter GPT-4o |
+| `github/o1-preview` | OpenAI o1 preview model |
+| `github/o1-mini` | Lighter o1 model |
+| `github/claude-3.5-sonnet` | Claude 3.5 Sonnet via GitHub |
+
+### Setting Up GitHub Copilot API Key
+
+1. Get your GitHub token with Copilot access
+2. Set the environment variable:
+
+```bash
+export GITHUB_API_KEY="your-github-token"
+```
+
+Or pass it directly:
+
+```python
+engineer = AutoFeatureEngineer(
+    engines=['llm'],
+    llm_config={
+        'model': 'github/gpt-4o',
+        'backend': 'litellm',
+        'api_key': 'your-github-token',
+    }
+)
+```
+
 ## Configuration
 
 ### LLM Config Options
 
 ```python
 llm_config = {
-    'model': 'gpt-5.2',           # Model: gpt-5.2, gpt-4.1, etc.
-    'max_suggestions': 20,       # Max features to suggest
-    'domain': 'healthcare',      # Domain context
-    'validate_features': True,   # Validate generated code
-    'temperature': 0.3,          # Generation temperature
+    'model': 'gpt-5.2',           # Model: gpt-5.2, gpt-4.1, github/gpt-4o, etc.
+    'backend': 'copilot',         # Backend: 'copilot' or 'litellm'
+    'max_suggestions': 20,        # Max features to suggest
+    'domain': 'healthcare',       # Domain context
+    'validate_features': True,    # Validate generated code
+    'temperature': 0.3,           # Generation temperature
+    'api_key': None,              # API key (for litellm backend)
+    'api_base': None,             # Custom API base URL (for litellm)
 }
 
 engineer = AutoFeatureEngineer(
@@ -99,10 +178,13 @@ Common models supported through LiteLLM:
 
 | Model | Provider | Description |
 |-------|----------|-------------|
-| `gpt-4` | OpenAI | GPT-4 (default) |
+| `gpt-4o` | OpenAI | GPT-4o (recommended) |
 | `gpt-4-turbo` | OpenAI | Faster GPT-4 variant |
 | `gpt-3.5-turbo` | OpenAI | Fast and efficient |
 | `azure/gpt-4` | Azure OpenAI | Azure-hosted GPT-4 |
+| `github/gpt-4o` | GitHub Copilot | GPT-4o via GitHub |
+| `github/gpt-4o-mini` | GitHub Copilot | Lighter GPT-4o via GitHub |
+| `github/claude-3.5-sonnet` | GitHub Copilot | Claude via GitHub |
 | `claude-3-opus` | Anthropic | Premium quality |
 | `claude-3-sonnet` | Anthropic | Balanced performance |
 | `claude-3-haiku` | Anthropic | Fast and efficient |
