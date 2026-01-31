@@ -523,33 +523,43 @@ class SyncCopilotFeatureClient:
 
     def __init__(self, **kwargs):
         self._async_client = CopilotFeatureClient(**kwargs)
-        self._loop = None
 
-    def _get_loop(self):
-        if self._loop is None or self._loop.is_closed():
+    def _run_async(self, coro):
+        """Run an async coroutine, handling nested event loops (e.g., Jupyter)."""
+        try:
+            # Check if we're in a running event loop (e.g., Jupyter)
+            loop = asyncio.get_running_loop()
+            # We're in a running loop - use nest_asyncio if available
             try:
-                self._loop = asyncio.get_event_loop()
-            except RuntimeError:
-                self._loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(self._loop)
-        return self._loop
+                import nest_asyncio
+
+                nest_asyncio.apply()
+                return loop.run_until_complete(coro)
+            except ImportError:
+                # nest_asyncio not available, try alternative approach
+                import concurrent.futures
+
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(asyncio.run, coro)
+                    return future.result()
+        except RuntimeError:
+            # No running event loop - safe to use asyncio.run
+            return asyncio.run(coro)
 
     def start(self):
-        return self._get_loop().run_until_complete(self._async_client.start())
+        return self._run_async(self._async_client.start())
 
     def stop(self):
-        return self._get_loop().run_until_complete(self._async_client.stop())
+        return self._run_async(self._async_client.stop())
 
     def suggest_features(self, **kwargs):
-        return self._get_loop().run_until_complete(self._async_client.suggest_features(**kwargs))
+        return self._run_async(self._async_client.suggest_features(**kwargs))
 
     def explain_feature(self, **kwargs):
-        return self._get_loop().run_until_complete(self._async_client.explain_feature(**kwargs))
+        return self._run_async(self._async_client.explain_feature(**kwargs))
 
     def generate_feature_code(self, **kwargs):
-        return self._get_loop().run_until_complete(self._async_client.generate_feature_code(**kwargs))
+        return self._run_async(self._async_client.generate_feature_code(**kwargs))
 
     def validate_feature_code(self, code: str, sample_data=None):
-        return self._get_loop().run_until_complete(
-            self._async_client.validate_feature_code(code=code, sample_data=sample_data)
-        )
+        return self._run_async(self._async_client.validate_feature_code(code=code, sample_data=sample_data))
