@@ -1,8 +1,8 @@
 # FeatCopilot
 
 <div align="center">
-  <h2>🚀 Next-Generation LLM-Powered Auto Feature Engineering</h2>
-  <p><strong>A unified feature engineering framework with LLM support via GitHub Copilot SDK or LiteLLM (100+ providers)</strong></p>
+  <h2>🚀 Intelligent Automated Feature Engineering</h2>
+  <p><strong>Generate, select, and explain predictive features with semantic understanding</strong></p>
 </div>
 
 ---
@@ -85,7 +85,7 @@
 
 ## What is FeatCopilot?
 
-FeatCopilot is a comprehensive Python library for automated feature engineering that combines traditional approaches with LLM-powered capabilities via GitHub Copilot SDK or LiteLLM (100+ providers including OpenAI, Azure, Anthropic, and more).
+FeatCopilot is a Python library for automated feature engineering that understands your data semantically. It transforms raw datasets into predictive features by analyzing column meanings, generating domain-aware transformations, and providing human-readable explanations for every feature it creates.
 
 <div class="grid cards" markdown>
 

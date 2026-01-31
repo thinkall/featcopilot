@@ -1,8 +1,8 @@
 # FeatCopilot 🚀
 
-**Next-Generation LLM-Powered Auto Feature Engineering**
+**Intelligent Automated Feature Engineering**
 
-FeatCopilot is a unified feature engineering framework that combines the best approaches from existing libraries (Featuretools, TSFresh, AutoFeat, OpenFE) with LLM-powered capabilities via GitHub Copilot SDK or LiteLLM (100+ providers).
+FeatCopilot automatically generates, selects, and explains predictive features for machine learning. It understands your data semantically—transforming column names and descriptions into domain-aware features that improve model performance.
 
 ## 📊 Benchmark Highlights
 
