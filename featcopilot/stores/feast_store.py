@@ -276,8 +276,8 @@ entity_key_serialization_version: 2
             df = df.copy()
             df[ts_col] = datetime.now()
 
-        # Save DataFrame to parquet
-        data_path = self._repo_path / f"{feature_view_name}.parquet"
+        # Save DataFrame to parquet (use absolute path for Feast compatibility)
+        data_path = (self._repo_path / f"{feature_view_name}.parquet").resolve()
         df.to_parquet(data_path, index=False)
 
         # Create entities
