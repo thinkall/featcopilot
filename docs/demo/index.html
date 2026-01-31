@@ -20,8 +20,8 @@
             font-size: 0.55em;
         }
         .reveal pre code {
-            max-height: 500px;
-            padding: 20px;
+            max-height: 45vh;
+            padding: 1em;
         }
         .highlight-blue { color: #58a6ff; }
         .highlight-green { color: #3fb950; }
@@ -32,9 +32,10 @@
         .comparison-table {
             margin: 0 auto;
             border-collapse: collapse;
+            font-size: 0.9em;
         }
         .comparison-table th, .comparison-table td {
-            padding: 15px 25px;
+            padding: 0.8em 1.2em;
             border: 1px solid #444;
         }
         .comparison-table th {
@@ -46,11 +47,11 @@
         .feature-box {
             background: rgba(88, 166, 255, 0.1);
             border: 1px solid #58a6ff;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 10px;
+            border-radius: 0.5em;
+            padding: 1em;
+            margin: 0.5em;
             display: inline-block;
-            width: 200px;
+            width: 10em;
             vertical-align: top;
         }
         .emoji { font-size: 2em; }
@@ -65,7 +66,7 @@
         .tagline {
             font-size: 0.8em;
             color: #8b949e;
-            margin-top: 10px;
+            margin-top: 0.5em;
         }
         .big-number {
             font-size: 3em;
@@ -75,15 +76,15 @@
         .code-output {
             background: #161b22;
             border-left: 3px solid #3fb950;
-            padding: 15px;
-            margin: 10px 0;
+            padding: 0.8em;
+            margin: 0.5em 0;
             text-align: left;
             font-family: monospace;
             font-size: 0.6em;
         }
         .workflow-step {
             display: inline-block;
-            width: 150px;
+            width: 8em;
             text-align: center;
             vertical-align: middle;
         }
@@ -94,7 +95,8 @@
             vertical-align: middle;
         }
         .full-image img {
-            max-height: 500px;
+            max-height: 50vh;
+            max-width: 90%;
         }
     </style>
 </head>
@@ -512,8 +514,11 @@ X_enhanced = engineer.fit_transform(X, y)
             hash: true,
             slideNumber: true,
             transition: 'slide',
-            width: 1920,
-            height: 1080,
+            width: 960,
+            height: 540,
+            margin: 0.04,
+            minScale: 0.2,
+            maxScale: 2.0,
             plugins: [ RevealHighlight ],
             // Auto-advance for video recording
             // autoSlide: 5000,
