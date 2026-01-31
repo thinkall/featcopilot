@@ -12,30 +12,37 @@
             --r-heading-color: #58a6ff;
             --r-link-color: #58a6ff;
         }
+        .reveal .slides {
+            text-align: center;
+        }
+        .reveal .slides section {
+            width: 100%;
+        }
         .reveal h1, .reveal h2, .reveal h3 {
             text-transform: none;
         }
         .reveal pre {
-            width: 100%;
-            font-size: 0.55em;
+            width: 90%;
+            margin: 0 auto;
+            font-size: 0.65em;
         }
         .reveal pre code {
-            max-height: 45vh;
-            padding: 1em;
+            max-height: 700px;
+            padding: 25px;
         }
         .highlight-blue { color: #58a6ff; }
         .highlight-green { color: #3fb950; }
         .highlight-purple { color: #a371f7; }
         .highlight-orange { color: #d29922; }
-        .small { font-size: 0.7em; }
+        .small { font-size: 0.75em; }
         .left-align { text-align: left; }
         .comparison-table {
             margin: 0 auto;
             border-collapse: collapse;
-            font-size: 0.9em;
+            font-size: 0.85em;
         }
         .comparison-table th, .comparison-table td {
-            padding: 0.8em 1.2em;
+            padding: 15px 25px;
             border: 1px solid #444;
         }
         .comparison-table th {
@@ -47,16 +54,19 @@
         .feature-box {
             background: rgba(88, 166, 255, 0.1);
             border: 1px solid #58a6ff;
-            border-radius: 0.5em;
-            padding: 1em;
-            margin: 0.5em;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 15px;
             display: inline-block;
-            width: 10em;
+            width: 220px;
             vertical-align: top;
+        }
+        .feature-box .small {
+            font-size: 0.65em;
         }
         .emoji { font-size: 2em; }
         .logo-text {
-            font-size: 1.5em;
+            font-size: 1.2em;
             font-weight: bold;
             background: linear-gradient(90deg, #58a6ff, #a371f7);
             -webkit-background-clip: text;
@@ -64,39 +74,40 @@
             white-space: nowrap;
         }
         .tagline {
-            font-size: 0.8em;
+            font-size: 0.85em;
             color: #8b949e;
-            margin-top: 0.5em;
+            margin-top: 15px;
         }
         .big-number {
-            font-size: 3em;
+            font-size: 2.8em;
             font-weight: bold;
             color: #3fb950;
         }
         .code-output {
             background: #161b22;
-            border-left: 3px solid #3fb950;
-            padding: 0.8em;
-            margin: 0.5em 0;
+            border-left: 4px solid #3fb950;
+            padding: 20px;
+            margin: 15px auto;
             text-align: left;
             font-family: monospace;
             font-size: 0.6em;
+            width: 85%;
         }
         .workflow-step {
             display: inline-block;
-            width: 8em;
+            width: 180px;
             text-align: center;
             vertical-align: middle;
         }
         .workflow-arrow {
             display: inline-block;
-            font-size: 2em;
+            font-size: 2.2em;
             color: #58a6ff;
             vertical-align: middle;
         }
         .full-image img {
-            max-height: 50vh;
-            max-width: 90%;
+            max-height: 650px;
+            max-width: 95%;
         }
     </style>
 </head>
@@ -467,21 +478,21 @@ X_enhanced = engineer.fit_transform(X, y)
             </section>
 
             <!-- Call to Action -->
-            <section data-background-gradient="linear-gradient(135deg, #238636 0%, #2ea043 100%)">
-                <h1>Ready to Transform Your ML Pipeline?</h1>
+            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
+                <h1 class="highlight-green">Ready to Transform Your ML Pipeline?</h1>
                 <p style="font-size: 1.5em; margin: 40px 0;">
-                    <code style="background: rgba(0,0,0,0.3); padding: 10px 20px; border-radius: 5px;">
+                    <code style="background: rgba(88, 166, 255, 0.2); padding: 10px 20px; border-radius: 5px; border: 1px solid #58a6ff;">
                         pip install featcopilot
                     </code>
                 </p>
                 <div style="margin-top: 50px;">
                     <p>
-                        <a href="https://github.com/thinkall/featcopilot" style="color: white;">
+                        <a href="https://github.com/thinkall/featcopilot" class="highlight-blue">
                             GitHub: github.com/thinkall/featcopilot
                         </a>
                     </p>
                     <p>
-                        <a href="https://thinkall.github.io/featcopilot" style="color: white;">
+                        <a href="https://thinkall.github.io/featcopilot" class="highlight-blue">
                             Docs: thinkall.github.io/featcopilot
                         </a>
                     </p>
@@ -514,11 +525,12 @@ X_enhanced = engineer.fit_transform(X, y)
             hash: true,
             slideNumber: true,
             transition: 'slide',
-            width: 960,
-            height: 540,
-            margin: 0.04,
-            minScale: 0.2,
-            maxScale: 2.0,
+            width: 1440,
+            height: 1080,
+            margin: 0.02,
+            minScale: 0.1,
+            maxScale: 3.0,
+            center: true,
             plugins: [ RevealHighlight ],
             // Auto-advance for video recording
             // autoSlide: 5000,
