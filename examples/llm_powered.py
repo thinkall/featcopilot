@@ -160,12 +160,22 @@ def main():
     #     "domain": "healthcare",
     # }
     #
-    # Option 6: LiteLLM with GitHub Copilot
-    # Access GitHub Copilot models via LiteLLM using the 'github/' prefix.
-    # This allows using GitHub Copilot's model offerings through the unified
-    # LiteLLM interface. Requires GITHUB_API_KEY environment variable.
+    # Option 6: LiteLLM with GitHub Marketplace Models
+    # Access models from https://github.com/marketplace/models
+    # Uses GITHUB_API_KEY environment variable for authentication.
     # llm_config = {
-    #     "model": "github/gpt-4o",  # or github/gpt-4o-mini, github/claude-3.5-sonnet
+    #     "model": "github/gpt-4o",  # or github/Llama-3.2-11B-Vision-Instruct, github/Phi-4
+    #     "backend": "litellm",
+    #     "max_suggestions": 15,
+    #     "domain": "healthcare",
+    # }
+    #
+    # Option 7: LiteLLM with GitHub Copilot Chat API
+    # Access GitHub Copilot's Chat API using OAuth device flow authentication.
+    # Requires a paid GitHub Copilot subscription.
+    # On first use, you'll be prompted to authenticate via browser.
+    # llm_config = {
+    #     "model": "github_copilot/gpt-4",  # or github_copilot/gpt-5.1-codex
     #     "backend": "litellm",
     #     "max_suggestions": 15,
     #     "domain": "healthcare",
@@ -185,7 +195,8 @@ def main():
             # "backend": "litellm",
             # "model": "gpt-4o",  # OpenAI
             # "model": "claude-3-opus",  # Anthropic
-            # "model": "github/gpt-4o",  # GitHub Copilot via LiteLLM
+            # "model": "github/gpt-4o",  # GitHub Marketplace Models
+            # "model": "github_copilot/gpt-4",  # GitHub Copilot Chat API
             # "model": "ollama/llama2",  # Local Ollama
         },
         verbose=True,

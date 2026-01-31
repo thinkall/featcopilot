@@ -1,6 +1,6 @@
 # LLM-Powered Example
 
-Demonstrates FeatCopilot's unique LLM capabilities using LiteLLM (supports OpenAI, Azure, Anthropic, GitHub Copilot, and more).
+Demonstrates FeatCopilot's unique LLM capabilities using LiteLLM (supports OpenAI, Azure, Anthropic, GitHub Models, GitHub Copilot, and more).
 
 ## Prerequisites
 
@@ -22,10 +22,15 @@ llm_config = {'model': 'gpt-4o', 'backend': 'litellm'}
 # Option 3: LiteLLM with Anthropic
 llm_config = {'model': 'claude-3-opus', 'backend': 'litellm'}
 
-# Option 4: LiteLLM with GitHub Copilot
+# Option 4: LiteLLM with GitHub Marketplace Models
+# Uses GITHUB_API_KEY environment variable
 llm_config = {'model': 'github/gpt-4o', 'backend': 'litellm'}
 
-# Option 5: LiteLLM with local Ollama
+# Option 5: LiteLLM with GitHub Copilot Chat API
+# Uses OAuth device flow authentication (requires Copilot subscription)
+llm_config = {'model': 'github_copilot/gpt-4', 'backend': 'litellm'}
+
+# Option 6: LiteLLM with local Ollama
 llm_config = {
     'model': 'ollama/llama2',
     'backend': 'litellm',
@@ -133,7 +138,12 @@ engineer = AutoFeatureEngineer(
 
 ### Using LiteLLM with GitHub Copilot
 
-Access GitHub Copilot models via LiteLLM using the `github/` prefix:
+There are two GitHub providers in LiteLLM:
+
+#### GitHub Marketplace Models (`github/` prefix)
+
+Access models from [GitHub Marketplace](https://github.com/marketplace/models) using the `github/` prefix.
+Requires `GITHUB_API_KEY` environment variable.
 
 ```python
 import os
@@ -143,7 +153,7 @@ engineer = AutoFeatureEngineer(
     engines=['tabular', 'llm'],
     max_features=40,
     llm_config={
-        'model': 'github/gpt-4o',      # GitHub Copilot's GPT-4o
+        'model': 'github/gpt-4o',      # GitHub Marketplace GPT-4o
         'backend': 'litellm',
         'max_suggestions': 15,
         'domain': 'healthcare',
@@ -153,12 +163,42 @@ engineer = AutoFeatureEngineer(
 )
 ```
 
-Available GitHub Copilot models via LiteLLM:
+Available GitHub Marketplace models:
 - `github/gpt-4o` - GPT-4o
 - `github/gpt-4o-mini` - Lighter, faster GPT-4o
-- `github/o1-preview` - OpenAI o1 preview
-- `github/o1-mini` - Lighter o1 model
-- `github/claude-3.5-sonnet` - Claude 3.5 Sonnet
+- `github/Llama-3.2-11B-Vision-Instruct` - Llama 3.2 Vision
+- `github/Llama-3.1-70b-Versatile` - Llama 3.1 70B
+- `github/Phi-4` - Microsoft Phi-4
+- `github/Mixtral-8x7b-32768` - Mixtral 8x7B
+
+#### GitHub Copilot Chat API (`github_copilot/` prefix)
+
+Access GitHub Copilot's Chat API using the `github_copilot/` prefix.
+Uses OAuth device flow authentication (requires paid Copilot subscription).
+
+```python
+engineer = AutoFeatureEngineer(
+    engines=['tabular', 'llm'],
+    max_features=40,
+    llm_config={
+        'model': 'github_copilot/gpt-4',  # GitHub Copilot Chat API
+        'backend': 'litellm',
+        'max_suggestions': 15,
+        'domain': 'healthcare',
+        'validate_features': True
+    },
+    verbose=True
+)
+```
+
+On first use, you'll be prompted to authenticate:
+1. LiteLLM displays a device code and verification URL
+2. Visit the URL and enter the code
+3. Credentials are stored locally for future use
+
+Available GitHub Copilot models:
+- `github_copilot/gpt-4` - GPT-4
+- `github_copilot/gpt-5.1-codex` - GPT-5.1 Codex
 
 ### Using LiteLLM with OpenAI
 
