@@ -2,7 +2,7 @@
 
 <div align="center">
   <h2>🚀 Next-Generation LLM-Powered Auto Feature Engineering</h2>
-  <p><strong>The first unified feature engineering framework with native GitHub Copilot SDK integration</strong></p>
+  <p><strong>A unified feature engineering framework with LLM integration via LiteLLM (supports 100+ providers)</strong></p>
 </div>
 
 ---
@@ -60,9 +60,9 @@
 
     **Best for:** Production pipelines, real-time inference, reproducible results
 
-=== "🧠 LLM Mode (With Copilot)"
+=== "🧠 LLM Mode (With LiteLLM)"
 
-    Domain-aware semantic feature generation with GitHub Copilot:
+    Domain-aware semantic feature generation with any LLM provider:
 
     ```python
     from featcopilot import AutoFeatureEngineer
@@ -85,7 +85,7 @@
 
 ## What is FeatCopilot?
 
-FeatCopilot is a comprehensive Python library for automated feature engineering that combines traditional approaches with cutting-edge LLM-powered capabilities via GitHub Copilot SDK.
+FeatCopilot is a comprehensive Python library for automated feature engineering that combines traditional approaches with cutting-edge LLM-powered capabilities via LiteLLM (supporting OpenAI, Azure, Anthropic, and 100+ providers).
 
 <div class="grid cards" markdown>
 
@@ -165,7 +165,7 @@ pip install featcopilot[full]
 
     ---
 
-    Set up GitHub Copilot for LLM features
+    Set up LLM providers for AI features
 
     [:octicons-arrow-right-24: Authentication](getting-started/authentication.md)
 

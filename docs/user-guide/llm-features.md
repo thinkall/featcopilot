@@ -1,6 +1,6 @@
 # LLM-Powered Features
 
-FeatCopilot's LLM integration via GitHub Copilot SDK is its key differentiator, enabling semantic understanding and intelligent feature generation.
+FeatCopilot's LLM integration via LiteLLM enables semantic understanding and intelligent feature generation with support for 100+ LLM providers.
 
 ## Overview
 
@@ -60,67 +60,56 @@ engineer = AutoFeatureEngineer(
 
 ### Listing Available Models
 
-Use the model utilities to discover supported models directly from the Copilot client:
+Use LiteLLM to discover supported models:
 
 ```python
-from featcopilot.utils import list_models, get_model_info, get_model_names, fetch_models
+from featcopilot.utils import list_models, get_model_info, get_model_names
 
-# Fetch and list all available models from Copilot
+# List all available models
 models = list_models()
 for m in models:
     model_id = m.get('id') or m.get('name')
     print(f"{model_id}: {m.get('description', '')}")
 
-# List with verbose output to logger
+# List with verbose output
 list_models(verbose=True)
-# Output:
-# Available models from Copilot:
-# ------------------------------------------------------------
-#   gpt-5.2 (OpenAI) - Latest gpt-5.2 model...
-#   claude-sonnet-4 (Anthropic) - Claude Sonnet 4...
-#   ...
-# ------------------------------------------------------------
-# Total: N models
 
 # Get just the model names/identifiers
 model_names = get_model_names()
-print(model_names)  # ['gpt-5.2', 'claude-sonnet-4', ...]
+print(model_names)  # ['gpt-4', 'claude-3-sonnet', ...]
 
 # Filter by provider
 openai_models = list_models(provider='OpenAI')
-claude_models = list_models(provider='Anthropic')
+anthropic_models = list_models(provider='Anthropic')
 
 # Get info about a specific model
-info = get_model_info('gpt-5.2')
+info = get_model_info('gpt-4')
 if info:
     print(info)
 
-# Force refresh the cached model list
-models = list_models(force_refresh=True)
-
 # Check if a model is valid
 from featcopilot.utils import is_valid_model
-if is_valid_model('gpt-5.2'):
+if is_valid_model('gpt-4'):
     print("Model is available")
 ```
 
 ### Supported Models
 
-The available models are retrieved dynamically from the Copilot client. Common models include:
+Common models supported through LiteLLM:
 
 | Model | Provider | Description |
 |-------|----------|-------------|
-| `gpt-5.2` | OpenAI | Latest gpt-5.2 model (default) |
-| `gpt-5.2-mini` | OpenAI | Smaller, faster gpt-5.2 variant |
-| `gpt-5.1-codex` | OpenAI | Optimized for code generation |
-| `gpt-4.1` | OpenAI | Fast and efficient |
-| `claude-sonnet-4` | Anthropic | Balanced performance |
-| `claude-sonnet-4.5` | Anthropic | Improved reasoning |
-| `claude-haiku-4.5` | Anthropic | Fast and efficient |
-| `claude-opus-4.5` | Anthropic | Premium quality |
-| `gemini-3-pro-preview` | Google | Gemini 3 Pro Preview |
+| `gpt-4` | OpenAI | GPT-4 (default) |
+| `gpt-4-turbo` | OpenAI | Faster GPT-4 variant |
+| `gpt-3.5-turbo` | OpenAI | Fast and efficient |
+| `azure/gpt-4` | Azure OpenAI | Azure-hosted GPT-4 |
+| `claude-3-opus` | Anthropic | Premium quality |
+| `claude-3-sonnet` | Anthropic | Balanced performance |
+| `claude-3-haiku` | Anthropic | Fast and efficient |
+| `gemini-pro` | Google | Google's Gemini Pro |
+| `ollama/llama2` | Ollama (local) | Local LLaMA 2 |
 
-> **Note:** Run `list_models(verbose=True)` to see the current list of available models from your Copilot client.
+> **Note:** See [LiteLLM docs](https://docs.litellm.ai/docs/providers) for the full list of supported models and providers.
 
 ### Choosing a Model
 
@@ -351,12 +340,12 @@ more_features = engineer.generate_custom_features(
 
 ## Fallback Behavior
 
-When Copilot is unavailable:
+When LLM is unavailable:
 
 ```python
-# Without authentication, mock responses are used
+# Without API key configured, mock responses are used
 engineer = AutoFeatureEngineer(engines=['llm'])
-# Warning: copilot-sdk not installed. Using mock LLM responses.
+# Warning: LLM not configured. Using mock responses.
 
 # Mock generates context-aware features based on column names
 # but without true semantic understanding

@@ -67,7 +67,7 @@ python benchmarks/automl/run_automl_benchmark.py --frameworks flaml autogluon
 # With longer time budget (better results)
 python benchmarks/automl/run_automl_benchmark.py --time-budget 120
 
-# Enable LLM-powered features (requires GitHub Copilot)
+# Enable LLM-powered features (requires LLM API key)
 python benchmarks/automl/run_automl_benchmark.py --enable-llm
 
 # Custom output path

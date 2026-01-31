@@ -22,7 +22,7 @@ This installs the core package with support for:
 
 ## Installation with LLM Features
 
-To use LLM-powered feature engineering with GitHub Copilot SDK:
+To use LLM-powered feature engineering with LiteLLM (supports OpenAI, Azure, Anthropic, and 100+ providers):
 
 ```bash
 pip install featcopilot[llm]
@@ -30,7 +30,7 @@ pip install featcopilot[llm]
 
 This additionally installs:
 
-- `copilot-sdk` - GitHub Copilot Python SDK
+- `litellm` - Universal LLM API interface
 - Dependencies for LLM communication
 
 ## Full Installation
@@ -94,7 +94,7 @@ print("Installation successful!")
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| copilot-sdk | >=0.1.0 | GitHub Copilot integration |
+| litellm | >=1.0.0 | Universal LLM API interface |
 | statsmodels | >=0.13.0 | Advanced time series |
 
 ## Troubleshooting
@@ -110,8 +110,8 @@ pip install featcopilot
 ### LLM features not working
 
 1. Install LLM extras: `pip install featcopilot[llm]`
-2. Authenticate with GitHub Copilot CLI (see [Authentication](authentication.md))
-3. Ensure you have an active GitHub Copilot subscription
+2. Set up your LLM provider API key (see [Authentication](authentication.md))
+3. Ensure your API key is valid and has sufficient quota
 
 ### Dependency conflicts
 

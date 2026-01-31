@@ -1,8 +1,8 @@
 # FeatCopilot 🚀
 
-**Next-Generation LLM-Powered Auto Feature Engineering with GitHub Copilot SDK**
+**Next-Generation LLM-Powered Auto Feature Engineering**
 
-FeatCopilot is a unified feature engineering framework that combines the best approaches from existing libraries (Featuretools, TSFresh, AutoFeat, OpenFE) with novel LLM-powered capabilities via GitHub Copilot SDK.
+FeatCopilot is a unified feature engineering framework that combines the best approaches from existing libraries (Featuretools, TSFresh, AutoFeat, OpenFE) with novel LLM-powered capabilities via LiteLLM (supporting OpenAI, Azure, Anthropic, and 100+ providers).
 
 ## 📊 Benchmark Highlights
 
@@ -15,7 +15,7 @@ FeatCopilot is a unified feature engineering framework that combines the best ap
 | Classification | +0.54% | +4.35% |
 | Regression | +0.65% | +5.57% |
 
-### LLM Engine (With Copilot - 30-60s)
+### LLM Engine (With LiteLLM - 30-60s)
 
 | Task Type | Average Improvement | Best Case |
 |-----------|--------------------:|----------:|
@@ -43,7 +43,7 @@ FeatCopilot is a unified feature engineering framework that combines the best ap
 # Basic installation
 pip install featcopilot
 
-# With LLM capabilities (requires GitHub Copilot)
+# With LLM capabilities
 pip install featcopilot[llm]
 
 # Full installation
@@ -67,7 +67,7 @@ X_transformed = engineer.fit_transform(X, y)  # <1 second
 print(f"Features: {X.shape[1]} -> {X_transformed.shape[1]}")
 ```
 
-### LLM Mode (With Copilot)
+### LLM Mode (With LiteLLM)
 
 ```python
 from featcopilot import AutoFeatureEngineer
@@ -120,7 +120,7 @@ engine = TimeSeriesEngine(
 ```
 
 ### LLM Engine
-Uses GitHub Copilot SDK for intelligent feature generation.
+Uses LiteLLM for intelligent feature generation with support for 100+ LLM providers.
 
 ```python
 from featcopilot.llm import SemanticEngine
@@ -167,7 +167,7 @@ X_selected = selector.fit_transform(X, y)
 
 - Python 3.9+
 - NumPy, Pandas, Scikit-learn
-- GitHub Copilot CLI (for LLM features)
+- LiteLLM (for LLM features, supports OpenAI, Azure, Anthropic, etc.)
 
 ## License
 

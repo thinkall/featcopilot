@@ -1,12 +1,12 @@
 # LLM-Powered Example
 
-Demonstrates FeatCopilot's unique LLM capabilities using GitHub Copilot SDK.
+Demonstrates FeatCopilot's unique LLM capabilities using LiteLLM (supports OpenAI, Azure, Anthropic, and more).
 
 ## Prerequisites
 
-- GitHub Copilot subscription
-- `copilot-sdk` installed
-- Authenticated via `copilot auth login`
+- LLM provider API key (e.g., OpenAI, Azure, Anthropic)
+- `featcopilot[llm]` installed
+- API key configured via environment variable
 
 ## The Problem
 
