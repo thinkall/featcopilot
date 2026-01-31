@@ -1,38 +1,52 @@
 # Authentication
 
-FeatCopilot's LLM features use LiteLLM, which supports 100+ LLM providers including OpenAI, Azure OpenAI, Anthropic, and more.
+FeatCopilot supports two LLM backends:
 
-## Prerequisites
+1. **GitHub Copilot SDK** (default) - Native integration with GitHub Copilot
+2. **LiteLLM** - Universal interface supporting 100+ providers
 
-- **Python 3.9+**
-- **API Key** for your chosen LLM provider
+## GitHub Copilot SDK (Default)
 
-## Supported Providers
+The default backend uses GitHub Copilot SDK. If you have GitHub Copilot CLI installed and authenticated, it works automatically.
 
-LiteLLM supports many providers out of the box:
+```python
+from featcopilot import AutoFeatureEngineer
+
+# Uses GitHub Copilot SDK by default
+engineer = AutoFeatureEngineer(
+    engines=['tabular', 'llm'],
+    llm_config={'model': 'gpt-5.2'}
+)
+```
+
+## LiteLLM Backend
+
+For access to 100+ LLM providers, use the LiteLLM backend.
+
+### Supported Providers
 
 | Provider | Environment Variable | Model Example |
 |----------|---------------------|---------------|
-| OpenAI | `OPENAI_API_KEY` | `gpt-4`, `gpt-3.5-turbo` |
+| OpenAI | `OPENAI_API_KEY` | `gpt-4o`, `gpt-4` |
 | Azure OpenAI | `AZURE_API_KEY`, `AZURE_API_BASE` | `azure/gpt-4` |
 | Anthropic | `ANTHROPIC_API_KEY` | `claude-3-opus`, `claude-3-sonnet` |
 | Google | `GOOGLE_API_KEY` | `gemini-pro` |
+| GitHub Models | `GITHUB_API_KEY` | `github/gpt-4o`, `github/Llama-3.2-11B-Vision-Instruct` |
+| GitHub Copilot | OAuth device flow | `github_copilot/gpt-4` |
 | AWS Bedrock | AWS credentials | `bedrock/anthropic.claude-v2` |
 | Ollama | (local) | `ollama/llama2` |
 
 [See full list of supported providers](https://docs.litellm.ai/docs/providers)
 
-## Step 1: Install LLM Dependencies
+### Step 1: Install LiteLLM
 
 ```bash
-pip install featcopilot[llm]
+pip install featcopilot[litellm]
 ```
 
-This installs `litellm` and related dependencies.
+### Step 2: Set Up Authentication
 
-## Step 2: Set Up Authentication
-
-### Option A: Environment Variables (Recommended)
+#### Option A: Environment Variables (Recommended)
 
 ```bash
 # OpenAI
@@ -45,9 +59,12 @@ export AZURE_API_VERSION="2024-02-15-preview"
 
 # Anthropic
 export ANTHROPIC_API_KEY="sk-ant-..."
+
+# GitHub Models
+export GITHUB_API_KEY="ghp_..."
 ```
 
-### Option B: Pass Directly in Code
+#### Option B: Pass Directly in Code
 
 ```python
 from featcopilot import AutoFeatureEngineer
@@ -55,28 +72,29 @@ from featcopilot import AutoFeatureEngineer
 engineer = AutoFeatureEngineer(
     engines=['tabular', 'llm'],
     llm_config={
-        'model': 'gpt-4',
+        'model': 'gpt-4o',
+        'backend': 'litellm',
         'api_key': 'sk-...',  # Not recommended for production
     }
 )
 ```
 
-## Step 3: Test Your Setup
+### Step 3: Use LiteLLM Backend
 
 ```python
 from featcopilot import AutoFeatureEngineer
 
-# Test with your configured provider
+# Specify backend='litellm' to use LiteLLM
 engineer = AutoFeatureEngineer(
     engines=['llm'],
-    llm_config={'model': 'gpt-4'}  # or your preferred model
+    llm_config={
+        'model': 'gpt-4o',
+        'backend': 'litellm'
+    }
 )
-
-# If authentication works, you'll see LLM-generated features
-# If not, you'll see: "Warning: LLM not configured. Using mock responses."
 ```
 
-## Provider-Specific Examples
+## Provider-Specific Examples (LiteLLM)
 
 ### OpenAI
 
@@ -86,7 +104,8 @@ from featcopilot import AutoFeatureEngineer
 engineer = AutoFeatureEngineer(
     engines=['tabular', 'llm'],
     llm_config={
-        'model': 'gpt-4',
+        'model': 'gpt-4o',
+        'backend': 'litellm',
         # Uses OPENAI_API_KEY from environment
     }
 )
@@ -101,6 +120,7 @@ engineer = AutoFeatureEngineer(
     engines=['tabular', 'llm'],
     llm_config={
         'model': 'azure/your-deployment-name',
+        'backend': 'litellm',
         # Uses AZURE_API_KEY, AZURE_API_BASE from environment
     }
 )
@@ -115,7 +135,38 @@ engineer = AutoFeatureEngineer(
     engines=['tabular', 'llm'],
     llm_config={
         'model': 'claude-3-sonnet-20240229',
+        'backend': 'litellm',
         # Uses ANTHROPIC_API_KEY from environment
+    }
+)
+```
+
+### GitHub Marketplace Models
+
+```python
+from featcopilot import AutoFeatureEngineer
+
+engineer = AutoFeatureEngineer(
+    engines=['tabular', 'llm'],
+    llm_config={
+        'model': 'github/gpt-4o',  # or github/Llama-3.2-11B-Vision-Instruct
+        'backend': 'litellm',
+        # Uses GITHUB_API_KEY from environment
+    }
+)
+```
+
+### GitHub Copilot Chat API
+
+```python
+from featcopilot import AutoFeatureEngineer
+
+# Uses OAuth device flow - you'll be prompted to authenticate
+engineer = AutoFeatureEngineer(
+    engines=['tabular', 'llm'],
+    llm_config={
+        'model': 'github_copilot/gpt-4',
+        'backend': 'litellm',
     }
 )
 ```
@@ -130,6 +181,7 @@ engineer = AutoFeatureEngineer(
     engines=['tabular', 'llm'],
     llm_config={
         'model': 'ollama/llama2',
+        'backend': 'litellm',
         'api_base': 'http://localhost:11434',
     }
 )

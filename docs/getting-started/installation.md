@@ -22,20 +22,27 @@ This installs the core package with support for:
 
 ## Installation with LLM Features
 
-To use LLM-powered feature engineering with LiteLLM (supports OpenAI, Azure, Anthropic, and 100+ providers):
+FeatCopilot supports two LLM backends:
+
+### Option 1: GitHub Copilot SDK (Default)
 
 ```bash
 pip install featcopilot[llm]
 ```
 
-This additionally installs:
+This installs the GitHub Copilot SDK for native Copilot integration.
 
-- `litellm` - Universal LLM API interface
-- Dependencies for LLM communication
+### Option 2: LiteLLM (100+ Providers)
+
+```bash
+pip install featcopilot[litellm]
+```
+
+This installs LiteLLM, supporting OpenAI, Azure, Anthropic, Google, GitHub Models, and 100+ other providers.
 
 ## Full Installation
 
-For all features including time series analysis:
+For all features including both LLM backends and time series analysis:
 
 ```bash
 pip install featcopilot[full]
@@ -43,7 +50,8 @@ pip install featcopilot[full]
 
 This includes:
 
-- All LLM capabilities
+- GitHub Copilot SDK
+- LiteLLM (100+ providers)
 - `statsmodels` for advanced time series features
 
 ## Development Installation
@@ -94,7 +102,8 @@ print("Installation successful!")
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| litellm | >=1.0.0 | Universal LLM API interface |
+| github-copilot-sdk | >=0.1.0 | GitHub Copilot SDK (default LLM backend) |
+| litellm | >=1.0.0 | LiteLLM (100+ LLM providers) |
 | statsmodels | >=0.13.0 | Advanced time series |
 
 ## Troubleshooting

@@ -2,7 +2,7 @@
 
 **Next-Generation LLM-Powered Auto Feature Engineering**
 
-FeatCopilot is a unified feature engineering framework that combines the best approaches from existing libraries (Featuretools, TSFresh, AutoFeat, OpenFE) with novel LLM-powered capabilities via LiteLLM (supporting OpenAI, Azure, Anthropic, and 100+ providers).
+FeatCopilot is a unified feature engineering framework that combines the best approaches from existing libraries (Featuretools, TSFresh, AutoFeat, OpenFE) with LLM-powered capabilities via GitHub Copilot SDK or LiteLLM (100+ providers).
 
 ## 📊 Benchmark Highlights
 
@@ -120,15 +120,23 @@ engine = TimeSeriesEngine(
 ```
 
 ### LLM Engine
-Uses LiteLLM for intelligent feature generation with support for 100+ LLM providers.
+Uses GitHub Copilot SDK (default) or LiteLLM (100+ providers) for intelligent feature generation.
 
 ```python
 from featcopilot.llm import SemanticEngine
 
+# Default: GitHub Copilot SDK
 engine = SemanticEngine(
     model='gpt-5.2',
     max_suggestions=20,
     validate_features=True
+)
+
+# Alternative: LiteLLM backend
+engine = SemanticEngine(
+    model='gpt-4o',
+    backend='litellm',
+    max_suggestions=20
 )
 ```
 
@@ -167,7 +175,7 @@ X_selected = selector.fit_transform(X, y)
 
 - Python 3.9+
 - NumPy, Pandas, Scikit-learn
-- LiteLLM (for LLM features, supports OpenAI, Azure, Anthropic, etc.)
+- GitHub Copilot SDK (default) or LiteLLM (for 100+ LLM providers)
 
 ## License
 
