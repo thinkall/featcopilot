@@ -79,9 +79,11 @@ nav:
     - Engines: user-guide/engines.md
     - LLM Features: user-guide/llm-features.md
     - Feature Selection: user-guide/selection.md
+    - Feature Stores: user-guide/feature-stores.md
     - Benchmarks: user-guide/benchmarks.md
     - Best Practices: user-guide/best-practices.md
   - Examples:
+    - End-to-End Demo: examples/e2e-demo.md
     - Basic Usage: examples/basic.md
     - LLM-Powered: examples/llm-powered.md
     - Sklearn Pipeline: examples/sklearn-pipeline.md
