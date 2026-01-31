@@ -51,10 +51,14 @@ litellm = [
 timeseries = [
     "statsmodels>=0.13.0",
 ]
+feast = [
+    "feast>=0.30.0",
+]
 full = [
     "github-copilot-sdk>=0.1.0",
     "litellm>=1.0.0",
     "statsmodels>=0.13.0",
+    "feast>=0.30.0",
 ]
 benchmark = [
     "github-copilot-sdk>=0.1.0",
