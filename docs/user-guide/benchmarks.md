@@ -48,6 +48,18 @@ FeatCopilot has been extensively benchmarked against baseline models across vari
 
 </div>
 
+## Available Benchmark Reports
+
+All benchmark reports are available in the repository under `benchmarks/`:
+
+| Report | Description | Location |
+|--------|-------------|----------|
+| Feature Engineering | Core FeatCopilot vs baseline models | `benchmarks/feature_engineering/BENCHMARK_REPORT.md` |
+| LLM-Powered | SemanticEngine with GitHub Copilot | `benchmarks/feature_engineering/LLM_BENCHMARK_REPORT.md` |
+| Tool Comparison | FeatCopilot vs Featuretools, TSFresh, AutoFeat | `benchmarks/compare_tools/COMPARISON_BENCHMARK_REPORT.md` |
+| AutoML (30s) | FLAML, AutoGluon, H2O integration | `benchmarks/automl/AUTOML_BENCHMARK_REPORT.md` |
+| FLAML (90s) | FLAML with extended time budget | `benchmarks/automl/FLAML_90S_BENCHMARK_REPORT.md` |
+
 ## Text & Semantic Datasets
 
 FeatCopilot excels at extracting meaningful features from text data. The benchmark uses **basic text preprocessing** (no LLM calls) which extracts 8 features per text column in <1 second.
@@ -261,14 +273,28 @@ To reproduce these results:
 git clone https://github.com/thinkall/featcopilot.git
 cd featcopilot
 
-# Install dependencies
+# Install dependencies (for basic benchmarks)
 pip install -e ".[dev]"
 
-# Run benchmarks
-python -m benchmarks.run_benchmark
+# Install dependencies (for AutoML benchmarks)
+pip install -e ".[benchmark]"
+
+# Run feature engineering benchmarks
+python -m benchmarks.feature_engineering.run_benchmark
+
+# Run tool comparison benchmarks
+python -m benchmarks.compare_tools.run_comparison_benchmark
+
+# Run AutoML benchmarks
+python -m benchmarks.automl.run_automl_benchmark --frameworks flaml autogluon h2o --time-budget 30
 ```
 
-Results are saved to `benchmarks/BENCHMARK_REPORT.md`.
+Reports are saved to:
+
+- `benchmarks/feature_engineering/BENCHMARK_REPORT.md`
+- `benchmarks/feature_engineering/LLM_BENCHMARK_REPORT.md`
+- `benchmarks/compare_tools/COMPARISON_BENCHMARK_REPORT.md`
+- `benchmarks/automl/AUTOML_BENCHMARK_REPORT.md`
 
 ## When to Use FeatCopilot
 
@@ -286,17 +312,16 @@ Based on our benchmarks, FeatCopilot provides the most value when:
 
 FeatCopilot can be combined with AutoML frameworks. However, modern AutoML frameworks already perform extensive feature engineering and model selection, which may overlap with FeatCopilot's capabilities.
 
-### Summary
+### Summary (30s Time Budget)
 
-Benchmark results with 30s time budget per AutoML run:
+| Framework | Datasets | Avg Improvement | Positive Improvements |
+|-----------|----------|-----------------|----------------------|
+| FLAML | 15 | -0.69% | 3/15 (20%) |
+| AutoGluon | 18 | -1.31% | 3/18 (17%) |
+| H2O | 18 | -0.77% | 4/18 (22%) |
+| **Overall** | **51 runs** | **-0.94%** | **8/51 (16%)** |
 
-- **Datasets tested**: 18 (tabular, text, time series)
-- **Frameworks tested**: FLAML, AutoGluon, H2O
-- **Average improvement**: -0.94%
-
-AutoML frameworks are highly optimized and may not benefit from additional feature engineering in most cases.
-
-### FLAML Integration Results
+### FLAML Integration Results (30s)
 
 | Dataset | Task | Baseline | +FeatCopilot | Change | Train Time (B/E) |
 |---------|------|----------|--------------|--------|------------------|
@@ -307,7 +332,22 @@ AutoML frameworks are highly optimized and may not benefit from additional featu
 | News Headlines | Text Classification | 0.9800 | 0.9820 | **+0.20%** | 34.7s / 54.0s |
 | E-commerce Products | Text Regression | 0.4626 | 0.4658 | **+0.69%** | 30.3s / 30.2s |
 
-**Average improvement with FLAML**: -0.69%
+**Average improvement with FLAML (30s)**: -0.69%
+
+### FLAML Integration Results (90s)
+
+With extended time budget, FLAML shows improved results:
+
+| Dataset | Task | Baseline | +FeatCopilot | Change | Train Time (B/E) |
+|---------|------|----------|--------------|--------|------------------|
+| Titanic | Classification | 0.9665 | 0.9665 | +0.00% | 90.0s / 90.2s |
+| House Prices | Regression | 0.9242 | 0.9187 | -0.60% | 90.4s / 91.6s |
+| Credit Card Fraud | Classification | 0.9860 | 0.9860 | +0.00% | 90.9s / 90.1s |
+| Medical Diagnosis | Classification | 0.8533 | 0.8533 | +0.00% | 91.0s / 90.5s |
+| News Headlines | Text Classification | 0.9800 | 0.9960 | **+1.63%** | 90.2s / 90.9s |
+| E-commerce Products | Text Regression | 0.4649 | 0.4658 | **+0.20%** | 90.4s / 90.1s |
+
+**Average improvement with FLAML (90s)**: -0.12%
 
 ### AutoGluon Integration Results
 
@@ -328,6 +368,7 @@ AutoML frameworks are highly optimized and may not benefit from additional featu
 | Credit Risk | Classification | 0.7075 | 0.7100 | **+0.35%** | 84.4s / 87.8s |
 | Server Latency | Time Series | 0.9740 | 0.9950 | **+2.16%** | 83.1s / 83.9s |
 | News Headlines | Text Classification | 0.9980 | 1.0000 | **+0.20%** | 85.5s / 85.6s |
+| Employee Attrition | Classification | 0.9728 | 0.9728 | +0.00% | 85.7s / 86.6s |
 
 **Average improvement with H2O**: -0.77%
 
@@ -339,9 +380,47 @@ pip install featcopilot[benchmark]
 
 # Run benchmarks (30s time budget per task)
 python -m benchmarks.automl.run_automl_benchmark --frameworks flaml autogluon h2o --time-budget 30
+
+# Run FLAML only with 90s time budget
+python -m benchmarks.automl.run_automl_benchmark --frameworks flaml --time-budget 90 --output benchmarks/automl/FLAML_90S_BENCHMARK_REPORT.md
 ```
 
 ## Comparison with Other Tools
+
+FeatCopilot has been benchmarked against other popular feature engineering libraries.
+
+### Performance Comparison
+
+| Tool | Avg Score | Avg Improvement | Wins | Avg FE Time |
+|------|-----------|-----------------|------|-------------|
+| baseline | 0.8924 | - | - | 0.00s |
+| **featcopilot** | 0.8942 | **+0.21%** | 1 | 1.03s |
+| featuretools | 0.8947 | +0.27% | 3 | 0.11s |
+| tsfresh | 0.8843 | -0.92% | 2 | 24.86s |
+| autofeat | 0.8964 | +0.48% | 3 | 1246.91s |
+
+### Dataset-by-Dataset Results
+
+| Dataset | FeatCopilot | Featuretools | TSFresh | AutoFeat | Best Tool |
+|---------|-------------|--------------|---------|----------|-----------|
+| Titanic | 0.9609 | 0.9553 | 0.9497 | 0.9609 | **FeatCopilot/AutoFeat** |
+| House Prices | 0.9094 | 0.9124 | 0.9118 | 0.9123 | Featuretools |
+| Credit Card Fraud | 0.9790 | 0.9770 | **0.9840** | 0.9790 | TSFresh |
+| Bike Sharing | 0.8324 | **0.8351** | 0.8175 | 0.8313 | Featuretools |
+| Employee Attrition | 0.9762 | 0.9728 | 0.9660 | **0.9796** | AutoFeat |
+| Credit Risk | 0.7050 | 0.7025 | 0.6950 | **0.7150** | AutoFeat |
+| Medical Diagnosis | 0.8500 | 0.8533 | **0.8567** | 0.8367 | TSFresh |
+| Complex Regression | 0.9120 | **0.9435** | 0.9105 | 0.9129 | Featuretools |
+| Complex Classification | 0.9225 | 0.9000 | 0.8675 | **0.9400** | AutoFeat |
+
+### Key Findings
+
+- **FeatCopilot** provides competitive performance with fast feature engineering time (~1s)
+- **AutoFeat** achieves best overall accuracy but with extremely long FE time (~1247s)
+- **TSFresh** excels at fraud detection but is slow (~25s)
+- **Featuretools** is fastest (~0.1s) but doesn't always improve over baseline
+
+### Feature Comparison
 
 | Feature | FeatCopilot | Featuretools | TSFresh | AutoFeat | OpenFE | CAAFE |
 |---------|-------------|--------------|---------|----------|--------|-------|
