@@ -1,8 +1,8 @@
 # FeatCopilot 🚀
 
-**Intelligent Automated Feature Engineering**
+**Next-Generation LLM-Powered Auto Feature Engineering Framework**
 
-FeatCopilot automatically generates, selects, and explains predictive features for machine learning. It understands your data semantically—transforming column names and descriptions into domain-aware features that improve model performance.
+FeatCopilot automatically generates, selects, and explains predictive features using semantic understanding. It analyzes column meanings, applies domain-aware transformations, and provides human-readable explanations—turning raw data into ML-ready features in seconds.
 
 ## 📊 Benchmark Highlights
 

@@ -1,8 +1,8 @@
 # FeatCopilot
 
 <div align="center">
-  <h2>🚀 Intelligent Automated Feature Engineering</h2>
-  <p><strong>Generate, select, and explain predictive features with semantic understanding</strong></p>
+  <h2>🚀 Next-Generation LLM-Powered Auto Feature Engineering Framework</h2>
+  <p><strong>Automatically generate, select, and explain predictive features using semantic understanding of your data</strong></p>
 </div>
 
 ---
@@ -85,7 +85,7 @@
 
 ## What is FeatCopilot?
 
-FeatCopilot is a Python library for automated feature engineering that understands your data semantically. It transforms raw datasets into predictive features by analyzing column meanings, generating domain-aware transformations, and providing human-readable explanations for every feature it creates.
+FeatCopilot is a Python library for automated feature engineering powered by large language models. It analyzes column meanings and descriptions to generate domain-aware features, applies intelligent selection to keep only the most predictive ones, and provides human-readable explanations for every feature it creates.
 
 <div class="grid cards" markdown>
 
