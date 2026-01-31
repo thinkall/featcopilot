@@ -2,10 +2,11 @@
 Example: LLM-Powered Feature Engineering with FeatCopilot
 
 This example demonstrates the unique LLM-powered capabilities
-of FeatCopilot using GitHub Copilot SDK.
+of FeatCopilot using GitHub Copilot SDK or LiteLLM.
 
-NOTE: This requires the copilot-sdk package and GitHub Copilot
-CLI to be installed and authenticated.
+LLM Backend Options:
+- GitHub Copilot SDK (default): Requires copilot-sdk package
+- LiteLLM: Supports 100+ LLM providers (OpenAI, Anthropic, Azure, etc.)
 """
 
 import numpy as np
@@ -115,8 +116,52 @@ def main():
     print(f"   - Baseline ROC-AUC: {baseline_auc:.4f}")
 
     # Feature engineering with LLM
+    # You can choose between different LLM backends:
+    #
+    # Option 1: GitHub Copilot SDK (default)
+    # llm_config = {
+    #     "model": "gpt-5.2",
+    #     "max_suggestions": 15,
+    #     "domain": "healthcare",
+    # }
+    #
+    # Option 2: LiteLLM with OpenAI
+    # llm_config = {
+    #     "model": "gpt-4o",
+    #     "backend": "litellm",
+    #     "max_suggestions": 15,
+    #     "domain": "healthcare",
+    #     # API key can be set via environment variable OPENAI_API_KEY
+    #     # or passed directly: "api_key": "your-api-key"
+    # }
+    #
+    # Option 3: LiteLLM with Anthropic Claude
+    # llm_config = {
+    #     "model": "claude-3-opus",
+    #     "backend": "litellm",
+    #     "max_suggestions": 15,
+    #     "domain": "healthcare",
+    # }
+    #
+    # Option 4: LiteLLM with Azure OpenAI
+    # llm_config = {
+    #     "model": "azure/your-deployment-name",
+    #     "backend": "litellm",
+    #     "max_suggestions": 15,
+    #     "domain": "healthcare",
+    # }
+    #
+    # Option 5: LiteLLM with local Ollama
+    # llm_config = {
+    #     "model": "ollama/llama2",
+    #     "backend": "litellm",
+    #     "api_base": "http://localhost:11434",
+    #     "max_suggestions": 15,
+    #     "domain": "healthcare",
+    # }
+
     print("\n3. Applying LLM-powered feature engineering...")
-    print("   (Note: If Copilot SDK not available, mock responses will be used)")
+    print("   (Note: If LLM SDK not available, mock responses will be used)")
 
     engineer = AutoFeatureEngineer(
         engines=["tabular", "llm"],
@@ -125,6 +170,9 @@ def main():
             "model": "gpt-5.2",
             "max_suggestions": 15,
             "domain": "healthcare",
+            # Uncomment the following lines to use LiteLLM instead:
+            # "backend": "litellm",
+            # "model": "gpt-4o",  # or "claude-3-opus", "ollama/llama2", etc.
         },
         verbose=True,
     )

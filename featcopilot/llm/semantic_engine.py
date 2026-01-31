@@ -3,7 +3,7 @@
 Uses contextual understanding of data to generate meaningful features.
 """
 
-from typing import Any, Optional, Union
+from typing import Any, Literal, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -11,7 +11,6 @@ from pydantic import Field
 
 from featcopilot.core.base import BaseEngine, EngineConfig
 from featcopilot.core.feature import Feature, FeatureOrigin, FeatureSet, FeatureType
-from featcopilot.llm.copilot_client import SyncCopilotFeatureClient
 from featcopilot.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -26,13 +25,16 @@ class SemanticEngineConfig(EngineConfig):
     validate_features: bool = Field(default=True, description="Validate generated code")
     domain: Optional[str] = Field(default=None, description="Domain context")
     temperature: float = Field(default=0.3, description="LLM temperature")
+    backend: Literal["copilot", "litellm"] = Field(default="copilot", description="LLM backend to use")
+    api_key: Optional[str] = Field(default=None, description="API key for litellm backend")
+    api_base: Optional[str] = Field(default=None, description="Custom API base URL for litellm")
 
 
 class SemanticEngine(BaseEngine):
     """
     LLM-powered semantic feature engineering engine.
 
-    Uses GitHub Copilot SDK to:
+    Uses GitHub Copilot SDK or LiteLLM to:
     - Understand column semantics from names and descriptions
     - Generate domain-aware features
     - Create interpretable features with explanations
@@ -50,14 +52,41 @@ class SemanticEngine(BaseEngine):
         Whether to validate generated feature code
     domain : str, optional
         Domain context (e.g., 'healthcare', 'finance', 'retail')
+    backend : str, default='copilot'
+        LLM backend to use: 'copilot' or 'litellm'
+    api_key : str, optional
+        API key for litellm backend (uses environment variable if not provided)
+    api_base : str, optional
+        Custom API base URL for litellm backend (for self-hosted models)
 
     Examples
     --------
+    Using GitHub Copilot SDK (default):
     >>> engine = SemanticEngine(model='gpt-5.2', domain='healthcare')
     >>> X_features = engine.fit_transform(
     ...     X, y,
     ...     column_descriptions={'age': 'Patient age', 'bmi': 'Body mass index'},
     ...     task_description='Predict diabetes risk'
+    ... )
+
+    Using LiteLLM with OpenAI:
+    >>> engine = SemanticEngine(
+    ...     model='gpt-4o',
+    ...     backend='litellm',
+    ...     api_key='your-api-key'  # or set OPENAI_API_KEY env var
+    ... )
+
+    Using LiteLLM with Anthropic:
+    >>> engine = SemanticEngine(
+    ...     model='claude-3-opus',
+    ...     backend='litellm'
+    ... )
+
+    Using LiteLLM with local Ollama:
+    >>> engine = SemanticEngine(
+    ...     model='ollama/llama2',
+    ...     backend='litellm',
+    ...     api_base='http://localhost:11434'
     ... )
     """
 
@@ -68,6 +97,9 @@ class SemanticEngine(BaseEngine):
         validate_features: bool = True,
         domain: Optional[str] = None,
         verbose: bool = False,
+        backend: Literal["copilot", "litellm"] = "copilot",
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
         **kwargs,
     ):
         config = SemanticEngineConfig(
@@ -76,11 +108,14 @@ class SemanticEngine(BaseEngine):
             validate_features=validate_features,
             domain=domain,
             verbose=verbose,
+            backend=backend,
+            api_key=api_key,
+            api_base=api_base,
             **kwargs,
         )
         super().__init__(config=config)
         self.config: SemanticEngineConfig = config
-        self._client: Optional[SyncCopilotFeatureClient] = None
+        self._client: Optional[Any] = None
         self._suggested_features: list[dict[str, Any]] = []
         self._feature_set = FeatureSet()
         self._column_info: dict[str, str] = {}
@@ -88,9 +123,20 @@ class SemanticEngine(BaseEngine):
         self._task_description: str = ""
 
     def _ensure_client(self) -> None:
-        """Ensure Copilot client is initialized."""
+        """Ensure LLM client is initialized."""
         if self._client is None:
-            self._client = SyncCopilotFeatureClient(model=self.config.model)
+            if self.config.backend == "litellm":
+                from featcopilot.llm.litellm_client import SyncLiteLLMFeatureClient
+
+                self._client = SyncLiteLLMFeatureClient(
+                    model=self.config.model,
+                    api_key=self.config.api_key,
+                    api_base=self.config.api_base,
+                )
+            else:
+                from featcopilot.llm.copilot_client import SyncCopilotFeatureClient
+
+                self._client = SyncCopilotFeatureClient(model=self.config.model)
             self._client.start()
 
     def fit(

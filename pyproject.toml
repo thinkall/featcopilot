@@ -45,11 +45,15 @@ dependencies = [
 llm = [
     "github-copilot-sdk>=0.1.0",
 ]
+litellm = [
+    "litellm>=1.0.0",
+]
 timeseries = [
     "statsmodels>=0.13.0",
 ]
 full = [
     "github-copilot-sdk>=0.1.0",
+    "litellm>=1.0.0",
     "statsmodels>=0.13.0",
 ]
 benchmark = [
