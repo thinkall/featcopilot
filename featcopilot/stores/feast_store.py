@@ -285,8 +285,24 @@ entity_key_serialization_version: 2
         for entity_col in entity_cols:
             entity_name = entity_col.replace(" ", "_").lower()
             if entity_name not in self._entities:
+                # Infer value type from dataframe
+                col_dtype = str(df[entity_col].dtype)
+                if "int" in col_dtype:
+                    from feast import ValueType
+
+                    value_type = ValueType.INT64
+                elif "float" in col_dtype:
+                    from feast import ValueType
+
+                    value_type = ValueType.DOUBLE
+                else:
+                    from feast import ValueType
+
+                    value_type = ValueType.STRING
+
                 entity = Entity(
                     name=entity_name,
+                    value_type=value_type,
                     description=f"Entity key: {entity_col}",
                 )
                 self._entities[entity_name] = entity
@@ -318,7 +334,7 @@ entity_key_serialization_version: 2
         # Create feature view
         feature_view = FeatureView(
             name=feature_view_name,
-            entities=[e.name for e in entities],
+            entities=entities,  # Pass Entity objects, not strings
             ttl=timedelta(days=self.config.ttl_days),
             schema=schema,
             source=source,
