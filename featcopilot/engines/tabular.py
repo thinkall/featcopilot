@@ -31,7 +31,11 @@ class TabularEngineConfig(EngineConfig):
     numeric_only: bool = Field(default=True, description="Only process numeric columns")
     min_unique_values: int = Field(default=5, description="Min unique values for continuous")
     # Categorical encoding settings
-    encode_categorical: bool = Field(default=False, description="Target-encode columns with dtype 'category'")
+    encode_categorical: bool = Field(default=True, description="Auto-encode categorical columns")
+    onehot_ratio_threshold: float = Field(default=0.05, description="Max n_unique/n_rows ratio for one-hot encoding")
+    target_encode_ratio_threshold: float = Field(
+        default=0.5, description="Max n_unique/n_rows ratio for target encoding"
+    )
     min_samples_per_category: int = Field(default=3, description="Min samples per category to include")
 
 
@@ -84,7 +88,9 @@ class TabularEngine(BaseEngine):
         include_transforms: Optional[list[str]] = None,
         max_features: Optional[int] = None,
         verbose: bool = False,
-        encode_categorical: bool = False,
+        encode_categorical: bool = True,
+        onehot_ratio_threshold: float = 0.05,
+        target_encode_ratio_threshold: float = 0.5,
         min_samples_per_category: int = 3,
         **kwargs,
     ):
@@ -95,6 +101,8 @@ class TabularEngine(BaseEngine):
             max_features=max_features,
             verbose=verbose,
             encode_categorical=encode_categorical,
+            onehot_ratio_threshold=onehot_ratio_threshold,
+            target_encode_ratio_threshold=target_encode_ratio_threshold,
             min_samples_per_category=min_samples_per_category,
             **kwargs,
         )
@@ -103,7 +111,9 @@ class TabularEngine(BaseEngine):
         self._numeric_columns: list[str] = []
         self._feature_set = FeatureSet()
         # Categorical encoding state
+        self._onehot_columns: list[str] = []
         self._target_encode_columns: list[str] = []
+        self._onehot_categories: dict[str, list] = {}
         self._target_encode_maps: dict[str, dict] = {}
         self._target_encode_global_mean: float = 0.0
 
@@ -151,26 +161,26 @@ class TabularEngine(BaseEngine):
         return self
 
     def _fit_categorical_encoding(self, X: pd.DataFrame, y: Optional[Union[pd.Series, np.ndarray]] = None) -> None:
-        """Fit target encoding for columns with dtype 'category'."""
+        """Fit categorical encoding based on cardinality ratio."""
+        self._onehot_columns = []
         self._target_encode_columns = []
+        self._onehot_categories = {}
         self._target_encode_maps = {}
 
-        # Only encode columns explicitly set to 'category' dtype
-        cat_cols = X.select_dtypes(include=["category"]).columns.tolist()
+        # Find categorical columns (object or category dtype)
+        cat_cols = X.select_dtypes(include=["object", "category"]).columns.tolist()
 
         if not cat_cols:
             return
 
-        if y is None:
-            if self.config.verbose:
-                logger.warning("TabularEngine: Target encoding requires y, skipping categorical encoding")
-            return
-
-        y_series = pd.Series(y) if not isinstance(y, pd.Series) else y
-        self._target_encode_global_mean = float(y_series.mean())
+        n_rows = len(X)
+        if y is not None:
+            y_series = pd.Series(y) if not isinstance(y, pd.Series) else y
+            self._target_encode_global_mean = float(y_series.mean())
 
         for col in cat_cols:
             n_unique = X[col].nunique()
+            ratio = n_unique / n_rows
 
             # Count samples per category
             value_counts = X[col].value_counts()
@@ -182,17 +192,36 @@ class TabularEngine(BaseEngine):
                     logger.info(f"TabularEngine: Skipping '{col}' - no categories with enough samples")
                 continue
 
-            # Target encoding - convert to string for consistent mapping
-            self._target_encode_columns.append(col)
-            df_temp = pd.DataFrame({"col": X[col].astype(str), "y": y_series})
-            target_means = df_temp.groupby("col", observed=True)["y"].mean().to_dict()
-            # Only keep valid categories (as strings)
-            valid_str = [str(c) for c in valid_categories]
-            self._target_encode_maps[col] = {k: v for k, v in target_means.items() if k in valid_str}
-            if self.config.verbose:
-                logger.info(
-                    f"TabularEngine: Target encoding '{col}' ({len(self._target_encode_maps[col])}/{n_unique} categories)"
-                )
+            if ratio <= self.config.onehot_ratio_threshold:
+                # One-hot encoding for low cardinality
+                self._onehot_columns.append(col)
+                self._onehot_categories[col] = valid_categories
+                if self.config.verbose:
+                    logger.info(
+                        f"TabularEngine: One-hot encoding '{col}' "
+                        f"({len(valid_categories)} categories, ratio={ratio:.4f})"
+                    )
+
+            elif ratio <= self.config.target_encode_ratio_threshold and y is not None:
+                # Target encoding for medium cardinality
+                self._target_encode_columns.append(col)
+                # Compute target mean per category
+                df_temp = pd.DataFrame({"col": X[col], "y": y_series})
+                target_means = df_temp.groupby("col")["y"].mean().to_dict()
+                # Only keep valid categories
+                self._target_encode_maps[col] = {k: v for k, v in target_means.items() if k in valid_categories}
+                if self.config.verbose:
+                    logger.info(
+                        f"TabularEngine: Target encoding '{col}' "
+                        f"({len(self._target_encode_maps[col])} categories, ratio={ratio:.4f})"
+                    )
+
+            else:
+                # High cardinality - likely ID column, skip
+                if self.config.verbose:
+                    logger.info(
+                        f"TabularEngine: Skipping '{col}' - high cardinality " f"({n_unique} unique, ratio={ratio:.4f})"
+                    )
 
     def _plan_features(self, X: pd.DataFrame) -> None:
         """Plan which features to generate."""
@@ -355,17 +384,30 @@ class TabularEngine(BaseEngine):
         return result
 
     def _transform_categorical(self, X: pd.DataFrame) -> pd.DataFrame:
-        """Apply target encoding to categorical columns."""
+        """Apply categorical encoding to DataFrame."""
         result = X.copy()
 
+        # One-hot encoding
+        for col in self._onehot_columns:
+            if col not in result.columns:
+                continue
+            categories = self._onehot_categories.get(col, [])
+            for cat in categories:
+                col_name = f"{col}_{cat}"
+                result[col_name] = (result[col] == cat).astype(int)
+            # Add "other" column for rare categories
+            col_other = f"{col}_other"
+            result[col_other] = (~result[col].isin(categories)).astype(int)
+            # Drop original column
+            result = result.drop(columns=[col])
+
+        # Target encoding
         for col in self._target_encode_columns:
             if col not in result.columns:
                 continue
             encode_map = self._target_encode_maps.get(col, {})
             col_name = f"{col}_target_encoded"
-            # Convert to object first to avoid categorical dtype issues, then map
-            mapped = result[col].astype(str).map(encode_map)
-            result[col_name] = mapped.fillna(self._target_encode_global_mean).astype(float)
+            result[col_name] = result[col].map(encode_map).fillna(self._target_encode_global_mean)
             # Drop original column
             result = result.drop(columns=[col])
 
