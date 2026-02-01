@@ -108,37 +108,43 @@ async def generate_narration(total_slides):
 
 def create_video_with_audio(total_slides, audio_durations):
     """Create video from slides with narration audio."""
-    from moviepy.editor import AudioFileClip, ImageClip, concatenate_audioclips, concatenate_videoclips
+    from moviepy.editor import AudioFileClip, CompositeAudioClip, ImageClip, concatenate_videoclips
 
     slides_dir = output_dir
     audio_dir = output_dir / "audio"
 
     clips = []
-    audio_clips = []
+    audio_start_time = 0.0
+    audio_clips_with_start = []
+
+    # Delay before audio starts on each slide (in seconds)
+    AUDIO_DELAY = 0.8
 
     for i in range(total_slides):
         img_path = slides_dir / f"slide_{i:02d}.png"
         audio_path = audio_dir / f"slide_{i:02d}.mp3"
 
         if img_path.exists() and audio_path.exists() and i < len(audio_durations):
-            # Use audio duration + 1 second buffer
-            duration = audio_durations[i] + 1.0
+            # Use audio duration + buffer for slide display
+            duration = audio_durations[i] + AUDIO_DELAY + 0.5
 
             clip = ImageClip(str(img_path)).set_duration(duration)
             clips.append(clip)
 
+            # Load audio and set start time with delay
             audio_clip = AudioFileClip(str(audio_path))
-            # Add silence padding at the end
-            audio_clips.append(audio_clip)
+            audio_clips_with_start.append(audio_clip.set_start(audio_start_time + AUDIO_DELAY))
 
+            audio_start_time += duration
             print(f"Added slide {i + 1} with {duration:.1f}s duration")
 
-    # Concatenate all clips
+    # Concatenate all video clips
     print("Concatenating video clips...")
     final_video = concatenate_videoclips(clips, method="compose")
 
-    print("Concatenating audio clips...")
-    final_audio = concatenate_audioclips(audio_clips)
+    # Composite all audio clips with their start times
+    print("Compositing audio clips...")
+    final_audio = CompositeAudioClip(audio_clips_with_start)
 
     # Set audio to video
     final_video = final_video.set_audio(final_audio)
@@ -159,7 +165,7 @@ def create_video_with_audio(total_slides, audio_durations):
     print(f"Duration: {final_video.duration:.1f} seconds")
 
     # Cleanup
-    for clip in audio_clips:
+    for clip in audio_clips_with_start:
         clip.close()
 
     return output_path
