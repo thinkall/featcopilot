@@ -431,12 +431,19 @@ FeatCopilot was benchmarked on publicly available Hugging Face datasets to demon
 !!! warning "Limited Predictability"
     Track popularity depends heavily on artist fame, marketing, and release timing - factors not captured in audio features. Audio features have near-zero correlation with popularity (~0.01-0.05). This is a dataset limitation, not a model limitation.
 
-| Model | Audio Only R² | +Genre R² | +FeatCopilot R² |
-|-------|---------------|-----------|-----------------|
-| Ridge | 0.023 | 0.105 | 0.142 |
-| GradientBoosting | 0.086 | 0.193 | **0.215** |
+| Model | R² | MAE | RMSE | Notes |
+|-------|-----|-----|------|-------|
+| Ridge (baseline) | 0.026 | 17.2 | 21.7 | Audio + genre features |
+| Ridge (+FeatCopilot) | 0.142 | 15.8 | 20.3 | +447% R², -8% MAE |
+| GradientBoosting (baseline) | 0.193 | 15.1 | 19.7 | Audio + genre features |
+| GradientBoosting (+FeatCopilot) | **0.215** | **14.9** | **19.4** | +11% R², -1% MAE |
+
+Target: `popularity` (0-100 scale, mean=33, std=22)
 
 Features: 13 numerical + 114 genre categories → 177 engineered | FE Time: 51s
+
+!!! tip "Interpreting MAE"
+    MAE of ~15 means predictions are off by ~15 popularity points on average (on a 0-100 scale). This is more interpretable than R²=0.2.
 
 #### Fake News (Classification - Text Features)
 
