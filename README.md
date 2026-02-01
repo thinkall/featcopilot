@@ -4,6 +4,10 @@
 
 FeatCopilot automatically generates, selects, and explains predictive features using semantic understanding. It analyzes column meanings, applies domain-aware transformations, and provides human-readable explanations—turning raw data into ML-ready features in seconds.
 
+## 🎬 Introduction Video
+
+[![FeatCopilot Introduction](https://img.youtube.com/vi/H7m50TLGHFk/0.jpg)](https://www.youtube.com/watch?v=H7m50TLGHFk)
+
 ## 📊 Benchmark Highlights
 
 ### Tabular Engine (Fast Mode - <1s)
