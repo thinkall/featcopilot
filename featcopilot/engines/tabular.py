@@ -395,6 +395,9 @@ class TabularEngine(BaseEngine):
             for cat in categories:
                 col_name = f"{col}_{cat}"
                 result[col_name] = (result[col] == cat).astype(int)
+            # Add "other" column for rare categories
+            col_other = f"{col}_other"
+            result[col_other] = (~result[col].isin(categories)).astype(int)
             # Drop original column
             result = result.drop(columns=[col])
 
