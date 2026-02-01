@@ -450,6 +450,21 @@ Features: 2 text → 22 numerical | FE Time: 6s
 !!! success "Text Feature Engineering"
     The SemanticEngine automatically extracts 11 numerical features per text column without any LLM API calls, including word count, character length, sentence count, uppercase ratio, and more.
 
+##### Advanced Text Features (Transformers + Spacy)
+
+The **TextEngine** provides advanced text feature extraction using local transformers and spacy models:
+
+| Method | Features | ROC-AUC | FE Time | Description |
+|--------|----------|---------|---------|-------------|
+| Basic (SemanticEngine) | 22 | 0.9969 | 5s | Fast rule-based text features |
+| Advanced (sentiment+NER+POS) | 64 | **0.9984** | 1754s | Deep NLP features |
+| Embeddings (sentence-transformers) | 128 | 0.9541 | 147s | Dense vector representations |
+
+!!! tip "When to Use Advanced Text Features"
+    - **Basic features** are sufficient for most tasks and run in seconds
+    - **Advanced features** (sentiment, NER, POS) provide marginal improvement (+0.15%) but require ~30 min on CPU
+    - **Embeddings** are useful when semantic similarity matters, but may not outperform explicit features for classification
+
 #### GPT Wiki Intro (Regression - Combined Features)
 
 | Model | Baseline R² | Tabular Only | Semantic Only | Combined R² | Improvement |
@@ -492,6 +507,35 @@ X_numerical = engine.fit_transform(
 | `{col}_exclamation_count` | Exclamation marks (emphasis) |
 | `{col}_question_count` | Question marks |
 | `{col}_caps_word_ratio` | All-caps words ratio |
+
+### Advanced Text Features (TextEngine)
+
+For advanced NLP-based features, use the **TextEngine** with transformers and spacy:
+
+```python
+from featcopilot.engines.text import TextEngine
+
+# Advanced text features (requires transformers, spacy, sentence-transformers)
+engine = TextEngine(
+    features=['sentiment', 'ner', 'pos', 'embeddings'],
+    config={
+        'embedding_dim': 32,  # PCA-reduced embedding dimensions
+        'sentiment_model': 'cardiffnlp/twitter-roberta-base-sentiment-latest',
+        'spacy_model': 'en_core_web_sm',
+        'embedding_model': 'sentence-transformers/all-MiniLM-L6-v2'
+    }
+)
+X_advanced = engine.fit_transform(X_text)
+```
+
+**Advanced feature types:**
+
+| Feature Type | Model | Features per Column | Description |
+|--------------|-------|---------------------|-------------|
+| `sentiment` | cardiffnlp/twitter-roberta-base-sentiment-latest | 3 | Positive, negative, neutral scores |
+| `ner` | spacy en_core_web_sm | 8 | Entity counts: PERSON, ORG, GPE, DATE, MONEY, PRODUCT, EVENT, LOC |
+| `pos` | spacy en_core_web_sm | 10 | POS ratios: NOUN, VERB, ADJ, ADV, PROPN, etc. |
+| `embeddings` | sentence-transformers/all-MiniLM-L6-v2 | 32 (configurable) | PCA-reduced sentence embeddings |
 
 ### Enhanced Time Series Features (tsfresh-inspired)
 

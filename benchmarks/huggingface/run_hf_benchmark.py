@@ -19,8 +19,8 @@ import numpy as np
 import pandas as pd
 from datasets import load_dataset
 from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
-from sklearn.linear_model import LogisticRegression, Ridge
-from sklearn.metrics import accuracy_score, r2_score, roc_auc_score
+from sklearn.linear_model import Ridge
+from sklearn.metrics import r2_score, roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
@@ -155,7 +155,7 @@ def benchmark_fake_news():
     Benchmark on Fake News Dataset - Classification task.
     Classify news articles as real or fake based on title and text.
     24k rows, 4 cols with title and text (classification)
-    Uses SemanticEngine to extract numerical features from text.
+    Tests multiple text feature extraction methods.
     """
     print("\n" + "=" * 70)
     print("Dataset 2: Fake News (Classification)")
@@ -177,8 +177,8 @@ def benchmark_fake_news():
     df = df.dropna(subset=text_cols + [target])
 
     # Sample for speed
-    if len(df) > 10000:
-        df = df.sample(n=10000, random_state=42)
+    if len(df) > 5000:
+        df = df.sample(n=5000, random_state=42)
 
     print(f"Sampled shape: {df.shape}")
 
@@ -197,61 +197,127 @@ def benchmark_fake_news():
 
     results = {}
 
-    # FeatCopilot with SemanticEngine for text features
-    print("\n--- FeatCopilot (semantic engine for text) ---")
+    # --- Method 1: Basic text features (SemanticEngine) ---
+    print("\n--- Method 1: Basic Text Features (SemanticEngine) ---")
     start_time = time.time()
 
-    # Use SemanticEngine to convert text to numerical features
-    engine = SemanticEngine(max_suggestions=10, validate_features=False, verbose=True, enable_text_features=True)
+    engine = SemanticEngine(max_suggestions=10, validate_features=False, verbose=False, enable_text_features=True)
 
-    X_train_fe = engine.fit_transform(
+    X_train_basic = engine.fit_transform(
         X_train,
         y_train,
-        column_descriptions={
-            "title": "News article title",
-            "text": "Full news article text content",
-        },
+        column_descriptions={"title": "News article title", "text": "Full news article text content"},
         task_description="Classify news as real (0) or fake (1)",
     )
-    X_test_fe = engine.transform(X_test)
+    X_test_basic = engine.transform(X_test)
 
-    fe_time = time.time() - start_time
+    basic_time = time.time() - start_time
 
-    # Filter to only numerical columns
-    num_cols = X_train_fe.select_dtypes(include=[np.number]).columns.tolist()
-    X_train_fe = X_train_fe[num_cols].fillna(0)
-    X_test_fe = X_test_fe[num_cols].fillna(0)
+    num_cols = X_train_basic.select_dtypes(include=[np.number]).columns.tolist()
+    X_train_basic = X_train_basic[num_cols].fillna(0)
+    X_test_basic = X_test_basic[num_cols].fillna(0)
 
     print(f"  Features: {len(text_cols)} text -> {len(num_cols)} numerical")
-    print(f"  FE Time: {fe_time:.2f}s")
-
-    if len(num_cols) == 0:
-        print("  WARNING: No numerical features generated, skipping model training")
-        return {
-            "dataset": "Fake News",
-            "task": "Classification",
-            "rows": len(df),
-            "original_features": len(text_cols),
-            "engineered_features": 0,
-            "fe_time": fe_time,
-            "results": {"error": "No features generated"},
-        }
+    print(f"  FE Time: {basic_time:.2f}s")
 
     scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train_fe)
-    X_test_scaled = scaler.transform(X_test_fe)
+    X_train_scaled = scaler.fit_transform(X_train_basic)
+    X_test_scaled = scaler.transform(X_test_basic)
 
-    for name, model in [
-        ("LogisticRegression", LogisticRegression(max_iter=1000, random_state=42)),
-        ("GradientBoosting", GradientBoostingClassifier(n_estimators=100, random_state=42)),
-    ]:
-        model.fit(X_train_scaled, y_train)
-        pred = model.predict(X_test_scaled)
-        pred_proba = model.predict_proba(X_test_scaled)[:, 1]
-        acc = accuracy_score(y_test, pred)
-        auc = roc_auc_score(y_test, pred_proba)
-        results[f"FeatCopilot_{name}"] = {"accuracy": acc, "roc_auc": auc}
-        print(f"  {name}: Accuracy = {acc:.4f}, ROC-AUC = {auc:.4f}")
+    model = GradientBoostingClassifier(n_estimators=100, random_state=42)
+    model.fit(X_train_scaled, y_train)
+    pred_proba = model.predict_proba(X_test_scaled)[:, 1]
+    auc = roc_auc_score(y_test, pred_proba)
+    results["Basic_GradientBoosting"] = {"roc_auc": auc, "n_features": len(num_cols), "time": basic_time}
+    print(f"  GradientBoosting: ROC-AUC = {auc:.4f}")
+
+    # --- Method 2: Advanced text features (TextEngine with transformers/spacy) ---
+    print("\n--- Method 2: Advanced Text Features (TextEngine + transformers/spacy) ---")
+
+    try:
+        from featcopilot.engines.text import TextEngine
+
+        start_time = time.time()
+
+        # Try with sentiment + NER + POS + embeddings
+        text_engine = TextEngine(
+            features=["length", "word_count", "char_stats", "sentiment", "ner", "pos"],
+            verbose=True,
+        )
+
+        X_train_adv = text_engine.fit_transform(X_train, y_train, text_columns=text_cols)
+        X_test_adv = text_engine.transform(X_test)
+
+        adv_time = time.time() - start_time
+
+        num_cols_adv = X_train_adv.select_dtypes(include=[np.number]).columns.tolist()
+        X_train_adv = X_train_adv[num_cols_adv].fillna(0)
+        X_test_adv = X_test_adv[num_cols_adv].fillna(0)
+
+        print(f"  Features: {len(text_cols)} text -> {len(num_cols_adv)} numerical")
+        print(f"  FE Time: {adv_time:.2f}s")
+
+        scaler_adv = StandardScaler()
+        X_train_adv_scaled = scaler_adv.fit_transform(X_train_adv)
+        X_test_adv_scaled = scaler_adv.transform(X_test_adv)
+
+        model_adv = GradientBoostingClassifier(n_estimators=100, random_state=42)
+        model_adv.fit(X_train_adv_scaled, y_train)
+        pred_proba_adv = model_adv.predict_proba(X_test_adv_scaled)[:, 1]
+        auc_adv = roc_auc_score(y_test, pred_proba_adv)
+        results["Advanced_GradientBoosting"] = {"roc_auc": auc_adv, "n_features": len(num_cols_adv), "time": adv_time}
+        print(f"  GradientBoosting: ROC-AUC = {auc_adv:.4f}")
+
+        improvement = (auc_adv - auc) / auc * 100
+        print(f"  Improvement over basic: {improvement:+.2f}%")
+
+    except Exception as e:
+        print(f"  Advanced features failed: {e}")
+        results["Advanced_GradientBoosting"] = {"error": str(e)}
+
+    # --- Method 3: Sentence embeddings only ---
+    print("\n--- Method 3: Sentence Embeddings (sentence-transformers) ---")
+
+    try:
+        from featcopilot.engines.text import TextEngine
+
+        start_time = time.time()
+
+        emb_engine = TextEngine(features=["embeddings"], embedding_dim=64, verbose=True)
+
+        X_train_emb = emb_engine.fit_transform(X_train, y_train, text_columns=text_cols)
+        X_test_emb = emb_engine.transform(X_test)
+
+        emb_time = time.time() - start_time
+
+        num_cols_emb = X_train_emb.select_dtypes(include=[np.number]).columns.tolist()
+        X_train_emb = X_train_emb[num_cols_emb].fillna(0)
+        X_test_emb = X_test_emb[num_cols_emb].fillna(0)
+
+        print(f"  Features: {len(text_cols)} text -> {len(num_cols_emb)} numerical (embeddings)")
+        print(f"  FE Time: {emb_time:.2f}s")
+
+        scaler_emb = StandardScaler()
+        X_train_emb_scaled = scaler_emb.fit_transform(X_train_emb)
+        X_test_emb_scaled = scaler_emb.transform(X_test_emb)
+
+        model_emb = GradientBoostingClassifier(n_estimators=100, random_state=42)
+        model_emb.fit(X_train_emb_scaled, y_train)
+        pred_proba_emb = model_emb.predict_proba(X_test_emb_scaled)[:, 1]
+        auc_emb = roc_auc_score(y_test, pred_proba_emb)
+        results["Embeddings_GradientBoosting"] = {"roc_auc": auc_emb, "n_features": len(num_cols_emb), "time": emb_time}
+        print(f"  GradientBoosting: ROC-AUC = {auc_emb:.4f}")
+
+    except Exception as e:
+        print(f"  Embeddings failed: {e}")
+        results["Embeddings_GradientBoosting"] = {"error": str(e)}
+
+    # Find best result
+    best_auc = 0
+    for _, v in results.items():
+        if isinstance(v, dict) and "roc_auc" in v:
+            if v["roc_auc"] > best_auc:
+                best_auc = v["roc_auc"]
 
     return {
         "dataset": "Fake News",
@@ -259,7 +325,7 @@ def benchmark_fake_news():
         "rows": len(df),
         "original_features": len(text_cols),
         "engineered_features": len(num_cols),
-        "fe_time": fe_time,
+        "fe_time": basic_time,
         "results": results,
     }
 
