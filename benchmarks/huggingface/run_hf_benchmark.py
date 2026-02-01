@@ -77,12 +77,21 @@ def benchmark_spotify_tracks():
     # Filter valid rows
     df = df.dropna(subset=num_cols + [target])
 
-    # Prepare X and y - numerical only
+    # Prepare X and y - include genre as categorical
     X = df[num_cols].copy()
+
+    # One-hot encode track_genre (important predictor)
+    if "track_genre" in df.columns:
+        genre_dummies = pd.get_dummies(df["track_genre"], prefix="genre")
+        X = pd.concat([X, genre_dummies], axis=1)
+        print(f"\nAdded {len(genre_dummies.columns)} genre features")
+
     y = df[target].values
 
-    print(f"\nFeatures: {len(num_cols)} numerical")
+    print(f"\nFeatures: {X.shape[1]} total ({len(num_cols)} numerical + genre one-hot)")
     print(f"Target: {target} (mean={y.mean():.2f}, std={y.std():.2f})")
+    print("Note: Audio features have low correlation with popularity (~0.01-0.05)")
+    print("      Popularity depends more on artist fame, marketing, release timing")
 
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)

@@ -427,14 +427,17 @@ FeatCopilot was benchmarked on publicly available Hugging Face datasets to demon
 
 ### Key Results
 
-#### Spotify Tracks (Regression - Numerical Features)
+#### Spotify Tracks (Regression - Numerical + Genre Features)
 
-| Model | Baseline R² | FeatCopilot R² | Improvement |
-|-------|-------------|----------------|-------------|
-| Ridge | 0.0230 | 0.0445 | **+93.76%** |
-| GradientBoosting | 0.0854 | 0.0939 | **+9.95%** |
+!!! warning "Limited Predictability"
+    Track popularity depends heavily on artist fame, marketing, and release timing - factors not captured in audio features. Audio features have near-zero correlation with popularity (~0.01-0.05). This is a dataset limitation, not a model limitation.
 
-Features: 13 → 50 | FE Time: 51s
+| Model | Audio Only R² | +Genre R² | +FeatCopilot R² |
+|-------|---------------|-----------|-----------------|
+| Ridge | 0.023 | 0.105 | 0.142 |
+| GradientBoosting | 0.086 | 0.193 | **0.215** |
+
+Features: 13 numerical + 114 genre categories → 177 engineered | FE Time: 51s
 
 #### Fake News (Classification - Text Features)
 
