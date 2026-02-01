@@ -421,9 +421,8 @@ FeatCopilot was benchmarked on publicly available Hugging Face datasets to demon
 
 | Dataset | Source | Rows | Features | Task | Description |
 |---------|--------|------|----------|------|-------------|
-| Spotify Tracks | `maharshipandya/spotify-tracks-dataset` | 114,000 | 13 numerical + 2 text | Regression | Predict track popularity from audio features |
+| Spotify Tracks | `maharshipandya/spotify-tracks-dataset` | 114,000 | 13 numerical + 114 genres | Regression | Predict track popularity from audio features |
 | Fake News | `GonzaloA/fake_news` | 24,353 | 2 text | Classification | Classify news as real or fake |
-| GPT Wiki Intro | `aadityaubhat/GPT-wiki-intro` | 150,000 | 5 numerical + 5 text | Regression | Predict wiki intro length from text features |
 
 ### Key Results
 
@@ -467,16 +466,6 @@ The **TextEngine** provides advanced text feature extraction using local transfo
     - **Basic features** are sufficient for most tasks and run in seconds
     - **Advanced features** (sentiment, NER, POS) provide marginal improvement (+0.15%) but require ~30 min on CPU
     - **Embeddings** are useful when semantic similarity matters, but may not outperform explicit features for classification
-
-#### GPT Wiki Intro (Regression - Combined Features)
-
-| Model | Baseline R² | Tabular Only | Semantic Only | Combined R² | Improvement |
-|-------|-------------|--------------|---------------|-------------|-------------|
-| Ridge | -0.0005 | -0.0011 | 0.9767 | **0.9778** | +195,000%+ |
-| GradientBoosting | -0.0075 | -0.0080 | 0.9797 | **0.9796** | +13,000%+ |
-
-!!! note "Why such large improvements?"
-    The baseline numerical features (title_len, generated_intro_len, prompt_tokens) have almost no predictive power for wiki_intro_len. The text features extracted by SemanticEngine (word counts, character lengths, sentence structure) are highly predictive since wiki_intro_len is directly related to text content.
 
 ### Text Feature Engineering (SemanticEngine)
 
