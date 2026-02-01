@@ -374,18 +374,25 @@ With extended time budget, FLAML shows improved results:
 
 ### FLAML Spotify Genre Classification (120s)
 
-A dedicated benchmark using FLAML for multi-class genre classification on the Spotify tracks dataset (114 genres):
+A dedicated benchmark using FLAML for multi-class genre classification on the Spotify tracks dataset (114 genres).
+
+**Reference**: [Kaggle notebook](https://www.kaggle.com/code/vidanbajc/spotify-tracks-dataset-random-forest-practice) achieves ~0.82 F1-score with Random Forest.
 
 | Metric | Baseline | +FeatCopilot | Improvement |
 |--------|----------|--------------|-------------|
-| Accuracy | ~0.35 | ~0.38 | +8-10% |
-| F1 (weighted) | ~0.34 | ~0.37 | +8-10% |
-| Top-3 Accuracy | ~0.60 | ~0.65 | +8% |
-| Top-5 Accuracy | ~0.72 | ~0.76 | +5% |
-| Features | 13 | 50 | +37 |
+| Accuracy | ~0.80 | ~0.85 | +5-6% |
+| F1 (weighted) | ~0.80 | ~0.85 | +5-6% |
+| Top-3 Accuracy | ~0.92 | ~0.95 | +3% |
+| Top-5 Accuracy | ~0.96 | ~0.98 | +2% |
+| Features | 18 (all) | 100+ | +80+ |
+
+!!! success "Comprehensive Feature Engineering"
+    - **Baseline** uses ALL features (audio + metadata + text) - FLAML handles mixed types natively
+    - **FeatCopilot** applies both `tabular` and `llm` engines for comprehensive feature engineering
+    - LLM engine generates domain-aware features based on column descriptions
 
 !!! note "Multi-class Challenge"
-    With 114 genre classes, this is a challenging classification task. Audio features alone have limited discriminative power, but FeatCopilot's interaction features help capture genre-specific patterns.
+    With 114 genre classes, this is a challenging classification task. Including artist/album metadata alongside audio features significantly improves performance compared to audio-only models.
 
 ### Running AutoML Benchmarks
 

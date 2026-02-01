@@ -5,12 +5,15 @@ This benchmark evaluates FLAML AutoML performance on the Spotify tracks dataset
 for multi-class genre classification (114 classes).
 
 Compares:
-1. Baseline FLAML (raw features)
-2. FLAML + FeatCopilot feature engineering
+1. Baseline FLAML (raw features - all columns including text/categorical)
+2. FLAML + FeatCopilot feature engineering (tabular + llm engines)
 
 Dataset: maharshipandya/spotify-tracks-dataset
 Target: track_genre (114 genres)
 Time budget: 120 seconds
+
+Reference: Kaggle notebook achieves ~0.82 F1-score with Random Forest
+https://www.kaggle.com/code/vidanbajc/spotify-tracks-dataset-random-forest-practice
 """
 
 # ruff: noqa: E402
@@ -24,7 +27,6 @@ import pandas as pd
 from datasets import load_dataset
 from sklearn.metrics import accuracy_score, f1_score, top_k_accuracy_score
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
 
 sys.path.insert(0, ".")
 
@@ -40,6 +42,9 @@ def load_spotify_classification_data(sample_size: int = 50000):
     """
     Load Spotify tracks dataset for genre classification.
 
+    Includes ALL features (numerical, categorical, and text) as FLAML can handle
+    mixed data types natively.
+
     Parameters
     ----------
     sample_size : int
@@ -48,39 +53,34 @@ def load_spotify_classification_data(sample_size: int = 50000):
     Returns
     -------
     X : pd.DataFrame
-        Feature matrix with audio features.
-    y : np.ndarray
-        Encoded genre labels.
-    label_encoder : LabelEncoder
-        Fitted label encoder for genre names.
+        Feature matrix with all features (audio + metadata).
+    y : pd.Series
+        Genre labels (string).
     """
     print("Loading Spotify tracks dataset...")
     ds = load_dataset("maharshipandya/spotify-tracks-dataset", split="train")
     df = ds.to_pandas()
 
     print(f"Full dataset shape: {df.shape}")
-
-    # Numerical columns (audio features)
-    num_cols = [
-        "duration_ms",
-        "danceability",
-        "energy",
-        "key",
-        "loudness",
-        "mode",
-        "speechiness",
-        "acousticness",
-        "instrumentalness",
-        "liveness",
-        "valence",
-        "tempo",
-        "time_signature",
-    ]
+    print(f"Columns: {list(df.columns)}")
 
     target = "track_genre"
 
-    # Filter valid rows
-    df = df.dropna(subset=num_cols + [target])
+    # Columns to exclude (identifiers and target)
+    exclude_cols = [
+        "Unnamed: 0",  # Index column
+        "track_id",  # Unique identifier
+        target,  # Target variable
+    ]
+
+    # Use ALL other columns as features
+    feature_cols = [col for col in df.columns if col not in exclude_cols]
+
+    print(f"\nFeature columns ({len(feature_cols)}):")
+    print(f"  {feature_cols}")
+
+    # Filter rows with valid target
+    df = df.dropna(subset=[target])
 
     # Stratified sampling by genre
     if len(df) > sample_size:
@@ -89,20 +89,30 @@ def load_spotify_classification_data(sample_size: int = 50000):
             lambda x: x.sample(min(len(x), max(samples_per_genre, 100)), random_state=42)
         )
 
-    print(f"Sampled shape: {df.shape}")
+    print(f"\nSampled shape: {df.shape}")
     print(f"Number of genres: {df[target].nunique()}")
 
-    # Prepare features and target
-    X = df[num_cols].copy()
+    # Prepare features - keep ALL columns, FLAML handles mixed types
+    X = df[feature_cols].copy()
 
-    le = LabelEncoder()
-    y = le.fit_transform(df[target].values)
+    # Clean text columns - fill NaN with empty string
+    for col in X.columns:
+        if X[col].dtype == "object":
+            X[col] = X[col].fillna("")
 
-    print(f"Features: {X.shape[1]} numerical")
-    print(f"Target: {target} ({len(le.classes_)} genres)")
-    print(f"Sample genres: {list(le.classes_[:5])}...")
+    # Fill numeric NaN with 0
+    X = X.fillna(0)
 
-    return X, y, le
+    y = df[target].copy()
+
+    # Show data types
+    print("\nData types:")
+    print(f"  Numerical: {X.select_dtypes(include=[np.number]).columns.tolist()}")
+    print(f"  Categorical/Text: {X.select_dtypes(include=['object']).columns.tolist()}")
+    print(f"\nTarget: {target} ({y.nunique()} genres)")
+    print(f"Sample genres: {list(y.unique()[:5])}...")
+
+    return X, y
 
 
 def run_flaml_benchmark(
@@ -198,6 +208,12 @@ def generate_report(baseline_results: dict, featcopilot_results: dict, fe_time: 
     report.append("- **Task**: Multi-class classification (114 genres)\n")
     report.append(f"- **Time budget**: {TIME_BUDGET}s per FLAML run\n")
     report.append(f"- **FeatCopilot time**: {fe_time:.1f}s\n")
+    report.append(
+        "- **Reference**: [Kaggle notebook](https://www.kaggle.com/code/vidanbajc/spotify-tracks-dataset-random-forest-practice) achieves ~0.82 F1-score\n"
+    )
+    report.append("\n### Features Used\n")
+    report.append("- **Baseline**: All raw features (audio + metadata + text)\n")
+    report.append("- **FeatCopilot**: Enhanced with tabular + LLM engines\n")
 
     # Summary
     report.append("\n## Summary\n")
@@ -260,6 +276,7 @@ def main():
     print("FLAML Benchmark - Spotify Track Genre Classification")
     print("=" * 70)
     print(f"Time budget: {TIME_BUDGET}s per FLAML run")
+    print("Reference: Kaggle notebook achieves ~0.82 F1-score with Random Forest")
 
     # Check FLAML availability
     try:
@@ -270,37 +287,81 @@ def main():
         print("ERROR: FLAML not installed. Run: pip install flaml")
         sys.exit(1)
 
-    # Load data
-    X, y, label_encoder = load_spotify_classification_data()
+    # Load data - includes ALL features (numerical + categorical + text)
+    X, y = load_spotify_classification_data()
 
-    # Split data
+    # Split data - use stratified split to maintain genre distribution
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
     print(f"\nTrain shape: {X_train.shape}")
     print(f"Test shape: {X_test.shape}")
 
-    # Run baseline FLAML
+    # Run baseline FLAML with ALL features (FLAML handles mixed types)
     baseline_results = run_flaml_benchmark(X_train, X_test, y_train, y_test, time_budget=TIME_BUDGET, label="Baseline")
 
-    # Apply FeatCopilot
-    print("\n--- Applying FeatCopilot feature engineering ---")
+    # Apply FeatCopilot with both tabular and llm engines
+    print("\n--- Applying FeatCopilot feature engineering (tabular + llm) ---")
     fe_start = time.time()
 
-    engineer = AutoFeatureEngineer(engines=["tabular"], max_features=50, verbose=False)
-    X_train_fe = engineer.fit_transform(X_train, y_train)
+    # Use both tabular and llm engines for comprehensive feature engineering
+    engineer = AutoFeatureEngineer(
+        engines=["tabular", "llm"],
+        max_features=100,  # Allow more features for this complex task
+        verbose=True,
+    )
+
+    # Provide column descriptions to help LLM understand the data
+    column_descriptions = {
+        "artists": "Artist name(s) who performed the track",
+        "album_name": "Name of the album containing the track",
+        "track_name": "Name of the track",
+        "popularity": "Track popularity score (0-100)",
+        "duration_ms": "Track duration in milliseconds",
+        "explicit": "Whether track has explicit lyrics",
+        "danceability": "How suitable for dancing (0-1)",
+        "energy": "Perceptual measure of intensity (0-1)",
+        "key": "Key the track is in (0-11)",
+        "loudness": "Overall loudness in dB",
+        "mode": "Major (1) or minor (0) modality",
+        "speechiness": "Presence of spoken words (0-1)",
+        "acousticness": "Confidence track is acoustic (0-1)",
+        "instrumentalness": "Predicts if track has no vocals (0-1)",
+        "liveness": "Presence of audience (0-1)",
+        "valence": "Musical positiveness (0-1)",
+        "tempo": "Estimated tempo in BPM",
+        "time_signature": "Time signature (beats per measure)",
+    }
+
+    task_description = "Classify music tracks into 114 genres based on audio features and metadata"
+
+    X_train_fe = engineer.fit_transform(
+        X_train,
+        y_train,
+        column_descriptions=column_descriptions,
+        task_description=task_description,
+    )
     X_test_fe = engineer.transform(X_test)
 
     fe_time = time.time() - fe_start
 
-    # Align columns
+    # Align columns and handle missing values
     common_cols = [c for c in X_train_fe.columns if c in X_test_fe.columns]
-    X_train_fe = X_train_fe[common_cols].fillna(0)
-    X_test_fe = X_test_fe[common_cols].fillna(0)
+    X_train_fe = X_train_fe[common_cols].copy()
+    X_test_fe = X_test_fe[common_cols].copy()
+
+    # Fill NaN for numeric columns, empty string for object columns
+    for col in X_train_fe.columns:
+        if X_train_fe[col].dtype == "object":
+            X_train_fe[col] = X_train_fe[col].fillna("")
+            X_test_fe[col] = X_test_fe[col].fillna("")
+        else:
+            X_train_fe[col] = X_train_fe[col].fillna(0)
+            X_test_fe[col] = X_test_fe[col].fillna(0)
 
     print(f"  Features: {X_train.shape[1]} -> {len(common_cols)}")
     print(f"  FE Time: {fe_time:.2f}s")
 
-    # Run FLAML with FeatCopilot features
+    # Run FLAML with FeatCopilot enhanced features
     featcopilot_results = run_flaml_benchmark(
         X_train_fe, X_test_fe, y_train, y_test, time_budget=TIME_BUDGET, label="FeatCopilot"
     )
