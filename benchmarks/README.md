@@ -72,6 +72,9 @@ python benchmarks/automl/run_automl_benchmark.py --enable-llm
 
 # Custom output path
 python benchmarks/automl/run_automl_benchmark.py --output results.md
+
+# Run FLAML Spotify genre classification benchmark (120s time budget)
+python benchmarks/automl/run_flaml_spotify_benchmark.py
 ```
 
 ### Benchmark Methodology
@@ -108,6 +111,7 @@ See the respective report files for detailed results:
 - `feature_engineering/BENCHMARK_REPORT.md` - Tabular engine results
 - `feature_engineering/LLM_BENCHMARK_REPORT.md` - LLM engine results
 - `automl/AUTOML_BENCHMARK_REPORT.md` - AutoML integration results (generated after running)
+- `automl/FLAML_SPOTIFY_CLASSIFICATION_REPORT.md` - FLAML Spotify genre classification (120s budget)
 - `compare_tools/COMPARISON_BENCHMARK_REPORT.md` - Tool comparison results (generated after running)
 
 ## Feature Engineering Tools Comparison

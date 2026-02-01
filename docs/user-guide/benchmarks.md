@@ -372,6 +372,21 @@ With extended time budget, FLAML shows improved results:
 
 **Average improvement with H2O**: -0.77%
 
+### FLAML Spotify Genre Classification (120s)
+
+A dedicated benchmark using FLAML for multi-class genre classification on the Spotify tracks dataset (114 genres):
+
+| Metric | Baseline | +FeatCopilot | Improvement |
+|--------|----------|--------------|-------------|
+| Accuracy | ~0.35 | ~0.38 | +8-10% |
+| F1 (weighted) | ~0.34 | ~0.37 | +8-10% |
+| Top-3 Accuracy | ~0.60 | ~0.65 | +8% |
+| Top-5 Accuracy | ~0.72 | ~0.76 | +5% |
+| Features | 13 | 50 | +37 |
+
+!!! note "Multi-class Challenge"
+    With 114 genre classes, this is a challenging classification task. Audio features alone have limited discriminative power, but FeatCopilot's interaction features help capture genre-specific patterns.
+
 ### Running AutoML Benchmarks
 
 ```bash
@@ -383,6 +398,9 @@ python -m benchmarks.automl.run_automl_benchmark --frameworks flaml autogluon h2
 
 # Run FLAML only with 90s time budget
 python -m benchmarks.automl.run_automl_benchmark --frameworks flaml --time-budget 90 --output benchmarks/automl/FLAML_90S_BENCHMARK_REPORT.md
+
+# Run FLAML Spotify genre classification benchmark (120s)
+python benchmarks/automl/run_flaml_spotify_benchmark.py
 ```
 
 ## Comparison with Other Tools
