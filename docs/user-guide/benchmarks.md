@@ -413,6 +413,60 @@ FeatCopilot has been benchmarked against other popular feature engineering libra
 | Complex Regression | 0.9120 | **0.9435** | 0.9105 | 0.9129 | Featuretools |
 | Complex Classification | 0.9225 | 0.9000 | 0.8675 | **0.9400** | AutoFeat |
 
+## Hugging Face Datasets Benchmark
+
+FeatCopilot was also benchmarked on publicly available Hugging Face datasets to demonstrate its performance on real-world data with various characteristics.
+
+### Datasets Overview
+
+| Dataset | Source | Rows | Features | Task | Description |
+|---------|--------|------|----------|------|-------------|
+| Spotify Tracks | `maharshipandya/spotify-tracks-dataset` | 50,000 | 10 numerical | Regression | Predict track popularity from audio features |
+| Diabetes | `sklearn.datasets.load_diabetes` | 442 | 10 numerical | Classification | Predict diabetes progression (binarized) |
+| Wine Quality | `mstz/wine` | 6,497 | 12 numerical | Regression | Predict wine quality score from physicochemical tests |
+
+### Results
+
+#### Regression Tasks
+
+| Dataset | Model | Baseline R² | FeatCopilot R² | Improvement |
+|---------|-------|-------------|----------------|-------------|
+| **Spotify Tracks** | Ridge | 0.0231 | 0.0478 | **+106.56%** |
+| **Spotify Tracks** | GradientBoosting | 0.0857 | 0.0946 | **+10.41%** |
+| **Wine Quality** | Ridge | 0.2672 | 0.2747 | **+2.83%** |
+| **Wine Quality** | GradientBoosting | 0.3766 | 0.3849 | **+2.22%** |
+
+#### Classification Tasks
+
+| Dataset | Model | Baseline Acc | FeatCopilot Acc | Baseline AUC | FeatCopilot AUC |
+|---------|-------|--------------|-----------------|--------------|-----------------|
+| Diabetes | LogisticRegression | 0.7753 | 0.7640 | 0.8554 | 0.8405 |
+| Diabetes | GradientBoosting | 0.7640 | 0.6966 | 0.8087 | 0.8113 |
+
+### Feature Engineering Statistics
+
+| Dataset | Original Features | Engineered Features | FE Time |
+|---------|------------------|---------------------|---------|
+| Spotify Tracks | 10 | 50 | 52s |
+| Diabetes | 10 | 50 | 0.4s |
+| Wine Quality | 12 | 38 | 3.8s |
+
+### Key Findings
+
+1. **Spotify Tracks**: FeatCopilot shows dramatic improvement (+106% for Ridge), demonstrating strong value when baseline models struggle
+2. **Wine Quality**: Consistent improvements of 2-3% across both models
+3. **Diabetes**: Small dataset (442 rows) may not benefit from feature engineering due to overfitting risk
+
+### Running Hugging Face Benchmarks
+
+```bash
+# Install Hugging Face datasets
+pip install datasets
+
+# Run benchmarks
+python benchmarks/huggingface/run_hf_benchmark.py
+```
+
 ### Key Findings
 
 - **FeatCopilot** provides competitive performance with fast feature engineering time (~1s)
