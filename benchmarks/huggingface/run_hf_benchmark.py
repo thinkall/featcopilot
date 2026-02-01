@@ -19,7 +19,7 @@ import pandas as pd
 from datasets import load_dataset
 from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
 from sklearn.linear_model import Ridge
-from sklearn.metrics import r2_score, roc_auc_score
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
@@ -110,8 +110,10 @@ def benchmark_spotify_tracks():
         model.fit(X_train_scaled, y_train)
         pred = model.predict(X_test_scaled)
         r2 = r2_score(y_test, pred)
-        results[f"Baseline_{name}"] = r2
-        print(f"  {name}: R2 = {r2:.4f}")
+        mae = mean_absolute_error(y_test, pred)
+        rmse = np.sqrt(mean_squared_error(y_test, pred))
+        results[f"Baseline_{name}"] = {"r2": r2, "mae": mae, "rmse": rmse}
+        print(f"  {name}: R2 = {r2:.4f}, MAE = {mae:.2f}, RMSE = {rmse:.2f}")
 
     # FeatCopilot with tabular engine
     print("\n--- FeatCopilot (tabular engine) ---")
@@ -142,10 +144,13 @@ def benchmark_spotify_tracks():
         model.fit(X_train_fe_scaled, y_train)
         pred = model.predict(X_test_fe_scaled)
         r2 = r2_score(y_test, pred)
-        baseline_r2 = results[f"Baseline_{name}"]
-        improvement = (r2 - baseline_r2) / abs(baseline_r2) * 100 if baseline_r2 != 0 else 0
-        results[f"FeatCopilot_{name}"] = r2
-        print(f"  {name}: R2 = {r2:.4f} ({improvement:+.2f}%)")
+        mae = mean_absolute_error(y_test, pred)
+        rmse = np.sqrt(mean_squared_error(y_test, pred))
+        baseline = results[f"Baseline_{name}"]
+        r2_impr = (r2 - baseline["r2"]) / abs(baseline["r2"]) * 100 if baseline["r2"] != 0 else 0
+        mae_impr = (baseline["mae"] - mae) / baseline["mae"] * 100
+        results[f"FeatCopilot_{name}"] = {"r2": r2, "mae": mae, "rmse": rmse}
+        print(f"  {name}: R2 = {r2:.4f} ({r2_impr:+.1f}%), MAE = {mae:.2f} ({mae_impr:+.1f}%), RMSE = {rmse:.2f}")
 
     return {
         "dataset": "Spotify Tracks",
