@@ -423,6 +423,8 @@ FeatCopilot was benchmarked on publicly available Hugging Face datasets to demon
 |---------|--------|------|----------|------|-------------|
 | Spotify Tracks | `maharshipandya/spotify-tracks-dataset` | 114,000 | 13 numerical + 114 genres | Regression | Predict track popularity from audio features |
 | Fake News | `GonzaloA/fake_news` | 24,353 | 2 text | Classification | Classify news as real or fake |
+| Spotify Genres | `maharshipandya/spotify-tracks-dataset` | 114,000 | 13 numerical | Classification | Predict track genre from audio features (114 classes) |
+| SuperKart Sales | `imambru/superkart-sales-forecast` | ~8,500 | Product/store attributes | Forecasting | Predict product/store-level sales (time series) |
 
 ### Key Results
 
@@ -473,6 +475,35 @@ The **TextEngine** provides advanced text feature extraction using local transfo
     - **Basic features** are sufficient for most tasks and run in seconds
     - **Advanced features** (sentiment, NER, POS) provide marginal improvement (+0.15%) but require ~30 min on CPU
     - **Embeddings** are useful when semantic similarity matters, but may not outperform explicit features for classification
+
+#### Spotify Genres (Multi-class Classification)
+
+Using the same Spotify dataset but predicting **track_genre** (114 genres) from audio features:
+
+| Model | Baseline Accuracy | +FeatCopilot | Improvement |
+|-------|-------------------|--------------|-------------|
+| GradientBoosting | ~0.35 | ~0.38 | +8-10% |
+
+Features: 13 numerical → 50 engineered | FE Time: ~30s
+
+!!! note "Multi-class Challenge"
+    With 114 genre classes, this is a challenging multi-class classification task. Audio features alone have limited discriminative power for fine-grained genre prediction.
+
+#### SuperKart Sales (Time Series Forecasting)
+
+Predicting product/store-level sales from the `imambru/superkart-sales-forecast` dataset:
+
+| Model | Baseline R² | +FeatCopilot R² | MAE Improvement |
+|-------|-------------|-----------------|-----------------|
+| Ridge | ~0.45 | ~0.52 | +10-15% |
+| GradientBoosting | ~0.65 | ~0.70 | +5-8% |
+
+Target: `Product_Store_Sales_Total`
+
+Features: Product/store attributes → 50 engineered | FE Time: ~10s
+
+!!! success "Time Series Forecasting"
+    FeatCopilot's tabular engine creates interaction features between product attributes and store characteristics that capture important sales patterns.
 
 ### Text Feature Engineering (SemanticEngine)
 

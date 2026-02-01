@@ -92,6 +92,15 @@ Both benchmark suites use the same datasets from `datasets.py`:
 | Bike Sharing | Regression | Demand forecasting |
 | Employee Attrition | Classification | Churn prediction |
 
+### Hugging Face Datasets
+
+| Dataset | Source | Task | Description |
+|---------|--------|------|-------------|
+| Spotify Tracks | `maharshipandya/spotify-tracks-dataset` | Regression | Predict track popularity from audio features |
+| Fake News | `GonzaloA/fake_news` | Classification | Classify news as real or fake from text |
+| Spotify Genres | `maharshipandya/spotify-tracks-dataset` | Classification | Predict track genre from audio features (114 classes) |
+| SuperKart Sales | `imambru/superkart-sales-forecast` | Forecasting | Predict product/store-level sales (time series) |
+
 ## Results
 
 See the respective report files for detailed results:
