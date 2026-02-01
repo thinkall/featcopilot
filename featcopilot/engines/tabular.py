@@ -319,14 +319,18 @@ class TabularEngine(BaseEngine):
 
         X = self._validate_input(X)
         result = X.copy()
+        original_columns = set(X.columns)
 
         # Apply categorical encoding first
         if self.config.encode_categorical:
             result = self._transform_categorical(result)
 
         cols = self._numeric_columns
-        feature_count = 0
         max_features = self.config.max_features
+
+        # Count categorical features generated so far against max_features
+        categorical_features = [c for c in result.columns if c not in original_columns]
+        feature_count = len(categorical_features)
 
         # Generate polynomial features
         if not self.config.interaction_only:
