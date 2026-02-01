@@ -36,7 +36,7 @@ class TabularEngineConfig(EngineConfig):
     target_encode_ratio_threshold: float = Field(
         default=0.5, description="Max n_unique/n_rows ratio for target encoding"
     )
-    min_samples_per_category: int = Field(default=10, description="Min samples per category to include")
+    min_samples_per_category: int = Field(default=3, description="Min samples per category to include")
 
 
 class TabularEngine(BaseEngine):
@@ -91,7 +91,7 @@ class TabularEngine(BaseEngine):
         encode_categorical: bool = True,
         onehot_ratio_threshold: float = 0.05,
         target_encode_ratio_threshold: float = 0.5,
-        min_samples_per_category: int = 10,
+        min_samples_per_category: int = 3,
         **kwargs,
     ):
         config = TabularEngineConfig(
