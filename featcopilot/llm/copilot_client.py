@@ -555,6 +555,9 @@ class SyncCopilotFeatureClient:
     def suggest_features(self, **kwargs):
         return self._run_async(self._async_client.suggest_features(**kwargs))
 
+    def send_prompt(self, prompt: str):
+        return self._run_async(self._async_client.send_prompt(prompt))
+
     def explain_feature(self, **kwargs):
         return self._run_async(self._async_client.explain_feature(**kwargs))
 

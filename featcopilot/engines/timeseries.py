@@ -28,6 +28,10 @@ class TimeSeriesEngineConfig(EngineConfig):
             "autocorrelation",
             "peaks",
             "trends",
+            "entropy",
+            "energy",
+            "complexity",
+            "counts",
         ],
         description="Feature groups to extract",
     )
@@ -36,6 +40,7 @@ class TimeSeriesEngineConfig(EngineConfig):
     )
     n_fft_coefficients: int = Field(default=10, description="Number of FFT coefficients")
     n_autocorr_lags: int = Field(default=10, description="Number of autocorrelation lags")
+    entropy_bins: int = Field(default=10, description="Number of bins for binned entropy")
 
 
 class TimeSeriesEngine(BaseEngine):
@@ -66,7 +71,7 @@ class TimeSeriesEngine(BaseEngine):
     >>> X_features = engine.fit_transform(time_series_df)
     """
 
-    # Feature extraction functions
+    # Feature extraction functions (tsfresh-inspired)
     FEATURE_EXTRACTORS = {
         "basic_stats": "_extract_basic_stats",
         "distribution": "_extract_distribution",
@@ -75,6 +80,10 @@ class TimeSeriesEngine(BaseEngine):
         "trends": "_extract_trends",
         "rolling": "_extract_rolling",
         "fft": "_extract_fft",
+        "entropy": "_extract_entropy",
+        "energy": "_extract_energy",
+        "complexity": "_extract_complexity",
+        "counts": "_extract_counts",
     }
 
     def __init__(
@@ -399,6 +408,226 @@ class TimeSeriesEngine(BaseEngine):
         features[f"{prefix}_dominant_freq_idx"] = dominant_idx
 
         return features
+
+    def _extract_entropy(self, series: np.ndarray, col: str) -> dict[str, float]:
+        """Extract entropy-based features (tsfresh-inspired)."""
+        features = {}
+        prefix = col
+
+        series_clean = series[~np.isnan(series)]
+        if len(series_clean) < 4:
+            return features
+
+        # Binned entropy
+        try:
+            hist, _ = np.histogram(series_clean, bins=self.config.entropy_bins)
+            hist = hist[hist > 0]
+            probs = hist / hist.sum()
+            features[f"{prefix}_binned_entropy"] = -np.sum(probs * np.log(probs + 1e-10))
+        except Exception:
+            features[f"{prefix}_binned_entropy"] = 0
+
+        # Sample entropy (simplified implementation)
+        try:
+            features[f"{prefix}_sample_entropy"] = self._sample_entropy(series_clean, m=2, r=0.2)
+        except Exception:
+            features[f"{prefix}_sample_entropy"] = 0
+
+        # Approximate entropy
+        try:
+            features[f"{prefix}_approximate_entropy"] = self._approximate_entropy(series_clean, m=2, r=0.2)
+        except Exception:
+            features[f"{prefix}_approximate_entropy"] = 0
+
+        return features
+
+    def _sample_entropy(self, series: np.ndarray, m: int = 2, r: float = 0.2) -> float:
+        """Compute sample entropy of a time series."""
+        n = len(series)
+        if n < m + 2:
+            return 0
+
+        # Normalize r by std
+        r = r * np.std(series)
+        if r == 0:
+            return 0
+
+        def _count_matches(template_length):
+            count = 0
+            templates = np.array([series[i : i + template_length] for i in range(n - template_length)])
+            for i in range(len(templates)):
+                for j in range(i + 1, len(templates)):
+                    if np.max(np.abs(templates[i] - templates[j])) < r:
+                        count += 1
+            return count
+
+        a = _count_matches(m)
+        b = _count_matches(m + 1)
+
+        if a == 0 or b == 0:
+            return 0
+
+        return -np.log(b / a)
+
+    def _approximate_entropy(self, series: np.ndarray, m: int = 2, r: float = 0.2) -> float:
+        """Compute approximate entropy of a time series."""
+        n = len(series)
+        if n < m + 2:
+            return 0
+
+        r = r * np.std(series)
+        if r == 0:
+            return 0
+
+        def _phi(m_val):
+            patterns = np.array([series[i : i + m_val] for i in range(n - m_val + 1)])
+            counts = np.zeros(len(patterns))
+            for i, pattern in enumerate(patterns):
+                for other in patterns:
+                    if np.max(np.abs(pattern - other)) < r:
+                        counts[i] += 1
+            counts = counts / len(patterns)
+            return np.sum(np.log(counts + 1e-10)) / len(patterns)
+
+        return _phi(m) - _phi(m + 1)
+
+    def _extract_energy(self, series: np.ndarray, col: str) -> dict[str, float]:
+        """Extract energy-based features (tsfresh-inspired)."""
+        features = {}
+        prefix = col
+
+        series_clean = series[~np.isnan(series)]
+        if len(series_clean) < 2:
+            return features
+
+        # Absolute energy: sum of squared values
+        features[f"{prefix}_abs_energy"] = np.sum(series_clean**2)
+
+        # Mean absolute change
+        features[f"{prefix}_mean_abs_change"] = np.mean(np.abs(np.diff(series_clean)))
+
+        # Mean second derivative central
+        if len(series_clean) >= 3:
+            second_deriv = series_clean[2:] - 2 * series_clean[1:-1] + series_clean[:-2]
+            features[f"{prefix}_mean_second_deriv_central"] = np.mean(second_deriv)
+
+        # Root mean square
+        features[f"{prefix}_rms"] = np.sqrt(np.mean(series_clean**2))
+
+        # Crest factor (peak/rms)
+        rms = features[f"{prefix}_rms"]
+        if rms > 0:
+            features[f"{prefix}_crest_factor"] = np.max(np.abs(series_clean)) / rms
+
+        return features
+
+    def _extract_complexity(self, series: np.ndarray, col: str) -> dict[str, float]:
+        """Extract complexity features (tsfresh-inspired)."""
+        features = {}
+        prefix = col
+
+        series_clean = series[~np.isnan(series)]
+        if len(series_clean) < 3:
+            return features
+
+        # CID_CE: Complexity-invariant distance
+        diff = np.diff(series_clean)
+        features[f"{prefix}_cid_ce"] = np.sqrt(np.sum(diff**2))
+
+        # C3: Time series complexity (lag 1)
+        if len(series_clean) >= 3:
+            n = len(series_clean)
+            c3 = np.sum(series_clean[2:n] * series_clean[1 : n - 1] * series_clean[0 : n - 2]) / (n - 2)
+            features[f"{prefix}_c3"] = c3
+
+        # Ratio of unique values to length
+        features[f"{prefix}_ratio_unique_values"] = len(np.unique(series_clean)) / len(series_clean)
+
+        # Has duplicate
+        features[f"{prefix}_has_duplicate"] = 1 if len(np.unique(series_clean)) < len(series_clean) else 0
+
+        # Has duplicate max
+        max_val = np.max(series_clean)
+        features[f"{prefix}_has_duplicate_max"] = 1 if np.sum(series_clean == max_val) > 1 else 0
+
+        # Has duplicate min
+        min_val = np.min(series_clean)
+        features[f"{prefix}_has_duplicate_min"] = 1 if np.sum(series_clean == min_val) > 1 else 0
+
+        # Sum of reoccurring values
+        unique, counts = np.unique(series_clean, return_counts=True)
+        reoccurring_mask = counts > 1
+        features[f"{prefix}_sum_reoccurring_values"] = np.sum(unique[reoccurring_mask] * counts[reoccurring_mask])
+
+        # Sum of reoccurring data points
+        features[f"{prefix}_sum_reoccurring_data_points"] = np.sum(counts[reoccurring_mask])
+
+        # Percentage of reoccurring data points
+        features[f"{prefix}_pct_reoccurring_data_points"] = np.sum(counts[reoccurring_mask]) / len(series_clean)
+
+        return features
+
+    def _extract_counts(self, series: np.ndarray, col: str) -> dict[str, float]:
+        """Extract count-based features (tsfresh-inspired)."""
+        features = {}
+        prefix = col
+
+        series_clean = series[~np.isnan(series)]
+        if len(series_clean) < 2:
+            return features
+
+        mean_val = np.mean(series_clean)
+
+        # Count above mean
+        features[f"{prefix}_count_above_mean"] = np.sum(series_clean > mean_val)
+
+        # Count below mean
+        features[f"{prefix}_count_below_mean"] = np.sum(series_clean < mean_val)
+
+        # First location of maximum
+        features[f"{prefix}_first_loc_max"] = np.argmax(series_clean) / len(series_clean)
+
+        # First location of minimum
+        features[f"{prefix}_first_loc_min"] = np.argmin(series_clean) / len(series_clean)
+
+        # Last location of maximum
+        features[f"{prefix}_last_loc_max"] = (len(series_clean) - 1 - np.argmax(series_clean[::-1])) / len(series_clean)
+
+        # Last location of minimum
+        features[f"{prefix}_last_loc_min"] = (len(series_clean) - 1 - np.argmin(series_clean[::-1])) / len(series_clean)
+
+        # Longest strike above mean
+        above_mean = series_clean > mean_val
+        features[f"{prefix}_longest_strike_above_mean"] = self._longest_consecutive(above_mean)
+
+        # Longest strike below mean
+        below_mean = series_clean < mean_val
+        features[f"{prefix}_longest_strike_below_mean"] = self._longest_consecutive(below_mean)
+
+        # Number of crossings (mean)
+        crossings = np.sum(np.diff(np.sign(series_clean - mean_val)) != 0)
+        features[f"{prefix}_number_crossings_mean"] = crossings
+
+        # Number of zero crossings
+        zero_crossings = np.sum(np.diff(np.sign(series_clean)) != 0)
+        features[f"{prefix}_number_zero_crossings"] = zero_crossings
+
+        # Absolute sum of changes
+        features[f"{prefix}_abs_sum_changes"] = np.sum(np.abs(np.diff(series_clean)))
+
+        return features
+
+    def _longest_consecutive(self, bool_array: np.ndarray) -> int:
+        """Find longest consecutive True values in boolean array."""
+        max_len = 0
+        current_len = 0
+        for val in bool_array:
+            if val:
+                current_len += 1
+                max_len = max(max_len, current_len)
+            else:
+                current_len = 0
+        return max_len
 
     def get_feature_set(self) -> FeatureSet:
         """Get the feature set with metadata."""

@@ -415,47 +415,104 @@ FeatCopilot has been benchmarked against other popular feature engineering libra
 
 ## Hugging Face Datasets Benchmark
 
-FeatCopilot was also benchmarked on publicly available Hugging Face datasets to demonstrate its performance on real-world data with various characteristics.
+FeatCopilot was benchmarked on publicly available Hugging Face datasets to demonstrate its performance on real-world data with various characteristics, including **text-to-numerical feature engineering**.
 
 ### Datasets Overview
 
 | Dataset | Source | Rows | Features | Task | Description |
 |---------|--------|------|----------|------|-------------|
-| Spotify Tracks | `maharshipandya/spotify-tracks-dataset` | 50,000 | 10 numerical | Regression | Predict track popularity from audio features |
-| Diabetes | `sklearn.datasets.load_diabetes` | 442 | 10 numerical | Classification | Predict diabetes progression (binarized) |
-| Wine Quality | `mstz/wine` | 6,497 | 12 numerical | Regression | Predict wine quality score from physicochemical tests |
+| Spotify Tracks | `maharshipandya/spotify-tracks-dataset` | 114,000 | 13 numerical + 2 text | Regression | Predict track popularity from audio features |
+| Fake News | `GonzaloA/fake_news` | 24,353 | 2 text | Classification | Classify news as real or fake |
+| GPT Wiki Intro | `aadityaubhat/GPT-wiki-intro` | 150,000 | 5 numerical + 5 text | Regression | Predict wiki intro length from text features |
 
-### Results
+### Key Results
 
-#### Regression Tasks
+#### Spotify Tracks (Regression - Numerical Features)
 
-| Dataset | Model | Baseline R² | FeatCopilot R² | Improvement |
-|---------|-------|-------------|----------------|-------------|
-| **Spotify Tracks** | Ridge | 0.0231 | 0.0478 | **+106.56%** |
-| **Spotify Tracks** | GradientBoosting | 0.0857 | 0.0946 | **+10.41%** |
-| **Wine Quality** | Ridge | 0.2672 | 0.2747 | **+2.83%** |
-| **Wine Quality** | GradientBoosting | 0.3766 | 0.3849 | **+2.22%** |
+| Model | Baseline R² | FeatCopilot R² | Improvement |
+|-------|-------------|----------------|-------------|
+| Ridge | 0.0230 | 0.0445 | **+93.76%** |
+| GradientBoosting | 0.0854 | 0.0939 | **+9.95%** |
 
-#### Classification Tasks
+Features: 13 → 50 | FE Time: 51s
 
-| Dataset | Model | Baseline Acc | FeatCopilot Acc | Baseline AUC | FeatCopilot AUC |
-|---------|-------|--------------|-----------------|--------------|-----------------|
-| Diabetes | LogisticRegression | 0.7753 | 0.7640 | 0.8554 | 0.8405 |
-| Diabetes | GradientBoosting | 0.7640 | 0.6966 | 0.8087 | 0.8113 |
+#### Fake News (Classification - Text Features)
 
-### Feature Engineering Statistics
+Using **SemanticEngine** to convert text columns to numerical features:
 
-| Dataset | Original Features | Engineered Features | FE Time |
-|---------|------------------|---------------------|---------|
-| Spotify Tracks | 10 | 50 | 52s |
-| Diabetes | 10 | 50 | 0.4s |
-| Wine Quality | 12 | 38 | 3.8s |
+| Model | Accuracy | ROC-AUC |
+|-------|----------|---------|
+| LogisticRegression | 0.9625 | 0.9911 |
+| GradientBoosting | 0.9760 | **0.9979** |
 
-### Key Findings
+Features: 2 text → 22 numerical | FE Time: 6s
 
-1. **Spotify Tracks**: FeatCopilot shows dramatic improvement (+106% for Ridge), demonstrating strong value when baseline models struggle
-2. **Wine Quality**: Consistent improvements of 2-3% across both models
-3. **Diabetes**: Small dataset (442 rows) may not benefit from feature engineering due to overfitting risk
+!!! success "Text Feature Engineering"
+    The SemanticEngine automatically extracts 11 numerical features per text column without any LLM API calls, including word count, character length, sentence count, uppercase ratio, and more.
+
+#### GPT Wiki Intro (Regression - Combined Features)
+
+| Model | Baseline R² | Tabular Only | Semantic Only | Combined R² | Improvement |
+|-------|-------------|--------------|---------------|-------------|-------------|
+| Ridge | -0.0005 | -0.0011 | 0.9767 | **0.9778** | +195,000%+ |
+| GradientBoosting | -0.0075 | -0.0080 | 0.9797 | **0.9796** | +13,000%+ |
+
+!!! note "Why such large improvements?"
+    The baseline numerical features (title_len, generated_intro_len, prompt_tokens) have almost no predictive power for wiki_intro_len. The text features extracted by SemanticEngine (word counts, character lengths, sentence structure) are highly predictive since wiki_intro_len is directly related to text content.
+
+### Text Feature Engineering (SemanticEngine)
+
+FeatCopilot's SemanticEngine converts text columns into ML-ready numerical features:
+
+```python
+from featcopilot.llm.semantic_engine import SemanticEngine
+
+# Convert text to numerical features
+engine = SemanticEngine(enable_text_features=True, verbose=True)
+X_numerical = engine.fit_transform(
+    X_text,
+    y,
+    column_descriptions={"title": "News headline", "text": "Article content"},
+    task_description="Classify news as real or fake"
+)
+```
+
+**Features extracted per text column (11 total):**
+
+| Feature | Description |
+|---------|-------------|
+| `{col}_char_length` | Character count |
+| `{col}_word_count` | Word count |
+| `{col}_avg_word_length` | Average word length |
+| `{col}_sentence_count` | Sentence count (approximate) |
+| `{col}_uppercase_ratio` | Ratio of uppercase characters |
+| `{col}_digit_count` | Count of digits |
+| `{col}_special_char_count` | Count of special characters |
+| `{col}_unique_word_ratio` | Unique words / total words |
+| `{col}_exclamation_count` | Exclamation marks (emphasis) |
+| `{col}_question_count` | Question marks |
+| `{col}_caps_word_ratio` | All-caps words ratio |
+
+### Enhanced Time Series Features (tsfresh-inspired)
+
+The TimeSeriesEngine now includes comprehensive features inspired by tsfresh:
+
+| Feature Group | Features |
+|---------------|----------|
+| **entropy** | binned_entropy, sample_entropy, approximate_entropy |
+| **energy** | abs_energy, mean_abs_change, mean_second_deriv_central, rms, crest_factor |
+| **complexity** | cid_ce, c3, ratio_unique_values, has_duplicate, sum_reoccurring_values |
+| **counts** | count_above_mean, count_below_mean, first_loc_max/min, last_loc_max/min, longest_strike_above/below_mean, number_crossings_mean, abs_sum_changes |
+
+```python
+from featcopilot.engines.timeseries import TimeSeriesEngine
+
+# Use enhanced time series features
+engine = TimeSeriesEngine(
+    features=["basic_stats", "distribution", "autocorrelation", "entropy", "energy", "complexity", "counts"]
+)
+X_ts_features = engine.fit_transform(time_series_data)
+```
 
 ### Running Hugging Face Benchmarks
 
