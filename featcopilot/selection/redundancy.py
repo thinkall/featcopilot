@@ -91,17 +91,19 @@ class RedundancyEliminator(BaseSelector):
         if importance_scores:
             self.importance_scores = importance_scores
 
-        # Compute correlation matrix
-        numeric_cols = X.select_dtypes(include=[np.number]).columns
+        # Compute correlation matrix (only for numeric columns)
+        numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
+        non_numeric_cols = X.select_dtypes(exclude=[np.number]).columns.tolist()
+
         self._correlation_matrix = X[numeric_cols].corr(method=self.method)
 
-        # Find redundant features
-        self._find_redundant_features(numeric_cols)
+        # Find redundant features among numeric columns
+        self._find_redundant_features(numeric_cols, non_numeric_cols)
 
         self._is_fitted = True
         return self
 
-    def _find_redundant_features(self, columns: list[str]) -> None:
+    def _find_redundant_features(self, columns: list[str], non_numeric_cols: list[str]) -> None:
         """Identify and mark redundant features for removal."""
         to_remove: set[str] = set()
         checked_pairs: set[tuple] = set()
@@ -151,8 +153,10 @@ class RedundancyEliminator(BaseSelector):
                             logger.info(f"Removing {col1}{orig_tag} (corr={corr:.3f} with {col2})")
                         break  # col1 is removed, move to next
 
-        # Selected features are those not removed
+        # Selected features are those not removed (numeric) plus all non-numeric columns
+        # Non-numeric columns (categorical/text) are always preserved
         self._selected_features = [c for c in columns if c not in to_remove]
+        self._selected_features.extend(non_numeric_cols)  # Always include non-numeric
         self._removed_features = list(to_remove)
 
         if self.verbose:
