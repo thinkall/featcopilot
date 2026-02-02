@@ -85,3 +85,4 @@ openfe_tmp_data*
 # Local development
 .feature_cache/
 test.py
+mlruns
