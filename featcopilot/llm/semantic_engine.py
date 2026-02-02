@@ -713,6 +713,350 @@ Return ONLY the JSON object, no other text. Generate 5-10 useful features."""
         """Get the feature set with metadata."""
         return self._feature_set
 
+    def standardize_categories(
+        self,
+        df: pd.DataFrame,
+        column: str,
+        target_categories: Optional[list[str]] = None,
+        similarity_threshold: float = 0.8,
+        max_categories: int = 50,
+        context: Optional[str] = None,
+    ) -> dict[str, str]:
+        """
+        Use LLM to standardize similar category values in a column.
+
+        Identifies semantically similar values (e.g., "software engineer", "Software Engineer",
+        "SDE") and maps them to a canonical form.
+
+        Parameters
+        ----------
+        df : DataFrame
+            Input DataFrame containing the column to standardize
+        column : str
+            Name of the categorical column to standardize
+        target_categories : list[str], optional
+            If provided, map values to these specific categories.
+            If None, LLM will infer appropriate canonical forms.
+        similarity_threshold : float, default=0.8
+            Minimum similarity for grouping (hint for LLM, not strictly enforced)
+        max_categories : int, default=50
+            Maximum number of unique values to process (for efficiency)
+        context : str, optional
+            Additional context about the data domain (e.g., "job titles in tech industry")
+
+        Returns
+        -------
+        mapping : dict[str, str]
+            Dictionary mapping original values to standardized values.
+            Only includes values that need transformation.
+
+        Examples
+        --------
+        >>> engine = SemanticEngine()
+        >>> mapping = engine.standardize_categories(
+        ...     df,
+        ...     column="job_title",
+        ...     context="job titles in software industry"
+        ... )
+        >>> print(mapping)
+        {'software engineer': 'Software Engineer', 'SDE': 'Software Engineer',
+         'Sr. SWE': 'Senior Software Engineer', 'data scientist': 'Data Scientist'}
+
+        >>> # Apply the mapping
+        >>> df_clean = engine.apply_category_mapping(df, "job_title", mapping)
+        """
+        if column not in df.columns:
+            raise ValueError(f"Column '{column}' not found in DataFrame")
+
+        self._ensure_client()
+
+        # Get unique values (excluding NaN)
+        unique_values = df[column].dropna().unique().tolist()
+
+        # Convert to strings and filter
+        unique_values = [str(v) for v in unique_values if v is not None and str(v).strip()]
+        unique_values = list(set(unique_values))  # Remove duplicates after string conversion
+
+        if len(unique_values) == 0:
+            if self.config.verbose:
+                logger.info(f"SemanticEngine: No valid values found in column '{column}'")
+            return {}
+
+        if len(unique_values) > max_categories:
+            if self.config.verbose:
+                logger.warning(
+                    f"SemanticEngine: Column '{column}' has {len(unique_values)} unique values, "
+                    f"truncating to {max_categories} most frequent"
+                )
+            # Get most frequent values
+            value_counts = df[column].value_counts().head(max_categories)
+            unique_values = [str(v) for v in value_counts.index.tolist()]
+
+        # Build and send prompt
+        prompt = self._build_category_standardization_prompt(
+            column=column,
+            unique_values=unique_values,
+            target_categories=target_categories,
+            context=context,
+            similarity_threshold=similarity_threshold,
+        )
+
+        try:
+            # Use the client's send_prompt method if available, otherwise use suggest_features
+            if hasattr(self._client, "send_prompt"):
+                response = self._client.send_prompt(prompt)
+            else:
+                # Fallback: use suggest_features with a specialized task
+                response_list = self._client.suggest_features(
+                    column_info={column: "categorical"},
+                    task_description=prompt,
+                    column_descriptions={column: context or "Categorical column to standardize"},
+                    domain=self.config.domain,
+                    max_suggestions=1,
+                )
+                # Extract mapping from response if possible
+                if response_list and isinstance(response_list, list) and len(response_list) > 0:
+                    first = response_list[0]
+                    if isinstance(first, dict) and "mapping" in first:
+                        return first["mapping"]
+                    response = str(first)
+                else:
+                    response = str(response_list)
+
+            mapping = self._parse_category_mapping(response, unique_values)
+
+            if self.config.verbose:
+                logger.info(f"SemanticEngine: Created mapping for {len(mapping)} values in column '{column}'")
+
+            return mapping
+
+        except Exception as e:
+            if self.config.verbose:
+                logger.error(f"SemanticEngine: Error standardizing categories: {e}")
+            return {}
+
+    def _build_category_standardization_prompt(
+        self,
+        column: str,
+        unique_values: list[str],
+        target_categories: Optional[list[str]] = None,
+        context: Optional[str] = None,
+        similarity_threshold: float = 0.8,
+    ) -> str:
+        """Build prompt for category standardization."""
+        values_str = "\n".join([f'- "{v}"' for v in unique_values[:100]])
+
+        target_str = ""
+        if target_categories:
+            target_str = f"""
+## Target Categories (map values to these)
+{chr(10).join([f'- "{c}"' for c in target_categories])}
+"""
+
+        context_str = f"\n## Context\n{context}" if context else ""
+
+        return f"""You are an expert data scientist specializing in data cleaning and standardization.
+
+## Task
+Analyze the following categorical values from column "{column}" and identify semantically similar values that should be standardized to a common form.
+
+## Unique Values in Column
+{values_str}
+{target_str}{context_str}
+
+## Requirements
+1. Identify values that represent the same concept (case variations, abbreviations, typos, synonyms)
+2. Map similar values to a single canonical/standardized form
+3. Use proper capitalization for the standardized form (e.g., "Software Engineer" not "software engineer")
+4. Common patterns to look for:
+   - Case variations: "Software Engineer" vs "software engineer" vs "SOFTWARE ENGINEER"
+   - Abbreviations: "SDE" vs "Software Development Engineer", "Sr." vs "Senior"
+   - Typos: "Enginer" vs "Engineer"
+   - Synonyms: "Developer" vs "Programmer" vs "Software Engineer"
+   - Formatting: "Data-Scientist" vs "Data Scientist" vs "DataScientist"
+5. Only include values that need mapping (exclude already-standardized values)
+6. Preserve values that are already properly formatted or don't have similar alternatives
+
+## Output Format
+Return ONLY a valid JSON object with this structure:
+{{
+  "mapping": {{
+    "original_value_1": "Standardized Value",
+    "original_value_2": "Standardized Value",
+    "typo_value": "Corrected Value"
+  }},
+  "groups": [
+    {{
+      "canonical": "Software Engineer",
+      "members": ["software engineer", "SDE", "Software Dev", "SW Engineer"]
+    }}
+  ]
+}}
+
+Return ONLY the JSON object, no markdown formatting, no explanation text."""
+
+    def _parse_category_mapping(
+        self,
+        response: str,
+        original_values: list[str],
+    ) -> dict[str, str]:
+        """Parse category mapping from LLM response."""
+        import json
+        import re
+
+        try:
+            # Clean response
+            response = response.strip()
+
+            # Remove markdown code blocks if present
+            if response.startswith("```"):
+                lines = response.split("\n")
+                # Find the JSON content between ``` markers
+                start_idx = 1 if lines[0].startswith("```") else 0
+                end_idx = len(lines)
+                for i, line in enumerate(lines[1:], 1):
+                    if line.strip() == "```":
+                        end_idx = i
+                        break
+                response = "\n".join(lines[start_idx:end_idx])
+
+            # Try to parse as JSON
+            data = json.loads(response)
+
+            # Extract mapping from response
+            if isinstance(data, dict):
+                if "mapping" in data:
+                    mapping = data["mapping"]
+                elif "groups" in data:
+                    # Build mapping from groups
+                    mapping = {}
+                    for group in data["groups"]:
+                        canonical = group.get("canonical", "")
+                        members = group.get("members", [])
+                        for member in members:
+                            if member != canonical:
+                                mapping[member] = canonical
+                else:
+                    # Assume the entire dict is the mapping
+                    mapping = data
+            else:
+                mapping = {}
+
+            # Validate mapping - only keep mappings for values that exist
+            original_set = set(original_values)
+            original_lower = {v.lower(): v for v in original_values}
+
+            validated_mapping = {}
+            for orig, standardized in mapping.items():
+                # Check exact match or case-insensitive match
+                if orig in original_set:
+                    validated_mapping[orig] = standardized
+                elif orig.lower() in original_lower:
+                    actual_orig = original_lower[orig.lower()]
+                    validated_mapping[actual_orig] = standardized
+
+            return validated_mapping
+
+        except json.JSONDecodeError:
+            # Try to extract JSON from response
+            json_match = re.search(r"\{[\s\S]*\}", response)
+            if json_match:
+                try:
+                    return self._parse_category_mapping(json_match.group(), original_values)
+                except Exception:
+                    pass
+
+            if self.config.verbose:
+                logger.warning("SemanticEngine: Could not parse category mapping response")
+            return {}
+
+    def apply_category_mapping(
+        self,
+        df: pd.DataFrame,
+        column: str,
+        mapping: dict[str, str],
+        inplace: bool = False,
+    ) -> pd.DataFrame:
+        """
+        Apply a category mapping to standardize values in a DataFrame column.
+
+        Parameters
+        ----------
+        df : DataFrame
+            Input DataFrame
+        column : str
+            Column to transform
+        mapping : dict[str, str]
+            Mapping from original values to standardized values
+        inplace : bool, default=False
+            If True, modify DataFrame in place
+
+        Returns
+        -------
+        DataFrame
+            DataFrame with standardized column values
+        """
+        if column not in df.columns:
+            raise ValueError(f"Column '{column}' not found in DataFrame")
+
+        if not inplace:
+            df = df.copy()
+
+        # Apply mapping, keeping original values for unmapped entries
+        df[column] = df[column].apply(lambda x: mapping.get(str(x), x) if pd.notna(x) else x)
+
+        if self.config.verbose:
+            logger.info(f"SemanticEngine: Applied mapping to column '{column}'")
+
+        return df
+
+    def standardize_multiple_columns(
+        self,
+        df: pd.DataFrame,
+        columns: list[str],
+        contexts: Optional[dict[str, str]] = None,
+        **kwargs,
+    ) -> tuple[pd.DataFrame, dict[str, dict[str, str]]]:
+        """
+        Standardize multiple categorical columns at once.
+
+        Parameters
+        ----------
+        df : DataFrame
+            Input DataFrame
+        columns : list[str]
+            List of column names to standardize
+        contexts : dict[str, str], optional
+            Context descriptions for each column
+        **kwargs
+            Additional arguments passed to standardize_categories
+
+        Returns
+        -------
+        df_clean : DataFrame
+            DataFrame with standardized columns
+        all_mappings : dict[str, dict[str, str]]
+            Dictionary of mappings for each column
+        """
+        contexts = contexts or {}
+        all_mappings = {}
+        result_df = df.copy()
+
+        for col in columns:
+            if col not in df.columns:
+                if self.config.verbose:
+                    logger.warning(f"SemanticEngine: Column '{col}' not found, skipping")
+                continue
+
+            context = contexts.get(col)
+            mapping = self.standardize_categories(result_df, col, context=context, **kwargs)
+            all_mappings[col] = mapping
+
+            if mapping:
+                result_df = self.apply_category_mapping(result_df, col, mapping)
+
+        return result_df, all_mappings
+
     def __del__(self):
         """Clean up client on deletion."""
         if self._client:
