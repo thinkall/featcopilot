@@ -166,6 +166,7 @@ class TabularEngine(BaseEngine):
         self._target_encode_columns = []
         self._onehot_categories = {}
         self._target_encode_maps = {}
+        self._target_label_encoder = None  # For string targets
 
         # Find categorical columns (object or category dtype)
         cat_cols = X.select_dtypes(include=["object", "category"]).columns.tolist()
@@ -174,9 +175,20 @@ class TabularEngine(BaseEngine):
             return
 
         n_rows = len(X)
+        y_encoded = None
         if y is not None:
             y_series = pd.Series(y) if not isinstance(y, pd.Series) else y
-            self._target_encode_global_mean = float(y_series.mean())
+
+            # Check if target is string/categorical - encode it for target encoding
+            if y_series.dtype == "object" or y_series.dtype.name == "category":
+                from sklearn.preprocessing import LabelEncoder
+
+                self._target_label_encoder = LabelEncoder()
+                y_encoded = pd.Series(self._target_label_encoder.fit_transform(y_series.astype(str)))
+                self._target_encode_global_mean = float(y_encoded.mean())
+            else:
+                y_encoded = y_series
+                self._target_encode_global_mean = float(y_series.mean())
 
         for col in cat_cols:
             n_unique = X[col].nunique()
@@ -202,11 +214,11 @@ class TabularEngine(BaseEngine):
                         f"({len(valid_categories)} categories, ratio={ratio:.4f})"
                     )
 
-            elif ratio <= self.config.target_encode_ratio_threshold and y is not None:
+            elif ratio <= self.config.target_encode_ratio_threshold and y_encoded is not None:
                 # Target encoding for medium cardinality
                 self._target_encode_columns.append(col)
-                # Compute target mean per category
-                df_temp = pd.DataFrame({"col": X[col], "y": y_series})
+                # Compute target mean per category (using encoded target for string labels)
+                df_temp = pd.DataFrame({"col": X[col], "y": y_encoded})
                 target_means = df_temp.groupby("col")["y"].mean().to_dict()
                 # Only keep valid categories
                 self._target_encode_maps[col] = {k: v for k, v in target_means.items() if k in valid_categories}
