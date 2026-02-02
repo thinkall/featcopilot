@@ -115,7 +115,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         engines: Optional[list[str]] = None,
         max_features: Optional[int] = None,
         selection_methods: Optional[list[str]] = None,
-        correlation_threshold: float = 0.98,
+        correlation_threshold: float = 0.95,
         llm_config: Optional[dict[str, Any]] = None,
         verbose: bool = False,
     ):

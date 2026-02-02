@@ -44,7 +44,7 @@ class FeatureSelector(BaseSelector):
         self,
         methods: Optional[list[str]] = None,
         max_features: Optional[int] = None,
-        correlation_threshold: float = 0.98,
+        correlation_threshold: float = 0.95,
         combination: str = "union",
         original_features: Optional[set[str]] = None,
         verbose: bool = False,
