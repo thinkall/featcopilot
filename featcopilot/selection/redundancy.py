@@ -24,6 +24,10 @@ class RedundancyEliminator(BaseSelector):
         Correlation threshold for redundancy
     method : str, default='pearson'
         Correlation method ('pearson', 'spearman', 'kendall')
+    original_features : set[str], optional
+        Set of original feature names to prefer over derived features
+    original_preference : float, default=0.1
+        Bonus added to importance scores of original features to prefer them
 
     Examples
     --------
@@ -36,6 +40,8 @@ class RedundancyEliminator(BaseSelector):
         correlation_threshold: float = 0.95,
         method: str = "pearson",
         importance_scores: Optional[dict[str, float]] = None,
+        original_features: Optional[set[str]] = None,
+        original_preference: float = 0.1,
         verbose: bool = False,
         **kwargs,
     ):
@@ -43,6 +49,8 @@ class RedundancyEliminator(BaseSelector):
         self.correlation_threshold = correlation_threshold
         self.method = method
         self.importance_scores = importance_scores or {}
+        self.original_features = original_features or set()
+        self.original_preference = original_preference
         self.verbose = verbose
         self._correlation_matrix: Optional[pd.DataFrame] = None
 
@@ -115,18 +123,32 @@ class RedundancyEliminator(BaseSelector):
                 corr = abs(self._correlation_matrix.loc[col1, col2])
 
                 if corr >= self.correlation_threshold:
-                    # Decide which to remove based on importance
+                    # Decide which to remove based on importance + original feature preference
                     imp1 = self.importance_scores.get(col1, 0)
                     imp2 = self.importance_scores.get(col2, 0)
+
+                    # Add preference bonus for original features
+                    # This ensures original features are preferred over derived ones
+                    is_orig1 = col1 in self.original_features
+                    is_orig2 = col2 in self.original_features
+
+                    if is_orig1 and not is_orig2:
+                        # col1 is original, col2 is derived - prefer col1
+                        imp1 += self.original_preference
+                    elif is_orig2 and not is_orig1:
+                        # col2 is original, col1 is derived - prefer col2
+                        imp2 += self.original_preference
 
                     if imp1 >= imp2:
                         to_remove.add(col2)
                         if self.verbose:
-                            logger.info(f"Removing {col2} (corr={corr:.3f} with {col1})")
+                            orig_tag = " (derived)" if not is_orig2 else ""
+                            logger.info(f"Removing {col2}{orig_tag} (corr={corr:.3f} with {col1})")
                     else:
                         to_remove.add(col1)
                         if self.verbose:
-                            logger.info(f"Removing {col1} (corr={corr:.3f} with {col2})")
+                            orig_tag = " (derived)" if not is_orig1 else ""
+                            logger.info(f"Removing {col1}{orig_tag} (corr={corr:.3f} with {col2})")
                         break  # col1 is removed, move to next
 
         # Selected features are those not removed

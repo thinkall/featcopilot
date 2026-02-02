@@ -29,6 +29,9 @@ class SemanticEngineConfig(EngineConfig):
     api_key: Optional[str] = Field(default=None, description="API key for litellm backend")
     api_base: Optional[str] = Field(default=None, description="Custom API base URL for litellm")
     enable_text_features: bool = Field(default=True, description="Generate ML features from text columns")
+    keep_text_columns: bool = Field(
+        default=True, description="Keep original text columns (for models that handle them natively)"
+    )
     text_feature_types: list[str] = Field(
         default_factory=lambda: ["sentiment", "readability", "linguistic", "semantic"],
         description="Types of text features to generate",
@@ -607,12 +610,13 @@ Return ONLY the JSON object, no other text. Generate 5-10 useful features."""
         # Handle infinities and NaNs
         result = result.replace([np.inf, -np.inf], np.nan)
 
-        # Drop original text columns (keep only numerical features)
-        cols_to_drop = [col for col in self._text_columns if col in result.columns]
-        if cols_to_drop:
-            result = result.drop(columns=cols_to_drop)
-            if self.config.verbose:
-                logger.info(f"SemanticEngine: Dropped {len(cols_to_drop)} text columns, keeping numerical features")
+        # Optionally drop original text columns (only if not keeping them for downstream models)
+        if not self.config.keep_text_columns:
+            cols_to_drop = [col for col in self._text_columns if col in result.columns]
+            if cols_to_drop:
+                result = result.drop(columns=cols_to_drop)
+                if self.config.verbose:
+                    logger.info(f"SemanticEngine: Dropped {len(cols_to_drop)} text columns, keeping numerical features")
 
         self._feature_names = successful_features
 

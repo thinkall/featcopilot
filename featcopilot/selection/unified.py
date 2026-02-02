@@ -44,8 +44,9 @@ class FeatureSelector(BaseSelector):
         self,
         methods: Optional[list[str]] = None,
         max_features: Optional[int] = None,
-        correlation_threshold: float = 0.95,
+        correlation_threshold: float = 0.98,
         combination: str = "union",
+        original_features: Optional[set[str]] = None,
         verbose: bool = False,
         **kwargs,
     ):
@@ -54,6 +55,7 @@ class FeatureSelector(BaseSelector):
         self.max_features = max_features
         self.correlation_threshold = correlation_threshold
         self.combination = combination  # 'union' or 'intersection'
+        self.original_features = original_features or set()
         self.verbose = verbose
         self._selectors: dict[str, BaseSelector] = {}
         self._method_scores: dict[str, dict[str, float]] = {}
@@ -76,6 +78,10 @@ class FeatureSelector(BaseSelector):
         X = self._validate_input(X)
         y = np.array(y)
 
+        # Identify categorical/text columns (can't be scored by numeric methods)
+        categorical_cols = X.select_dtypes(include=["object", "category"]).columns.tolist()
+        numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
+
         # Initialize and fit each selector
         for method in self.methods:
             selector = self._create_selector(method)
@@ -86,11 +92,27 @@ class FeatureSelector(BaseSelector):
         # Combine scores from all methods
         self._combine_scores(X.columns.tolist())
 
+        # Give categorical columns a minimum score so they're not filtered out
+        # Original categorical columns are important for models that can handle them
+        if categorical_cols:
+            # Get the median score of numeric features to use as baseline for categorical
+            numeric_scores = [v for k, v in self._feature_scores.items() if k in numeric_cols and v > 0]
+            if numeric_scores:
+                baseline_score = np.median(numeric_scores)
+            else:
+                baseline_score = 0.5  # Default if no numeric scores
+
+            for col in categorical_cols:
+                if col in self.original_features:
+                    # Original categorical columns get a baseline score
+                    self._feature_scores[col] = max(self._feature_scores.get(col, 0), baseline_score)
+
         # Apply redundancy elimination
         if self.correlation_threshold < 1.0:
             eliminator = RedundancyEliminator(
                 correlation_threshold=self.correlation_threshold,
                 importance_scores=self._feature_scores,
+                original_features=self.original_features,
                 verbose=self.verbose,
             )
             eliminator.fit(X)
@@ -149,13 +171,29 @@ class FeatureSelector(BaseSelector):
         """Make final feature selection."""
         sorted_features = sorted(self._feature_scores.items(), key=lambda x: x[1], reverse=True)
 
-        if self.max_features is not None:
-            sorted_features = sorted_features[: self.max_features]
+        # Always include original features first
+        original_selected = []
+        derived_selected = []
 
-        self._selected_features = [name for name, _ in sorted_features]
+        for name, _score in sorted_features:
+            if name in self.original_features:
+                original_selected.append(name)
+            else:
+                derived_selected.append(name)
+
+        # Apply max_features limit only to derived features
+        if self.max_features is not None:
+            # Reserve slots for original features, then fill with top derived
+            n_derived = max(0, self.max_features - len(original_selected))
+            derived_selected = derived_selected[:n_derived]
+
+        self._selected_features = original_selected + derived_selected
 
         if self.verbose:
-            logger.info(f"FeatureSelector: Selected {len(self._selected_features)} features")
+            logger.info(
+                f"FeatureSelector: Selected {len(self._selected_features)} features "
+                f"({len(original_selected)} original + {len(derived_selected)} derived)"
+            )
 
     def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
         """Select features from data."""

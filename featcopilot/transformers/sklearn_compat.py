@@ -115,7 +115,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         engines: Optional[list[str]] = None,
         max_features: Optional[int] = None,
         selection_methods: Optional[list[str]] = None,
-        correlation_threshold: float = 0.95,
+        correlation_threshold: float = 0.98,
         llm_config: Optional[dict[str, Any]] = None,
         verbose: bool = False,
     ):
@@ -294,12 +294,19 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         self.fit(X, y, column_descriptions, task_description, **fit_params)
         result = self.transform(X)
 
+        # Track original features (input columns) vs derived features
+        if isinstance(X, np.ndarray):
+            original_features = {f"feature_{i}" for i in range(X.shape[1])}
+        else:
+            original_features = set(X.columns)
+
         # Apply feature selection if enabled and y is provided
         if apply_selection and y is not None and self.max_features:
             self._selector = FeatureSelector(
                 methods=self.selection_methods,
                 max_features=self.max_features,
                 correlation_threshold=self.correlation_threshold,
+                original_features=original_features,
                 verbose=self.verbose,
             )
             result = self._selector.fit_transform(result, y)

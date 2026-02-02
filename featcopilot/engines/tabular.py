@@ -32,6 +32,9 @@ class TabularEngineConfig(EngineConfig):
     min_unique_values: int = Field(default=5, description="Min unique values for continuous")
     # Categorical encoding settings
     encode_categorical: bool = Field(default=True, description="Auto-encode categorical columns")
+    keep_original_categorical: bool = Field(
+        default=True, description="Keep original categorical columns (for models that handle them natively)"
+    )
     onehot_ratio_threshold: float = Field(default=0.05, description="Max n_unique/n_rows ratio for one-hot encoding")
     target_encode_ratio_threshold: float = Field(
         default=0.5, description="Max n_unique/n_rows ratio for target encoding"
@@ -414,8 +417,9 @@ class TabularEngine(BaseEngine):
             # Add "other" column for rare categories
             col_other = f"{col}_other"
             result[col_other] = (~result[col].isin(categories)).astype(int)
-            # Drop original column
-            result = result.drop(columns=[col])
+            # Drop original column only if not keeping original categorical
+            if not self.config.keep_original_categorical:
+                result = result.drop(columns=[col])
 
         # Target encoding
         for col in self._target_encode_columns:
@@ -424,8 +428,9 @@ class TabularEngine(BaseEngine):
             encode_map = self._target_encode_maps.get(col, {})
             col_name = f"{col}_target_encoded"
             result[col_name] = result[col].map(encode_map).fillna(self._target_encode_global_mean)
-            # Drop original column
-            result = result.drop(columns=[col])
+            # Drop original column only if not keeping original categorical
+            if not self.config.keep_original_categorical:
+                result = result.drop(columns=[col])
 
         return result
 
