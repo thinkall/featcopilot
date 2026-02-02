@@ -98,10 +98,22 @@ class StatisticalSelector(BaseSelector):
     def _compute_mutual_info(self, X: pd.DataFrame, y: np.ndarray) -> np.ndarray:
         """Compute mutual information scores."""
         from sklearn.feature_selection import mutual_info_classif, mutual_info_regression
+        from sklearn.preprocessing import LabelEncoder
+
+        # Encode string labels if needed
+        y_encoded = y
+        if y.dtype == object or y.dtype.kind in ("U", "S"):
+            le = LabelEncoder()
+            y_encoded = le.fit_transform(y)
 
         # Determine if classification or regression
-        unique_y = len(np.unique(y))
-        is_classification = unique_y < 20 and y.dtype in [np.int32, np.int64, "object"]
+        # Check if target is categorical (object type) or has discrete integer values
+        unique_y = len(np.unique(y_encoded))
+        is_classification = (
+            y.dtype == object
+            or y.dtype.kind in ("U", "S")
+            or (np.issubdtype(y_encoded.dtype, np.integer) and unique_y <= len(y_encoded) * 0.1)
+        )
 
         # Filter to numeric columns only
         numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
@@ -112,9 +124,9 @@ class StatisticalSelector(BaseSelector):
             numeric_indices = [X.columns.get_loc(c) for c in numeric_cols]
 
             if is_classification:
-                numeric_scores = mutual_info_classif(X_numeric, y, random_state=42)
+                numeric_scores = mutual_info_classif(X_numeric, y_encoded, random_state=42)
             else:
-                numeric_scores = mutual_info_regression(X_numeric, y, random_state=42)
+                numeric_scores = mutual_info_regression(X_numeric, y_encoded, random_state=42)
 
             for i, idx in enumerate(numeric_indices):
                 scores[idx] = numeric_scores[i]
@@ -124,9 +136,21 @@ class StatisticalSelector(BaseSelector):
     def _compute_f_test(self, X: pd.DataFrame, y: np.ndarray) -> np.ndarray:
         """Compute F-test scores."""
         from sklearn.feature_selection import f_classif, f_regression
+        from sklearn.preprocessing import LabelEncoder
 
-        unique_y = len(np.unique(y))
-        is_classification = unique_y < 20
+        # Encode string labels if needed
+        y_encoded = y
+        if y.dtype == object or y.dtype.kind in ("U", "S"):
+            le = LabelEncoder()
+            y_encoded = le.fit_transform(y)
+
+        # Determine if classification or regression
+        unique_y = len(np.unique(y_encoded))
+        is_classification = (
+            y.dtype == object
+            or y.dtype.kind in ("U", "S")
+            or (np.issubdtype(y_encoded.dtype, np.integer) and unique_y <= len(y_encoded) * 0.1)
+        )
 
         # Filter to numeric columns only
         numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
@@ -137,9 +161,9 @@ class StatisticalSelector(BaseSelector):
             numeric_indices = [X.columns.get_loc(c) for c in numeric_cols]
 
             if is_classification:
-                numeric_scores, _ = f_classif(X_numeric, y)
+                numeric_scores, _ = f_classif(X_numeric, y_encoded)
             else:
-                numeric_scores, _ = f_regression(X_numeric, y)
+                numeric_scores, _ = f_regression(X_numeric, y_encoded)
 
             # Handle NaN scores
             numeric_scores = np.nan_to_num(numeric_scores, 0)
@@ -152,6 +176,13 @@ class StatisticalSelector(BaseSelector):
     def _compute_chi2(self, X: pd.DataFrame, y: np.ndarray) -> np.ndarray:
         """Compute chi-square scores (for non-negative features)."""
         from sklearn.feature_selection import chi2
+        from sklearn.preprocessing import LabelEncoder
+
+        # Encode string labels if needed
+        y_encoded = y
+        if y.dtype == object or y.dtype.kind in ("U", "S"):
+            le = LabelEncoder()
+            y_encoded = le.fit_transform(y)
 
         # Filter to numeric columns only
         numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
@@ -165,7 +196,7 @@ class StatisticalSelector(BaseSelector):
             X_positive = X_numeric - X_numeric.min(axis=0) + 1e-8
 
             try:
-                numeric_scores, _ = chi2(X_positive, y)
+                numeric_scores, _ = chi2(X_positive, y_encoded)
                 numeric_scores = np.nan_to_num(numeric_scores, 0)
             except Exception:
                 # Fallback to mutual information
@@ -178,13 +209,21 @@ class StatisticalSelector(BaseSelector):
 
     def _compute_correlation(self, X: pd.DataFrame, y: np.ndarray) -> np.ndarray:
         """Compute absolute correlation with target."""
+        from sklearn.preprocessing import LabelEncoder
+
+        # Encode string labels if needed
+        y_encoded = y
+        if y.dtype == object or y.dtype.kind in ("U", "S"):
+            le = LabelEncoder()
+            y_encoded = le.fit_transform(y).astype(float)
+
         numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
         scores = np.zeros(len(X.columns))
 
         for col in numeric_cols:
             try:
                 idx = X.columns.get_loc(col)
-                corr = np.abs(np.corrcoef(X[col].fillna(0).values, y)[0, 1])
+                corr = np.abs(np.corrcoef(X[col].fillna(0).values, y_encoded)[0, 1])
                 scores[idx] = corr if not np.isnan(corr) else 0
             except Exception:
                 pass

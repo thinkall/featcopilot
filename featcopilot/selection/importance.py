@@ -66,23 +66,51 @@ class ImportanceSelector(BaseSelector):
         -------
         self : ImportanceSelector
         """
+        from sklearn.preprocessing import LabelEncoder
+
         X = self._validate_input(X)
         y = np.array(y)
 
+        # Encode string labels if needed
+        y_encoded = y
+        if y.dtype == object or y.dtype.kind in ("U", "S"):
+            le = LabelEncoder()
+            y_encoded = le.fit_transform(y)
+
         # Determine task type
-        unique_y = len(np.unique(y))
-        is_classification = unique_y < 20 and not np.issubdtype(y.dtype, np.floating)
+        unique_y = len(np.unique(y_encoded))
+        is_classification = (
+            y.dtype == object
+            or y.dtype.kind in ("U", "S")
+            or (np.issubdtype(y_encoded.dtype, np.integer) and unique_y <= len(y_encoded) * 0.1)
+        )
 
         # Create model
         self._model = self._create_model(is_classification)
 
-        # Fit model
-        X_array = X.fillna(0).values
-        self._model.fit(X_array, y)
+        # Filter to numeric columns only
+        numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
+        self._numeric_cols = numeric_cols
 
-        # Get importances
+        if not numeric_cols:
+            # No numeric columns, return empty selection
+            self._feature_scores = {col: 0.0 for col in X.columns}
+            self._select_features()
+            self._is_fitted = True
+            return self
+
+        X_numeric = X[numeric_cols].fillna(0).values
+        self._model.fit(X_numeric, y_encoded)
+
+        # Get importances for numeric columns
         importances = self._model.feature_importances_
-        self._feature_scores = dict(zip(X.columns, importances))
+        self._feature_scores = {}
+        for col in X.columns:
+            if col in numeric_cols:
+                idx = numeric_cols.index(col)
+                self._feature_scores[col] = importances[idx]
+            else:
+                self._feature_scores[col] = 0.0
 
         # Select features
         self._select_features()
