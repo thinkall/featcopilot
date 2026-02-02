@@ -103,12 +103,21 @@ class StatisticalSelector(BaseSelector):
         unique_y = len(np.unique(y))
         is_classification = unique_y < 20 and y.dtype in [np.int32, np.int64, "object"]
 
-        X_array = X.fillna(0).values
+        # Filter to numeric columns only
+        numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
+        scores = np.zeros(len(X.columns))
 
-        if is_classification:
-            scores = mutual_info_classif(X_array, y, random_state=42)
-        else:
-            scores = mutual_info_regression(X_array, y, random_state=42)
+        if numeric_cols:
+            X_numeric = X[numeric_cols].fillna(0).values
+            numeric_indices = [X.columns.get_loc(c) for c in numeric_cols]
+
+            if is_classification:
+                numeric_scores = mutual_info_classif(X_numeric, y, random_state=42)
+            else:
+                numeric_scores = mutual_info_regression(X_numeric, y, random_state=42)
+
+            for i, idx in enumerate(numeric_indices):
+                scores[idx] = numeric_scores[i]
 
         return scores
 
@@ -119,46 +128,68 @@ class StatisticalSelector(BaseSelector):
         unique_y = len(np.unique(y))
         is_classification = unique_y < 20
 
-        X_array = X.fillna(0).values
+        # Filter to numeric columns only
+        numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
+        scores = np.zeros(len(X.columns))
 
-        if is_classification:
-            scores, _ = f_classif(X_array, y)
-        else:
-            scores, _ = f_regression(X_array, y)
+        if numeric_cols:
+            X_numeric = X[numeric_cols].fillna(0).values
+            numeric_indices = [X.columns.get_loc(c) for c in numeric_cols]
 
-        # Handle NaN scores
-        scores = np.nan_to_num(scores, 0)
+            if is_classification:
+                numeric_scores, _ = f_classif(X_numeric, y)
+            else:
+                numeric_scores, _ = f_regression(X_numeric, y)
+
+            # Handle NaN scores
+            numeric_scores = np.nan_to_num(numeric_scores, 0)
+
+            for i, idx in enumerate(numeric_indices):
+                scores[idx] = numeric_scores[i]
+
         return scores
 
     def _compute_chi2(self, X: pd.DataFrame, y: np.ndarray) -> np.ndarray:
         """Compute chi-square scores (for non-negative features)."""
         from sklearn.feature_selection import chi2
 
-        X_array = X.fillna(0).values
+        # Filter to numeric columns only
+        numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
+        scores = np.zeros(len(X.columns))
 
-        # Chi2 requires non-negative values
-        X_positive = X_array - X_array.min(axis=0) + 1e-8
+        if numeric_cols:
+            X_numeric = X[numeric_cols].fillna(0).values
+            numeric_indices = [X.columns.get_loc(c) for c in numeric_cols]
 
-        try:
-            scores, _ = chi2(X_positive, y)
-            scores = np.nan_to_num(scores, 0)
-        except Exception:
-            # Fallback to mutual information
-            scores = self._compute_mutual_info(X, y)
+            # Chi2 requires non-negative values
+            X_positive = X_numeric - X_numeric.min(axis=0) + 1e-8
+
+            try:
+                numeric_scores, _ = chi2(X_positive, y)
+                numeric_scores = np.nan_to_num(numeric_scores, 0)
+            except Exception:
+                # Fallback to mutual information
+                return self._compute_mutual_info(X, y)
+
+            for i, idx in enumerate(numeric_indices):
+                scores[idx] = numeric_scores[i]
 
         return scores
 
     def _compute_correlation(self, X: pd.DataFrame, y: np.ndarray) -> np.ndarray:
         """Compute absolute correlation with target."""
-        scores = []
-        for col in X.columns:
-            try:
-                corr = np.abs(np.corrcoef(X[col].fillna(0).values, y)[0, 1])
-                scores.append(corr if not np.isnan(corr) else 0)
-            except Exception:
-                scores.append(0)
+        numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
+        scores = np.zeros(len(X.columns))
 
-        return np.array(scores)
+        for col in numeric_cols:
+            try:
+                idx = X.columns.get_loc(col)
+                corr = np.abs(np.corrcoef(X[col].fillna(0).values, y)[0, 1])
+                scores[idx] = corr if not np.isnan(corr) else 0
+            except Exception:
+                pass
+
+        return scores
 
     def _select_features(self) -> None:
         """Select features based on scores."""

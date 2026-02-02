@@ -155,6 +155,7 @@ def run_flaml_benchmark(
         y_train,
         task="classification",
         time_budget=time_budget,
+        estimator_list=['lgbm', 'rf', 'xgboost', 'extra_tree', 'xgb_limitdepth', 'sgd', 'lrl1'],
         seed=42,
         verbose=0,
         force_cancel=True,
