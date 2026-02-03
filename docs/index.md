@@ -11,23 +11,23 @@
 
 <div class="grid cards" markdown>
 
--   :material-chart-areaspline:{ .lg .middle } __+49% on Text Data__
+-   :material-rocket-launch:{ .lg .middle } __+12.37% F1 on Spotify__
 
     ---
 
-    News headline classification improved from 40.8% to 60.8% accuracy
+    Genre classification with LLM + Text + Tabular engines (flagship benchmark)
 
--   :material-robot:{ .lg .middle } __+19.7% with LLM Engine__
-
-    ---
-
-    Retail demand forecasting with semantic feature generation
-
--   :material-check-all:{ .lg .middle } __12/12 Text Wins__
+-   :material-brain:{ .lg .middle } __+32.54% with LLM Engine__
 
     ---
 
-    100% improvement rate on text/semantic classification tasks
+    Average improvement on INRIA benchmark suite (100% win rate)
+
+-   :material-scale-balance:{ .lg .middle } __Competitive & Fast__
+
+    ---
+
+    Matches AutoFeat accuracy at 1000x speed (1s vs 1247s)
 
 -   :material-speedometer:{ .lg .middle } __Flexible Speed__
 

@@ -10,26 +10,33 @@ FeatCopilot automatically generates, selects, and explains predictive features u
 
 ## 📊 Benchmark Highlights
 
-### Tabular Engine (Fast Mode - <1s)
+### Flagship Result: Spotify Genre Classification
 
-| Task Type | Average Improvement | Best Case |
-|-----------|--------------------:|----------:|
-| **Text Classification** | **+12.44%** | +49.02% (News Headlines) |
-| Time Series | +1.51% | +12.12% (Retail Demand) |
-| Classification | +0.54% | +4.35% |
-| Regression | +0.65% | +5.57% |
+| Metric | Baseline | +FeatCopilot | Improvement |
+|--------|----------|--------------|-------------|
+| **F1 (weighted)** | 0.8243 | **0.9263** | **+12.37%** |
+| Features | 15 | 50 | +35 |
 
-### LLM Engine (With LiteLLM - 30-60s)
+Using LLM + Text + Tabular engines on 4-genre classification task.
 
-| Task Type | Average Improvement | Best Case |
-|-----------|--------------------:|----------:|
-| **Regression** | **+7.79%** | +19.66% (Retail Demand) |
-| Classification | +2.38% | +2.87% |
+### INRIA Benchmark Suite
 
-- ✅ **12/12 wins** on text classification (tabular mode)
-- 🧠 **+19.66% max improvement** with LLM-powered features
-- ⚡ **<1 second** (tabular) or **30-60s** (with LLM) processing time
-- 📈 Largest gains with simple models (LogisticRegression, Ridge)
+| Configuration | Datasets | Avg Improvement | Win Rate |
+|---------------|----------|-----------------|----------|
+| Tabular + LLM | 5 | **+32.54%** | 100% |
+| Tabular Only | 10 | +9.20% | 90% |
+
+### Tool Comparison
+
+| Tool | Avg Improvement | FE Time |
+|------|-----------------|---------|
+| **FeatCopilot** | +0.21% | **1.03s** |
+| AutoFeat | +0.48% | 1246.91s |
+| Featuretools | +0.27% | 0.11s |
+
+- ✅ **Competitive accuracy** with specialized tools
+- ⚡ **1000x faster** than AutoFeat
+- 🧠 **+32.54% max improvement** with LLM-powered features
 
 [View Full Benchmark Results](https://thinkall.github.io/featcopilot/user-guide/benchmarks/)
 
