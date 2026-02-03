@@ -18,9 +18,9 @@ FeatCopilot has been extensively benchmarked to demonstrate its effectiveness in
 
     ---
 
-    **+32.54%** average improvement with LLM+Tabular engines
+    **+11.03%** max improvement with LLM+Tabular engines
 
-    **100%** win rate on INRIA benchmark datasets
+    **+2.42%** average on INRIA benchmark (4/5 wins)
 
 -   :material-scale-balance:{ .lg .middle } __vs Other Tools__
 
@@ -86,39 +86,39 @@ The INRIA benchmark evaluates FeatCopilot on 10 diverse datasets from the OpenML
 
 | Dataset | Task | Samples | Features | Best Baseline | Best +FC | Improvement |
 |---------|------|---------|----------|---------------|----------|-------------|
-| wine_quality | regression | 6,497 | 11→80 | 0.4596 | 0.4599 | **+27.20%** |
-| bike_sharing | regression | 17,379 | 6→37 | 0.6891 | 0.6929 | **+23.92%** |
-| cpu_act | regression | 8,192 | 21→169 | 0.9792 | 0.9795 | **+18.86%** |
-| houses | regression | 20,640 | 8→42 | 0.8234 | 0.8146 | **+11.32%** |
-| abalone | regression | 4,177 | 7→30 | 0.5287 | 0.5768 | **+9.39%** |
-| jannis | classification | 30,000 | 54→193 | 0.7782 | 0.7773 | +1.25% |
-| diamonds | regression | 30,000 | 6→15 | 0.9464 | 0.9470 | +1.20% |
+| abalone | regression | 4,177 | 7→30 | 0.5287 | 0.5768 | **+9.10%** |
 | credit | classification | 16,714 | 10→95 | 0.7765 | 0.7828 | +0.81% |
-| bioresponse | classification | 3,434 | 419→415 | 0.7813 | 0.7668 | +0.80% |
-| eye_movements | classification | 7,608 | 23→193 | 0.6275 | 0.6103 | -2.73% |
+| bike_sharing | regression | 17,379 | 6→37 | 0.6891 | 0.6929 | +0.55% |
+| wine_quality | regression | 6,497 | 11→80 | 0.4596 | 0.4599 | +0.07% |
+| diamonds | regression | 30,000 | 6→15 | 0.9464 | 0.9470 | +0.06% |
+| cpu_act | regression | 8,192 | 21→169 | 0.9792 | 0.9795 | +0.03% |
+| jannis | classification | 30,000 | 54→193 | 0.7782 | 0.7773 | -0.12% |
+| houses | regression | 20,640 | 8→42 | 0.8234 | 0.8146 | -1.07% |
+| bioresponse | classification | 3,434 | 419→415 | 0.7813 | 0.7668 | -1.86% |
+| eye_movements | classification | 7,608 | 23→193 | 0.6275 | 0.6103 | -2.74% |
 
 **Summary (Tabular Only)**:
-- **Datasets improved**: 9/10 (90%)
-- **Average improvement**: +9.20%
-- **Maximum improvement**: +27.20% (wine_quality)
+- **Datasets improved**: 6/10 (60%)
+- **Average improvement**: +0.48%
+- **Maximum improvement**: +9.10% (abalone)
 
 ### Tabular + LLM Engines
 
 | Dataset | Task | Samples | Features | Best Baseline | Best +FC | Improvement |
 |---------|------|---------|----------|---------------|----------|-------------|
-| bike_sharing | regression | 17,379 | 6→54 | 0.6891 | 0.6918 | **+82.88%** |
-| cpu_act | regression | 8,192 | 21→193 | 0.9792 | 0.9797 | **+28.17%** |
-| wine_quality | regression | 6,497 | 11→87 | 0.4596 | 0.4671 | **+28.15%** |
-| houses | regression | 20,640 | 8→49 | 0.8234 | 0.8153 | **+12.20%** |
-| abalone | regression | 4,177 | 7→41 | 0.5287 | 0.5870 | **+11.31%** |
+| abalone | regression | 4,177 | 7→41 | 0.5287 | 0.5870 | **+11.03%** |
+| wine_quality | regression | 6,497 | 11→87 | 0.4596 | 0.4671 | +1.63% |
+| bike_sharing | regression | 17,379 | 6→54 | 0.6891 | 0.6918 | +0.39% |
+| cpu_act | regression | 8,192 | 21→193 | 0.9792 | 0.9797 | +0.05% |
+| houses | regression | 20,640 | 8→49 | 0.8234 | 0.8153 | -0.98% |
 
 **Summary (Tabular + LLM)**:
-- **Datasets improved**: 5/5 (100%)
-- **Average improvement**: +32.54%
-- **Maximum improvement**: +82.88% (bike_sharing)
+- **Datasets improved**: 4/5 (80%)
+- **Average improvement**: +2.42%
+- **Maximum improvement**: +11.03% (abalone)
 
 !!! tip "LLM Engine Value"
-    The LLM engine provides the most value for **regression tasks** where it can suggest domain-aware ratio and interaction features. The improvement jumps from +9.20% (Tabular only) to +32.54% (Tabular + LLM).
+    The LLM engine provides the most value for datasets where domain knowledge matters. On abalone, LLM features improved results from +9.10% to +11.03%. Average improvement increased from +0.48% (Tabular only) to +2.42% (Tabular + LLM).
 
 ---
 

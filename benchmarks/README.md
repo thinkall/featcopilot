@@ -7,8 +7,8 @@ This directory contains comprehensive benchmarks demonstrating FeatCopilot's fea
 | Benchmark | Improvement | Description |
 |-----------|-------------|-------------|
 | **Spotify Classification** | **+12.37%** F1 | LLM + Text + Tabular engines |
-| **INRIA (LLM)** | **+32.54%** avg | Tabular + LLM on 5 datasets |
-| **INRIA (Tabular)** | **+9.20%** avg | Tabular only on 10 datasets |
+| **INRIA (LLM)** | +2.42% avg, max +11.03% | Tabular + LLM on 5 datasets |
+| **INRIA (Tabular)** | +0.48% avg, max +9.10% | Tabular only on 10 datasets |
 
 ## Structure
 

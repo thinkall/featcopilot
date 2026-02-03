@@ -17,17 +17,17 @@
 
     Genre classification with LLM + Text + Tabular engines (flagship benchmark)
 
--   :material-brain:{ .lg .middle } __+32.54% with LLM Engine__
+-   :material-brain:{ .lg .middle } __+11.03% with LLM Engine__
 
     ---
 
-    Average improvement on INRIA benchmark suite (100% win rate)
+    Max improvement on INRIA benchmark (abalone dataset)
 
 -   :material-scale-balance:{ .lg .middle } __Competitive & Fast__
 
     ---
 
-    Matches AutoFeat accuracy at 1000x speed (1s vs 1247s)
+    Matches other tools at 1000x speed (1s vs 1247s for AutoFeat)
 
 -   :material-speedometer:{ .lg .middle } __Flexible Speed__
 
