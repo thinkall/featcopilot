@@ -45,6 +45,7 @@ Build a diabetes risk prediction model with:
 - Semantic feature understanding
 - Domain-aware feature generation
 - Human-readable explanations
+- Reusable transform rules
 
 ## Setup
 
@@ -56,6 +57,7 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
 
 from featcopilot import AutoFeatureEngineer
+from featcopilot import TransformRule, TransformRuleStore, TransformRuleGenerator
 ```
 
 ## Create Healthcare Data
@@ -387,6 +389,67 @@ with open('diabetes_feature_report.md', 'w') as f:
 print("Report saved to diabetes_feature_report.md")
 ```
 
+## Transform Rules
+
+Create reusable feature transformations from natural language that can be saved and applied across different datasets.
+
+```python
+from featcopilot import TransformRule, TransformRuleStore, TransformRuleGenerator
+
+# Initialize store and generator
+store = TransformRuleStore()  # Default: ~/.featcopilot/rules.json
+generator = TransformRuleGenerator(store=store)
+
+# Generate rule from natural language
+rule = generator.generate_from_description(
+    description="Calculate the ratio of glucose to HbA1c",
+    columns={"glucose_fasting": "float", "hba1c": "float"},
+    tags=["healthcare", "diabetes"],
+    save=True
+)
+
+# Apply to data
+df = pd.DataFrame({'glucose_fasting': [95, 110], 'hba1c': [5.4, 6.2]})
+result = rule.apply(df)
+```
+
+### Reuse on Different Datasets
+
+Rules automatically match columns with similar names:
+
+```python
+# New dataset with different column names
+new_data = pd.DataFrame({
+    'patient_glucose': [100, 120],
+    'patient_hba1c': [5.8, 6.5]
+})
+
+# Find and apply matching rules
+matches = store.find_matching_rules(columns=new_data.columns.tolist())
+if matches:
+    rule, mapping = matches[0]
+    result = rule.apply(new_data, column_mapping=mapping)
+```
+
+### Manual Rules and Management
+
+```python
+# Create manual rule
+manual_rule = TransformRule(
+    name="bmi_calc",
+    description="Calculate BMI",
+    code="result = df['weight'] / (df['height'] ** 2 + 1e-8)",
+    input_columns=["weight", "height"],
+    column_patterns=[".*weight.*", ".*height.*"],
+)
+store.save_rule(manual_rule)
+
+# Search, list, export
+store.list_rules(tags=["healthcare"])
+store.search_by_description("diabetes")
+store.export_rules("rules.json")
+```
+
 ## Complete Script
 
 ```python
@@ -400,6 +463,7 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
 
 from featcopilot import AutoFeatureEngineer
+from featcopilot import TransformRule, TransformRuleStore, TransformRuleGenerator
 
 # Create sample healthcare data
 np.random.seed(42)
@@ -446,4 +510,22 @@ print(f"ROC-AUC: {auc:.4f}")
 # Show explanations
 for feat, expl in list(engineer.explain_features().items())[:3]:
     print(f"{feat}: {expl}")
+
+# ============================================================
+# Transform Rules: Create reusable transformations
+# ============================================================
+store = TransformRuleStore()
+generator = TransformRuleGenerator(store=store)
+
+# Generate and save a reusable rule
+rule = generator.generate_from_description(
+    description="Calculate glucose-HbA1c product as diabetes indicator",
+    columns={"glucose": "float", "hba1c": "float"},
+    tags=["healthcare", "diabetes"],
+    save=True
+)
+
+print(f"\nCreated reusable rule: {rule.name}")
+print(f"Code: {rule.code}")
+print(f"This rule can now be reused on any dataset with similar columns!")
 ```

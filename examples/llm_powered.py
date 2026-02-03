@@ -7,6 +7,11 @@ of FeatCopilot using GitHub Copilot SDK or LiteLLM.
 LLM Backend Options:
 - GitHub Copilot SDK (default): Requires copilot-sdk package
 - LiteLLM: Supports 100+ LLM providers (OpenAI, Anthropic, Azure, etc.)
+
+New Feature: Transform Rules
+- Create reusable transformation rules from natural language
+- Save rules for reuse across datasets
+- Find and apply matching rules automatically
 """
 
 import numpy as np
@@ -15,7 +20,7 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
 
-from featcopilot import AutoFeatureEngineer
+from featcopilot import AutoFeatureEngineer, TransformRule, TransformRuleGenerator, TransformRuleStore
 
 
 def create_healthcare_data(n_samples=1000):
@@ -241,6 +246,84 @@ def main():
     for i, (name, code) in enumerate(list(feature_code.items())[:3], 1):
         print(f"\n   {i}. {name}:")
         print(f"      {code}")
+
+    # =========================================================================
+    # NEW FEATURE: Transform Rules - Create and Reuse Custom Transformations
+    # =========================================================================
+    print("\n" + "=" * 70)
+    print("7. Transform Rules: Create Reusable Feature Transformations")
+    print("=" * 70)
+
+    # Initialize the rule store and generator
+    # Rules are saved to ~/.featcopilot/rules.json by default
+    store = TransformRuleStore()
+    generator = TransformRuleGenerator(store=store, verbose=True)
+
+    # Generate a rule from natural language description
+    print("\n   a) Generating rule from natural language...")
+    rule = generator.generate_from_description(
+        description="Calculate the ratio of glucose to HbA1c as a diabetes indicator",
+        columns={"glucose_fasting": "float", "hba1c": "float"},
+        tags=["healthcare", "diabetes", "ratio"],
+        save=True,  # Save to store for future reuse
+    )
+    print(f"      Created rule: {rule.name}")
+    print(f"      Code: {rule.code}")
+
+    # Apply the rule to our data
+    print("\n   b) Applying rule to dataset...")
+    result = rule.apply(X_train)
+    print(f"      Result shape: {result.shape}")
+    print(f"      Sample values: {result.head(3).tolist()}")
+
+    # Create a manual rule (without LLM)
+    print("\n   c) Creating manual rule...")
+    manual_rule = TransformRule(
+        name="cholesterol_risk_score",
+        description="Calculate cholesterol risk score from total, HDL, and LDL",
+        code="result = (df['cholesterol_total'] - df['cholesterol_hdl']) / (df['cholesterol_hdl'] + 1e-8)",
+        input_columns=["cholesterol_total", "cholesterol_hdl"],
+        column_patterns=[".*cholesterol.*total.*", ".*cholesterol.*hdl.*"],
+        tags=["healthcare", "cholesterol", "risk"],
+    )
+    store.save_rule(manual_rule)
+    print(f"      Saved rule: {manual_rule.name}")
+
+    # Demonstrate rule reuse on a different dataset with different column names
+    print("\n   d) Reusing rules on new dataset with different column names...")
+    new_data = pd.DataFrame(
+        {
+            "patient_total_cholesterol": [200, 220, 180],
+            "patient_hdl_cholesterol": [50, 45, 60],
+            "patient_ldl": [120, 140, 100],
+        }
+    )
+
+    # Find matching rules
+    matching_rules = store.find_matching_rules(
+        columns=new_data.columns.tolist(),
+        description="cholesterol",
+    )
+
+    if matching_rules:
+        matched_rule, column_mapping = matching_rules[0]
+        print(f"      Found matching rule: {matched_rule.name}")
+        print(f"      Column mapping: {column_mapping}")
+
+        # Apply with automatic column mapping
+        new_result = matched_rule.apply(new_data, column_mapping=column_mapping)
+        print(f"      Applied result: {new_result.tolist()}")
+
+    # List all saved rules
+    print("\n   e) All saved rules in store:")
+    for r in store.list_rules():
+        print(f"      - {r.name}: {r.description[:50]}...")
+        print(f"        Tags: {r.tags}, Used: {r.usage_count} times")
+
+    # Search rules by description
+    print("\n   f) Searching rules by description 'diabetes'...")
+    diabetes_rules = store.search_by_description("diabetes")
+    print(f"      Found {len(diabetes_rules)} matching rules")
 
     print("\n" + "=" * 70)
     print("Example completed!")
