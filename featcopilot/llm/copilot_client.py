@@ -523,34 +523,64 @@ class SyncCopilotFeatureClient:
 
     def __init__(self, **kwargs):
         self._async_client = CopilotFeatureClient(**kwargs)
+        self._loop = None
+
+    def _get_or_create_loop(self):
+        """Get or create a persistent event loop for this client."""
+        if self._loop is None or self._loop.is_closed():
+            self._loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self._loop)
+        return self._loop
 
     def _run_async(self, coro):
-        """Run an async coroutine, handling nested event loops (e.g., Jupyter)."""
+        """Run an async coroutine, handling various event loop scenarios."""
         try:
-            # Check if we're in a running event loop (e.g., Jupyter)
-            loop = asyncio.get_running_loop()
-            # We're in a running loop - use nest_asyncio if available
+            # First, try to get the running loop
             try:
-                import nest_asyncio
+                loop = asyncio.get_running_loop()
+                # We're in a running loop - use nest_asyncio if available
+                try:
+                    import nest_asyncio
 
-                nest_asyncio.apply()
+                    nest_asyncio.apply()
+                    return loop.run_until_complete(coro)
+                except ImportError:
+                    # nest_asyncio not available, use thread pool
+                    import concurrent.futures
+
+                    with concurrent.futures.ThreadPoolExecutor() as executor:
+                        future = executor.submit(self._run_in_new_loop, coro)
+                        return future.result(timeout=120)
+            except RuntimeError:
+                # No running event loop - use our persistent loop
+                loop = self._get_or_create_loop()
                 return loop.run_until_complete(coro)
-            except ImportError:
-                # nest_asyncio not available, try alternative approach
-                import concurrent.futures
+        except Exception as e:
+            # Last resort - create a completely fresh loop
+            try:
+                return self._run_in_new_loop(coro)
+            except Exception:
+                raise e from None
 
-                with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(asyncio.run, coro)
-                    return future.result()
-        except RuntimeError:
-            # No running event loop - safe to use asyncio.run
-            return asyncio.run(coro)
+    def _run_in_new_loop(self, coro):
+        """Run coroutine in a fresh event loop."""
+        loop = asyncio.new_event_loop()
+        try:
+            asyncio.set_event_loop(loop)
+            return loop.run_until_complete(coro)
+        finally:
+            loop.close()
 
     def start(self):
         return self._run_async(self._async_client.start())
 
     def stop(self):
-        return self._run_async(self._async_client.stop())
+        result = self._run_async(self._async_client.stop())
+        # Close our loop if it exists
+        if self._loop is not None and not self._loop.is_closed():
+            self._loop.close()
+            self._loop = None
+        return result
 
     def suggest_features(self, **kwargs):
         return self._run_async(self._async_client.suggest_features(**kwargs))

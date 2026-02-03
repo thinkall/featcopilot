@@ -5,29 +5,29 @@ for multi-class genre classification (4 genres).
 
 - **Dataset**: `maharshipandya/spotify-tracks-dataset`
 - **Genres**: pop, acoustic, hip-hop, punk-rock
-- **Time budget**: 180s per FLAML run
-- **FeatCopilot time**: 0.2s
+- **Time budget**: 480s per FLAML run
+- **FeatCopilot time**: 41.2s
 
 ### Features Used
-- **Baseline**: Numeric features only (15 features)
-- **FeatCopilot**: Numeric + text features + target-encoded artists
+- **Baseline**: All original features (18 features)
+- **FeatCopilot**: All features + LLM-generated + text features + target encoding
 
 ## Summary
 | Metric | Baseline | +FeatCopilot | Improvement |
 |--------|----------|--------------|-------------|
-| Accuracy | 0.8150 | 0.8375 | +2.76% |
-| F1 (macro) | 0.8158 | 0.8388 | - |
-| F1 (weighted) | 0.8158 | 0.8388 | +2.82% |
-| Train Time | 181.6s | 183.0s | - |
-| Features | 15 | 32 | +17 |
+| Accuracy | 0.9287 | 0.9337 | +0.54% |
+| F1 (macro) | 0.9289 | 0.9339 | - |
+| F1 (weighted) | 0.9289 | 0.9339 | +0.54% |
+| Train Time | 507.5s | 600.6s | - |
+| Features | 18 | 40 | +22 |
 
 ## Model Details
-- **Baseline best model**: xgb_limitdepth
-- **FeatCopilot best model**: xgb_limitdepth
+- **Baseline best model**: catboost
+- **FeatCopilot best model**: catboost
 
 ## Key Findings
-- FeatCopilot improved accuracy by **+2.76%**
-- Feature engineering added 17 features (15 → 32)
-- Total FeatCopilot overhead: 0.2s
+- FeatCopilot improved accuracy by **+0.54%**
+- Feature engineering added 22 features (18 → 40)
+- Total FeatCopilot overhead: 41.2s
 
-**✅ SIGNIFICANT IMPROVEMENT: FeatCopilot added +2.76% accuracy**
+**✅ TARGET ACHIEVED: F1-score 0.9339 >= 0.85**

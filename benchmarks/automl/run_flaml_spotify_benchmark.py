@@ -35,7 +35,7 @@ from featcopilot.engines.tabular import TabularEngine
 warnings.filterwarnings("ignore")
 
 # Benchmark configuration
-TIME_BUDGET = 180  # 180 seconds for FLAML
+TIME_BUDGET = 480  # 480 seconds - more time for model tuning with more estimators
 
 # Selected genres for classification (4 distinct genres)
 SELECTED_GENRES = ["pop", "acoustic", "hip-hop", "punk-rock"]
@@ -141,7 +141,7 @@ def run_flaml_benchmark(
         y_train,
         task="classification",
         time_budget=time_budget,
-        estimator_list=["lgbm", "rf", "xgboost", "extra_tree", "xgb_limitdepth"],
+        estimator_list=["lgbm", "rf", "xgboost", "extra_tree", "xgb_limitdepth", "catboost"],
         seed=42,
         verbose=0,
         force_cancel=True,
@@ -185,8 +185,8 @@ def generate_report(baseline_results: dict, featcopilot_results: dict, fe_time: 
     report.append(f"- **Time budget**: {TIME_BUDGET}s per FLAML run\n")
     report.append(f"- **FeatCopilot time**: {fe_time:.1f}s\n")
     report.append("\n### Features Used\n")
-    report.append(f"- **Baseline**: Numeric features only ({baseline_results['n_features']} features)\n")
-    report.append("- **FeatCopilot**: Numeric + text features + target-encoded artists\n")
+    report.append(f"- **Baseline**: All original features ({baseline_results['n_features']} features)\n")
+    report.append("- **FeatCopilot**: All features + LLM-generated + text features + target encoding\n")
 
     # Summary
     report.append("\n## Summary\n")
@@ -274,23 +274,75 @@ def main():
     # Define feature groups
     text_cols = ["album_name", "track_name"]
     numeric_cols = [c for c in X_train.columns if X_train[c].dtype in ["int64", "float64", "int32", "float32"]]
-    baseline_cols = numeric_cols.copy()  # Baseline uses numeric columns only
 
     print(f"\nNumeric columns ({len(numeric_cols)}): {numeric_cols}")
     print(f"Text columns to extract features from: {text_cols}")
 
-    # Run baseline FLAML with numeric features only
-    X_train_base = X_train[baseline_cols].copy()
-    X_test_base = X_test[baseline_cols].copy()
+    # Run baseline FLAML with ALL features (LGBM handles categoricals natively)
     baseline_results = run_flaml_benchmark(
-        X_train_base, X_test_base, y_train, y_test, time_budget=TIME_BUDGET, label="Baseline (numeric)"
+        X_train, X_test, y_train, y_test, time_budget=TIME_BUDGET, label="Baseline (all features)"
     )
 
-    # Apply FeatCopilot to extract value from text columns
-    print("\n--- Applying FeatCopilot feature engineering (text + target encoding) ---")
+    # Apply FeatCopilot to add LLM-generated features on top of all features
+    print("\n--- Applying FeatCopilot feature engineering (LLM + Text + Tabular) ---")
     fe_start = time.time()
 
-    # Use TextEngine to extract features from text columns
+    # 1. Use SemanticEngine (LLM) to generate intelligent features
+    from featcopilot.llm.semantic_engine import SemanticEngine
+
+    # Prepare column descriptions for LLM
+    column_descriptions = {
+        "artists": "Artist name(s) who performed the track",
+        "album_name": "Name of the album containing the track",
+        "track_name": "Name of the track",
+        "popularity": "Track popularity score (0-100)",
+        "duration_ms": "Track duration in milliseconds",
+        "explicit": "Whether track has explicit lyrics (0/1)",
+        "danceability": "How suitable for dancing (0-1)",
+        "energy": "Perceptual measure of intensity (0-1)",
+        "key": "Musical key the track is in (0-11)",
+        "loudness": "Overall loudness in dB",
+        "mode": "Major (1) or minor (0) modality",
+        "speechiness": "Presence of spoken words (0-1)",
+        "acousticness": "Confidence track is acoustic (0-1)",
+        "instrumentalness": "Predicts if track has no vocals (0-1)",
+        "liveness": "Presence of audience (0-1)",
+        "valence": "Musical positiveness (0-1)",
+        "tempo": "Estimated tempo in BPM",
+        "time_signature": "Time signature (beats per measure)",
+    }
+
+    llm_engine = SemanticEngine(
+        model="gpt-5.2",
+        max_suggestions=30,  # Get 30 LLM-suggested features for comprehensive coverage
+        domain="music",
+        verbose=True,
+        enable_text_features=True,
+    )
+
+    # Fit LLM engine with detailed task description
+    task_desc = """Classify music tracks into 4 genres: pop, acoustic, hip-hop, punk-rock.
+
+Key genre characteristics to consider:
+- POP: High danceability, moderate energy, polished production, radio-friendly
+- ACOUSTIC: High acousticness, lower energy, organic sound, minimal electronic elements
+- HIP-HOP: High speechiness, strong beats, rhythmic, often explicit
+- PUNK-ROCK: High energy, loud, fast tempo, aggressive
+
+Generate features that capture these distinctions, such as:
+- Ratios between contrasting features (energy vs acousticness)
+- Thresholds for genre-defining characteristics
+- Combinations of related features"""
+
+    llm_engine.fit(X_train, y_train, column_descriptions=column_descriptions, task_description=task_desc)
+    X_train_llm = llm_engine.transform(X_train)
+    X_test_llm = llm_engine.transform(X_test)
+
+    # Get only the LLM-generated features (new columns)
+    llm_features = [c for c in X_train_llm.columns if c not in X_train.columns]
+    print(f"  LLM generated {len(llm_features)} features: {llm_features[:5]}...")
+
+    # 2. Use TextEngine to extract features from text columns
     from featcopilot.engines.text import TextEngine
 
     text_engine = TextEngine(
@@ -303,12 +355,11 @@ def main():
     X_train_text = X_train[text_cols].copy()
     X_test_text = X_test[text_cols].copy()
 
-    # Fit and transform text features
     text_engine.fit(X_train_text, y_train)
     X_train_text_fe = text_engine.transform(X_train_text)
     X_test_text_fe = text_engine.transform(X_test_text)
 
-    # Use TabularEngine for target encoding of artists
+    # 3. Use TabularEngine for target encoding of artists
     engine = TabularEngine(
         polynomial_degree=1,  # No polynomials
         interaction_only=False,
@@ -327,9 +378,15 @@ def main():
     X_train_artist_fe = engine.transform(artist_df_train)
     X_test_artist_fe = engine.transform(artist_df_test)
 
-    # Combine: numeric features + text features + target-encoded artists
-    X_train_fe = X_train_base.copy()
-    X_test_fe = X_test_base.copy()
+    # Combine all features: original + LLM features + text features + target-encoded artists
+    X_train_fe = X_train.copy()
+    X_test_fe = X_test.copy()
+
+    # Add LLM-generated features
+    for col in llm_features:
+        if col in X_train_llm.columns and col not in X_train_fe.columns:
+            X_train_fe[col] = X_train_llm[col].values
+            X_test_fe[col] = X_test_llm[col].values
 
     # Add target-encoded artists
     for col in X_train_artist_fe.columns:
@@ -342,6 +399,20 @@ def main():
         if col not in X_train_fe.columns:
             X_train_fe[col] = X_train_text_fe[col].values
             X_test_fe[col] = X_test_text_fe[col].values
+
+    # Apply feature selection to reduce noise and keep only useful features
+    from featcopilot.selection.unified import FeatureSelector
+
+    print("  Applying feature selection...")
+    selector = FeatureSelector(
+        methods=["mutual_info", "importance"],
+        max_features=40,  # Keep top 40 features
+        correlation_threshold=0.95,
+        original_features=set(X_train.columns),
+        verbose=True,
+    )
+    X_train_fe = selector.fit_transform(X_train_fe, y_train)
+    X_test_fe = selector.transform(X_test_fe)
 
     fe_time = time.time() - fe_start
 
