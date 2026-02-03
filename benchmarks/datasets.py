@@ -1277,35 +1277,364 @@ def create_server_latency_timeseries(n_samples=2000, random_state=42):
     return X, y, "timeseries_regression", "Server Latency (time series)"
 
 
+def create_customer_churn_dataset(n_samples=2000, random_state=42):
+    """
+    Customer churn dataset - binary classification.
+
+    Predicts whether customers will churn based on usage and engagement metrics.
+    Designed with interaction effects that benefit from feature engineering.
+    """
+    np.random.seed(random_state)
+
+    # Customer demographics
+    tenure_months = np.random.exponential(24, n_samples).astype(int)
+    age = np.random.randint(18, 70, n_samples)
+
+    # Usage metrics
+    monthly_charges = 20 + 80 * np.random.random(n_samples)
+    total_charges = monthly_charges * tenure_months * (0.9 + 0.2 * np.random.random(n_samples))
+    num_products = np.random.choice([1, 2, 3, 4], n_samples, p=[0.4, 0.35, 0.2, 0.05])
+    support_tickets = np.random.poisson(2, n_samples)
+
+    # Engagement
+    login_frequency = np.random.exponential(10, n_samples)
+    last_interaction_days = np.random.exponential(30, n_samples).astype(int)
+
+    # Contract and payment
+    contract_type = np.random.choice([0, 1, 2], n_samples, p=[0.5, 0.3, 0.2])  # Month, Year, 2-Year
+    payment_delay_count = np.random.poisson(1, n_samples)
+
+    X = pd.DataFrame(
+        {
+            "tenure_months": tenure_months,
+            "age": age,
+            "monthly_charges": monthly_charges,
+            "total_charges": total_charges,
+            "num_products": num_products,
+            "support_tickets": support_tickets,
+            "login_frequency": login_frequency,
+            "last_interaction_days": last_interaction_days,
+            "contract_type": contract_type,
+            "payment_delay_count": payment_delay_count,
+        }
+    )
+
+    # Churn probability with INTERACTION and RATIO effects
+    charges_per_product = monthly_charges / (num_products + 1)
+    engagement_score = login_frequency / (last_interaction_days + 1)
+
+    churn_prob = (
+        0.3  # Base churn rate
+        - 0.005 * tenure_months  # Longer tenure = less churn
+        + 0.002 * charges_per_product  # Higher cost per product = more churn
+        - 0.1 * engagement_score  # More engagement = less churn
+        + 0.02 * support_tickets  # More tickets = more churn
+        - 0.15 * (contract_type == 2)  # 2-year contract = less churn
+        - 0.08 * (contract_type == 1)  # 1-year contract = less churn
+        + 0.05 * payment_delay_count  # Payment delays = more churn
+        + 0.001 * last_interaction_days  # Inactive = more churn
+    )
+    churn_prob = np.clip(churn_prob, 0.02, 0.8)
+    y = pd.Series((np.random.random(n_samples) < churn_prob).astype(int), name="churn")
+
+    return X, y, "classification", "Customer Churn (synthetic)"
+
+
+def create_insurance_claims_dataset(n_samples=2000, random_state=42):
+    """
+    Insurance claims dataset - regression (claim amount prediction).
+
+    Predicts insurance claim amounts based on policy and customer features.
+    Has polynomial and interaction effects beneficial for feature engineering.
+    """
+    np.random.seed(random_state)
+
+    # Policy features
+    policy_age_years = np.random.exponential(5, n_samples)
+    coverage_amount = np.random.choice([50000, 100000, 200000, 500000], n_samples, p=[0.3, 0.4, 0.2, 0.1])
+    deductible = np.random.choice([500, 1000, 2000, 5000], n_samples, p=[0.2, 0.4, 0.3, 0.1])
+    premium_monthly = 50 + 0.001 * coverage_amount + np.random.normal(0, 20, n_samples)
+
+    # Customer features
+    age = np.random.randint(18, 75, n_samples)
+    credit_score = np.random.normal(700, 80, n_samples).clip(300, 850)
+    num_claims_history = np.random.poisson(1, n_samples)
+    years_as_customer = np.minimum(np.random.exponential(7, n_samples), age - 18)
+
+    # Risk factors
+    risk_score = np.random.uniform(1, 10, n_samples)
+    incident_severity = np.random.choice([1, 2, 3, 4], n_samples, p=[0.5, 0.3, 0.15, 0.05])
+
+    X = pd.DataFrame(
+        {
+            "policy_age_years": policy_age_years,
+            "coverage_amount": coverage_amount,
+            "deductible": deductible,
+            "premium_monthly": premium_monthly,
+            "age": age,
+            "credit_score": credit_score,
+            "num_claims_history": num_claims_history,
+            "years_as_customer": years_as_customer,
+            "risk_score": risk_score,
+            "incident_severity": incident_severity,
+        }
+    )
+
+    # Claim amount with POLYNOMIAL and INTERACTION effects
+    base_claim = 1000 * incident_severity
+
+    claim_amount = (
+        base_claim
+        + 0.05 * coverage_amount * (incident_severity / 4)  # Coverage × severity interaction
+        - deductible  # Deductible subtraction
+        + 500 * risk_score**1.5  # Polynomial risk effect
+        + 200 * num_claims_history * incident_severity  # History × severity interaction
+        - 10 * credit_score / 100  # Credit score effect (non-linear when engineered)
+        + 50 * (age / 40) ** 2  # Quadratic age effect
+    )
+    claim_amount = np.maximum(claim_amount + np.random.normal(0, 500, n_samples), 0)
+    y = pd.Series(claim_amount, name="claim_amount")
+
+    return X, y, "regression", "Insurance Claims (synthetic)"
+
+
 # =============================================================================
-# Dataset Registry
+# INRIA-SODA Tabular Benchmark Datasets
+# =============================================================================
+
+# INRIA-SODA dataset configurations
+# Format: (config_name, task_type, description)
+INRIA_DATASETS = {
+    # Classification - Numerical features
+    "higgs": ("clf_num_Higgs", "classification", "Higgs boson detection (physics)"),
+    "covertype": ("clf_num_covertype", "classification", "Forest cover type prediction"),
+    "jannis": ("clf_num_jannis", "classification", "Multi-class classification"),
+    "miniboone": ("clf_num_MiniBooNE", "classification", "Particle physics classification"),
+    "california": ("clf_num_california", "classification", "California housing (binned)"),
+    "credit": ("clf_num_credit", "classification", "Credit approval prediction"),
+    "bank_marketing": ("clf_num_bank-marketing", "classification", "Bank marketing response"),
+    "diabetes": ("clf_num_Diabetes130US", "classification", "Diabetes readmission"),
+    "bioresponse": ("clf_num_Bioresponse", "classification", "Biological response prediction"),
+    "magic_telescope": ("clf_num_MagicTelescope", "classification", "Gamma/hadron classification"),
+    # Classification - Categorical features
+    "electricity": ("clf_cat_electricity", "classification", "Electricity price direction"),
+    "covertype_cat": ("clf_cat_covertype", "classification", "Forest cover (categorical)"),
+    "eye_movements": ("clf_cat_eye_movements", "classification", "Eye movement classification"),
+    "road_safety": ("clf_cat_road-safety", "classification", "Road safety prediction"),
+    "albert": ("clf_cat_albert", "classification", "Albert dataset"),
+    # Regression - Numerical features
+    "diamonds": ("reg_num_diamonds", "regression", "Diamond price prediction"),
+    "house_sales": ("reg_num_house_sales", "regression", "House sale price prediction"),
+    "houses": ("reg_num_houses", "regression", "House value prediction"),
+    "wine_quality": ("reg_num_wine_quality", "regression", "Wine quality score"),
+    "abalone": ("reg_num_abalone", "regression", "Abalone age prediction"),
+    "superconduct": ("reg_num_superconduct", "regression", "Superconductor temperature"),
+    "cpu_act": ("reg_num_cpu_act", "regression", "CPU activity prediction"),
+    "elevators": ("reg_num_elevators", "regression", "Elevator control"),
+    "miami_housing": ("reg_num_MiamiHousing2016", "regression", "Miami housing prices"),
+    "bike_sharing_inria": ("reg_num_Bike_Sharing_Demand", "regression", "Bike rental demand"),
+    # Regression - Categorical features
+    "delays_zurich": ("reg_cat_delays_zurich_transport", "regression", "Zurich transport delays"),
+    "allstate_claims": ("reg_cat_Allstate_Claims_Severity", "regression", "Insurance claim severity"),
+    "mercedes_benz": ("reg_cat_Mercedes_Benz_Greener_Manufacturing", "regression", "Manufacturing time"),
+    "nyc_taxi": ("reg_cat_nyc-taxi-green-dec-2016", "regression", "NYC taxi trip duration"),
+    "brazilian_houses": ("reg_cat_Brazilian_houses", "regression", "Brazilian house prices"),
+}
+
+
+def load_inria_dataset(dataset_name: str, max_samples: int = 50000):
+    """
+    Load a dataset from the INRIA-SODA tabular benchmark on HuggingFace.
+
+    Parameters
+    ----------
+    dataset_name : str
+        Name of the dataset (e.g., 'higgs', 'diamonds', 'wine_quality').
+        Use list_inria_datasets() to see available datasets.
+    max_samples : int, default=50000
+        Maximum number of samples to load (for large datasets).
+
+    Returns
+    -------
+    X : pd.DataFrame
+        Feature matrix.
+    y : pd.Series
+        Target variable.
+    task : str
+        Task type ('classification' or 'regression').
+    name : str
+        Human-readable dataset name.
+
+    Examples
+    --------
+    >>> X, y, task, name = load_inria_dataset('diamonds')
+    >>> print(f"Loaded {name}: {X.shape}")
+    """
+    if dataset_name not in INRIA_DATASETS:
+        available = list(INRIA_DATASETS.keys())
+        raise ValueError(f"Unknown dataset: {dataset_name}. Available: {available}")
+
+    config_name, task, description = INRIA_DATASETS[dataset_name]
+
+    try:
+        from datasets import load_dataset
+
+        ds = load_dataset("inria-soda/tabular-benchmark", config_name, split="train")
+        df = ds.to_pandas()
+
+        # Target is always the last column
+        target_col = df.columns[-1]
+        X = df.drop(columns=[target_col])
+        y = df[target_col]
+
+        # Sample if too large
+        if len(X) > max_samples:
+            idx = np.random.RandomState(42).choice(len(X), max_samples, replace=False)
+            X = X.iloc[idx].reset_index(drop=True)
+            y = y.iloc[idx].reset_index(drop=True)
+
+        return X, y, task, f"{description} (INRIA)"
+
+    except Exception as e:
+        print(f"Warning: Could not load INRIA dataset '{dataset_name}': {e}")
+        raise
+
+
+def list_inria_datasets():
+    """List all available INRIA-SODA benchmark datasets."""
+    return list(INRIA_DATASETS.keys())
+
+
+def get_inria_dataset_info(dataset_name: str) -> dict:
+    """Get metadata for an INRIA dataset."""
+    if dataset_name not in INRIA_DATASETS:
+        raise ValueError(f"Unknown dataset: {dataset_name}")
+    config_name, task, description = INRIA_DATASETS[dataset_name]
+    return {
+        "name": dataset_name,
+        "config": config_name,
+        "task": task,
+        "description": description,
+    }
+
+
+# =============================================================================
+# HuggingFace Dataset Loaders
 # =============================================================================
 
 
-def get_all_datasets():
-    """Return all benchmark datasets (excluding time series)."""
-    return [
-        # Kaggle-style synthetic
-        load_titanic_dataset,
-        load_house_prices_dataset,
-        load_credit_card_fraud_dataset,
-        load_bike_sharing_dataset,
-        load_employee_attrition_dataset,
-        # Synthetic
-        create_credit_risk_dataset,
-        create_medical_diagnosis_dataset,
-        create_complex_regression_dataset,
-        create_complex_classification_dataset,
-    ]
+def load_spotify_tracks(max_samples: int = 50000):
+    """
+    Load Spotify Tracks dataset from HuggingFace.
+
+    Music popularity regression task with audio features.
+
+    Returns
+    -------
+    X : pd.DataFrame
+        Feature matrix (audio features + genre).
+    y : pd.Series
+        Track popularity (0-100).
+    task : str
+        Task type ('regression').
+    name : str
+        Dataset name.
+    """
+    try:
+        from datasets import load_dataset
+
+        ds = load_dataset("maharshipandya/spotify-tracks-dataset", split="train")
+        df = ds.to_pandas()
+
+        if len(df) > max_samples:
+            df = df.sample(n=max_samples, random_state=42)
+
+        # Numerical columns for tabular engine
+        num_cols = [
+            "duration_ms",
+            "danceability",
+            "energy",
+            "key",
+            "loudness",
+            "mode",
+            "speechiness",
+            "acousticness",
+            "instrumentalness",
+            "liveness",
+            "valence",
+            "tempo",
+            "time_signature",
+        ]
+
+        target = "popularity"
+        df = df.dropna(subset=num_cols + [target])
+
+        X = df[num_cols].copy()
+
+        # Add genre as categorical
+        if "track_genre" in df.columns:
+            X["track_genre"] = df["track_genre"]
+
+        y = df[target]
+
+        return X, y, "regression", "Spotify Tracks (HuggingFace)"
+
+    except Exception as e:
+        print(f"Warning: Could not load Spotify dataset: {e}")
+        raise
 
 
-def get_timeseries_datasets():
-    """Return time series benchmark datasets designed to benefit from FE."""
-    return [
-        create_sensor_anomaly_timeseries,
-        create_retail_demand_timeseries,
-        create_server_latency_timeseries,
-    ]
+def load_fake_news(max_samples: int = 20000):
+    """
+    Load Fake News dataset from HuggingFace.
+
+    Text classification task for fake news detection.
+
+    Returns
+    -------
+    X : pd.DataFrame
+        Feature matrix with text columns.
+    y : pd.Series
+        Labels (0=real, 1=fake).
+    task : str
+        Task type ('text_classification').
+    name : str
+        Dataset name.
+    """
+    try:
+        from datasets import load_dataset
+
+        ds = load_dataset("GonzaloA/fake_news", split="train")
+        df = ds.to_pandas()
+
+        if len(df) > max_samples:
+            df = df.sample(n=max_samples, random_state=42)
+
+        # Select relevant columns
+        text_cols = ["title", "text"]
+        available_cols = [c for c in text_cols if c in df.columns]
+
+        if not available_cols:
+            raise ValueError("No text columns found in dataset")
+
+        target = "label"
+        if target not in df.columns:
+            # Try alternative target names
+            for alt in ["fake", "is_fake", "class"]:
+                if alt in df.columns:
+                    target = alt
+                    break
+
+        df = df.dropna(subset=available_cols + [target])
+
+        X = df[available_cols].copy()
+        y = df[target]
+
+        return X, y, "text_classification", "Fake News (HuggingFace)"
+
+    except Exception as e:
+        print(f"Warning: Could not load Fake News dataset: {e}")
+        raise
 
 
 # =============================================================================
@@ -1934,7 +2263,7 @@ def create_ecommerce_product_dataset(n_samples=2000, random_state=42):
 
 
 def get_text_datasets():
-    """Return text/semantic benchmark datasets."""
+    """Return text/semantic benchmark dataset loaders (legacy API)."""
     return [
         create_product_reviews_dataset,
         create_job_postings_dataset,
@@ -1945,30 +2274,300 @@ def get_text_datasets():
     ]
 
 
-def get_dataset_info():
-    """Get information about all benchmark datasets."""
-    info = []
-    for loader in get_all_datasets() + get_timeseries_datasets():
-        X, y, task, name = loader()
-        info.append(
-            {
-                "name": name,
-                "task": task,
-                "n_samples": len(X),
-                "n_features": X.shape[1],
-                "target_distribution": y.value_counts().to_dict() if "classification" in task else None,
-            }
-        )
-    return info
+# =============================================================================
+# Unified Dataset Registry
+# =============================================================================
+
+# Dataset categories
+CATEGORY_CLASSIFICATION = "classification"
+CATEGORY_REGRESSION = "regression"
+CATEGORY_FORECASTING = "forecasting"
+CATEGORY_TEXT = "text"
+
+# Master registry: {name: (loader_func, category, description)}
+# All datasets are registered here with their category
+DATASET_REGISTRY: dict[str, tuple] = {
+    # === Classification datasets (synthetic) ===
+    "titanic": (load_titanic_dataset, CATEGORY_CLASSIFICATION, "Titanic survival (synthetic)"),
+    "credit_card_fraud": (
+        load_credit_card_fraud_dataset,
+        CATEGORY_CLASSIFICATION,
+        "Credit card fraud (synthetic)",
+    ),
+    "employee_attrition": (
+        load_employee_attrition_dataset,
+        CATEGORY_CLASSIFICATION,
+        "Employee attrition (synthetic)",
+    ),
+    "credit_risk": (create_credit_risk_dataset, CATEGORY_CLASSIFICATION, "Credit risk (synthetic)"),
+    "medical_diagnosis": (
+        create_medical_diagnosis_dataset,
+        CATEGORY_CLASSIFICATION,
+        "Medical diagnosis (synthetic)",
+    ),
+    "complex_classification": (
+        create_complex_classification_dataset,
+        CATEGORY_CLASSIFICATION,
+        "Complex classification (synthetic)",
+    ),
+    "customer_churn": (create_customer_churn_dataset, CATEGORY_CLASSIFICATION, "Customer churn (synthetic)"),
+    # === Regression datasets (synthetic) ===
+    "house_prices": (load_house_prices_dataset, CATEGORY_REGRESSION, "House prices (synthetic)"),
+    "bike_sharing": (load_bike_sharing_dataset, CATEGORY_REGRESSION, "Bike sharing (synthetic)"),
+    "complex_regression": (
+        create_complex_regression_dataset,
+        CATEGORY_REGRESSION,
+        "Complex regression (synthetic)",
+    ),
+    "insurance_claims": (create_insurance_claims_dataset, CATEGORY_REGRESSION, "Insurance claims (synthetic)"),
+    # === Forecasting datasets (synthetic) ===
+    "sensor_anomaly": (
+        create_sensor_anomaly_timeseries,
+        CATEGORY_FORECASTING,
+        "Sensor anomaly (synthetic)",
+    ),
+    "retail_demand": (create_retail_demand_timeseries, CATEGORY_FORECASTING, "Retail demand (synthetic)"),
+    "server_latency": (create_server_latency_timeseries, CATEGORY_FORECASTING, "Server latency (synthetic)"),
+    # === Text datasets (synthetic) ===
+    "product_reviews": (create_product_reviews_dataset, CATEGORY_TEXT, "Product reviews (synthetic)"),
+    "job_postings": (create_job_postings_dataset, CATEGORY_TEXT, "Job postings (synthetic)"),
+    "news_classification": (
+        create_news_classification_dataset,
+        CATEGORY_TEXT,
+        "News classification (synthetic)",
+    ),
+    "customer_support": (create_customer_support_dataset, CATEGORY_TEXT, "Customer support (synthetic)"),
+    "medical_notes": (create_medical_notes_dataset, CATEGORY_TEXT, "Medical notes (synthetic)"),
+    "ecommerce_product": (create_ecommerce_product_dataset, CATEGORY_TEXT, "E-commerce products (synthetic)"),
+    # === HuggingFace datasets ===
+    "spotify_tracks": (load_spotify_tracks, CATEGORY_REGRESSION, "Spotify tracks (HuggingFace)"),
+    "fake_news": (load_fake_news, CATEGORY_TEXT, "Fake news (HuggingFace)"),
+}
+
+# Add INRIA datasets to registry (they're loaded dynamically)
+for _name, (_config, _task, _desc) in INRIA_DATASETS.items():
+    _category = CATEGORY_CLASSIFICATION if _task == "classification" else CATEGORY_REGRESSION
+    DATASET_REGISTRY[_name] = (lambda n=_name: load_inria_dataset(n), _category, f"{_desc} (INRIA)")
+
+
+def list_datasets(category: str | None = None) -> list[str]:
+    """
+    List available dataset names.
+
+    Parameters
+    ----------
+    category : str, optional
+        Filter by category: 'classification', 'regression', 'forecasting', 'text'.
+        If None, returns all datasets.
+
+    Returns
+    -------
+    list[str]
+        List of dataset names.
+
+    Examples
+    --------
+    >>> list_datasets()  # All datasets
+    >>> list_datasets('classification')  # Only classification datasets
+    >>> list_datasets('regression')  # Only regression datasets
+    """
+    if category is None:
+        return list(DATASET_REGISTRY.keys())
+
+    return [name for name, (_, cat, _) in DATASET_REGISTRY.items() if cat == category]
+
+
+def load_dataset(name: str, **kwargs) -> tuple:
+    """
+    Load a dataset by name.
+
+    Parameters
+    ----------
+    name : str
+        Dataset name. Use list_datasets() to see available names.
+    **kwargs
+        Additional arguments passed to the loader function.
+
+    Returns
+    -------
+    tuple
+        (X, y, task_type, dataset_name) tuple.
+
+    Examples
+    --------
+    >>> X, y, task, name = load_dataset('titanic')
+    >>> X, y, task, name = load_dataset('diamonds')  # INRIA dataset
+    >>> X, y, task, name = load_dataset('spotify_tracks', max_samples=10000)
+    """
+    if name not in DATASET_REGISTRY:
+        available = list_datasets()
+        raise ValueError(f"Unknown dataset: '{name}'. Available: {available[:10]}... ({len(available)} total)")
+
+    loader, _category, _desc = DATASET_REGISTRY[name]
+    return loader(**kwargs) if kwargs else loader()
+
+
+def load_datasets(category: str | None = None, **kwargs) -> list[tuple]:
+    """
+    Load multiple datasets by category.
+
+    Parameters
+    ----------
+    category : str, optional
+        Category to filter: 'classification', 'regression', 'forecasting', 'text'.
+        If None, loads all datasets.
+    **kwargs
+        Additional arguments passed to each loader function.
+
+    Returns
+    -------
+    list[tuple]
+        List of (X, y, task_type, dataset_name) tuples.
+
+    Examples
+    --------
+    >>> datasets = load_datasets('classification')
+    >>> for X, y, task, name in datasets:
+    ...     print(f"{name}: {X.shape}")
+
+    >>> all_data = load_datasets()  # Load all datasets
+    """
+    names = list_datasets(category)
+    results = []
+
+    for name in names:
+        try:
+            result = load_dataset(name, **kwargs)
+            results.append(result)
+        except Exception as e:
+            print(f"Warning: Failed to load '{name}': {e}")
+
+    return results
+
+
+def load_all_datasets(**kwargs) -> list[tuple]:
+    """
+    Load all available datasets.
+
+    Parameters
+    ----------
+    **kwargs
+        Additional arguments passed to each loader function.
+
+    Returns
+    -------
+    list[tuple]
+        List of (X, y, task_type, dataset_name) tuples.
+
+    Examples
+    --------
+    >>> all_datasets = load_all_datasets()
+    >>> print(f"Loaded {len(all_datasets)} datasets")
+    """
+    return load_datasets(category=None, **kwargs)
+
+
+def get_dataset_info(name: str) -> dict:
+    """
+    Get metadata about a specific dataset.
+
+    Parameters
+    ----------
+    name : str
+        Dataset name.
+
+    Returns
+    -------
+    dict
+        Dictionary with name, category, description, and loader.
+    """
+    if name not in DATASET_REGISTRY:
+        raise ValueError(f"Unknown dataset: '{name}'")
+
+    loader, category, description = DATASET_REGISTRY[name]
+    return {
+        "name": name,
+        "category": category,
+        "description": description,
+        "loader": loader,
+    }
+
+
+def get_category_summary() -> dict[str, int]:
+    """
+    Get count of datasets per category.
+
+    Returns
+    -------
+    dict
+        Dictionary mapping category names to dataset counts.
+    """
+    summary: dict[str, int] = {}
+    for _, (_, category, _) in DATASET_REGISTRY.items():
+        summary[category] = summary.get(category, 0) + 1
+    return summary
+
+
+# Backward compatibility aliases
+def load_dataset_by_name(name: str):
+    """Load dataset by name (legacy API - use load_dataset instead)."""
+    return load_dataset(name)
+
+
+def get_all_datasets():
+    """Return all standard tabular dataset loaders (legacy API)."""
+    return [
+        load_titanic_dataset,
+        load_house_prices_dataset,
+        load_credit_card_fraud_dataset,
+        load_bike_sharing_dataset,
+        load_employee_attrition_dataset,
+        create_credit_risk_dataset,
+        create_medical_diagnosis_dataset,
+        create_complex_regression_dataset,
+        create_complex_classification_dataset,
+        create_customer_churn_dataset,
+        create_insurance_claims_dataset,
+    ]
+
+
+def get_timeseries_datasets():
+    """Return time series dataset loaders (legacy API)."""
+    return [
+        create_sensor_anomaly_timeseries,
+        create_retail_demand_timeseries,
+        create_server_latency_timeseries,
+    ]
+
+
+def get_huggingface_datasets():
+    """Return HuggingFace dataset loaders (legacy API)."""
+    return {
+        "spotify_tracks": load_spotify_tracks,
+        "fake_news": load_fake_news,
+    }
+
+
+def get_inria_datasets():
+    """Return INRIA dataset loaders (legacy API)."""
+    return {name: lambda n=name: load_inria_dataset(n) for name in INRIA_DATASETS}
 
 
 if __name__ == "__main__":
     print("Benchmark Datasets Summary")
     print("=" * 60)
-    for info in get_dataset_info():
-        print(f"\n{info['name']}")
-        print(f"  Task: {info['task']}")
-        print(f"  Samples: {info['n_samples']}")
-        print(f"  Features: {info['n_features']}")
-        if info["target_distribution"]:
-            print(f"  Target dist: {info['target_distribution']}")
+
+    # Show category summary
+    summary = get_category_summary()
+    print(f"\nTotal datasets: {sum(summary.values())}")
+    for cat, count in sorted(summary.items()):
+        print(f"  {cat}: {count}")
+
+    # Show a few examples from each category
+    print("\n\nSample datasets by category:")
+    for cat in [CATEGORY_CLASSIFICATION, CATEGORY_REGRESSION, CATEGORY_FORECASTING, CATEGORY_TEXT]:
+        names = list_datasets(cat)[:3]
+        print(f"\n{cat.upper()} ({len(list_datasets(cat))} total):")
+        for name in names:
+            info = get_dataset_info(name)
+            print(f"  - {name}: {info['description']}")

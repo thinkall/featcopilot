@@ -39,6 +39,7 @@ from sklearn.model_selection import train_test_split
 
 sys.path.insert(0, ".")
 
+from benchmarks.datasets import INRIA_DATASETS, load_inria_dataset
 from featcopilot import AutoFeatureEngineer
 
 warnings.filterwarnings("ignore")
@@ -47,45 +48,6 @@ warnings.filterwarnings("ignore")
 DEFAULT_TIME_BUDGET = 60
 MAX_FEATURES = 100
 MAX_SAMPLES = 50000  # Limit samples for reasonable benchmark time
-
-# INRIA-SODA Tabular Benchmark datasets
-# Format: (config_name, task_type, description)
-INRIA_DATASETS = {
-    # Classification - Numerical features
-    "higgs": ("clf_num_Higgs", "classification", "Higgs boson detection (physics)"),
-    "covertype": ("clf_num_covertype", "classification", "Forest cover type prediction"),
-    "jannis": ("clf_num_jannis", "classification", "Multi-class classification"),
-    "miniboone": ("clf_num_MiniBooNE", "classification", "Particle physics classification"),
-    "california": ("clf_num_california", "classification", "California housing (binned)"),
-    "credit": ("clf_num_credit", "classification", "Credit approval prediction"),
-    "bank_marketing": ("clf_num_bank-marketing", "classification", "Bank marketing response"),
-    "diabetes": ("clf_num_Diabetes130US", "classification", "Diabetes readmission"),
-    "bioresponse": ("clf_num_Bioresponse", "classification", "Biological response prediction"),
-    "magic_telescope": ("clf_num_MagicTelescope", "classification", "Gamma/hadron classification"),
-    # Classification - Categorical features
-    "electricity": ("clf_cat_electricity", "classification", "Electricity price direction"),
-    "covertype_cat": ("clf_cat_covertype", "classification", "Forest cover (categorical)"),
-    "eye_movements": ("clf_cat_eye_movements", "classification", "Eye movement classification"),
-    "road_safety": ("clf_cat_road-safety", "classification", "Road safety prediction"),
-    "albert": ("clf_cat_albert", "classification", "Albert dataset"),
-    # Regression - Numerical features
-    "diamonds": ("reg_num_diamonds", "regression", "Diamond price prediction"),
-    "house_sales": ("reg_num_house_sales", "regression", "House sale price prediction"),
-    "houses": ("reg_num_houses", "regression", "House value prediction"),
-    "wine_quality": ("reg_num_wine_quality", "regression", "Wine quality score"),
-    "abalone": ("reg_num_abalone", "regression", "Abalone age prediction"),
-    "superconduct": ("reg_num_superconduct", "regression", "Superconductor temperature"),
-    "cpu_act": ("reg_num_cpu_act", "regression", "CPU activity prediction"),
-    "elevators": ("reg_num_elevators", "regression", "Elevator control"),
-    "miami_housing": ("reg_num_MiamiHousing2016", "regression", "Miami housing prices"),
-    "bike_sharing": ("reg_num_Bike_Sharing_Demand", "regression", "Bike rental demand"),
-    # Regression - Categorical features
-    "delays_zurich": ("reg_cat_delays_zurich_transport", "regression", "Zurich transport delays"),
-    "allstate_claims": ("reg_cat_Allstate_Claims_Severity", "regression", "Insurance claim severity"),
-    "mercedes_benz": ("reg_cat_Mercedes_Benz_Greener_Manufacturing", "regression", "Manufacturing time"),
-    "nyc_taxi": ("reg_cat_nyc-taxi-green-dec-2016", "regression", "NYC taxi trip duration"),
-    "brazilian_houses": ("reg_cat_Brazilian_houses", "regression", "Brazilian house prices"),
-}
 
 # Quick benchmark (smaller datasets)
 QUICK_DATASETS = [
@@ -102,50 +64,13 @@ MEDIUM_DATASETS = QUICK_DATASETS + [
     "covertype",
     "jannis",
     "house_sales",
-    "bike_sharing",
+    "bike_sharing_inria",
     "eye_movements",
     "superconduct",
 ]
 
 # Full benchmark (all datasets)
 FULL_DATASETS = list(INRIA_DATASETS.keys())
-
-
-def load_inria_dataset(config_name: str, max_samples: int = MAX_SAMPLES) -> tuple:
-    """
-    Load a dataset from inria-soda/tabular-benchmark.
-
-    Parameters
-    ----------
-    config_name : str
-        Configuration name (e.g., 'clf_num_Higgs').
-    max_samples : int
-        Maximum number of samples to use.
-
-    Returns
-    -------
-    X : pd.DataFrame
-        Features.
-    y : pd.Series
-        Target.
-    """
-    from datasets import load_dataset
-
-    ds = load_dataset("inria-soda/tabular-benchmark", config_name, split="train")
-    df = ds.to_pandas()
-
-    # Target is always the last column
-    target_col = df.columns[-1]
-    X = df.drop(columns=[target_col])
-    y = df[target_col]
-
-    # Sample if too large
-    if len(X) > max_samples:
-        idx = np.random.RandomState(42).choice(len(X), max_samples, replace=False)
-        X = X.iloc[idx].reset_index(drop=True)
-        y = y.iloc[idx].reset_index(drop=True)
-
-    return X, y
 
 
 def preprocess_data(X: pd.DataFrame, y: pd.Series, task: str) -> tuple:
@@ -263,16 +188,15 @@ def run_single_benchmark(
         print(f"Unknown dataset: {dataset_name}")
         return None
 
-    config_name, task, description = INRIA_DATASETS[dataset_name]
+    _config_name, task, description = INRIA_DATASETS[dataset_name]
 
     print("\n" + "=" * 70)
     print(f"Dataset: {dataset_name} - {description}")
-    print(f"Config: {config_name}")
     print("=" * 70)
 
     try:
-        # Load dataset
-        X, y = load_inria_dataset(config_name, max_samples)
+        # Load dataset using centralized loader
+        X, y, task, _name = load_inria_dataset(dataset_name, max_samples)
         print(f"Shape: {X.shape}")
         print(f"Task: {task}")
 

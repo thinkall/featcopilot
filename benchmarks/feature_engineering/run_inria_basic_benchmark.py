@@ -32,17 +32,19 @@ from sklearn.preprocessing import LabelEncoder
 
 sys.path.insert(0, ".")
 
+from benchmarks.datasets import INRIA_DATASETS, load_inria_dataset
+
 warnings.filterwarnings("ignore")
 
-# INRIA-SODA datasets that showed best FeatCopilot improvements
-INRIA_DATASETS = {
+# Curated datasets for this benchmark
+BENCHMARK_DATASETS = {
     # Regression - best for FE
     "abalone": ("reg_num_abalone", "regression", "Abalone age prediction"),
     "wine_quality": ("reg_num_wine_quality", "regression", "Wine quality score"),
     "diamonds": ("reg_num_diamonds", "regression", "Diamond price prediction"),
     "cpu_act": ("reg_num_cpu_act", "regression", "CPU activity prediction"),
     "houses": ("reg_num_houses", "regression", "House value prediction"),
-    "bike_sharing": ("reg_num_Bike_Sharing_Demand", "regression", "Bike rental demand"),
+    "bike_sharing_inria": ("reg_num_Bike_Sharing_Demand", "regression", "Bike rental demand"),
     "miami_housing": ("reg_num_MiamiHousing2016", "regression", "Miami housing prices"),
     "superconduct": ("reg_num_superconduct", "regression", "Superconductor temperature"),
     # Classification
@@ -55,27 +57,8 @@ INRIA_DATASETS = {
 }
 
 QUICK_DATASETS = ["abalone", "wine_quality", "diamonds", "credit", "eye_movements"]
-MEDIUM_DATASETS = QUICK_DATASETS + ["cpu_act", "houses", "bike_sharing", "jannis", "bioresponse"]
+MEDIUM_DATASETS = QUICK_DATASETS + ["cpu_act", "houses", "bike_sharing_inria", "jannis", "bioresponse"]
 MAX_SAMPLES = 30000
-
-
-def load_inria_dataset(config_name: str, max_samples: int = MAX_SAMPLES) -> tuple:
-    """Load a dataset from inria-soda/tabular-benchmark."""
-    from datasets import load_dataset
-
-    ds = load_dataset("inria-soda/tabular-benchmark", config_name, split="train")
-    df = ds.to_pandas()
-
-    target_col = df.columns[-1]
-    X = df.drop(columns=[target_col])
-    y = df[target_col]
-
-    if len(X) > max_samples:
-        idx = np.random.RandomState(42).choice(len(X), max_samples, replace=False)
-        X = X.iloc[idx].reset_index(drop=True)
-        y = y.iloc[idx].reset_index(drop=True)
-
-    return X, y
 
 
 def preprocess_data(X: pd.DataFrame, y, task: str) -> tuple:
@@ -178,11 +161,15 @@ def apply_featcopilot(X_train, X_test, y_train, engines: list, max_features: int
 
 def run_single_benchmark(dataset_name: str, engines: list, max_features: int) -> Optional[dict]:
     """Run benchmark on single dataset."""
-    if dataset_name not in INRIA_DATASETS:
+    if dataset_name not in BENCHMARK_DATASETS and dataset_name not in INRIA_DATASETS:
         print(f"Unknown dataset: {dataset_name}")
         return None
 
-    config_name, task, description = INRIA_DATASETS[dataset_name]
+    # Get task type from local dict or INRIA registry
+    if dataset_name in BENCHMARK_DATASETS:
+        _config_name, task, description = BENCHMARK_DATASETS[dataset_name]
+    else:
+        _config_name, task, description = INRIA_DATASETS[dataset_name]
 
     print("\n" + "=" * 70)
     print(f"Dataset: {dataset_name} - {description}")
@@ -190,7 +177,8 @@ def run_single_benchmark(dataset_name: str, engines: list, max_features: int) ->
     print("=" * 70)
 
     try:
-        X, y = load_inria_dataset(config_name)
+        # Load dataset using centralized loader
+        X, y, task, _name = load_inria_dataset(dataset_name, MAX_SAMPLES)
         print(f"Shape: {X.shape}")
         print(f"Task: {task}")
 
