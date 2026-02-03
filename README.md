@@ -23,16 +23,18 @@ Using LLM + Text + Tabular engines on 4-genre classification task.
 
 | Configuration | Datasets | Avg Improvement | Win Rate |
 |---------------|----------|-----------------|----------|
-| Tabular + LLM | 5 | +2.42% | 80% |
-| Tabular Only | 10 | +0.48% | 60% |
+| Tabular Only | 10 | +0.40% | 70% |
+| Tabular + LLM | 10 | +0.07% | 70% |
+
+Models: RandomForest, Ridge/LogisticRegression
 
 ### Tool Comparison
 
 | Tool | Avg Improvement | FE Time |
 |------|-----------------|---------|
-| **FeatCopilot** | +0.20% | **1.03s** |
-| AutoFeat | +0.45% | 1246.91s |
-| Featuretools | +0.26% | 0.11s |
+| **FeatCopilot** | +0.21% | **1.03s** |
+| AutoFeat | +0.48% | 1246.91s |
+| Featuretools | +0.27% | 0.11s |
 
 - ✅ **Competitive accuracy** with specialized tools
 - ⚡ **1000x faster** than AutoFeat

@@ -290,7 +290,8 @@ def generate_report(results: list, engines: list) -> str:
     report.append("# INRIA Basic Models Benchmark Report\n")
     report.append(f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
     report.append(f"**Engines:** {', '.join(engines)}\n")
-    report.append(f"**Max Samples:** {MAX_SAMPLES:,}\n\n")
+    report.append(f"**Max Samples:** {MAX_SAMPLES:,}\n")
+    report.append("**Models:** RandomForest, Ridge (regression) / LogisticRegression (classification)\n\n")
 
     report.append("## Summary\n\n")
     report.append("| Dataset | Task | Samples | Features | Best Baseline | Best +FC | Improvement |\n")
@@ -301,13 +302,19 @@ def generate_report(results: list, engines: list) -> str:
         if r is None or not r.get("featcopilot"):
             continue
 
-        best_imp = max(r["improvements"].values()) if r["improvements"] else 0
+        # Find the best performing model for baseline and use the SAME model for comparison
         if r["task"] == "classification":
-            best_base = max(r["baseline"][m]["f1_weighted"] for m in r["baseline"])
-            best_fc = max(r["featcopilot"][m]["f1_weighted"] for m in r["featcopilot"])
+            # Get best baseline model name and its score
+            best_base_model = max(r["baseline"], key=lambda m: r["baseline"][m]["f1_weighted"])
+            best_base = r["baseline"][best_base_model]["f1_weighted"]
+            best_fc = r["featcopilot"][best_base_model]["f1_weighted"]
         else:
-            best_base = max(r["baseline"][m]["r2"] for m in r["baseline"])
-            best_fc = max(r["featcopilot"][m]["r2"] for m in r["featcopilot"])
+            best_base_model = max(r["baseline"], key=lambda m: r["baseline"][m]["r2"])
+            best_base = r["baseline"][best_base_model]["r2"]
+            best_fc = r["featcopilot"][best_base_model]["r2"]
+
+        # Calculate improvement using the same model
+        best_imp = ((best_fc - best_base) / abs(best_base) * 100) if best_base != 0 else 0
 
         fe_str = f"{r['n_features_original']}→{r['n_features_fe']}"
         report.append(

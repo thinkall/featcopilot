@@ -6,9 +6,9 @@ This directory contains comprehensive benchmarks demonstrating FeatCopilot's fea
 
 | Benchmark | Improvement | Description |
 |-----------|-------------|-------------|
-| **Spotify Classification** | **+12.37%** F1 | LLM + Text + Tabular engines |
-| **INRIA (LLM)** | +2.42% avg, max +11.03% | Tabular + LLM on 5 datasets |
-| **INRIA (Tabular)** | +0.48% avg, max +9.10% | Tabular only on 10 datasets |
+| **Spotify Classification** | **+12.37%** F1 | LLM + Text + Tabular engines with FLAML AutoML |
+| **INRIA (Tabular)** | +0.40% avg, max +8.25% | Tabular only on 10 datasets with RF/Ridge |
+| **INRIA (Tabular+LLM)** | +0.07% avg, max +2.46% | Tabular + LLM on 10 datasets with RF/Ridge |
 
 ## Structure
 
@@ -67,17 +67,17 @@ python benchmarks/automl/run_flaml_spotify_benchmark.py
 
 ### 2. INRIA Benchmark Suite
 
-10 diverse datasets from OpenML testing Tabular and Tabular+LLM configurations.
+10 diverse datasets from OpenML testing Tabular and Tabular+LLM configurations with basic models (RandomForest, Ridge/LogisticRegression).
 
 ```bash
-# Tabular only
-python benchmarks/feature_engineering/run_inria_basic_benchmark.py --engines tabular
+# Tabular only (10 datasets)
+python benchmarks/feature_engineering/run_inria_basic_benchmark.py --medium --engines tabular
 
-# Tabular + LLM
-python benchmarks/feature_engineering/run_inria_basic_benchmark.py --engines tabular llm
+# Tabular + LLM (10 datasets)
+python benchmarks/feature_engineering/run_inria_basic_benchmark.py --medium --engines tabular,llm
 ```
 
-**Result**: +0.48% avg (Tabular), +2.42% avg (Tabular+LLM)
+**Result**: +0.40% avg (Tabular), +0.07% avg (Tabular+LLM)
 
 ### 3. Tool Comparison
 
@@ -102,8 +102,8 @@ python benchmarks/automl/run_automl_benchmark.py --frameworks flaml autogluon h2
 | Report | Location | Description |
 |--------|----------|-------------|
 | **Spotify Classification** | `automl/FLAML_SPOTIFY_CLASSIFICATION_REPORT.md` | +12.37% F1 result |
-| **INRIA (Tabular)** | `feature_engineering/INRIA_BASIC_MODELS_TABULAR.md` | 10 datasets, +0.48% avg |
-| **INRIA (LLM)** | `feature_engineering/INRIA_BASIC_MODELS_TABULAR_LLM.md` | 5 datasets, +2.42% avg |
+| **INRIA (Tabular)** | `feature_engineering/INRIA_BASIC_MODELS_TABULAR.md` | 10 datasets, +0.40% avg |
+| **INRIA (Tabular+LLM)** | `feature_engineering/INRIA_BASIC_MODELS_TABULAR_LLM.md` | 10 datasets, +0.07% avg |
 | **Tool Comparison** | `compare_tools/COMPARISON_BENCHMARK_REPORT.md` | vs 4 other FE tools |
 | **FLAML Real-World** | `automl/FLAML_REALWORLD_BENCHMARK_REPORT.md` | 10 real-world datasets |
 

@@ -17,11 +17,11 @@
 
     Genre classification with LLM + Text + Tabular engines
 
--   :material-brain:{ .lg .middle } __+11.03% with LLM Engine__
+-   :material-brain:{ .lg .middle } __+8.25% Max Improvement__
 
     ---
 
-    Max improvement on INRIA benchmark (abalone dataset)
+    INRIA benchmark with Tabular engine (abalone dataset)
 
 -   :material-scale-balance:{ .lg .middle } __Competitive & Fast__
 
