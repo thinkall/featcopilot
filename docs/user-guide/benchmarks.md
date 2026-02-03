@@ -218,11 +218,14 @@ Based on comprehensive benchmarking, FeatCopilot provides the most value in thes
 
 | Scenario | Expected Benefit | Evidence |
 |----------|------------------|----------|
-| **Text/categorical columns** | **High** (+10-15%) | Spotify benchmark: +12.37% |
-| **Regression with linear models** | **High** (+10-80%) | INRIA: Ridge +26% (wine), +79% (bike) |
-| **Domain-specific tasks** | **High** (+5-12%) | LLM generates contextual features |
+| **Text/categorical columns** | **High** (+10-15%) | Spotify: +12.37% F1 with LLM+Text engines |
+| **Linear models (Ridge/LogReg)** | **High** (+10-80%) | INRIA: Ridge +27% (wine), +24% (bike) |
+| **Small feature sets** | **High** (+5-10%) | abalone: +8.25% (7→30 features) |
 | **Mixed data types** | **Medium** (+3-10%) | Target encoding + text extraction |
-| **Tree models on clean numeric data** | **Low** (0-2%) | Trees learn interactions natively |
+| **Tree models on numeric data** | **Low** (0-2%) | Trees learn interactions natively |
+
+!!! info "Key Insight"
+    FeatCopilot's engineered features benefit linear models most significantly because they cannot learn feature interactions automatically. Tree-based models (RandomForest, XGBoost) already capture non-linear relationships, so improvements are more modest but still positive in 70% of datasets.
 
 ---
 
