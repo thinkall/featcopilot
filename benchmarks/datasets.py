@@ -360,6 +360,626 @@ def create_complex_classification_dataset(n_samples=2000, n_features=15, random_
 
 
 # =============================================================================
+# Real-World Datasets (from Kaggle, OpenML, HuggingFace)
+# =============================================================================
+
+
+def load_kaggle_house_prices():
+    """
+    Load House Prices dataset from Kaggle/HuggingFace.
+
+    Predict sale prices of homes in Ames, Iowa based on 79 features.
+    This is the gold standard for tabular feature engineering benchmarks.
+
+    Returns
+    -------
+    X : pd.DataFrame
+        Feature matrix (79 features).
+    y : pd.Series
+        Sale prices.
+    task : str
+        Task type ("regression").
+    name : str
+        Dataset name.
+    """
+    try:
+        from datasets import load_dataset
+
+        ds = load_dataset("leomaurodesenv/house-prices-advanced-regression-techniques", split="train")
+        df = ds.to_pandas()
+
+        # Target column
+        target = "SalePrice"
+        if target not in df.columns:
+            raise ValueError(f"Target column '{target}' not found")
+
+        # Drop ID column if present
+        drop_cols = ["Id", "id"]
+        X = df.drop(columns=[c for c in drop_cols + [target] if c in df.columns])
+        y = df[target]
+
+        return X, y, "regression", "House Prices (Kaggle)"
+
+    except Exception as e:
+        print(f"Warning: Could not load real dataset: {e}")
+        print("Falling back to synthetic version...")
+        return load_house_prices_dataset()
+
+
+def load_kaggle_employee_attrition():
+    """
+    Load IBM HR Employee Attrition dataset.
+
+    Predict employee attrition based on HR metrics.
+
+    Returns
+    -------
+    X : pd.DataFrame
+        Feature matrix (34 features).
+    y : pd.Series
+        Attrition labels (0/1).
+    task : str
+        Task type ("classification").
+    name : str
+        Dataset name.
+    """
+    try:
+        from datasets import load_dataset
+
+        ds = load_dataset("jpmiller/hr-employee-attrition", split="train")
+        df = ds.to_pandas()
+
+        target = "Attrition"
+        if target not in df.columns:
+            raise ValueError(f"Target column '{target}' not found")
+
+        X = df.drop(columns=[target])
+        y = df[target].map({"Yes": 1, "No": 0}) if df[target].dtype == object else df[target]
+
+        return X, y, "classification", "Employee Attrition (Kaggle)"
+
+    except Exception as e:
+        print(f"Warning: Could not load real dataset: {e}")
+        print("Falling back to synthetic version...")
+        return load_employee_attrition_dataset()
+
+
+def load_kaggle_telco_churn():
+    """
+    Load Telco Customer Churn dataset.
+
+    Predict customer churn based on service usage and billing.
+
+    Returns
+    -------
+    X : pd.DataFrame
+        Feature matrix (20 features).
+    y : pd.Series
+        Churn labels (0/1).
+    task : str
+        Task type ("classification").
+    name : str
+        Dataset name.
+    """
+    try:
+        from datasets import load_dataset
+
+        ds = load_dataset("aai510-group1/telco-customer-churn", split="train")
+        df = ds.to_pandas()
+
+        target = "Churn"
+        if target not in df.columns:
+            raise ValueError(f"Target column '{target}' not found")
+
+        # Drop customer ID
+        drop_cols = ["customerID", "CustomerID"]
+        X = df.drop(columns=[c for c in drop_cols + [target] if c in df.columns])
+        y = df[target].map({"Yes": 1, "No": 0}) if df[target].dtype == object else df[target]
+
+        return X, y, "classification", "Telco Customer Churn (Kaggle)"
+
+    except Exception as e:
+        print(f"Warning: Could not load real dataset: {e}")
+        print("Returning synthetic churn dataset...")
+        # Create synthetic churn dataset
+        np.random.seed(42)
+        n = 7000
+        X = pd.DataFrame(
+            {
+                "tenure": np.random.randint(1, 72, n),
+                "MonthlyCharges": np.random.uniform(20, 100, n),
+                "TotalCharges": np.random.uniform(100, 8000, n),
+                "Contract": np.random.choice(["Month-to-month", "One year", "Two year"], n),
+                "PaymentMethod": np.random.choice(
+                    ["Electronic check", "Mailed check", "Bank transfer", "Credit card"], n
+                ),
+                "InternetService": np.random.choice(["DSL", "Fiber optic", "No"], n),
+                "OnlineSecurity": np.random.choice(["Yes", "No", "No internet"], n),
+                "TechSupport": np.random.choice(["Yes", "No", "No internet"], n),
+            }
+        )
+        churn_prob = 0.2 + 0.3 * (X["Contract"] == "Month-to-month") - 0.1 * (X["tenure"] / 72)
+        y = pd.Series((np.random.random(n) < churn_prob).astype(int), name="Churn")
+        return X, y, "classification", "Telco Churn (synthetic)"
+
+
+def load_openml_adult_census():
+    """
+    Load Adult Census Income dataset from OpenML.
+
+    Predict whether income exceeds $50K/year.
+
+    Returns
+    -------
+    X : pd.DataFrame
+        Feature matrix (14 features).
+    y : pd.Series
+        Income labels (0/1).
+    task : str
+        Task type ("classification").
+    name : str
+        Dataset name.
+    """
+    try:
+        from datasets import load_dataset
+
+        ds = load_dataset("scikit-learn/adult-census-income", split="train")
+        df = ds.to_pandas()
+
+        target = "income"
+        if target not in df.columns:
+            raise ValueError(f"Target column '{target}' not found")
+
+        X = df.drop(columns=[target])
+        y = df[target].map({">50K": 1, "<=50K": 0, ">50K.": 1, "<=50K.": 0})
+        if y.isna().any():
+            y = (df[target].str.contains(">50K")).astype(int)
+
+        return X, y, "classification", "Adult Census Income (OpenML)"
+
+    except Exception as e:
+        print(f"Warning: Could not load real dataset: {e}")
+        print("Returning synthetic census dataset...")
+        np.random.seed(42)
+        n = 10000
+        X = pd.DataFrame(
+            {
+                "age": np.random.randint(18, 70, n),
+                "workclass": np.random.choice(["Private", "Self-emp", "Gov", "Other"], n),
+                "education": np.random.choice(["HS-grad", "Some-college", "Bachelors", "Masters", "Doctorate"], n),
+                "education-num": np.random.randint(8, 16, n),
+                "marital-status": np.random.choice(["Married", "Never-married", "Divorced"], n),
+                "occupation": np.random.choice(["Tech", "Sales", "Admin", "Service", "Exec"], n),
+                "hours-per-week": np.random.randint(20, 60, n),
+                "capital-gain": np.random.exponential(1000, n),
+            }
+        )
+        income_prob = 0.2 + 0.02 * (X["education-num"] - 10) + 0.005 * (X["age"] - 30)
+        y = pd.Series((np.random.random(n) < income_prob).astype(int), name="income")
+        return X, y, "classification", "Adult Census (synthetic)"
+
+
+def load_kaggle_credit_card_fraud():
+    """
+    Load Credit Card Fraud Detection dataset.
+
+    Detect fraudulent transactions from anonymized features.
+
+    Returns
+    -------
+    X : pd.DataFrame
+        Feature matrix (30 features: V1-V28, Amount, Time).
+    y : pd.Series
+        Fraud labels (0/1).
+    task : str
+        Task type ("classification").
+    name : str
+        Dataset name.
+    """
+    try:
+        from datasets import load_dataset
+
+        ds = load_dataset("nelgiriyewithana/credit-card-fraud-detection-dataset-2023", split="train")
+        df = ds.to_pandas()
+
+        target = "Class"
+        if target not in df.columns:
+            raise ValueError(f"Target column '{target}' not found")
+
+        drop_cols = ["id", "Id"]
+        X = df.drop(columns=[c for c in drop_cols + [target] if c in df.columns])
+        y = df[target]
+
+        return X, y, "classification", "Credit Card Fraud (Kaggle)"
+
+    except Exception as e:
+        print(f"Warning: Could not load real dataset: {e}")
+        print("Falling back to synthetic version...")
+        return load_credit_card_fraud_dataset()
+
+
+def load_kaggle_spaceship_titanic():
+    """
+    Load Spaceship Titanic dataset from Kaggle.
+
+    Predict which passengers were transported to an alternate dimension.
+
+    Returns
+    -------
+    X : pd.DataFrame
+        Feature matrix (~13 features).
+    y : pd.Series
+        Transported labels (0/1).
+    task : str
+        Task type ("classification").
+    name : str
+        Dataset name.
+    """
+    try:
+        from datasets import load_dataset
+
+        ds = load_dataset("spaceship-titanic/spaceship-titanic", split="train")
+        df = ds.to_pandas()
+
+        target = "Transported"
+        if target not in df.columns:
+            raise ValueError(f"Target column '{target}' not found")
+
+        drop_cols = ["PassengerId", "Name"]
+        X = df.drop(columns=[c for c in drop_cols + [target] if c in df.columns])
+        y = df[target].astype(int) if df[target].dtype == bool else df[target]
+
+        return X, y, "classification", "Spaceship Titanic (Kaggle)"
+
+    except Exception as e:
+        print(f"Warning: Could not load real dataset: {e}")
+        print("Returning synthetic spaceship dataset...")
+        np.random.seed(42)
+        n = 8000
+        X = pd.DataFrame(
+            {
+                "HomePlanet": np.random.choice(["Earth", "Europa", "Mars"], n),
+                "CryoSleep": np.random.choice([True, False], n),
+                "Cabin": [
+                    f"{np.random.choice(['A','B','C','D','E','F'])}/{np.random.randint(1,1000)}/{np.random.choice(['P','S'])}"
+                    for _ in range(n)
+                ],
+                "Destination": np.random.choice(["TRAPPIST-1e", "PSO J318.5-22", "55 Cancri e"], n),
+                "Age": np.random.uniform(0, 80, n),
+                "VIP": np.random.choice([True, False], n, p=[0.05, 0.95]),
+                "RoomService": np.random.exponential(200, n),
+                "FoodCourt": np.random.exponential(400, n),
+                "ShoppingMall": np.random.exponential(300, n),
+                "Spa": np.random.exponential(300, n),
+                "VRDeck": np.random.exponential(300, n),
+            }
+        )
+        transported_prob = 0.5 + 0.2 * X["CryoSleep"] - 0.001 * X["Age"]
+        y = pd.Series((np.random.random(n) < transported_prob).astype(int), name="Transported")
+        return X, y, "classification", "Spaceship Titanic (synthetic)"
+
+
+def load_kaggle_bike_sharing():
+    """
+    Load Bike Sharing Demand dataset.
+
+    Predict hourly bike rental demand.
+
+    Returns
+    -------
+    X : pd.DataFrame
+        Feature matrix (12 features).
+    y : pd.Series
+        Rental count.
+    task : str
+        Task type ("regression").
+    name : str
+        Dataset name.
+    """
+    try:
+        from datasets import load_dataset
+
+        ds = load_dataset("BrejBala/Bike_Sharing_Demand", split="train")
+        df = ds.to_pandas()
+
+        target = "count"
+        if target not in df.columns:
+            raise ValueError(f"Target column '{target}' not found")
+
+        drop_cols = ["datetime", "casual", "registered"]
+        X = df.drop(columns=[c for c in drop_cols + [target] if c in df.columns])
+        y = df[target]
+
+        return X, y, "regression", "Bike Sharing Demand (Kaggle)"
+
+    except Exception as e:
+        print(f"Warning: Could not load real dataset: {e}")
+        print("Falling back to synthetic version...")
+        return load_bike_sharing_dataset()
+
+
+def load_kaggle_medical_cost():
+    """
+    Load Medical Cost Personal dataset.
+
+    Predict individual medical costs based on demographics and lifestyle.
+
+    Returns
+    -------
+    X : pd.DataFrame
+        Feature matrix (6 features).
+    y : pd.Series
+        Medical charges.
+    task : str
+        Task type ("regression").
+    name : str
+        Dataset name.
+    """
+    try:
+        from datasets import load_dataset
+
+        ds = load_dataset("yashpandey02/medical-cost-insurance", split="train")
+        df = ds.to_pandas()
+
+        target = "charges"
+        if target not in df.columns:
+            raise ValueError(f"Target column '{target}' not found")
+
+        X = df.drop(columns=[target])
+        y = df[target]
+
+        return X, y, "regression", "Medical Cost (Kaggle)"
+
+    except Exception as e:
+        print(f"Warning: Could not load real dataset: {e}")
+        print("Returning synthetic medical cost dataset...")
+        np.random.seed(42)
+        n = 1300
+        X = pd.DataFrame(
+            {
+                "age": np.random.randint(18, 65, n),
+                "sex": np.random.choice(["male", "female"], n),
+                "bmi": np.random.normal(30, 6, n),
+                "children": np.random.randint(0, 5, n),
+                "smoker": np.random.choice(["yes", "no"], n, p=[0.2, 0.8]),
+                "region": np.random.choice(["northeast", "northwest", "southeast", "southwest"], n),
+            }
+        )
+        base_cost = 5000 + 250 * X["age"] + 300 * X["bmi"]
+        smoker_effect = 20000 * (X["smoker"] == "yes")
+        y = pd.Series(base_cost + smoker_effect + np.random.normal(0, 3000, n), name="charges")
+        return X, y, "regression", "Medical Cost (synthetic)"
+
+
+def load_openml_wine_quality():
+    """
+    Load Wine Quality dataset from OpenML.
+
+    Predict wine quality score based on physicochemical properties.
+
+    Returns
+    -------
+    X : pd.DataFrame
+        Feature matrix (11 features).
+    y : pd.Series
+        Quality score (0-10).
+    task : str
+        Task type ("regression").
+    name : str
+        Dataset name.
+    """
+    try:
+        from datasets import load_dataset
+
+        ds = load_dataset("codesignal/wine-quality", split="train")
+        df = ds.to_pandas()
+
+        target = "quality"
+        if target not in df.columns:
+            raise ValueError(f"Target column '{target}' not found")
+
+        drop_cols = ["type", "Id", "id"]
+        X = df.drop(columns=[c for c in drop_cols + [target] if c in df.columns])
+        y = df[target]
+
+        return X, y, "regression", "Wine Quality (OpenML)"
+
+    except Exception as e:
+        print(f"Warning: Could not load real dataset: {e}")
+        print("Returning synthetic wine dataset...")
+        np.random.seed(42)
+        n = 5000
+        X = pd.DataFrame(
+            {
+                "fixed acidity": np.random.uniform(4, 16, n),
+                "volatile acidity": np.random.uniform(0.1, 1.5, n),
+                "citric acid": np.random.uniform(0, 1, n),
+                "residual sugar": np.random.uniform(0.5, 20, n),
+                "chlorides": np.random.uniform(0.01, 0.2, n),
+                "free sulfur dioxide": np.random.uniform(1, 70, n),
+                "total sulfur dioxide": np.random.uniform(5, 300, n),
+                "density": np.random.uniform(0.99, 1.01, n),
+                "pH": np.random.uniform(2.8, 4, n),
+                "sulphates": np.random.uniform(0.3, 2, n),
+                "alcohol": np.random.uniform(8, 15, n),
+            }
+        )
+        quality = 5 + 0.3 * X["alcohol"] - 2 * X["volatile acidity"] + np.random.normal(0, 0.5, n)
+        y = pd.Series(np.clip(quality, 3, 9).astype(int), name="quality")
+        return X, y, "regression", "Wine Quality (synthetic)"
+
+
+def load_kaggle_life_expectancy():
+    """
+    Load Life Expectancy dataset from WHO.
+
+    Predict life expectancy based on health and economic factors.
+
+    Returns
+    -------
+    X : pd.DataFrame
+        Feature matrix (20+ features).
+    y : pd.Series
+        Life expectancy in years.
+    task : str
+        Task type ("regression").
+    name : str
+        Dataset name.
+    """
+    try:
+        from datasets import load_dataset
+
+        ds = load_dataset("kumarajarshi/life-expectancy-who", split="train")
+        df = ds.to_pandas()
+
+        target = "Life expectancy "
+        if target not in df.columns:
+            target = "Life expectancy"
+        if target not in df.columns:
+            raise ValueError("Target column 'Life expectancy' not found")
+
+        drop_cols = ["Country", "Year"]
+        X = df.drop(columns=[c for c in drop_cols + [target] if c in df.columns])
+        y = df[target]
+
+        return X, y, "regression", "Life Expectancy (WHO)"
+
+    except Exception as e:
+        print(f"Warning: Could not load real dataset: {e}")
+        print("Returning synthetic life expectancy dataset...")
+        np.random.seed(42)
+        n = 2500
+        X = pd.DataFrame(
+            {
+                "Status": np.random.choice(["Developing", "Developed"], n, p=[0.8, 0.2]),
+                "Adult Mortality": np.random.uniform(50, 400, n),
+                "infant deaths": np.random.poisson(20, n),
+                "Alcohol": np.random.uniform(0, 15, n),
+                "percentage expenditure": np.random.exponential(500, n),
+                "BMI": np.random.uniform(15, 50, n),
+                "Polio": np.random.uniform(50, 99, n),
+                "Diphtheria": np.random.uniform(50, 99, n),
+                "HIV/AIDS": np.random.exponential(2, n),
+                "GDP": np.random.exponential(10000, n),
+                "Schooling": np.random.uniform(5, 20, n),
+            }
+        )
+        life_exp = 65 + 5 * (X["Status"] == "Developed") - 0.02 * X["Adult Mortality"] + 0.5 * X["Schooling"]
+        y = pd.Series(np.clip(life_exp + np.random.normal(0, 3, n), 40, 90), name="Life expectancy")
+        return X, y, "regression", "Life Expectancy (synthetic)"
+
+
+def load_kaggle_home_credit():
+    """
+    Load Home Credit Default Risk dataset (main application table).
+
+    Predict loan default probability.
+
+    Note: This loads only the main application table. The full competition
+    includes multiple related tables for advanced feature engineering.
+
+    Returns
+    -------
+    X : pd.DataFrame
+        Feature matrix (100+ features).
+    y : pd.Series
+        Default labels (0/1).
+    task : str
+        Task type ("classification").
+    name : str
+        Dataset name.
+    """
+    try:
+        from datasets import load_dataset
+
+        ds = load_dataset("inria-soda/tabular-benchmark", name="clf_cat_home-credit-default-risk-v2", split="train")
+        df = ds.to_pandas()
+
+        target = "TARGET"
+        if target not in df.columns:
+            target = "target"
+        if target not in df.columns:
+            raise ValueError("Target column not found")
+
+        drop_cols = ["SK_ID_CURR", "index"]
+        X = df.drop(columns=[c for c in drop_cols + [target] if c in df.columns])
+        y = df[target]
+
+        return X, y, "classification", "Home Credit Default (Kaggle)"
+
+    except Exception as e:
+        print(f"Warning: Could not load real dataset: {e}")
+        print("Returning synthetic credit dataset...")
+        return create_credit_risk_dataset(n_samples=5000)
+
+
+def load_kaggle_store_sales():
+    """
+    Load Store Sales Time Series dataset.
+
+    Predict daily sales for stores and product families.
+
+    Note: This is a simplified version. The full competition includes
+    multiple tables (stores, oil prices, holidays, transactions).
+
+    Returns
+    -------
+    X : pd.DataFrame
+        Feature matrix.
+    y : pd.Series
+        Sales values.
+    task : str
+        Task type ("regression").
+    name : str
+        Dataset name.
+    """
+    try:
+        from datasets import load_dataset
+
+        ds = load_dataset("t4tiana/store-sales-time-series-forecasting", split="train")
+        df = ds.to_pandas()
+
+        target = "sales"
+        if target not in df.columns:
+            raise ValueError("Target column 'sales' not found")
+
+        drop_cols = ["id", "date"]
+        X = df.drop(columns=[c for c in drop_cols + [target] if c in df.columns])
+        y = df[target]
+
+        # Limit size for benchmarking
+        if len(X) > 100000:
+            idx = np.random.RandomState(42).choice(len(X), 100000, replace=False)
+            X = X.iloc[idx].reset_index(drop=True)
+            y = y.iloc[idx].reset_index(drop=True)
+
+        return X, y, "regression", "Store Sales (Kaggle)"
+
+    except Exception as e:
+        print(f"Warning: Could not load real dataset: {e}")
+        print("Falling back to synthetic retail demand...")
+        return create_retail_demand_timeseries(n_samples=5000)
+
+
+def get_real_world_datasets():
+    """Return all real-world dataset loaders from Kaggle/OpenML/HuggingFace."""
+    return [
+        load_kaggle_house_prices,
+        load_kaggle_employee_attrition,
+        load_kaggle_telco_churn,
+        load_openml_adult_census,
+        load_kaggle_credit_card_fraud,
+        load_kaggle_spaceship_titanic,
+        load_kaggle_bike_sharing,
+        load_kaggle_medical_cost,
+        load_openml_wine_quality,
+        load_kaggle_life_expectancy,
+        load_kaggle_home_credit,
+        load_kaggle_store_sales,
+    ]
+
+
+# =============================================================================
 # Time Series Datasets
 # =============================================================================
 
@@ -665,7 +1285,7 @@ def create_server_latency_timeseries(n_samples=2000, random_state=42):
 def get_all_datasets():
     """Return all benchmark datasets (excluding time series)."""
     return [
-        # Kaggle-style
+        # Kaggle-style synthetic
         load_titanic_dataset,
         load_house_prices_dataset,
         load_credit_card_fraud_dataset,
