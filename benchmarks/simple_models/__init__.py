@@ -1,0 +1,1 @@
+"""Simple models benchmark module."""

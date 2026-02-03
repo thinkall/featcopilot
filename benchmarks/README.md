@@ -1,39 +1,22 @@
 # FeatCopilot Benchmarks
 
-This directory contains comprehensive benchmarks demonstrating FeatCopilot's feature engineering capabilities.
-
-## Headline Results
-
-| Benchmark | Improvement | Description |
-|-----------|-------------|-------------|
-| **Spotify Classification** | **+12.37%** F1 | LLM + Text + Tabular engines with FLAML AutoML |
-| **INRIA (Tabular)** | +0.40% avg, max +8.25% | Tabular only on 10 datasets with RF/Ridge |
-| **INRIA (Tabular+LLM)** | +0.07% avg, max +2.46% | Tabular + LLM on 10 datasets with RF/Ridge |
+Comprehensive benchmarks demonstrating FeatCopilot's feature engineering capabilities.
 
 ## Structure
 
 ```
 benchmarks/
-├── datasets.py                              # Shared benchmark datasets
+├── datasets.py                    # Unified dataset API (52 datasets)
+├── datasets.md                    # Dataset documentation
 │
-├── automl/                                  # AutoML integration benchmarks
-│   ├── run_flaml_spotify_benchmark.py       # Spotify benchmark (LLM+Text+Tabular)
-│   ├── run_flaml_realworld_benchmark.py     # 10 real-world datasets
-│   ├── run_automl_benchmark.py              # Multi-framework (FLAML, AutoGluon, H2O)
-│   ├── FLAML_SPOTIFY_CLASSIFICATION_REPORT.md  # Spotify result (+12.37%)
-│   └── FLAML_REALWORLD_BENCHMARK_REPORT.md
+├── automl/                        # AutoML benchmarks
+│   └── run_automl_benchmark.py    # FLAML/AutoGluon with FeatCopilot
 │
-├── feature_engineering/                     # Feature engineering benchmarks
-│   ├── run_inria_basic_benchmark.py         # INRIA/OpenML datasets
-│   ├── run_basic_models_benchmark.py        # Kaggle-style datasets
-│   ├── INRIA_BASIC_MODELS_TABULAR.md        # INRIA results (Tabular only)
-│   ├── INRIA_BASIC_MODELS_TABULAR_LLM.md    # INRIA results (Tabular+LLM)
-│   ├── BASIC_MODELS_BENCHMARK_TABULAR.md    # Basic models (Tabular only)
-│   └── BASIC_MODELS_BENCHMARK_TABULAR_LLM.md # Basic models (Tabular+LLM)
+├── simple_models/                 # Simple models benchmarks
+│   └── run_simple_models_benchmark.py  # RF/LogReg/Ridge with FeatCopilot
 │
-└── compare_tools/                           # Comparison with other FE tools
-    ├── run_comparison_benchmark.py          # vs Featuretools, TSFresh, AutoFeat
-    └── COMPARISON_BENCHMARK_REPORT.md
+└── compare_tools/                 # FE tools comparison
+    └── run_fe_tools_comparison.py # FeatCopilot vs other FE frameworks
 ```
 
 ## Quick Start
@@ -42,90 +25,133 @@ benchmarks/
 # Install dependencies
 pip install -e ".[benchmark]"
 
-# Run Spotify benchmark
-python benchmarks/automl/run_flaml_spotify_benchmark.py
+# Run AutoML benchmark
+python -m benchmarks.automl.run_automl_benchmark
 
-# Run INRIA benchmark suite
-python benchmarks/feature_engineering/run_inria_basic_benchmark.py --engines tabular
-python benchmarks/feature_engineering/run_inria_basic_benchmark.py --engines tabular llm
+# Run simple models benchmark
+python -m benchmarks.simple_models.run_simple_models_benchmark
 
-# Run tool comparison
-python benchmarks/compare_tools/run_comparison_benchmark.py
+# Run FE tools comparison
+python -m benchmarks.compare_tools.run_fe_tools_comparison
 ```
 
-## Benchmark Details
+## Benchmark Scripts
 
-### 1. Spotify Genre Classification
+### 1. AutoML Benchmark (`automl/run_automl_benchmark.py`)
 
-Demonstrates FeatCopilot's full capabilities with LLM + Text + Tabular engines.
+Compares AutoML frameworks (FLAML, AutoGluon) with and without FeatCopilot.
 
 ```bash
-python benchmarks/automl/run_flaml_spotify_benchmark.py
+# Quick benchmark (6 datasets)
+python -m benchmarks.automl.run_automl_benchmark
+
+# Specific datasets
+python -m benchmarks.automl.run_automl_benchmark --datasets titanic,house_prices
+
+# All classification datasets
+python -m benchmarks.automl.run_automl_benchmark --category classification
+
+# With LLM engine
+python -m benchmarks.automl.run_automl_benchmark --with-llm
+
+# Use AutoGluon
+python -m benchmarks.automl.run_automl_benchmark --framework autogluon
 ```
 
-**Result**: +12.37% F1 improvement (0.8243 → 0.9263)
+**Options:**
+- `--datasets NAME,NAME` - Specific datasets
+- `--category {classification,regression}` - All datasets in category
+- `--all` - All datasets
+- `--framework {flaml,autogluon}` - AutoML framework
+- `--with-llm` - Enable LLM engine
+- `--time-budget N` - AutoML time budget (default: 60s)
 
-### 2. INRIA Benchmark Suite
+**Output:** `AUTOML_BENCHMARK_YYYYMMDD.md`
 
-10 diverse datasets from OpenML testing Tabular and Tabular+LLM configurations with basic models (RandomForest, Ridge/LogisticRegression).
+### 2. Simple Models Benchmark (`simple_models/run_simple_models_benchmark.py`)
+
+Compares simple models with and without FeatCopilot.
 
 ```bash
-# Tabular only (10 datasets)
-python benchmarks/feature_engineering/run_inria_basic_benchmark.py --medium --engines tabular
+# Quick benchmark
+python -m benchmarks.simple_models.run_simple_models_benchmark
 
-# Tabular + LLM (10 datasets)
-python benchmarks/feature_engineering/run_inria_basic_benchmark.py --medium --engines tabular,llm
+# All regression datasets with LLM
+python -m benchmarks.simple_models.run_simple_models_benchmark --category regression --with-llm
 ```
 
-**Result**: +0.40% avg (Tabular), +0.07% avg (Tabular+LLM)
+**Models:**
+- Classification: RandomForest, LogisticRegression
+- Regression: RandomForest, Ridge
 
-### 3. Tool Comparison
+**Output:** `SIMPLE_MODELS_BENCHMARK_YYYYMMDD.md`
 
-Compare FeatCopilot with Featuretools, TSFresh, and AutoFeat.
+### 3. FE Tools Comparison (`compare_tools/run_fe_tools_comparison.py`)
+
+Compares FeatCopilot with other feature engineering frameworks using FLAML.
 
 ```bash
-python benchmarks/compare_tools/run_comparison_benchmark.py
+# Compare all available tools
+python -m benchmarks.compare_tools.run_fe_tools_comparison
+
+# Specific tools
+python -m benchmarks.compare_tools.run_fe_tools_comparison --tools featcopilot featuretools openfe
 ```
 
-**Result**: Competitive accuracy with 1000x faster FE time than AutoFeat
+**Tools compared:**
+- Baseline (no FE)
+- FeatCopilot
+- Featuretools
+- tsfresh
+- autofeat
+- OpenFE
+- CAAFE
 
-### 4. AutoML Integration
+**Output:** `FE_TOOLS_COMPARISON_YYYYMMDD.md`
 
-Test FeatCopilot with FLAML, AutoGluon, and H2O.
+## Datasets
 
-```bash
-python benchmarks/automl/run_automl_benchmark.py --frameworks flaml autogluon h2o
+52 datasets across 4 categories:
+
+| Category | Count | Examples |
+|----------|-------|----------|
+| Classification | 22 | titanic, credit_risk, higgs (INRIA) |
+| Regression | 20 | house_prices, diamonds (INRIA) |
+| Forecasting | 3 | sensor_anomaly, retail_demand |
+| Text | 7 | product_reviews, fake_news |
+
+```python
+from benchmarks.datasets import list_datasets, load_dataset
+
+# List all datasets
+list_datasets()
+
+# List by category
+list_datasets('classification')
+
+# Load dataset
+X, y, task, name = load_dataset('titanic')
 ```
 
-## Reports
-
-| Report | Location | Description |
-|--------|----------|-------------|
-| **Spotify Classification** | `automl/FLAML_SPOTIFY_CLASSIFICATION_REPORT.md` | +12.37% F1 result |
-| **INRIA (Tabular)** | `feature_engineering/INRIA_BASIC_MODELS_TABULAR.md` | 10 datasets, +0.40% avg |
-| **INRIA (Tabular+LLM)** | `feature_engineering/INRIA_BASIC_MODELS_TABULAR_LLM.md` | 10 datasets, +0.07% avg |
-| **Tool Comparison** | `compare_tools/COMPARISON_BENCHMARK_REPORT.md` | vs 4 other FE tools |
-| **FLAML Real-World** | `automl/FLAML_REALWORLD_BENCHMARK_REPORT.md` | 10 real-world datasets |
+See `datasets.md` for full documentation.
 
 ## Dependencies
 
-### Core (Required)
-
+### Core
 ```bash
 pip install -e ".[benchmark]"  # Includes FLAML
 ```
 
-### Optional (For Tool Comparison)
-
+### Optional (for tool comparison)
 ```bash
 pip install featuretools  # Deep Feature Synthesis
 pip install tsfresh       # Time series features
 pip install autofeat      # Automatic feature generation
+pip install openfe        # OpenFE
+pip install caafe         # CAAFE (requires OpenAI API)
 ```
 
-### Optional (For AutoML)
-
+### Optional (for AutoML)
 ```bash
-pip install autogluon  # AutoGluon
-pip install h2o        # H2O AutoML
+pip install autogluon     # AutoGluon
 ```

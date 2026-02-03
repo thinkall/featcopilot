@@ -1,35 +1,32 @@
 """
-AutoML Benchmark for FeatCopilot.
+Simple Models Benchmark for FeatCopilot.
 
-Compares AutoML framework performance with and without FeatCopilot feature engineering.
+Compares simple model performance with and without FeatCopilot feature engineering.
 
 Comparison modes:
 1. Baseline (no feature engineering)
 2. FeatCopilot (tabular engine only)
 3. FeatCopilot + LLM (if --with-llm enabled)
 
-Supported AutoML frameworks:
-- FLAML (Microsoft) - default
-- AutoGluon (Amazon)
+Models:
+- Classification: RandomForestClassifier, LogisticRegression
+- Regression: RandomForestRegressor, Ridge
 
 Usage:
-    python -m benchmarks.automl.run_automl_benchmark [options]
+    python -m benchmarks.simple_models.run_simple_models_benchmark [options]
 
 Examples:
     # Quick benchmark with default settings
-    python -m benchmarks.automl.run_automl_benchmark
+    python -m benchmarks.simple_models.run_simple_models_benchmark
 
     # Run on specific datasets
-    python -m benchmarks.automl.run_automl_benchmark --datasets titanic,house_prices
+    python -m benchmarks.simple_models.run_simple_models_benchmark --datasets titanic,house_prices
 
     # Run on all classification datasets
-    python -m benchmarks.automl.run_automl_benchmark --category classification
+    python -m benchmarks.simple_models.run_simple_models_benchmark --category classification
 
     # Run with LLM engine enabled
-    python -m benchmarks.automl.run_automl_benchmark --with-llm
-
-    # Use AutoGluon instead of FLAML
-    python -m benchmarks.automl.run_automl_benchmark --framework autogluon
+    python -m benchmarks.simple_models.run_simple_models_benchmark --with-llm
 """
 
 import argparse
@@ -42,6 +39,8 @@ from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.linear_model import LogisticRegression, Ridge
 from sklearn.metrics import (
     accuracy_score,
     f1_score,
@@ -65,109 +64,27 @@ from benchmarks.datasets import (  # noqa: E402
 warnings.filterwarnings("ignore")
 
 # Default configuration
-DEFAULT_TIME_BUDGET = 60
 DEFAULT_MAX_FEATURES = 50
 QUICK_DATASETS = ["titanic", "house_prices", "credit_risk", "bike_sharing", "customer_churn", "insurance_claims"]
 
 
 # =============================================================================
-# AutoML Runners
+# Models
 # =============================================================================
 
 
-class AutoMLRunner:
-    """Base class for AutoML runners."""
-
-    def __init__(self, time_budget: int, random_state: int = 42):
-        self.time_budget = time_budget
-        self.random_state = random_state
-        self.model = None
-
-    def fit(self, X: pd.DataFrame, y, task: str) -> float:
-        """Fit model and return training time."""
-        raise NotImplementedError
-
-    def predict(self, X: pd.DataFrame) -> np.ndarray:
-        """Predict on new data."""
-        raise NotImplementedError
-
-    def predict_proba(self, X: pd.DataFrame) -> Optional[np.ndarray]:
-        """Predict probabilities (classification only)."""
-        return None
-
-
-class FLAMLRunner(AutoMLRunner):
-    """FLAML AutoML runner."""
-
-    def fit(self, X: pd.DataFrame, y, task: str) -> float:
-        from flaml import AutoML
-
-        self.model = AutoML()
-        flaml_task = "classification" if "classification" in task else "regression"
-
-        start = time.time()
-        self.model.fit(
-            X,
-            y,
-            task=flaml_task,
-            time_budget=self.time_budget,
-            seed=self.random_state,
-            verbose=0,
-            force_cancel=True,
-        )
-        return time.time() - start
-
-    def predict(self, X: pd.DataFrame) -> np.ndarray:
-        return self.model.predict(X)
-
-    def predict_proba(self, X: pd.DataFrame) -> Optional[np.ndarray]:
-        if hasattr(self.model, "predict_proba"):
-            return self.model.predict_proba(X)
-        return None
-
-
-class AutoGluonRunner(AutoMLRunner):
-    """AutoGluon AutoML runner."""
-
-    def __init__(self, time_budget: int, random_state: int = 42):
-        super().__init__(time_budget, random_state)
-        self._label = "__target__"
-
-    def fit(self, X: pd.DataFrame, y, task: str) -> float:
-        from autogluon.tabular import TabularPredictor
-
-        train_data = X.copy()
-        train_data[self._label] = y
-
-        problem_type = "binary" if "classification" in task else "regression"
-        if "classification" in task and pd.Series(y).nunique() > 2:
-            problem_type = "multiclass"
-
-        self.model = TabularPredictor(label=self._label, problem_type=problem_type, verbosity=0)
-
-        start = time.time()
-        self.model.fit(train_data, time_limit=self.time_budget, presets="medium_quality")
-        return time.time() - start
-
-    def predict(self, X: pd.DataFrame) -> np.ndarray:
-        return self.model.predict(X).values
-
-    def predict_proba(self, X: pd.DataFrame) -> Optional[np.ndarray]:
-        if hasattr(self.model, "predict_proba"):
-            proba = self.model.predict_proba(X)
-            return proba.values if isinstance(proba, pd.DataFrame) else proba
-        return None
-
-
-def get_runner(framework: str, time_budget: int) -> AutoMLRunner:
-    """Get AutoML runner by framework name."""
-    runners = {
-        "flaml": FLAMLRunner,
-        "autogluon": AutoGluonRunner,
-    }
-    if framework not in runners:
-        raise ValueError(f"Unknown framework: {framework}. Available: {list(runners.keys())}")
-    return runners[framework](time_budget)
+def get_models(task: str) -> dict:
+    """Get models for the task type."""
+    if "classification" in task:
+        return {
+            "RandomForest": RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42, n_jobs=-1),
+            "LogisticRegression": LogisticRegression(max_iter=1000, random_state=42),
+        }
+    else:
+        return {
+            "RandomForest": RandomForestRegressor(n_estimators=100, max_depth=10, random_state=42, n_jobs=-1),
+            "Ridge": Ridge(alpha=1.0, random_state=42),
+        }
 
 
 # =============================================================================
@@ -281,10 +198,31 @@ def apply_featcopilot(
 # =============================================================================
 
 
+def run_models(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train, y_test, task: str, label: str) -> dict[str, dict]:
+    """Run all models and return metrics."""
+    models = get_models(task)
+    results = {}
+    primary_metric = get_primary_metric(task)
+
+    for name, model in models.items():
+        start = time.time()
+        model.fit(X_train, y_train)
+        train_time = time.time() - start
+
+        y_pred = model.predict(X_test)
+        y_prob = model.predict_proba(X_test) if hasattr(model, "predict_proba") else None
+
+        metrics = evaluate(y_test, y_pred, y_prob, task)
+        metrics["train_time"] = train_time
+
+        results[name] = metrics
+        print(f"   {name}: {primary_metric}={metrics[primary_metric]:.4f}, time={train_time:.2f}s")
+
+    return results
+
+
 def run_single_benchmark(
     dataset_name: str,
-    framework: str,
-    time_budget: int,
     max_features: int,
     with_llm: bool = False,
 ) -> Optional[dict[str, Any]]:
@@ -310,7 +248,6 @@ def run_single_benchmark(
         results = {
             "dataset": dataset_name,
             "task": task,
-            "framework": framework,
             "n_samples": len(X),
             "n_features_original": X.shape[1],
             "with_llm": with_llm,
@@ -319,37 +256,29 @@ def run_single_benchmark(
 
         # --- Baseline ---
         print("\n[1/3] Baseline (no FE)...")
-        runner = get_runner(framework, time_budget)
-        train_time = runner.fit(X_train, y_train, task)
-        y_pred = runner.predict(X_test)
-        y_prob = runner.predict_proba(X_test)
-        baseline_metrics = evaluate(y_test, y_pred, y_prob, task)
+        baseline_results = run_models(X_train, X_test, y_train, y_test, task, "Baseline")
+        results["baseline"] = baseline_results
 
-        results["baseline_score"] = baseline_metrics[primary_metric]
-        results["baseline_train_time"] = train_time
-        print(f"   {primary_metric}: {baseline_metrics[primary_metric]:.4f}, time: {train_time:.1f}s")
+        # Best baseline score
+        best_baseline = max(baseline_results.values(), key=lambda x: x[primary_metric])
+        results["baseline_best_score"] = best_baseline[primary_metric]
 
         # --- FeatCopilot (tabular only) ---
         print("\n[2/3] FeatCopilot (tabular)...")
         X_train_fe, X_test_fe, fe_time = apply_featcopilot(X_train, X_test, y_train, max_features, with_llm=False)
         results["n_features_tabular"] = X_train_fe.shape[1]
         results["fe_time_tabular"] = fe_time
+        print(f"   Features: {X_train.shape[1]} → {X_train_fe.shape[1]}, FE time: {fe_time:.2f}s")
 
-        runner = get_runner(framework, time_budget)
-        train_time = runner.fit(X_train_fe, y_train, task)
-        y_pred = runner.predict(X_test_fe)
-        y_prob = runner.predict_proba(X_test_fe)
-        tabular_metrics = evaluate(y_test, y_pred, y_prob, task)
+        tabular_results = run_models(X_train_fe, X_test_fe, y_train, y_test, task, "Tabular")
+        results["tabular"] = tabular_results
 
-        results["tabular_score"] = tabular_metrics[primary_metric]
-        results["tabular_train_time"] = train_time
-        improvement = (tabular_metrics[primary_metric] - baseline_metrics[primary_metric]) / max(
-            baseline_metrics[primary_metric], 0.001
-        )
-        results["tabular_improvement_pct"] = improvement * 100
-        print(
-            f"   {primary_metric}: {tabular_metrics[primary_metric]:.4f} "
-            f"({improvement*100:+.2f}%), features: {X_train_fe.shape[1]}"
+        best_tabular = max(tabular_results.values(), key=lambda x: x[primary_metric])
+        results["tabular_best_score"] = best_tabular[primary_metric]
+        results["tabular_improvement_pct"] = (
+            (best_tabular[primary_metric] - best_baseline[primary_metric])
+            / max(best_baseline[primary_metric], 0.001)
+            * 100
         )
 
         # --- FeatCopilot + LLM (if enabled) ---
@@ -360,22 +289,17 @@ def run_single_benchmark(
             )
             results["n_features_llm"] = X_train_llm.shape[1]
             results["fe_time_llm"] = fe_time_llm
+            print(f"   Features: {X_train.shape[1]} → {X_train_llm.shape[1]}, FE time: {fe_time_llm:.2f}s")
 
-            runner = get_runner(framework, time_budget)
-            train_time = runner.fit(X_train_llm, y_train, task)
-            y_pred = runner.predict(X_test_llm)
-            y_prob = runner.predict_proba(X_test_llm)
-            llm_metrics = evaluate(y_test, y_pred, y_prob, task)
+            llm_results = run_models(X_train_llm, X_test_llm, y_train, y_test, task, "LLM")
+            results["llm"] = llm_results
 
-            results["llm_score"] = llm_metrics[primary_metric]
-            results["llm_train_time"] = train_time
-            improvement = (llm_metrics[primary_metric] - baseline_metrics[primary_metric]) / max(
-                baseline_metrics[primary_metric], 0.001
-            )
-            results["llm_improvement_pct"] = improvement * 100
-            print(
-                f"   {primary_metric}: {llm_metrics[primary_metric]:.4f} "
-                f"({improvement*100:+.2f}%), features: {X_train_llm.shape[1]}"
+            best_llm = max(llm_results.values(), key=lambda x: x[primary_metric])
+            results["llm_best_score"] = best_llm[primary_metric]
+            results["llm_improvement_pct"] = (
+                (best_llm[primary_metric] - best_baseline[primary_metric])
+                / max(best_baseline[primary_metric], 0.001)
+                * 100
             )
         else:
             print("\n[3/3] Skipped (--with-llm not enabled)")
@@ -384,10 +308,13 @@ def run_single_benchmark(
 
     except Exception as e:
         print(f"Error: {e}")
+        import traceback
+
+        traceback.print_exc()
         return None
 
 
-def generate_report(results: list[dict], framework: str, with_llm: bool, output_path: Path) -> None:
+def generate_report(results: list[dict], with_llm: bool, output_path: Path) -> None:
     """Generate markdown report."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     date_str = datetime.now().strftime("%Y%m%d")
@@ -396,10 +323,10 @@ def generate_report(results: list[dict], framework: str, with_llm: bool, output_
     clf_results = [r for r in results if "classification" in r["task"]]
     reg_results = [r for r in results if "classification" not in r["task"]]
 
-    report = f"""# AutoML Benchmark Report
+    report = f"""# Simple Models Benchmark Report
 
 **Generated:** {timestamp}
-**Framework:** {framework.upper()}
+**Models:** RandomForest, LogisticRegression/Ridge
 **LLM Enabled:** {with_llm}
 **Datasets:** {len(results)}
 
@@ -427,9 +354,9 @@ def generate_report(results: list[dict], framework: str, with_llm: bool, output_
         report += "----------|\n"
 
         for r in clf_results:
-            report += f"| {r['dataset']} | {r['baseline_score']:.4f} | {r['tabular_score']:.4f} | {r['tabular_improvement_pct']:+.2f}% |"
-            if with_llm and "llm_score" in r:
-                report += f" {r['llm_score']:.4f} | {r['llm_improvement_pct']:+.2f}% |"
+            report += f"| {r['dataset']} | {r['baseline_best_score']:.4f} | {r['tabular_best_score']:.4f} | {r['tabular_improvement_pct']:+.2f}% |"
+            if with_llm and "llm_best_score" in r:
+                report += f" {r['llm_best_score']:.4f} | {r['llm_improvement_pct']:+.2f}% |"
             elif with_llm:
                 report += " - | - |"
             report += f" {r['n_features_original']}→{r['n_features_tabular']} |\n"
@@ -446,30 +373,28 @@ def generate_report(results: list[dict], framework: str, with_llm: bool, output_
         report += "----------|\n"
 
         for r in reg_results:
-            report += f"| {r['dataset']} | {r['baseline_score']:.4f} | {r['tabular_score']:.4f} | {r['tabular_improvement_pct']:+.2f}% |"
-            if with_llm and "llm_score" in r:
-                report += f" {r['llm_score']:.4f} | {r['llm_improvement_pct']:+.2f}% |"
+            report += f"| {r['dataset']} | {r['baseline_best_score']:.4f} | {r['tabular_best_score']:.4f} | {r['tabular_improvement_pct']:+.2f}% |"
+            if with_llm and "llm_best_score" in r:
+                report += f" {r['llm_best_score']:.4f} | {r['llm_improvement_pct']:+.2f}% |"
             elif with_llm:
                 report += " - | - |"
             report += f" {r['n_features_original']}→{r['n_features_tabular']} |\n"
 
     # Write report
-    report_file = output_path / f"AUTOML_BENCHMARK_{date_str}.md"
+    report_file = output_path / f"SIMPLE_MODELS_BENCHMARK_{date_str}.md"
     with open(report_file, "w") as f:
         f.write(report)
     print(f"\nReport saved: {report_file}")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="AutoML Benchmark for FeatCopilot")
+    parser = argparse.ArgumentParser(description="Simple Models Benchmark for FeatCopilot")
     parser.add_argument("--datasets", type=str, help="Comma-separated dataset names")
     parser.add_argument("--category", type=str, choices=["classification", "regression", "forecasting"])
     parser.add_argument("--all", action="store_true", help="Run all datasets")
-    parser.add_argument("--framework", type=str, default="flaml", choices=["flaml", "autogluon"])
     parser.add_argument("--with-llm", action="store_true", help="Enable LLM engine")
-    parser.add_argument("--time-budget", type=int, default=DEFAULT_TIME_BUDGET)
     parser.add_argument("--max-features", type=int, default=DEFAULT_MAX_FEATURES)
-    parser.add_argument("--output", type=str, default="benchmarks/automl")
+    parser.add_argument("--output", type=str, default="benchmarks/simple_models")
 
     args = parser.parse_args()
 
@@ -483,23 +408,16 @@ def main():
     else:
         dataset_names = QUICK_DATASETS
 
-    print("AutoML Benchmark")
-    print("================")
-    print(f"Framework: {args.framework}")
-    print(f"Time budget: {args.time_budget}s")
+    print("Simple Models Benchmark")
+    print("=======================")
+    print("Models: RandomForest, LogisticRegression/Ridge")
     print(f"LLM enabled: {args.with_llm}")
     print(f"Datasets: {len(dataset_names)}")
 
     # Run benchmarks
     results = []
     for name in dataset_names:
-        result = run_single_benchmark(
-            name,
-            args.framework,
-            args.time_budget,
-            args.max_features,
-            args.with_llm,
-        )
+        result = run_single_benchmark(name, args.max_features, args.with_llm)
         if result:
             results.append(result)
 
@@ -507,7 +425,7 @@ def main():
     if results:
         output_path = Path(args.output)
         output_path.mkdir(parents=True, exist_ok=True)
-        generate_report(results, args.framework, args.with_llm, output_path)
+        generate_report(results, args.with_llm, output_path)
 
 
 if __name__ == "__main__":

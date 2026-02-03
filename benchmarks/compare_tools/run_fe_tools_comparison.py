@@ -1,39 +1,62 @@
 """
 Feature Engineering Tools Comparison Benchmark.
 
-Compares FeatCopilot with other popular feature engineering libraries:
+Compares FeatCopilot with other popular feature engineering libraries using FLAML for training.
+
+Tools compared:
 1. Baseline (no feature engineering)
 2. FeatCopilot (our approach)
 3. Featuretools (automated feature engineering)
 4. tsfresh (time series feature extraction)
 5. autofeat (automatic feature generation)
+6. OpenFE (automated feature generation)
+7. CAAFE (context-aware automated feature engineering)
 
 Usage:
-    python benchmarks/compare_tools/run_comparison_benchmark.py
-    python benchmarks/compare_tools/run_comparison_benchmark.py --tools featcopilot featuretools
-    python benchmarks/compare_tools/run_comparison_benchmark.py --output results.md
+    python -m benchmarks.compare_tools.run_fe_tools_comparison [options]
+
+Examples:
+    # Run with default settings
+    python -m benchmarks.compare_tools.run_fe_tools_comparison
+
+    # Run specific tools
+    python -m benchmarks.compare_tools.run_fe_tools_comparison --tools featcopilot featuretools
+
+    # Run on specific datasets
+    python -m benchmarks.compare_tools.run_fe_tools_comparison --datasets titanic,house_prices
+
+    # Run on all classification datasets
+    python -m benchmarks.compare_tools.run_fe_tools_comparison --category classification
 """
 
-# ruff: noqa: E402
-
+import argparse
 import sys
 import time
 import warnings
 from abc import ABC, abstractmethod
+from datetime import datetime
+from pathlib import Path
 from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
 from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, r2_score, roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
-sys.path.insert(0, ".")
+sys.path.insert(0, ".")  # noqa: E402
 
-from benchmarks.datasets import get_all_datasets
+from benchmarks.datasets import (  # noqa: E402
+    CATEGORY_CLASSIFICATION,
+    CATEGORY_REGRESSION,
+    list_datasets,
+    load_dataset,
+)
 
 warnings.filterwarnings("ignore")
+
+# Default configuration
+QUICK_DATASETS = ["titanic", "house_prices", "credit_risk", "bike_sharing", "customer_churn", "insurance_claims"]
 
 
 def check_tool_availability() -> dict[str, Optional[str]]:
@@ -706,16 +729,17 @@ def run_single_benchmark(
     dataset_name: str,
     tool_name: str,
     max_features: int = 50,
+    time_budget: int = 60,
     random_state: int = 42,
 ) -> dict[str, Any]:
-    """Run benchmark for a single tool on a single dataset."""
+    """Run benchmark for a single tool on a single dataset using FLAML."""
+    from flaml import AutoML
+
     # Encode categorical columns
     X_encoded = X.copy()
-    label_encoders = {}
     for col in X_encoded.select_dtypes(include=["object", "category"]).columns:
         le = LabelEncoder()
         X_encoded[col] = le.fit_transform(X_encoded[col].astype(str))
-        label_encoders[col] = le
 
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(X_encoded, y, test_size=0.2, random_state=random_state)
@@ -741,22 +765,27 @@ def run_single_benchmark(
         X_test_fe = X_test_fe[X_train_fe.columns]
 
         # Fill NaN values
-        X_train_fe = X_train_fe.fillna(0)
-        X_test_fe = X_test_fe.fillna(0)
+        X_train_fe = X_train_fe.fillna(0).replace([np.inf, -np.inf], 0)
+        X_test_fe = X_test_fe.fillna(0).replace([np.inf, -np.inf], 0)
 
         result["n_features_engineered"] = runner.n_features_generated
         result["fe_time"] = runner.fit_time
 
-        # Train and evaluate model
+        # Train with FLAML
         is_classification = "classification" in task
+        flaml_task = "classification" if is_classification else "regression"
 
-        if is_classification:
-            model = GradientBoostingClassifier(n_estimators=100, random_state=random_state)
-        else:
-            model = GradientBoostingRegressor(n_estimators=100, random_state=random_state)
-
+        model = AutoML()
         train_start = time.time()
-        model.fit(X_train_fe, y_train)
+        model.fit(
+            X_train_fe,
+            y_train,
+            task=flaml_task,
+            time_budget=time_budget,
+            seed=random_state,
+            verbose=0,
+            force_cancel=True,
+        )
         result["train_time"] = time.time() - train_start
 
         y_pred = model.predict(X_test_fe)
@@ -783,19 +812,25 @@ def run_single_benchmark(
 
 
 def run_comparison_benchmark(
+    dataset_names: list[str],
     tools: Optional[list[str]] = None,
     max_features: int = 50,
+    time_budget: int = 60,
     random_state: int = 42,
 ) -> pd.DataFrame:
     """
-    Run comparison benchmark across all tools and datasets.
+    Run comparison benchmark across tools and datasets.
 
     Parameters
     ----------
+    dataset_names : list of str
+        Datasets to benchmark.
     tools : list of str, optional
         Tools to benchmark. Defaults to all available.
     max_features : int, default=50
         Maximum number of features to generate.
+    time_budget : int, default=60
+        FLAML time budget in seconds.
     random_state : int, default=42
         Random seed for reproducibility.
 
@@ -820,46 +855,54 @@ def run_comparison_benchmark(
     print("Feature Engineering Tools Comparison Benchmark")
     print("=" * 70)
     print(f"Tools: {tools}")
-    print(f"Max features: {max_features}")
+    print(f"Datasets: {len(dataset_names)}")
+    print(f"FLAML time budget: {time_budget}s")
     print("-" * 70)
-
-    # Get datasets
-    datasets = get_all_datasets()
 
     results = []
 
-    for dataset_func in datasets:
-        X, y, task, name = dataset_func()
-        print(f"\nDataset: {name} ({task})")
-        print(f"  Shape: {X.shape}")
+    for dataset_name in dataset_names:
+        try:
+            X, y, task, name = load_dataset(dataset_name)
+            print(f"\nDataset: {name} ({task})")
+            print(f"  Shape: {X.shape}")
 
-        for tool in tools:
-            try:
-                print(f"  {tool}...", end=" ", flush=True)
-                result = run_single_benchmark(
-                    X, y, task, name, tool, max_features=max_features, random_state=random_state
-                )
-                if result["status"] == "success":
-                    print(
-                        f"score={result['score']:.4f}, "
-                        f"features={result['n_features_engineered']}, "
-                        f"time={result['fe_time']:.2f}s"
+            for tool in tools:
+                try:
+                    print(f"  {tool}...", end=" ", flush=True)
+                    result = run_single_benchmark(
+                        X,
+                        y,
+                        task,
+                        dataset_name,
+                        tool,
+                        max_features=max_features,
+                        time_budget=time_budget,
+                        random_state=random_state,
                     )
-                else:
-                    print(f"Error: {result.get('error', 'Unknown')}")
-                results.append(result)
-            except Exception as e:
-                print(f"Error: {e}")
-                results.append(
-                    {
-                        "dataset": name,
-                        "task": task,
-                        "tool": tool,
-                        "status": "error",
-                        "error": str(e),
-                        "score": None,
-                    }
-                )
+                    if result["status"] == "success":
+                        print(
+                            f"score={result['score']:.4f}, "
+                            f"features={result['n_features_engineered']}, "
+                            f"time={result['fe_time']:.2f}s"
+                        )
+                    else:
+                        print(f"Error: {result.get('error', 'Unknown')}")
+                    results.append(result)
+                except Exception as e:
+                    print(f"Error: {e}")
+                    results.append(
+                        {
+                            "dataset": dataset_name,
+                            "task": task,
+                            "tool": tool,
+                            "status": "error",
+                            "error": str(e),
+                            "score": None,
+                        }
+                    )
+        except Exception as e:
+            print(f"\nError loading {dataset_name}: {e}")
 
     return pd.DataFrame(results)
 
@@ -1036,35 +1079,27 @@ def generate_report(results: pd.DataFrame, output_path: Optional[str] = None) ->
 
 
 if __name__ == "__main__":
-    import argparse
-
     parser = argparse.ArgumentParser(description="Compare FeatCopilot with other FE tools")
-    parser.add_argument(
-        "--tools",
-        nargs="+",
-        default=None,
-        help="Tools to benchmark (default: all available)",
-    )
-    parser.add_argument(
-        "--max-features",
-        type=int,
-        default=50,
-        help="Maximum features to generate (default: 50)",
-    )
-    parser.add_argument(
-        "--output",
-        type=str,
-        default="benchmarks/compare_tools/COMPARISON_BENCHMARK_REPORT.md",
-        help="Output path for report",
-    )
-    parser.add_argument(
-        "--seed",
-        type=int,
-        default=42,
-        help="Random seed (default: 42)",
-    )
+    parser.add_argument("--datasets", type=str, help="Comma-separated dataset names")
+    parser.add_argument("--category", type=str, choices=["classification", "regression"])
+    parser.add_argument("--all", action="store_true", help="Run all datasets")
+    parser.add_argument("--tools", nargs="+", default=None, help="Tools to benchmark")
+    parser.add_argument("--max-features", type=int, default=50)
+    parser.add_argument("--time-budget", type=int, default=60, help="FLAML time budget")
+    parser.add_argument("--output", type=str, default="benchmarks/compare_tools")
+    parser.add_argument("--seed", type=int, default=42)
 
     args = parser.parse_args()
+
+    # Determine datasets
+    if args.datasets:
+        dataset_names = [d.strip() for d in args.datasets.split(",")]
+    elif args.category:
+        dataset_names = list_datasets(args.category)
+    elif args.all:
+        dataset_names = list_datasets(CATEGORY_CLASSIFICATION) + list_datasets(CATEGORY_REGRESSION)
+    else:
+        dataset_names = QUICK_DATASETS
 
     # Check available tools
     print("Checking tool availability...")
@@ -1076,12 +1111,18 @@ if __name__ == "__main__":
 
     # Run benchmark
     results = run_comparison_benchmark(
+        dataset_names=dataset_names,
         tools=args.tools,
         max_features=args.max_features,
+        time_budget=args.time_budget,
         random_state=args.seed,
     )
 
     # Generate report
     print("\n" + "=" * 70)
-    report = generate_report(results, args.output)
+    output_path = Path(args.output)
+    output_path.mkdir(parents=True, exist_ok=True)
+    date_str = datetime.now().strftime("%Y%m%d")
+    report_file = output_path / f"FE_TOOLS_COMPARISON_{date_str}.md"
+    report = generate_report(results, str(report_file))
     print(report)
