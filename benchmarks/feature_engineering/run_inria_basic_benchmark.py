@@ -145,7 +145,7 @@ def apply_featcopilot(X_train, X_test, y_train, engines: list, max_features: int
 
     llm_config = {}
     if "llm" in engines:
-        llm_config = {"model": "gpt-4o", "max_suggestions": 30, "backend": "litellm"}
+        llm_config = {"model": "gpt-5.2", "max_suggestions": 30, "backend": "copilot"}
 
     engineer = AutoFeatureEngineer(
         engines=engines,
