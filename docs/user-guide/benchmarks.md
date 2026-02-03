@@ -6,13 +6,13 @@ FeatCopilot has been extensively benchmarked to demonstrate its effectiveness in
 
 <div class="grid cards" markdown>
 
--   :material-rocket-launch:{ .lg .middle } __Headline Result__
+-   :material-rocket-launch:{ .lg .middle } __Spotify Classification__
 
     ---
 
-    **+12.37%** F1 improvement on Spotify genre classification
+    **+12.37%** F1 improvement on genre classification
 
-    Using LLM-generated features + text extraction + target encoding
+    Using LLM + Text + Tabular engines
 
 -   :material-brain:{ .lg .middle } __LLM Engine Impact__
 
@@ -42,9 +42,9 @@ FeatCopilot has been extensively benchmarked to demonstrate its effectiveness in
 
 ---
 
-## Spotify Genre Classification (Flagship Benchmark)
+## Spotify Genre Classification
 
-Our flagship benchmark demonstrates FeatCopilot's full capabilities using all three engines (LLM, Text, Tabular) on a real-world multi-class classification task.
+This benchmark demonstrates FeatCopilot's full capabilities using all three engines (LLM, Text, Tabular) on a multi-class classification task.
 
 ### Setup
 

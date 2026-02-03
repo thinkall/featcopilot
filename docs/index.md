@@ -15,7 +15,7 @@
 
     ---
 
-    Genre classification with LLM + Text + Tabular engines (flagship benchmark)
+    Genre classification with LLM + Text + Tabular engines
 
 -   :material-brain:{ .lg .middle } __+11.03% with LLM Engine__
 

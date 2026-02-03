@@ -17,10 +17,10 @@ benchmarks/
 ├── datasets.py                              # Shared benchmark datasets
 │
 ├── automl/                                  # AutoML integration benchmarks
-│   ├── run_flaml_spotify_benchmark.py       # ⭐ Flagship benchmark (LLM+Text+Tabular)
+│   ├── run_flaml_spotify_benchmark.py       # Spotify benchmark (LLM+Text+Tabular)
 │   ├── run_flaml_realworld_benchmark.py     # 10 real-world datasets
 │   ├── run_automl_benchmark.py              # Multi-framework (FLAML, AutoGluon, H2O)
-│   ├── FLAML_SPOTIFY_CLASSIFICATION_REPORT.md  # Flagship result (+12.37%)
+│   ├── FLAML_SPOTIFY_CLASSIFICATION_REPORT.md  # Spotify result (+12.37%)
 │   └── FLAML_REALWORLD_BENCHMARK_REPORT.md
 │
 ├── feature_engineering/                     # Feature engineering benchmarks
@@ -42,7 +42,7 @@ benchmarks/
 # Install dependencies
 pip install -e ".[benchmark]"
 
-# Run flagship Spotify benchmark (recommended first)
+# Run Spotify benchmark
 python benchmarks/automl/run_flaml_spotify_benchmark.py
 
 # Run INRIA benchmark suite
@@ -55,7 +55,7 @@ python benchmarks/compare_tools/run_comparison_benchmark.py
 
 ## Benchmark Details
 
-### 1. Spotify Genre Classification (Flagship)
+### 1. Spotify Genre Classification
 
 Demonstrates FeatCopilot's full capabilities with LLM + Text + Tabular engines.
 
@@ -77,7 +77,7 @@ python benchmarks/feature_engineering/run_inria_basic_benchmark.py --engines tab
 python benchmarks/feature_engineering/run_inria_basic_benchmark.py --engines tabular llm
 ```
 
-**Result**: +9.20% avg (Tabular), +32.54% avg (Tabular+LLM)
+**Result**: +0.48% avg (Tabular), +2.42% avg (Tabular+LLM)
 
 ### 3. Tool Comparison
 
@@ -101,9 +101,9 @@ python benchmarks/automl/run_automl_benchmark.py --frameworks flaml autogluon h2
 
 | Report | Location | Description |
 |--------|----------|-------------|
-| **Spotify Classification** | `automl/FLAML_SPOTIFY_CLASSIFICATION_REPORT.md` | Flagship +12.37% result |
-| **INRIA (Tabular)** | `feature_engineering/INRIA_BASIC_MODELS_TABULAR.md` | 10 datasets, +9.20% avg |
-| **INRIA (LLM)** | `feature_engineering/INRIA_BASIC_MODELS_TABULAR_LLM.md` | 5 datasets, +32.54% avg |
+| **Spotify Classification** | `automl/FLAML_SPOTIFY_CLASSIFICATION_REPORT.md` | +12.37% F1 result |
+| **INRIA (Tabular)** | `feature_engineering/INRIA_BASIC_MODELS_TABULAR.md` | 10 datasets, +0.48% avg |
+| **INRIA (LLM)** | `feature_engineering/INRIA_BASIC_MODELS_TABULAR_LLM.md` | 5 datasets, +2.42% avg |
 | **Tool Comparison** | `compare_tools/COMPARISON_BENCHMARK_REPORT.md` | vs 4 other FE tools |
 | **FLAML Real-World** | `automl/FLAML_REALWORLD_BENCHMARK_REPORT.md` | 10 real-world datasets |
 

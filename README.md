@@ -10,7 +10,7 @@ FeatCopilot automatically generates, selects, and explains predictive features u
 
 ## 📊 Benchmark Highlights
 
-### Flagship Result: Spotify Genre Classification
+### Spotify Genre Classification
 
 | Metric | Baseline | +FeatCopilot | Improvement |
 |--------|----------|--------------|-------------|
@@ -36,7 +36,7 @@ Using LLM + Text + Tabular engines on 4-genre classification task.
 
 - ✅ **Competitive accuracy** with specialized tools
 - ⚡ **1000x faster** than AutoFeat
-- 🧠 **+12.37%** improvement on flagship Spotify benchmark
+- 🧠 **+12.37%** improvement on Spotify benchmark
 
 [View Full Benchmark Results](https://thinkall.github.io/featcopilot/user-guide/benchmarks/)
 
