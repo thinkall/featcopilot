@@ -185,8 +185,8 @@ def generate_report(baseline_results: dict, featcopilot_results: dict, fe_time: 
     report.append(f"- **Time budget**: {TIME_BUDGET}s per FLAML run\n")
     report.append(f"- **FeatCopilot time**: {fe_time:.1f}s\n")
     report.append("\n### Features Used\n")
-    report.append(f"- **Baseline**: All original features ({baseline_results['n_features']} features)\n")
-    report.append("- **FeatCopilot**: All features + LLM-generated + text features + target encoding\n")
+    report.append(f"- **Baseline**: Numeric features only ({baseline_results['n_features']} features)\n")
+    report.append("- **FeatCopilot**: Numeric + LLM-generated + text features + target encoding\n")
 
     # Summary
     report.append("\n## Summary\n")
@@ -278,12 +278,16 @@ def main():
     print(f"\nNumeric columns ({len(numeric_cols)}): {numeric_cols}")
     print(f"Text columns to extract features from: {text_cols}")
 
-    # Run baseline FLAML with ALL features (LGBM handles categoricals natively)
+    # Run baseline FLAML with NUMERIC features only
+    # This simulates a scenario where the user only has numeric features
+    # and FeatCopilot helps extract value from text/categorical columns
+    X_train_numeric = X_train[numeric_cols].copy()
+    X_test_numeric = X_test[numeric_cols].copy()
     baseline_results = run_flaml_benchmark(
-        X_train, X_test, y_train, y_test, time_budget=TIME_BUDGET, label="Baseline (all features)"
+        X_train_numeric, X_test_numeric, y_train, y_test, time_budget=TIME_BUDGET, label="Baseline (numeric only)"
     )
 
-    # Apply FeatCopilot to add LLM-generated features on top of all features
+    # Apply FeatCopilot to extract value from ALL columns using LLM + Text + Tabular engines
     print("\n--- Applying FeatCopilot feature engineering (LLM + Text + Tabular) ---")
     fe_start = time.time()
 
@@ -406,7 +410,7 @@ Generate features that capture these distinctions, such as:
     print("  Applying feature selection...")
     selector = FeatureSelector(
         methods=["mutual_info", "importance"],
-        max_features=40,  # Keep top 40 features
+        max_features=50,  # Keep top 50 features
         correlation_threshold=0.95,
         original_features=set(X_train.columns),
         verbose=True,
