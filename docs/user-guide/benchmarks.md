@@ -203,13 +203,13 @@ Reports are saved with date suffix and LLM indicator:
 ```
 benchmarks/
 ├── simple_models/
-│   ├── SIMPLE_MODELS_BENCHMARK_20260204.md      # Tabular only
-│   └── SIMPLE_MODELS_BENCHMARK_LLM_20260204.md  # Tabular + LLM
+│   ├── SIMPLE_MODELS_BENCHMARK.md      # Tabular only
+│   └── SIMPLE_MODELS_BENCHMARK_LLM.md  # Tabular + LLM
 ├── automl/
-│   ├── AUTOML_BENCHMARK_20260204.md             # Tabular only
-│   └── AUTOML_BENCHMARK_LLM_20260204.md         # Tabular + LLM
+│   ├── AUTOML_BENCHMARK.md             # Tabular only
+│   └── AUTOML_BENCHMARK_LLM.md         # Tabular + LLM
 └── compare_tools/
-    └── FE_TOOLS_COMPARISON_20260204.md
+    └── FE_TOOLS_COMPARISON.md
 ```
 
 ---

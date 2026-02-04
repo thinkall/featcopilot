@@ -34,7 +34,6 @@ import sys
 import time
 import warnings
 from abc import ABC, abstractmethod
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
@@ -1122,7 +1121,6 @@ if __name__ == "__main__":
     print("\n" + "=" * 70)
     output_path = Path(args.output)
     output_path.mkdir(parents=True, exist_ok=True)
-    date_str = datetime.now().strftime("%Y%m%d")
-    report_file = output_path / f"FE_TOOLS_COMPARISON_{date_str}.md"
+    report_file = output_path / "FE_TOOLS_COMPARISON.md"
     report = generate_report(results, str(report_file))
     print(report)

@@ -97,8 +97,8 @@ python -m benchmarks.automl.run_automl_benchmark --framework autogluon
 - `--time-budget N` - AutoML time budget (default: 60s)
 
 **Output:**
-- Without LLM: `AUTOML_BENCHMARK_YYYYMMDD.md`
-- With LLM: `AUTOML_BENCHMARK_LLM_YYYYMMDD.md`
+- Without LLM: `AUTOML_BENCHMARK.md`
+- With LLM: `AUTOML_BENCHMARK_LLM.md`
 
 ### 2. Simple Models Benchmark (`simple_models/run_simple_models_benchmark.py`)
 
@@ -117,8 +117,8 @@ python -m benchmarks.simple_models.run_simple_models_benchmark --category regres
 - Regression: RandomForest (n_estimators=200, max_depth=20), Ridge
 
 **Output:**
-- Without LLM: `SIMPLE_MODELS_BENCHMARK_YYYYMMDD.md`
-- With LLM: `SIMPLE_MODELS_BENCHMARK_LLM_YYYYMMDD.md`
+- Without LLM: `SIMPLE_MODELS_BENCHMARK.md`
+- With LLM: `SIMPLE_MODELS_BENCHMARK_LLM.md`
 
 ### 3. FE Tools Comparison (`compare_tools/run_fe_tools_comparison.py`)
 

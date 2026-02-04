@@ -317,7 +317,6 @@ def run_single_benchmark(
 def generate_report(results: list[dict], with_llm: bool, output_path: Path) -> None:
     """Generate markdown report."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    date_str = datetime.now().strftime("%Y%m%d")
 
     # Separate by task
     clf_results = [r for r in results if "classification" in r["task"]]
@@ -382,7 +381,7 @@ def generate_report(results: list[dict], with_llm: bool, output_path: Path) -> N
 
     # Write report
     llm_suffix = "_LLM" if with_llm else ""
-    report_file = output_path / f"SIMPLE_MODELS_BENCHMARK{llm_suffix}_{date_str}.md"
+    report_file = output_path / f"SIMPLE_MODELS_BENCHMARK{llm_suffix}.md"
     with open(report_file, "w", encoding="utf-8") as f:
         f.write(report)
     print(f"\nReport saved: {report_file}")
