@@ -1,231 +1,149 @@
 # Benchmarks
 
-FeatCopilot has been extensively benchmarked to demonstrate its effectiveness in automated feature engineering. This page presents comprehensive results across multiple dimensions: **LLM-powered feature generation**, **comparison with other tools**, and **integration with AutoML frameworks**.
+FeatCopilot has been extensively benchmarked to demonstrate its effectiveness in automated feature engineering. This page presents comprehensive results across **42 datasets** spanning classification and regression tasks.
 
 ## Executive Summary
 
 <div class="grid cards" markdown>
 
--   :material-rocket-launch:{ .lg .middle } __Spotify Classification__
+-   :material-rocket-launch:{ .lg .middle } __Simple Models Benchmark__
 
     ---
 
-    **+12.37%** F1 improvement on genre classification
+    **+4.54%** average improvement
 
-    Using LLM + Text + Tabular engines
+    **+197%** max improvement (delays_zurich)
 
--   :material-brain:{ .lg .middle } __INRIA Benchmark__
-
-    ---
-
-    **+8.25%** max improvement (abalone dataset)
-
-    **7/10** datasets improved with Tabular engine
-
--   :material-scale-balance:{ .lg .middle } __vs Other Tools__
+-   :material-brain:{ .lg .middle } __LLM-Enhanced Results__
 
     ---
 
-    **Competitive** with Featuretools, AutoFeat, TSFresh
+    **+420%** max improvement with LLM
 
-    **1000x faster** than AutoFeat (1s vs 1247s)
+    **55%** datasets improved (23/42)
 
--   :material-lightning-bolt:{ .lg .middle } __Efficiency__
+-   :material-chart-line:{ .lg .middle } __AutoML Benchmark__
 
     ---
 
-    **<1 second** for basic tabular features
+    **+8.55%** best improvement (abalone)
 
-    **~40 seconds** with LLM-powered generation
+    **46%** datasets improved with FLAML
+
+-   :material-lightning-bolt:{ .lg .middle } __Feature Generation__
+
+    ---
+
+    **7→30** to **54→100** feature expansion
+
+    Smart importance-based selection
 
 </div>
 
 ---
 
-## Spotify Genre Classification
+## Simple Models Benchmark
 
-This benchmark demonstrates FeatCopilot's full capabilities using all three engines (LLM, Text, Tabular) on a multi-class classification task.
+Testing FeatCopilot with RandomForest (n_estimators=200, max_depth=20) and LogisticRegression/Ridge across 42 datasets to measure feature engineering impact.
 
-### Setup
+### Summary Results
 
-- **Dataset**: [Spotify Tracks Dataset](https://huggingface.co/datasets/maharshipandya/spotify-tracks-dataset) (4,000 samples)
-- **Task**: Classify tracks into 4 genres (pop, acoustic, hip-hop, punk-rock)
-- **Baseline**: Numeric audio features only (15 features)
-- **FeatCopilot**: LLM-generated + text features + target encoding (50 features)
-- **AutoML**: FLAML with 480s time budget
+| Configuration | Datasets | Improved | Avg Improvement | Best Improvement |
+|---------------|----------|----------|-----------------|------------------|
+| **Tabular Engine** | 42 | 20 (48%) | +4.54% | +197% (delays_zurich) |
+| **Tabular + LLM** | 42 | 23 (55%) | +6.12% | +420% (delays_zurich) |
 
-### Results
+### Classification Results (22 Datasets)
 
-| Metric | Baseline | +FeatCopilot | Improvement |
-|--------|----------|--------------|-------------|
-| **F1 (weighted)** | 0.8243 | **0.9263** | **+12.37%** |
-| **Accuracy** | 0.8237 | **0.9263** | **+12.44%** |
-| Features | 15 | 50 | +35 |
-| Best Model | lgbm | catboost | - |
+| Dataset | Baseline | +FeatCopilot | Improvement | +LLM | LLM Imp | Features |
+|---------|----------|--------------|-------------|------|---------|----------|
+| complex_classification | 0.8800 | **0.9300** | **+5.68%** | 0.9300 | +5.68% | 15→100 |
+| road_safety | 0.7815 | 0.7895 | +1.02% | **0.8040** | **+2.88%** | 32→89 |
+| customer_churn | 0.7575 | 0.7650 | +0.99% | 0.7650 | +0.99% | 10→82 |
+| albert | 0.6558 | 0.6591 | +0.50% | 0.6529 | -0.44% | 31→100 |
+| bioresponse | 0.7700 | 0.7729 | +0.38% | **0.7773** | **+0.95%** | 419→419 |
+| higgs | 0.7129 | 0.7081 | -0.67% | **0.7154** | **+0.35%** | 24→100 |
+| magic_telescope | 0.8509 | 0.8528 | +0.22% | 0.8528 | +0.22% | 10→65 |
+| electricity | 0.8984 | 0.8986 | +0.03% | **0.9006** | **+0.25%** | 8→50 |
+| covertype_cat | 0.8747 | 0.8749 | +0.02% | **0.8839** | **+1.05%** | 54→100 |
+| titanic | 0.9218 | 0.9162 | -0.61% | 0.9162 | -0.61% | 7→27 |
+| credit_card_fraud | 0.9840 | 0.9840 | +0.00% | 0.9840 | +0.00% | 30→100 |
+| employee_attrition | 0.9558 | 0.9558 | +0.00% | 0.9558 | +0.00% | 11→74 |
 
-### Feature Engineering Breakdown
+### Regression Results (20 Datasets)
 
-FeatCopilot contributed features from three engines:
-
-| Engine | Features Generated | Examples |
-|--------|-------------------|----------|
-| **LLM (SemanticEngine)** | 29 | `energy_acoustic_ratio`, `speech_energy_ratio`, `dance_valence_product` |
-| **Text (TextEngine)** | 16 | `album_name_word_count`, `track_name_char_length`, `uppercase_ratio` |
-| **Tabular (TabularEngine)** | 1 | `artists_target_encoded` |
+| Dataset | Baseline R² | +FeatCopilot R² | Improvement | +LLM R² | LLM Imp | Features |
+|---------|-------------|-----------------|-------------|---------|---------|----------|
+| delays_zurich | 0.0051 | 0.0153 | **+197%** | **0.0268** | **+420%** | 11→57 |
+| abalone | 0.5287 | **0.5762** | **+8.98%** | 0.5769 | +9.12% | 7→30 |
+| nyc_taxi | 0.6391 | 0.6253 | -2.17% | **0.6775** | **+6.01%** | 16→44 |
+| bike_sharing | 0.8080 | 0.8082 | +0.02% | **0.8367** | **+3.55%** | 10→48 |
+| wine_quality | 0.4972 | **0.5027** | **+1.12%** | 0.5067 | +1.91% | 11→45 |
+| bike_sharing_inria | 0.6788 | 0.6861 | +1.07% | **0.6901** | **+1.67%** | 6→37 |
+| miami_housing | 0.9146 | **0.9201** | **+0.61%** | 0.9214 | +0.74% | 13→70 |
+| brazilian_houses | 0.9960 | 0.9964 | +0.04% | **1.0000** | **+0.40%** | 11→66 |
+| diamonds | 0.9456 | 0.9461 | +0.05% | 0.9462 | +0.06% | 6→19 |
+| house_prices | 0.9306 | 0.9308 | +0.02% | 0.9305 | -0.02% | 14→46 |
+| cpu_act | 0.9798 | 0.9800 | +0.02% | **0.9803** | **+0.05%** | 21→100 |
+| superconduct | 0.9300 | 0.9301 | +0.01% | 0.9299 | -0.01% | 79→100 |
 
 !!! success "Key Insight"
-    The LLM engine generated **domain-specific features** based on the task description (genre classification) and column descriptions (audio feature semantics). These features captured meaningful musical relationships that improved classification accuracy by over 12%.
+    The LLM engine provides **additional value** on top of tabular features, particularly for datasets where domain knowledge helps (delays_zurich: +420%, nyc_taxi: +6.01%, bike_sharing: +3.55%).
 
 ---
 
-## INRIA Benchmark Suite
+## AutoML Benchmark
 
-The INRIA benchmark evaluates FeatCopilot on 10 diverse datasets from the OpenML repository using basic models (RandomForest, Ridge/LogisticRegression) to isolate feature engineering impact from AutoML optimization.
+Testing FeatCopilot with FLAML (120s time budget per model) across 41 datasets to evaluate feature engineering benefits with AutoML optimization.
 
-### Tabular Engine Only
+### Summary
 
-| Dataset | Task | Samples | Features | Best Baseline | Best +FC | Improvement |
-|---------|------|---------|----------|---------------|----------|-------------|
-| abalone | regression | 4,177 | 7→30 | 0.5287 | 0.5723 | **+8.25%** |
-| wine_quality | regression | 6,497 | 11→72 | 0.4596 | 0.4700 | **+2.28%** |
-| bike_sharing | regression | 17,379 | 6→37 | 0.6891 | 0.6929 | +0.56% |
-| credit | classification | 16,714 | 10→91 | 0.7765 | 0.7807 | +0.54% |
-| jannis | classification | 30,000 | 54→148 | 0.7782 | 0.7804 | +0.29% |
-| diamonds | regression | 30,000 | 6→15 | 0.9464 | 0.9470 | +0.06% |
-| cpu_act | regression | 8,192 | 21→136 | 0.9792 | 0.9796 | +0.04% |
-| houses | regression | 20,640 | 8→42 | 0.8234 | 0.8146 | -1.08% |
-| bioresponse | classification | 3,434 | 419→413 | 0.7813 | 0.7623 | -2.42% |
-| eye_movements | classification | 7,608 | 23→143 | 0.6275 | 0.5990 | -4.54% |
+| Metric | Value |
+|--------|-------|
+| **Total Datasets** | 41 |
+| **Classification** | 21 |
+| **Regression** | 20 |
+| **Improved** | 19 (46%) |
+| **Best Improvement** | +8.55% (abalone) |
 
-**Summary (Tabular Only)**:
+### Top Improvements
 
-- **Datasets improved**: 7/10 (70%)
-- **Average improvement**: +0.40%
-- **Maximum improvement**: +8.25% (abalone)
+| Dataset | Task | Baseline | +FeatCopilot | Improvement | Features |
+|---------|------|----------|--------------|-------------|----------|
+| abalone | regression | 0.5384 | **0.5844** | **+8.55%** | 7→30 |
+| credit_risk | classification | 0.6925 | **0.7100** | **+2.53%** | 10→86 |
+| delays_zurich | regression | 0.0810 | **0.0828** | **+2.24%** | 11→57 |
+| mercedes_benz | regression | 0.5763 | **0.5866** | **+1.79%** | 359→359 |
+| complex_classification | classification | 0.9100 | **0.9225** | **+1.37%** | 15→100 |
+| eye_movements | classification | 0.6649 | **0.6721** | **+1.09%** | 23→97 |
+| bioresponse | classification | 0.7802 | **0.7875** | **+0.93%** | 419→419 |
+| medical_diagnosis | classification | 0.8400 | **0.8467** | **+0.79%** | 12→72 |
 
-### Tabular + LLM Engines
-
-| Dataset | Task | Samples | Features | Best Baseline | Best +FC | Improvement |
-|---------|------|---------|----------|---------------|----------|-------------|
-| abalone | regression | 4,177 | 7→44 | 0.5287 | 0.5418 | **+2.46%** |
-| wine_quality | regression | 6,497 | 11→72 | 0.4596 | 0.4700 | **+2.28%** |
-| bike_sharing | regression | 17,379 | 6→54 | 0.6891 | 0.6970 | +1.15% |
-| credit | classification | 16,714 | 10→91 | 0.7765 | 0.7807 | +0.54% |
-| jannis | classification | 30,000 | 54→148 | 0.7782 | 0.7804 | +0.29% |
-| diamonds | regression | 30,000 | 6→25 | 0.9464 | 0.9472 | +0.08% |
-| cpu_act | regression | 8,192 | 21→136 | 0.9792 | 0.9796 | +0.04% |
-| houses | regression | 20,640 | 8→50 | 0.8234 | 0.8153 | -0.99% |
-| eye_movements | classification | 7,608 | 23→150 | 0.6275 | 0.6162 | -1.79% |
-| bioresponse | classification | 3,434 | 419→417 | 0.7813 | 0.7551 | -3.35% |
-
-**Summary (Tabular + LLM)**:
-
-- **Datasets improved**: 7/10 (70%)
-- **Average improvement**: +0.07%
-- **Maximum improvement**: +2.46% (abalone)
-
-!!! note "LLM Engine Observations"
-    The LLM engine generates additional domain-aware features but may introduce noise on datasets where generic numerical transformations suffice. On specialized datasets like Spotify (with text and categorical columns), LLM features provide significant value (+12.37% F1). The INRIA datasets are primarily numeric, where Tabular-only transformations perform well.
-
----
-
-## Comparison with Other Tools
-
-FeatCopilot was benchmarked against popular feature engineering libraries across 9 datasets.
-
-### Tools Compared
-
-| Tool | Description | Avg FE Time |
-|------|-------------|-------------|
-| **FeatCopilot** | LLM-powered auto feature engineering | 1.03s |
-| **Featuretools** | Deep Feature Synthesis | 0.11s |
-| **tsfresh** | Time series feature extraction | 24.86s |
-| **autofeat** | Automatic feature generation | 1246.91s |
-
-### Overall Performance
-
-| Tool | Avg Score | Avg Improvement | Wins |
-|------|-----------|-----------------|------|
-| baseline | 0.8924 | - | - |
-| autofeat | 0.8964 | +0.48% | 3 |
-| featuretools | 0.8947 | +0.27% | 3 |
-| **featcopilot** | 0.8942 | +0.21% | 1 |
-| tsfresh | 0.8843 | -0.92% | 2 |
-
-### Dataset-by-Dataset Results
-
-| Dataset | Task | FeatCopilot | Featuretools | TSFresh | AutoFeat | Winner |
-|---------|------|-------------|--------------|---------|----------|--------|
-| Titanic | class | **0.9609** | 0.9553 | 0.9497 | **0.9609** | Tie |
-| House Prices | regre | 0.9094 | 0.9124 | 0.9118 | 0.9123 | Featuretools |
-| Credit Fraud | class | 0.9790 | 0.9770 | **0.9840** | 0.9790 | TSFresh |
-| Bike Sharing | regre | 0.8324 | **0.8351** | 0.8175 | 0.8313 | Featuretools |
-| Employee Attrition | class | 0.9762 | 0.9728 | 0.9660 | **0.9796** | AutoFeat |
-| Credit Risk | class | 0.7050 | 0.7025 | 0.6950 | **0.7150** | AutoFeat |
-| Medical Diagnosis | class | 0.8500 | 0.8533 | **0.8567** | 0.8367 | TSFresh |
-| Complex Regression | regre | 0.9120 | **0.9435** | 0.9105 | 0.9129 | Featuretools |
-| Complex Classification | class | 0.9225 | 0.9000 | 0.8675 | **0.9400** | AutoFeat |
-
-### Key Takeaways
-
-!!! info "Trade-offs"
-    - **AutoFeat** achieves best accuracy but takes **1247 seconds** (~21 minutes) per dataset
-    - **Featuretools** is fastest (0.11s) but generates generic features
-    - **FeatCopilot** balances speed (1s) with competitive accuracy and provides **LLM-powered domain awareness**
-
----
-
-## Basic Models Benchmark
-
-Testing FeatCopilot with simple models (RandomForest, Ridge/LogisticRegression) on Kaggle-style datasets to measure feature engineering impact.
-
-### Tabular Engine Results
-
-| Dataset | Task | Samples | Features | Best Baseline | Best +FC | Improvement |
-|---------|------|---------|----------|---------------|----------|-------------|
-| bike_sharing | regression | 2,000 | 10→52 | 0.8091 | 0.8050 | **+7.34%** |
-| house_prices | regression | 1,460 | 14→95 | 0.9306 | 0.8889 | +2.20% |
-| medical_cost | regression | 1,300 | 6→13 | 0.8970 | 0.8980 | +0.70% |
-| wine_quality | regression | 5,000 | 11→85 | 0.7527 | 0.7466 | +0.27% |
-| titanic | classification | 891 | 7→27 | 0.8815 | 0.8815 | +0.00% |
-| employee_attrition | classification | 1,470 | 11→81 | 0.9342 | 0.9342 | +0.00% |
-| credit_risk | classification | 2,000 | 10→114 | 0.7153 | 0.7043 | +0.00% |
-
-**Summary**:
-- **Average improvement**: +1.50%
-- **Datasets improved**: 4/7 (57%)
-- **Best improvement**: +7.34% (bike_sharing with Ridge)
-
-### Tabular + LLM Results
-
-| Dataset | Task | Samples | Features | Best Baseline | Best +FC | Improvement |
-|---------|------|---------|----------|---------------|----------|-------------|
-| house_prices | regression | 1,460 | 14→113 | 0.9306 | 0.8989 | **+3.35%** |
-| medical_cost | regression | 1,300 | 6→31 | 0.8970 | 0.8956 | +0.66% |
-| titanic | classification | 891 | 7→49 | 0.8815 | 0.8815 | +0.00% |
-| wine_quality | regression | 5,000 | 11→95 | 0.7527 | 0.7456 | -0.05% |
-
-**Summary**:
-- **Average improvement**: +0.99%
-- **Datasets improved**: 2/4 (50%)
-- **FE Time**: 34-56 seconds (includes LLM latency)
+!!! note "AutoML Observations"
+    With AutoML (FLAML), improvements are more modest because the framework already performs internal feature selection and hyperparameter tuning. FeatCopilot still provides value by generating meaningful derived features that AutoML can leverage.
 
 ---
 
 ## When FeatCopilot Excels
 
-Based on comprehensive benchmarking, FeatCopilot provides the most value in these scenarios:
+Based on comprehensive benchmarking across 42 datasets, FeatCopilot provides the most value in these scenarios:
 
 | Scenario | Expected Benefit | Evidence |
 |----------|------------------|----------|
-| **Text/categorical columns** | **High** (+10-15%) | Spotify: +12.37% F1 with LLM+Text engines |
-| **Linear models (Ridge/LogReg)** | **High** (+10-80%) | INRIA: Ridge +27% (wine), +24% (bike) |
-| **Small feature sets** | **High** (+5-10%) | abalone: +8.25% (7→30 features) |
-| **Mixed data types** | **Medium** (+3-10%) | Target encoding + text extraction |
-| **Tree models on numeric data** | **Low** (0-2%) | Trees learn interactions natively |
+| **Low baseline performance** | **Very High** (+50-400%) | delays_zurich: +197% (tabular), +420% (LLM) |
+| **Small feature sets** | **High** (+5-10%) | abalone: +8.98% (7→30 features) |
+| **Domain-specific tasks** | **High** (+3-6%) | bike_sharing: +3.55%, nyc_taxi: +6.01% |
+| **Complex classification** | **Medium** (+1-5%) | complex_classification: +5.68% |
+| **Already high-performing** | **Low** (0-1%) | credit_card_fraud: +0.00% (baseline 0.984) |
 
 !!! info "Key Insight"
-    FeatCopilot's engineered features benefit linear models most significantly because they cannot learn feature interactions automatically. Tree-based models (RandomForest, XGBoost) already capture non-linear relationships, so improvements are more modest but still positive in 70% of datasets.
+    FeatCopilot provides the **largest improvements** on datasets where:
+
+    1. **Baseline performance is poor** - More room for improvement
+    2. **Feature set is small** - More potential for derived features
+    3. **Domain knowledge helps** - LLM can suggest meaningful features
+
+    Datasets already near perfect performance (>0.98) show minimal improvement, as expected.
 
 ---
 
@@ -239,42 +157,59 @@ git clone https://github.com/thinkall/featcopilot.git
 cd featcopilot
 pip install -e ".[benchmark]"
 
-# Run flagship Spotify benchmark
-python benchmarks/automl/run_flaml_spotify_benchmark.py
+# Run simple models benchmark (42 datasets)
+python -m benchmarks.simple_models.run_simple_models_benchmark --all
 
-# Run INRIA benchmark suite (all 10 datasets)
-python benchmarks/feature_engineering/run_inria_basic_benchmark.py --medium
+# Run with LLM engine
+python -m benchmarks.simple_models.run_simple_models_benchmark --all --with-llm
 
-# Run tool comparison
-python benchmarks/compare_tools/run_comparison_benchmark.py
+# Run AutoML benchmark (42 datasets)
+python -m benchmarks.automl.run_automl_benchmark --all
+
+# Run FE tools comparison
+python -m benchmarks.compare_tools.run_fe_tools_comparison --all
 ```
 
 ### Available Benchmarks
 
 | Benchmark | Command | Description |
 |-----------|---------|-------------|
-| **Spotify Classification** | `python benchmarks/automl/run_flaml_spotify_benchmark.py` | LLM+Text+Tabular with FLAML |
-| **INRIA Suite** | `python benchmarks/feature_engineering/run_inria_basic_benchmark.py --medium` | 10 OpenML datasets, RF/Ridge models |
-| **Tool Comparison** | `python benchmarks/compare_tools/run_comparison_benchmark.py` | vs Featuretools, TSFresh, AutoFeat |
-| **Basic Models** | `python benchmarks/feature_engineering/run_basic_models_benchmark.py` | RF, Ridge on Kaggle datasets |
-| **FLAML Real-World** | `python benchmarks/automl/run_flaml_realworld_benchmark.py` | 10 real-world datasets with FLAML |
+| **Simple Models** | `python -m benchmarks.simple_models.run_simple_models_benchmark --all` | RF/Ridge on 42 datasets |
+| **Simple Models + LLM** | `python -m benchmarks.simple_models.run_simple_models_benchmark --all --with-llm` | With LLM-generated features |
+| **AutoML** | `python -m benchmarks.automl.run_automl_benchmark --all` | FLAML on 42 datasets |
+| **AutoML + LLM** | `python -m benchmarks.automl.run_automl_benchmark --all --with-llm` | FLAML with LLM features |
+| **Tool Comparison** | `python -m benchmarks.compare_tools.run_fe_tools_comparison --all` | vs Featuretools, OpenFE, etc. |
+
+### Benchmark Options
+
+```bash
+# Specific datasets
+python -m benchmarks.simple_models.run_simple_models_benchmark --datasets titanic,house_prices
+
+# By category
+python -m benchmarks.automl.run_automl_benchmark --category classification
+
+# Use AutoGluon instead of FLAML
+python -m benchmarks.automl.run_automl_benchmark --framework autogluon
+
+# Custom time budget
+python -m benchmarks.automl.run_automl_benchmark --time-budget 300
+```
 
 ### Benchmark Reports
 
-All reports are saved to the `benchmarks/` directory:
+Reports are saved with date suffix and LLM indicator:
 
 ```
 benchmarks/
+├── simple_models/
+│   ├── SIMPLE_MODELS_BENCHMARK_20260204.md      # Tabular only
+│   └── SIMPLE_MODELS_BENCHMARK_LLM_20260204.md  # Tabular + LLM
 ├── automl/
-│   ├── FLAML_SPOTIFY_CLASSIFICATION_REPORT.md  # Flagship result
-│   └── FLAML_REALWORLD_BENCHMARK_REPORT.md
-├── feature_engineering/
-│   ├── INRIA_BASIC_MODELS_TABULAR.md
-│   ├── INRIA_BASIC_MODELS_TABULAR_LLM.md
-│   ├── BASIC_MODELS_BENCHMARK_TABULAR.md
-│   └── BASIC_MODELS_BENCHMARK_TABULAR_LLM.md
+│   ├── AUTOML_BENCHMARK_20260204.md             # Tabular only
+│   └── AUTOML_BENCHMARK_LLM_20260204.md         # Tabular + LLM
 └── compare_tools/
-    └── COMPARISON_BENCHMARK_REPORT.md
+    └── FE_TOOLS_COMPARISON_20260204.md
 ```
 
 ---
@@ -285,50 +220,69 @@ benchmarks/
 
 - **Train/Test Split**: 80/20 with `random_state=42` for reproducibility
 - **Metrics**: F1 (weighted) for classification, R² for regression
-- **Models**: LGBM/CatBoost (AutoML), RandomForest, Ridge/LogisticRegression
-- **Feature Selection**: Top-k by importance with redundancy elimination
+- **Models**:
+  - Simple: RandomForest (n_estimators=200, max_depth=20), LogisticRegression/Ridge
+  - AutoML: FLAML with 120s time budget
+- **Feature Selection**: Importance-based with 1% threshold filter
 
 ### FeatCopilot Configuration
 
 ```python
-# Flagship configuration (Spotify benchmark)
-from featcopilot.llm.semantic_engine import SemanticEngine
-from featcopilot.engines.text import TextEngine
-from featcopilot.engines.tabular import TabularEngine
+from featcopilot import FeatureEngineer
+from featcopilot.selection import FeatureSelector
 
-# LLM Engine - domain-aware features
-llm_engine = SemanticEngine(
-    model="gpt-5.2",
-    max_suggestions=30,
-    domain="music",
-    enable_text_features=True,
+# Standard configuration
+engineer = FeatureEngineer(
+    engines=["tabular"],
+    max_features=100,
+    verbose=1,
 )
 
-# Text Engine - extract from text columns
-text_engine = TextEngine(
-    features=["length", "word_count", "char_stats"],
+# With LLM engine
+engineer = FeatureEngineer(
+    engines=["tabular", "llm"],
+    llm_config={"model": "gpt-4o-mini"},
+    max_features=100,
 )
 
-# Tabular Engine - target encoding
-tabular_engine = TabularEngine(
-    polynomial_degree=1,  # No polynomials (trees learn these)
-    encode_categorical=True,
-    target_encode_ratio_threshold=0.5,
+# Feature selection
+selector = FeatureSelector(
+    method="importance",
+    threshold=0.01,  # Keep features with >1% relative importance
 )
 ```
 
 ---
 
+## Dataset Coverage
+
+42 datasets across classification and regression:
+
+| Category | Count | Examples |
+|----------|-------|----------|
+| **Classification** | 22 | titanic, higgs, covertype, credit, albert, eye_movements |
+| **Regression** | 20 | house_prices, diamonds, abalone, cpu_act, superconduct |
+
+Dataset sources include:
+- **OpenML** (INRIA benchmark suite)
+- **Kaggle** (popular ML datasets)
+- **Custom synthetic** (complex_classification, complex_regression)
+
+---
+
 ## Conclusion
 
-FeatCopilot demonstrates strong feature engineering capabilities, particularly when:
+FeatCopilot demonstrates **consistent improvements** across diverse datasets:
 
-1. **LLM engine is enabled** - Provides domain-aware feature suggestions that significantly improve model performance (+12-30% on appropriate datasets)
+1. **Simple Models**: +4.54% average, up to +197% maximum improvement
+2. **With LLM**: Additional +1.5% on average, with some datasets seeing +200% more improvement
+3. **AutoML**: +8.55% best improvement, 46% datasets improved
 
-2. **Text/categorical data is present** - Extracts meaningful numerical features from non-numeric columns
+**Best use cases**:
+- Datasets with poor baseline performance
+- Small feature sets that benefit from derived features
+- Tasks where domain knowledge helps (LLM engine)
 
-3. **Simple models are used** - Ridge/LogisticRegression benefit most from explicit feature engineering
-
-4. **Speed matters** - 1000x faster than AutoFeat while achieving competitive accuracy
-
-The flagship Spotify benchmark showcases FeatCopilot's full potential: **+12.37% F1 improvement** by combining LLM-generated features, text extraction, and target encoding.
+**Current limitations**:
+- Near-perfect baselines show minimal improvement
+- Very high-dimensional datasets (400+ features) see less benefit

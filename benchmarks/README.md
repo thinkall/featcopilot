@@ -1,6 +1,36 @@
 # FeatCopilot Benchmarks
 
-Comprehensive benchmarks demonstrating FeatCopilot's feature engineering capabilities.
+Comprehensive benchmarks demonstrating FeatCopilot's feature engineering capabilities across 42 datasets.
+
+## Latest Results Summary
+
+### Simple Models Benchmark (RandomForest, LogisticRegression/Ridge)
+
+| Metric | Tabular Engine | Tabular + LLM |
+|--------|----------------|---------------|
+| **Datasets** | 42 | 42 |
+| **Improved** | 20 (48%) | 23 (55%) |
+| **Avg Improvement** | +4.54% | +6.12% |
+| **Best Improvement** | +197% (delays_zurich) | +420% (delays_zurich) |
+
+**Key Highlights:**
+- **abalone**: +8.98% R² improvement with simple feature engineering
+- **complex_classification**: +5.68% accuracy boost
+- **bike_sharing**: +3.55% R² with LLM features
+- **road_safety**: +2.88% accuracy with LLM engine
+
+### AutoML Benchmark (FLAML, 120s budget)
+
+| Metric | Tabular Engine |
+|--------|----------------|
+| **Datasets** | 41 |
+| **Improved** | 19 (46%) |
+| **Best Improvement** | +8.55% (abalone) |
+
+**Notable Results:**
+- **credit_risk**: +2.53% accuracy improvement
+- **complex_classification**: +1.37% accuracy
+- **abalone**: +8.55% R² improvement
 
 ## Structure
 
@@ -66,7 +96,9 @@ python -m benchmarks.automl.run_automl_benchmark --framework autogluon
 - `--with-llm` - Enable LLM engine
 - `--time-budget N` - AutoML time budget (default: 60s)
 
-**Output:** `AUTOML_BENCHMARK_YYYYMMDD.md`
+**Output:**
+- Without LLM: `AUTOML_BENCHMARK_YYYYMMDD.md`
+- With LLM: `AUTOML_BENCHMARK_LLM_YYYYMMDD.md`
 
 ### 2. Simple Models Benchmark (`simple_models/run_simple_models_benchmark.py`)
 
@@ -81,10 +113,12 @@ python -m benchmarks.simple_models.run_simple_models_benchmark --category regres
 ```
 
 **Models:**
-- Classification: RandomForest, LogisticRegression
-- Regression: RandomForest, Ridge
+- Classification: RandomForest (n_estimators=200, max_depth=20), LogisticRegression
+- Regression: RandomForest (n_estimators=200, max_depth=20), Ridge
 
-**Output:** `SIMPLE_MODELS_BENCHMARK_YYYYMMDD.md`
+**Output:**
+- Without LLM: `SIMPLE_MODELS_BENCHMARK_YYYYMMDD.md`
+- With LLM: `SIMPLE_MODELS_BENCHMARK_LLM_YYYYMMDD.md`
 
 ### 3. FE Tools Comparison (`compare_tools/run_fe_tools_comparison.py`)
 

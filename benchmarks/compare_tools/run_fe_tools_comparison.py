@@ -1084,8 +1084,8 @@ if __name__ == "__main__":
     parser.add_argument("--category", type=str, choices=["classification", "regression"])
     parser.add_argument("--all", action="store_true", help="Run all datasets")
     parser.add_argument("--tools", nargs="+", default=None, help="Tools to benchmark")
-    parser.add_argument("--max-features", type=int, default=50)
-    parser.add_argument("--time-budget", type=int, default=60, help="FLAML time budget")
+    parser.add_argument("--max-features", type=int, default=100)
+    parser.add_argument("--time-budget", type=int, default=120, help="FLAML time budget")
     parser.add_argument("--output", type=str, default="benchmarks/compare_tools")
     parser.add_argument("--seed", type=int, default=42)
 

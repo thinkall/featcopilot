@@ -64,7 +64,7 @@ from benchmarks.datasets import (  # noqa: E402
 warnings.filterwarnings("ignore")
 
 # Default configuration
-DEFAULT_MAX_FEATURES = 50
+DEFAULT_MAX_FEATURES = 100
 QUICK_DATASETS = ["titanic", "house_prices", "credit_risk", "bike_sharing", "customer_churn", "insurance_claims"]
 
 
@@ -77,12 +77,12 @@ def get_models(task: str) -> dict:
     """Get models for the task type."""
     if "classification" in task:
         return {
-            "RandomForest": RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42, n_jobs=-1),
-            "LogisticRegression": LogisticRegression(max_iter=1000, random_state=42),
+            "RandomForest": RandomForestClassifier(n_estimators=200, max_depth=20, random_state=42, n_jobs=-1),
+            "LogisticRegression": LogisticRegression(max_iter=2000, random_state=42),
         }
     else:
         return {
-            "RandomForest": RandomForestRegressor(n_estimators=100, max_depth=10, random_state=42, n_jobs=-1),
+            "RandomForest": RandomForestRegressor(n_estimators=200, max_depth=20, random_state=42, n_jobs=-1),
             "Ridge": Ridge(alpha=1.0, random_state=42),
         }
 
@@ -337,8 +337,8 @@ def generate_report(results: list[dict], with_llm: bool, output_path: Path) -> N
 | Total Datasets | {len(results)} |
 | Classification | {len(clf_results)} |
 | Regression | {len(reg_results)} |
-| Improved (Tabular) | {sum(1 for r in results if r.get('tabular_improvement_pct', 0) > 0)} |
-| Avg Improvement | {np.mean([r.get('tabular_improvement_pct', 0) for r in results]):.2f}% |
+| Improved ({"LLM" if with_llm else "Tabular"}) | {sum(1 for r in results if r.get('llm_improvement_pct' if with_llm else 'tabular_improvement_pct', 0) > 0)} |
+| Avg Improvement | {np.mean([r.get('llm_improvement_pct' if with_llm else 'tabular_improvement_pct', 0) for r in results]):.2f}% |
 
 """
 
@@ -381,8 +381,9 @@ def generate_report(results: list[dict], with_llm: bool, output_path: Path) -> N
             report += f" {r['n_features_original']}→{r['n_features_tabular']} |\n"
 
     # Write report
-    report_file = output_path / f"SIMPLE_MODELS_BENCHMARK_{date_str}.md"
-    with open(report_file, "w") as f:
+    llm_suffix = "_LLM" if with_llm else ""
+    report_file = output_path / f"SIMPLE_MODELS_BENCHMARK{llm_suffix}_{date_str}.md"
+    with open(report_file, "w", encoding="utf-8") as f:
         f.write(report)
     print(f"\nReport saved: {report_file}")
 

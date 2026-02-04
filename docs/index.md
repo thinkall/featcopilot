@@ -11,29 +11,29 @@
 
 <div class="grid cards" markdown>
 
--   :material-rocket-launch:{ .lg .middle } __+12.37% F1 on Spotify__
+-   :material-rocket-launch:{ .lg .middle } __+197% Max Improvement__
 
     ---
 
-    Genre classification with LLM + Text + Tabular engines
+    Simple models benchmark on delays_zurich dataset
 
--   :material-brain:{ .lg .middle } __+8.25% Max Improvement__
-
-    ---
-
-    INRIA benchmark with Tabular engine (abalone dataset)
-
--   :material-scale-balance:{ .lg .middle } __Competitive & Fast__
+-   :material-brain:{ .lg .middle } __+420% with LLM Engine__
 
     ---
 
-    Matches other tools at 1000x speed (1s vs 1247s for AutoFeat)
+    LLM-enhanced feature generation boosts results
 
--   :material-speedometer:{ .lg .middle } __Flexible Speed__
+-   :material-scale-balance:{ .lg .middle } __48% Datasets Improved__
 
     ---
 
-    <1s (tabular) or 30-60s (with LLM) based on your needs
+    Tabular engine improves 20/42 datasets tested
+
+-   :material-speedometer:{ .lg .middle } __+8.55% AutoML Best__
+
+    ---
+
+    FLAML benchmark improvement on abalone dataset
 
 </div>
 

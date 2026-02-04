@@ -65,8 +65,8 @@ from benchmarks.datasets import (  # noqa: E402
 warnings.filterwarnings("ignore")
 
 # Default configuration
-DEFAULT_TIME_BUDGET = 60
-DEFAULT_MAX_FEATURES = 50
+DEFAULT_TIME_BUDGET = 120
+DEFAULT_MAX_FEATURES = 100
 QUICK_DATASETS = ["titanic", "house_prices", "credit_risk", "bike_sharing", "customer_churn", "insurance_claims"]
 
 
@@ -99,10 +99,15 @@ class AutoMLRunner:
 class FLAMLRunner(AutoMLRunner):
     """FLAML AutoML runner."""
 
+    def __init__(self, time_budget: int, random_state: int = 42):
+        super().__init__(time_budget, random_state)
+        self._task = None
+
     def fit(self, X: pd.DataFrame, y, task: str) -> float:
         from flaml import AutoML
 
         self.model = AutoML()
+        self._task = task
         flaml_task = "classification" if "classification" in task else "regression"
 
         start = time.time()
@@ -121,7 +126,7 @@ class FLAMLRunner(AutoMLRunner):
         return self.model.predict(X)
 
     def predict_proba(self, X: pd.DataFrame) -> Optional[np.ndarray]:
-        if hasattr(self.model, "predict_proba"):
+        if self._task and "classification" in self._task and hasattr(self.model, "predict_proba"):
             return self.model.predict_proba(X)
         return None
 
@@ -132,12 +137,14 @@ class AutoGluonRunner(AutoMLRunner):
     def __init__(self, time_budget: int, random_state: int = 42):
         super().__init__(time_budget, random_state)
         self._label = "__target__"
+        self._task = None
 
     def fit(self, X: pd.DataFrame, y, task: str) -> float:
         from autogluon.tabular import TabularPredictor
 
         train_data = X.copy()
         train_data[self._label] = y
+        self._task = task
 
         problem_type = "binary" if "classification" in task else "regression"
         if "classification" in task and pd.Series(y).nunique() > 2:
@@ -153,7 +160,7 @@ class AutoGluonRunner(AutoMLRunner):
         return self.model.predict(X).values
 
     def predict_proba(self, X: pd.DataFrame) -> Optional[np.ndarray]:
-        if hasattr(self.model, "predict_proba"):
+        if self._task and "classification" in self._task and hasattr(self.model, "predict_proba"):
             proba = self.model.predict_proba(X)
             return proba.values if isinstance(proba, pd.DataFrame) else proba
         return None
@@ -410,8 +417,8 @@ def generate_report(results: list[dict], framework: str, with_llm: bool, output_
 | Total Datasets | {len(results)} |
 | Classification | {len(clf_results)} |
 | Regression | {len(reg_results)} |
-| Improved (Tabular) | {sum(1 for r in results if r.get('tabular_improvement_pct', 0) > 0)} |
-| Avg Improvement | {np.mean([r.get('tabular_improvement_pct', 0) for r in results]):.2f}% |
+| Improved ({"LLM" if with_llm else "Tabular"}) | {sum(1 for r in results if r.get('llm_improvement_pct' if with_llm else 'tabular_improvement_pct', 0) > 0)} |
+| Avg Improvement | {np.mean([r.get('llm_improvement_pct' if with_llm else 'tabular_improvement_pct', 0) for r in results]):.2f}% |
 
 """
 
@@ -454,8 +461,9 @@ def generate_report(results: list[dict], framework: str, with_llm: bool, output_
             report += f" {r['n_features_original']}→{r['n_features_tabular']} |\n"
 
     # Write report
-    report_file = output_path / f"AUTOML_BENCHMARK_{date_str}.md"
-    with open(report_file, "w") as f:
+    llm_suffix = "_LLM" if with_llm else ""
+    report_file = output_path / f"AUTOML_BENCHMARK{llm_suffix}_{date_str}.md"
+    with open(report_file, "w", encoding="utf-8") as f:
         f.write(report)
     print(f"\nReport saved: {report_file}")
 

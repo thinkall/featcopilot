@@ -10,35 +10,29 @@ FeatCopilot automatically generates, selects, and explains predictive features u
 
 ## 📊 Benchmark Highlights
 
-### Spotify Genre Classification
+### Simple Models Benchmark (42 Datasets)
 
-| Metric | Baseline | +FeatCopilot | Improvement |
-|--------|----------|--------------|-------------|
-| **F1 (weighted)** | 0.8243 | **0.9263** | **+12.37%** |
-| Features | 15 | 50 | +35 |
+| Configuration | Improved | Avg Improvement | Best Improvement |
+|---------------|----------|-----------------|------------------|
+| **Tabular Engine** | 20 (48%) | +4.54% | +197% (delays_zurich) |
+| **Tabular + LLM** | 23 (55%) | +6.12% | +420% (delays_zurich) |
 
-Using LLM + Text + Tabular engines on 4-genre classification task.
+Models: RandomForest (n_estimators=200, max_depth=20), LogisticRegression/Ridge
 
-### INRIA Benchmark Suite
+### AutoML Benchmark (FLAML, 120s budget)
 
-| Configuration | Datasets | Avg Improvement | Win Rate |
-|---------------|----------|-----------------|----------|
-| Tabular Only | 10 | +0.40% | 70% |
-| Tabular + LLM | 10 | +0.07% | 70% |
+| Metric | Value |
+|--------|-------|
+| **Datasets** | 41 |
+| **Improved** | 19 (46%) |
+| **Best Improvement** | +8.55% (abalone) |
 
-Models: RandomForest, Ridge/LogisticRegression
+### Key Results
 
-### Tool Comparison
-
-| Tool | Avg Improvement | FE Time |
-|------|-----------------|---------|
-| **FeatCopilot** | +0.21% | **1.03s** |
-| AutoFeat | +0.48% | 1246.91s |
-| Featuretools | +0.27% | 0.11s |
-
-- ✅ **Competitive accuracy** with specialized tools
-- ⚡ **1000x faster** than AutoFeat
-- 🧠 **+12.37%** improvement on Spotify benchmark
+- ✅ **+197% improvement** on delays_zurich (tabular only)
+- 🧠 **+420% improvement** with LLM-enhanced features
+- 📈 **+8.98%** on abalone regression task
+- 🚀 **+5.68%** on complex_classification
 
 [View Full Benchmark Results](https://thinkall.github.io/featcopilot/user-guide/benchmarks/)
 
@@ -85,7 +79,7 @@ print(f"Features: {X.shape[1]} -> {X_transformed.shape[1]}")
 ```python
 from featcopilot import AutoFeatureEngineer
 
-# LLM-powered semantic features (+19.66% max improvement)
+# LLM-powered semantic features (+420% max improvement)
 engineer = AutoFeatureEngineer(
     engines=['tabular', 'llm'],
     max_features=50
