@@ -59,6 +59,7 @@ from benchmarks.datasets import (  # noqa: E402
     CATEGORY_CLASSIFICATION,
     CATEGORY_FORECASTING,
     CATEGORY_REGRESSION,
+    CATEGORY_TEXT,
     list_datasets,
     load_dataset,
 )
@@ -471,7 +472,7 @@ def generate_report(results: list[dict], framework: str, with_llm: bool, output_
 def main():
     parser = argparse.ArgumentParser(description="AutoML Benchmark for FeatCopilot")
     parser.add_argument("--datasets", type=str, help="Comma-separated dataset names")
-    parser.add_argument("--category", type=str, choices=["classification", "regression", "forecasting"])
+    parser.add_argument("--category", type=str, choices=["classification", "regression", "forecasting", "text"])
     parser.add_argument("--all", action="store_true", help="Run all datasets")
     parser.add_argument("--framework", type=str, default="flaml", choices=["flaml", "autogluon"])
     parser.add_argument("--with-llm", action="store_true", help="Enable LLM engine")
@@ -491,6 +492,7 @@ def main():
             list_datasets(CATEGORY_CLASSIFICATION)
             + list_datasets(CATEGORY_REGRESSION)
             + list_datasets(CATEGORY_FORECASTING)
+            + list_datasets(CATEGORY_TEXT)
         )
     else:
         dataset_names = QUICK_DATASETS

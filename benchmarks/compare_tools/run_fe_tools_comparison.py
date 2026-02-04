@@ -49,6 +49,7 @@ from benchmarks.datasets import (  # noqa: E402
     CATEGORY_CLASSIFICATION,
     CATEGORY_FORECASTING,
     CATEGORY_REGRESSION,
+    CATEGORY_TEXT,
     list_datasets,
     load_dataset,
 )
@@ -1081,7 +1082,7 @@ def generate_report(results: pd.DataFrame, output_path: Optional[str] = None) ->
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Compare FeatCopilot with other FE tools")
     parser.add_argument("--datasets", type=str, help="Comma-separated dataset names")
-    parser.add_argument("--category", type=str, choices=["classification", "regression"])
+    parser.add_argument("--category", type=str, choices=["classification", "regression", "forecasting", "text"])
     parser.add_argument("--all", action="store_true", help="Run all datasets")
     parser.add_argument("--tools", nargs="+", default=None, help="Tools to benchmark")
     parser.add_argument("--max-features", type=int, default=100)
@@ -1101,6 +1102,7 @@ if __name__ == "__main__":
             list_datasets(CATEGORY_CLASSIFICATION)
             + list_datasets(CATEGORY_REGRESSION)
             + list_datasets(CATEGORY_FORECASTING)
+            + list_datasets(CATEGORY_TEXT)
         )
     else:
         dataset_names = QUICK_DATASETS
