@@ -90,7 +90,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
     Parameters
     ----------
     engines : list, default=['tabular']
-        Engines to use ('tabular', 'timeseries', 'text', 'llm')
+        Engines to use ('tabular', 'timeseries', 'relational', 'text', 'llm')
     max_features : int, optional
         Maximum features to generate/select
     selection_methods : list, default=['mutual_info', 'importance']
@@ -199,6 +199,8 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             return TimeSeriesEngine(max_features=self.max_features, verbose=self.verbose)
         elif engine_name == "text":
             return TextEngine(max_features=self.max_features, verbose=self.verbose)
+        elif engine_name == "relational":
+            return RelationalEngine(max_features=self.max_features, verbose=self.verbose)
         elif engine_name == "llm":
             from featcopilot.llm.semantic_engine import SemanticEngine
 

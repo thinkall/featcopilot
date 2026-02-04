@@ -5,7 +5,7 @@ Compares FeatCopilot with other popular feature engineering libraries using FLAM
 
 Tools compared:
 1. Baseline (no feature engineering)
-2. FeatCopilot (our approach)
+2. FeatCopilot (multi-engine per dataset)
 3. Featuretools (automated feature engineering)
 4. tsfresh (time series feature extraction)
 5. autofeat (automatic feature generation)
@@ -163,12 +163,23 @@ class FeatCopilotRunner(FeatureEngineeringRunner):
     def __init__(self, max_features: int = 50, random_state: int = 42):
         super().__init__(max_features, random_state)
         self.engineer = None
+        self.engines_used: list[str] = []
+
+    @staticmethod
+    def _select_engines(task: str) -> list[str]:
+        engines = ["tabular", "relational"]
+        if "timeseries" in task:
+            engines.append("timeseries")
+        if "text" in task:
+            engines.append("text")
+        return engines
 
     def fit_transform(self, X_train: pd.DataFrame, y_train: pd.Series) -> pd.DataFrame:
         from featcopilot import AutoFeatureEngineer
 
+        self.engines_used = self._select_engines(self._task)
         self.engineer = AutoFeatureEngineer(
-            engines=["tabular"],
+            engines=self.engines_used,
             max_features=self.max_features,
             verbose=False,
         )
@@ -743,8 +754,13 @@ def run_single_benchmark(
         le = LabelEncoder()
         X_encoded[col] = le.fit_transform(X_encoded[col].astype(str))
 
-    # Split data
-    X_train, X_test, y_train, y_test = train_test_split(X_encoded, y, test_size=0.2, random_state=random_state)
+    # Split data (keep raw and encoded in sync)
+    indices = np.arange(len(X_encoded))
+    train_idx, test_idx, y_train, y_test = train_test_split(indices, y, test_size=0.2, random_state=random_state)
+    X_train_encoded = X_encoded.iloc[train_idx]
+    X_test_encoded = X_encoded.iloc[test_idx]
+    X_train_raw = X.iloc[train_idx]
+    X_test_raw = X.iloc[test_idx]
 
     result = {
         "dataset": dataset_name,
@@ -757,8 +773,14 @@ def run_single_benchmark(
     try:
         # Apply feature engineering
         runner = get_runner(tool_name, max_features)
-        X_train_fe = runner.fit_transform(X_train, y_train)
-        X_test_fe = runner.transform(X_test)
+        if hasattr(runner, "_task"):
+            runner._task = task
+        if tool_name == "featcopilot":
+            X_train_fe = runner.fit_transform(X_train_raw, y_train)
+            X_test_fe = runner.transform(X_test_raw)
+        else:
+            X_train_fe = runner.fit_transform(X_train_encoded, y_train)
+            X_test_fe = runner.transform(X_test_encoded)
 
         # Align columns
         for col in X_train_fe.columns:
@@ -766,16 +788,27 @@ def run_single_benchmark(
                 X_test_fe[col] = 0
         X_test_fe = X_test_fe[X_train_fe.columns]
 
-        # Fill NaN values
-        X_train_fe = X_train_fe.fillna(0).replace([np.inf, -np.inf], 0)
-        X_test_fe = X_test_fe.fillna(0).replace([np.inf, -np.inf], 0)
+        # Fill NaN values by dtype
+        numeric_cols = X_train_fe.select_dtypes(include=[np.number]).columns
+        if len(numeric_cols) > 0:
+            X_train_fe[numeric_cols] = X_train_fe[numeric_cols].replace([np.inf, -np.inf], np.nan).fillna(0)
+            X_test_fe[numeric_cols] = X_test_fe[numeric_cols].replace([np.inf, -np.inf], np.nan).fillna(0)
+
+        non_numeric_cols = [col for col in X_train_fe.columns if col not in numeric_cols]
+        if non_numeric_cols:
+            X_train_fe[non_numeric_cols] = X_train_fe[non_numeric_cols].astype("object").fillna("missing")
+            X_test_fe[non_numeric_cols] = X_test_fe[non_numeric_cols].astype("object").fillna("missing")
 
         result["n_features_engineered"] = runner.n_features_generated
         result["fe_time"] = runner.fit_time
 
         # Train with FLAML
-        is_classification = "classification" in task
-        flaml_task = "classification" if is_classification else "regression"
+        if "timeseries" in task or "forecast" in task:
+            flaml_task = "forecast"
+            is_classification = False
+        else:
+            is_classification = "classification" in task
+            flaml_task = "classification" if is_classification else "regression"
 
         model = AutoML()
         train_start = time.time()

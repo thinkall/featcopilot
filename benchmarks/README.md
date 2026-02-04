@@ -6,8 +6,8 @@ Comprehensive benchmarks demonstrating FeatCopilot's feature engineering capabil
 
 ### Simple Models Benchmark (RandomForest, LogisticRegression/Ridge)
 
-| Metric | Tabular Engine | Tabular + LLM |
-|--------|----------------|---------------|
+| Metric | Multi-Engine | Multi-Engine + LLM |
+|--------|--------------|--------------------|
 | **Datasets** | 42 | 42 |
 | **Improved** | 20 (48%) | 23 (55%) |
 | **Avg Improvement** | +4.54% | +6.12% |
@@ -21,8 +21,8 @@ Comprehensive benchmarks demonstrating FeatCopilot's feature engineering capabil
 
 ### AutoML Benchmark (FLAML, 120s budget)
 
-| Metric | Tabular Engine |
-|--------|----------------|
+| Metric | Multi-Engine |
+|--------|--------------|
 | **Datasets** | 41 |
 | **Improved** | 19 (46%) |
 | **Best Improvement** | +8.55% (abalone) |
@@ -70,6 +70,7 @@ python -m benchmarks.compare_tools.run_fe_tools_comparison
 ### 1. AutoML Benchmark (`automl/run_automl_benchmark.py`)
 
 Compares AutoML frameworks (FLAML, AutoGluon) with and without FeatCopilot.
+FeatCopilot runs all applicable engines per dataset (tabular, timeseries, text, relational) plus LLM when enabled.
 
 ```bash
 # Quick benchmark (6 datasets)
@@ -103,6 +104,7 @@ python -m benchmarks.automl.run_automl_benchmark --framework autogluon
 ### 2. Simple Models Benchmark (`simple_models/run_simple_models_benchmark.py`)
 
 Compares simple models with and without FeatCopilot.
+FeatCopilot runs all applicable engines per dataset (tabular, timeseries, text, relational) plus LLM when enabled.
 
 ```bash
 # Quick benchmark

@@ -5,7 +5,7 @@ Compares AutoML framework performance with and without FeatCopilot feature engin
 
 Comparison modes:
 1. Baseline (no feature engineering)
-2. FeatCopilot (tabular engine only)
+2. FeatCopilot (multi-engine per dataset)
 3. FeatCopilot + LLM (if --with-llm enabled)
 
 Supported AutoML frameworks:
@@ -127,7 +127,12 @@ class FLAMLRunner(AutoMLRunner):
 
         self.model = AutoML()
         self._task = task
-        flaml_task = "classification" if "classification" in task else "regression"
+        if "timeseries" in task or "forecast" in task:
+            flaml_task = "forecast"
+        elif "classification" in task:
+            flaml_task = "classification"
+        else:
+            flaml_task = "regression"
 
         start = time.time()
         self.model.fit(
@@ -330,22 +335,31 @@ def preprocess_data(X: pd.DataFrame, y, task: str) -> tuple[pd.DataFrame, np.nda
     return X_processed, y_processed
 
 
+def get_featcopilot_engines(task: str, with_llm: bool) -> tuple[list[str], Optional[dict[str, Any]]]:
+    """Select FeatCopilot engines based on task type."""
+    engines = ["tabular", "relational"]
+    if "timeseries" in task:
+        engines.append("timeseries")
+    if "text" in task:
+        engines.append("text")
+    if with_llm:
+        engines.append("llm")
+        return engines, {"model": "gpt-4o-mini", "max_suggestions": 10, "backend": "copilot"}
+    return engines, None
+
+
 def apply_featcopilot(
     X_train: pd.DataFrame,
     X_test: pd.DataFrame,
     y_train,
+    task: str,
     max_features: int,
     with_llm: bool = False,
-) -> tuple[pd.DataFrame, pd.DataFrame, float]:
+) -> tuple[pd.DataFrame, pd.DataFrame, float, list[str]]:
     """Apply FeatCopilot feature engineering."""
     from featcopilot import AutoFeatureEngineer
 
-    engines = ["tabular"]
-    llm_config = None
-
-    if with_llm:
-        engines.append("llm")
-        llm_config = {"model": "gpt-4o-mini", "max_suggestions": 10, "backend": "copilot"}
+    engines, llm_config = get_featcopilot_engines(task, with_llm)
 
     engineer = AutoFeatureEngineer(
         engines=engines,
@@ -362,14 +376,24 @@ def apply_featcopilot(
     # Align columns
     for col in X_train_fe.columns:
         if col not in X_test_fe.columns:
-            X_test_fe[col] = 0
+            if pd.api.types.is_numeric_dtype(X_train_fe[col]):
+                X_test_fe[col] = 0
+            else:
+                X_test_fe[col] = "missing"
     X_test_fe = X_test_fe[X_train_fe.columns]
 
-    # Fill NaN
-    X_train_fe = X_train_fe.fillna(0).replace([np.inf, -np.inf], 0)
-    X_test_fe = X_test_fe.fillna(0).replace([np.inf, -np.inf], 0)
+    # Fill NaN by dtype
+    numeric_cols = X_train_fe.select_dtypes(include=[np.number]).columns
+    if len(numeric_cols) > 0:
+        X_train_fe[numeric_cols] = X_train_fe[numeric_cols].replace([np.inf, -np.inf], np.nan).fillna(0)
+        X_test_fe[numeric_cols] = X_test_fe[numeric_cols].replace([np.inf, -np.inf], np.nan).fillna(0)
 
-    return X_train_fe, X_test_fe, fe_time
+    non_numeric_cols = [col for col in X_train_fe.columns if col not in numeric_cols]
+    if non_numeric_cols:
+        X_train_fe[non_numeric_cols] = X_train_fe[non_numeric_cols].astype("object").fillna("missing")
+        X_test_fe[non_numeric_cols] = X_test_fe[non_numeric_cols].astype("object").fillna("missing")
+
+    return X_train_fe, X_test_fe, fe_time, engines
 
 
 # =============================================================================
@@ -377,16 +401,17 @@ def apply_featcopilot(
 # =============================================================================
 
 
-def get_feature_cache_key(dataset_name: str, max_features: int, with_llm: bool) -> str:
+def get_feature_cache_key(dataset_name: str, max_features: int, with_llm: bool, engines: list[str]) -> str:
     """Generate a unique cache key for feature-engineered data."""
-    key_str = f"{dataset_name}_{max_features}_{with_llm}"
+    engine_key = "-".join(engines)
+    key_str = f"{dataset_name}_{max_features}_{with_llm}_{engine_key}"
     return hashlib.md5(key_str.encode()).hexdigest()[:12]
 
 
-def get_feature_cache_path(dataset_name: str, max_features: int, with_llm: bool) -> Path:
+def get_feature_cache_path(dataset_name: str, max_features: int, with_llm: bool, engines: list[str]) -> Path:
     """Get the path for cached feature-engineered data."""
     FEATURE_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    cache_key = get_feature_cache_key(dataset_name, max_features, with_llm)
+    cache_key = get_feature_cache_key(dataset_name, max_features, with_llm, engines)
     suffix = "_llm" if with_llm else "_tabular"
     return FEATURE_CACHE_DIR / f"{dataset_name}{suffix}_{cache_key}.pkl"
 
@@ -448,28 +473,39 @@ def prepare_dataset_features(
     This function caches the results so that multiple frameworks
     can use the same preprocessed data.
     """
-    # Check cache first
-    cache_path = get_feature_cache_path(dataset_name, max_features, with_llm)
-    if use_cache:
-        cached = load_feature_cache(cache_path)
-        if cached is not None:
-            return cached
-
     # Load and preprocess dataset
     try:
         X, y, task, name = load_dataset(dataset_name)
         X_processed, y_processed = preprocess_data(X, y, task)
 
-        # Split data
+        # Check cache first (after task is known)
+        task_engines, _ = get_featcopilot_engines(task, with_llm)
+        cache_path = get_feature_cache_path(dataset_name, max_features, with_llm, task_engines)
+        if use_cache:
+            cached = load_feature_cache(cache_path)
+            if cached is not None:
+                return cached
+
+        # Split data (keep raw and processed in sync)
         stratify = y_processed if "classification" in task and len(np.unique(y_processed)) < 50 else None
-        X_train, X_test, y_train, y_test = train_test_split(
-            X_processed, y_processed, test_size=0.2, random_state=42, stratify=stratify
+        indices = np.arange(len(X_processed))
+        train_idx, test_idx, y_train, y_test = train_test_split(
+            indices, y_processed, test_size=0.2, random_state=42, stratify=stratify
         )
+        X_train = X_processed.iloc[train_idx]
+        X_test = X_processed.iloc[test_idx]
+        X_train_raw = X.iloc[train_idx]
+        X_test_raw = X.iloc[test_idx]
 
         # Apply FeatCopilot
         print(f"   [FeatCopilot] Processing {dataset_name} (llm={with_llm})...")
-        X_train_fe, X_test_fe, fe_time = apply_featcopilot(X_train, X_test, y_train, max_features, with_llm)
-        print(f"   [FeatCopilot] Features: {X.shape[1]} -> {X_train_fe.shape[1]}, Time: {fe_time:.1f}s")
+        X_train_fe, X_test_fe, fe_time, engines_used = apply_featcopilot(
+            X_train_raw, X_test_raw, y_train, task, max_features, with_llm
+        )
+        print(
+            f"   [FeatCopilot] Engines: {', '.join(engines_used)}, "
+            f"Features: {X.shape[1]} -> {X_train_fe.shape[1]}, Time: {fe_time:.1f}s"
+        )
 
         # Save to cache
         save_feature_cache(
@@ -487,6 +523,7 @@ def prepare_dataset_features(
             "task": task,
             "n_features_original": X.shape[1],
             "n_features_fe": X_train_fe.shape[1],
+            "engines": engines_used,
         }
 
     except Exception as e:
@@ -520,11 +557,16 @@ def run_single_benchmark(
         # Preprocess
         X_processed, y_processed = preprocess_data(X, y, task)
 
-        # Split
+        # Split (keep raw and processed in sync)
         stratify = y_processed if "classification" in task and len(np.unique(y_processed)) < 50 else None
-        X_train, X_test, y_train, y_test = train_test_split(
-            X_processed, y_processed, test_size=0.2, random_state=42, stratify=stratify
+        indices = np.arange(len(X_processed))
+        train_idx, test_idx, y_train, y_test = train_test_split(
+            indices, y_processed, test_size=0.2, random_state=42, stratify=stratify
         )
+        X_train = X_processed.iloc[train_idx]
+        X_test = X_processed.iloc[test_idx]
+        X_train_raw = X.iloc[train_idx]
+        X_test_raw = X.iloc[test_idx]
 
         results = {
             "dataset": dataset_name,
@@ -548,11 +590,14 @@ def run_single_benchmark(
         results["baseline_train_time"] = train_time
         print(f"   {primary_metric}: {baseline_metrics[primary_metric]:.4f}, time: {train_time:.1f}s")
 
-        # --- FeatCopilot (tabular only) ---
-        print("\n[2/3] FeatCopilot (tabular)...")
-        X_train_fe, X_test_fe, fe_time = apply_featcopilot(X_train, X_test, y_train, max_features, with_llm=False)
+        # --- FeatCopilot (multi-engine) ---
+        X_train_fe, X_test_fe, fe_time, engines_used = apply_featcopilot(
+            X_train_raw, X_test_raw, y_train, task, max_features, with_llm=False
+        )
         results["n_features_tabular"] = X_train_fe.shape[1]
         results["fe_time_tabular"] = fe_time
+        results["engines_tabular"] = engines_used
+        print(f"\n[2/3] FeatCopilot ({', '.join(engines_used)})...")
 
         runner = get_runner(framework, time_budget)
         train_time = runner.fit(X_train_fe, y_train, task)
@@ -573,12 +618,13 @@ def run_single_benchmark(
 
         # --- FeatCopilot + LLM (if enabled) ---
         if with_llm:
-            print("\n[3/3] FeatCopilot (tabular + LLM)...")
-            X_train_llm, X_test_llm, fe_time_llm = apply_featcopilot(
-                X_train, X_test, y_train, max_features, with_llm=True
+            X_train_llm, X_test_llm, fe_time_llm, engines_used = apply_featcopilot(
+                X_train_raw, X_test_raw, y_train, task, max_features, with_llm=True
             )
             results["n_features_llm"] = X_train_llm.shape[1]
             results["fe_time_llm"] = fe_time_llm
+            results["engines_llm"] = engines_used
+            print(f"\n[3/3] FeatCopilot ({', '.join(engines_used)})...")
 
             runner = get_runner(framework, time_budget)
             train_time = runner.fit(X_train_llm, y_train, task)
@@ -861,8 +907,10 @@ def run_benchmark_with_cache(
         task = cache_data["task"]
         fe_time = cache_data["fe_time"]
         n_original = cache_data["n_features_original"]
+        engines_used = cache_data.get("engines", [])
 
-        print(f"Task: {task}, Features: {n_original} -> {X_train_fe.shape[1]}")
+        engine_label = ", ".join(engines_used) if engines_used else "tabular"
+        print(f"Task: {task}, Engines: {engine_label}, Features: {n_original} -> {X_train_fe.shape[1]}")
 
         results = {
             "dataset": dataset_name,
@@ -887,7 +935,7 @@ def run_benchmark_with_cache(
         print(f"   {primary_metric}: {baseline_metrics[primary_metric]:.4f}, time: {train_time:.1f}s")
 
         # --- FeatCopilot ---
-        label = "FeatCopilot + LLM" if with_llm else "FeatCopilot (tabular)"
+        label = f"FeatCopilot ({engine_label})"
         print(f"\n[2/2] {label}...")
         results["n_features_tabular"] = X_train_fe.shape[1]
         results["fe_time_tabular"] = fe_time

@@ -5,7 +5,7 @@ Compares simple model performance with and without FeatCopilot feature engineeri
 
 Comparison modes:
 1. Baseline (no feature engineering)
-2. FeatCopilot (tabular engine only)
+2. FeatCopilot (multi-engine per dataset)
 3. FeatCopilot + LLM (if --with-llm enabled)
 
 Models:
@@ -154,22 +154,31 @@ def preprocess_data(X: pd.DataFrame, y, task: str) -> tuple[pd.DataFrame, np.nda
     return X_processed, y_processed
 
 
+def get_featcopilot_engines(task: str, with_llm: bool) -> tuple[list[str], Optional[dict[str, Any]]]:
+    """Select FeatCopilot engines based on task type."""
+    engines = ["tabular", "relational"]
+    if "timeseries" in task:
+        engines.append("timeseries")
+    if "text" in task:
+        engines.append("text")
+    if with_llm:
+        engines.append("llm")
+        return engines, {"model": "gpt-4o-mini", "max_suggestions": 10, "backend": "copilot"}
+    return engines, None
+
+
 def apply_featcopilot(
     X_train: pd.DataFrame,
     X_test: pd.DataFrame,
     y_train,
+    task: str,
     max_features: int,
     with_llm: bool = False,
-) -> tuple[pd.DataFrame, pd.DataFrame, float]:
+) -> tuple[pd.DataFrame, pd.DataFrame, float, list[str]]:
     """Apply FeatCopilot feature engineering."""
     from featcopilot import AutoFeatureEngineer
 
-    engines = ["tabular"]
-    llm_config = None
-
-    if with_llm:
-        engines.append("llm")
-        llm_config = {"model": "gpt-4o-mini", "max_suggestions": 10, "backend": "copilot"}
+    engines, llm_config = get_featcopilot_engines(task, with_llm)
 
     engineer = AutoFeatureEngineer(
         engines=engines,
@@ -186,19 +195,37 @@ def apply_featcopilot(
     # Align columns
     for col in X_train_fe.columns:
         if col not in X_test_fe.columns:
-            X_test_fe[col] = 0
+            if pd.api.types.is_numeric_dtype(X_train_fe[col]):
+                X_test_fe[col] = 0
+            else:
+                X_test_fe[col] = "missing"
     X_test_fe = X_test_fe[X_train_fe.columns]
 
-    # Fill NaN
-    X_train_fe = X_train_fe.fillna(0).replace([np.inf, -np.inf], 0)
-    X_test_fe = X_test_fe.fillna(0).replace([np.inf, -np.inf], 0)
+    # Fill NaN by dtype
+    numeric_cols = X_train_fe.select_dtypes(include=[np.number]).columns
+    if len(numeric_cols) > 0:
+        X_train_fe[numeric_cols] = X_train_fe[numeric_cols].replace([np.inf, -np.inf], np.nan).fillna(0)
+        X_test_fe[numeric_cols] = X_test_fe[numeric_cols].replace([np.inf, -np.inf], np.nan).fillna(0)
 
-    return X_train_fe, X_test_fe, fe_time
+    non_numeric_cols = [col for col in X_train_fe.columns if col not in numeric_cols]
+    if non_numeric_cols:
+        X_train_fe[non_numeric_cols] = X_train_fe[non_numeric_cols].astype("object").fillna("missing")
+        X_test_fe[non_numeric_cols] = X_test_fe[non_numeric_cols].astype("object").fillna("missing")
+
+    return X_train_fe, X_test_fe, fe_time, engines
 
 
 # =============================================================================
 # Benchmark Runner
 # =============================================================================
+
+
+NON_NUMERIC_MODEL_NAMES = {"CatBoostClassifier", "CatBoostRegressor"}
+
+
+def model_supports_non_numeric(model) -> bool:
+    """Check whether a model supports non-numeric features."""
+    return model.__class__.__name__ in NON_NUMERIC_MODEL_NAMES
 
 
 def run_models(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train, y_test, task: str, label: str) -> dict[str, dict]:
@@ -208,12 +235,22 @@ def run_models(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train, y_test, tas
     primary_metric = get_primary_metric(task)
 
     for name, model in models.items():
+        non_numeric_cols = X_train.select_dtypes(exclude=[np.number]).columns
+        if len(non_numeric_cols) > 0 and not model_supports_non_numeric(model):
+            X_train_model = X_train.select_dtypes(include=[np.number])
+            X_test_model = X_test.select_dtypes(include=[np.number])
+            if X_train_model.shape[1] == 0:
+                raise ValueError(f"No numeric features available for model '{name}' in {label}")
+        else:
+            X_train_model = X_train
+            X_test_model = X_test
+
         start = time.time()
-        model.fit(X_train, y_train)
+        model.fit(X_train_model, y_train)
         train_time = time.time() - start
 
-        y_pred = model.predict(X_test)
-        y_prob = model.predict_proba(X_test) if hasattr(model, "predict_proba") else None
+        y_pred = model.predict(X_test_model)
+        y_prob = model.predict_proba(X_test_model) if hasattr(model, "predict_proba") else None
 
         metrics = evaluate(y_test, y_pred, y_prob, task)
         metrics["train_time"] = train_time
@@ -242,11 +279,16 @@ def run_single_benchmark(
         # Preprocess
         X_processed, y_processed = preprocess_data(X, y, task)
 
-        # Split
+        # Split (keep raw and processed in sync)
         stratify = y_processed if "classification" in task and len(np.unique(y_processed)) < 50 else None
-        X_train, X_test, y_train, y_test = train_test_split(
-            X_processed, y_processed, test_size=0.2, random_state=42, stratify=stratify
+        indices = np.arange(len(X_processed))
+        train_idx, test_idx, y_train, y_test = train_test_split(
+            indices, y_processed, test_size=0.2, random_state=42, stratify=stratify
         )
+        X_train = X_processed.iloc[train_idx]
+        X_test = X_processed.iloc[test_idx]
+        X_train_raw = X.iloc[train_idx]
+        X_test_raw = X.iloc[test_idx]
 
         results = {
             "dataset": dataset_name,
@@ -266,12 +308,15 @@ def run_single_benchmark(
         best_baseline = max(baseline_results.values(), key=lambda x: x[primary_metric])
         results["baseline_best_score"] = best_baseline[primary_metric]
 
-        # --- FeatCopilot (tabular only) ---
-        print("\n[2/3] FeatCopilot (tabular)...")
-        X_train_fe, X_test_fe, fe_time = apply_featcopilot(X_train, X_test, y_train, max_features, with_llm=False)
+        # --- FeatCopilot (multi-engine) ---
+        X_train_fe, X_test_fe, fe_time, engines_used = apply_featcopilot(
+            X_train_raw, X_test_raw, y_train, task, max_features, with_llm=False
+        )
         results["n_features_tabular"] = X_train_fe.shape[1]
         results["fe_time_tabular"] = fe_time
-        print(f"   Features: {X_train.shape[1]} → {X_train_fe.shape[1]}, FE time: {fe_time:.2f}s")
+        results["engines_tabular"] = engines_used
+        print(f"\n[2/3] FeatCopilot ({', '.join(engines_used)})...")
+        print(f"   Features: {X_train_raw.shape[1]} → {X_train_fe.shape[1]}, FE time: {fe_time:.2f}s")
 
         tabular_results = run_models(X_train_fe, X_test_fe, y_train, y_test, task, "Tabular")
         results["tabular"] = tabular_results
@@ -286,13 +331,14 @@ def run_single_benchmark(
 
         # --- FeatCopilot + LLM (if enabled) ---
         if with_llm:
-            print("\n[3/3] FeatCopilot (tabular + LLM)...")
-            X_train_llm, X_test_llm, fe_time_llm = apply_featcopilot(
-                X_train, X_test, y_train, max_features, with_llm=True
+            X_train_llm, X_test_llm, fe_time_llm, engines_used = apply_featcopilot(
+                X_train_raw, X_test_raw, y_train, task, max_features, with_llm=True
             )
             results["n_features_llm"] = X_train_llm.shape[1]
             results["fe_time_llm"] = fe_time_llm
-            print(f"   Features: {X_train.shape[1]} → {X_train_llm.shape[1]}, FE time: {fe_time_llm:.2f}s")
+            results["engines_llm"] = engines_used
+            print(f"\n[3/3] FeatCopilot ({', '.join(engines_used)})...")
+            print(f"   Features: {X_train_raw.shape[1]} → {X_train_llm.shape[1]}, FE time: {fe_time_llm:.2f}s")
 
             llm_results = run_models(X_train_llm, X_test_llm, y_train, y_test, task, "LLM")
             results["llm"] = llm_results

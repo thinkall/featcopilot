@@ -218,8 +218,8 @@ X, y, task, name = load_dataset('customer_churn')
 # Split data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-# Apply FeatCopilot
-engineer = AutoFeatureEngineer(engines=['tabular'], max_features=50)
+# Apply FeatCopilot (multi-engine per dataset)
+engineer = AutoFeatureEngineer(engines=['tabular', 'timeseries', 'text', 'relational'], max_features=50)
 X_train_fe = engineer.fit_transform(X_train, y_train)
 X_test_fe = engineer.transform(X_test)
 
