@@ -9,8 +9,9 @@ Comparison modes:
 3. FeatCopilot + LLM (if --with-llm enabled)
 
 Supported AutoML frameworks:
-- FLAML (Microsoft) - default
+- FLAML (Microsoft)
 - AutoGluon (Amazon)
+- H2O AutoML
 - all (run all frameworks)
 
 Features:
@@ -34,10 +35,10 @@ Examples:
     # Run with LLM engine enabled
     python -m benchmarks.automl.run_automl_benchmark --with-llm
 
-    # Use AutoGluon instead of FLAML
-    python -m benchmarks.automl.run_automl_benchmark --framework autogluon
+    # Use H2O instead of default
+    python -m benchmarks.automl.run_automl_benchmark --framework h2o
 
-    # Run ALL AutoML frameworks (flaml and autogluon)
+    # Run ALL AutoML frameworks (flaml, autogluon, h2o)
     python -m benchmarks.automl.run_automl_benchmark --framework all --all
 """
 
@@ -82,7 +83,7 @@ warnings.filterwarnings("ignore")
 DEFAULT_TIME_BUDGET = 120
 DEFAULT_MAX_FEATURES = 100
 QUICK_DATASETS = ["titanic", "house_prices", "credit_risk", "bike_sharing", "customer_churn", "insurance_claims"]
-ALL_FRAMEWORKS = ["flaml", "autogluon"]
+ALL_FRAMEWORKS = ["flaml", "autogluon", "h2o"]
 
 # Feature cache directory
 FEATURE_CACHE_DIR = Path("benchmarks/.feature_cache")
@@ -184,11 +185,81 @@ class AutoGluonRunner(AutoMLRunner):
         return None
 
 
+class H2ORunner(AutoMLRunner):
+    """H2O AutoML runner."""
+
+    def __init__(self, time_budget: int, random_state: int = 42):
+        super().__init__(time_budget, random_state)
+        self._task = None
+        self._h2o_initialized = False
+
+    def _init_h2o(self):
+        """Initialize H2O cluster if not already done."""
+        if not self._h2o_initialized:
+            import h2o
+
+            h2o.init(verbose=False, nthreads=-1, max_mem_size="4G")
+            self._h2o_initialized = True
+
+    def fit(self, X: pd.DataFrame, y, task: str) -> float:
+        import h2o
+        from h2o.automl import H2OAutoML
+
+        self._init_h2o()
+        self._task = task
+
+        # Prepare data
+        train_df = X.copy()
+        train_df["__target__"] = y
+        h2o_train = h2o.H2OFrame(train_df)
+
+        # Set target column type
+        if "classification" in task:
+            h2o_train["__target__"] = h2o_train["__target__"].asfactor()
+
+        # Configure AutoML
+        self.model = H2OAutoML(
+            max_runtime_secs=self.time_budget,
+            seed=self.random_state,
+            verbosity="warn",
+            sort_metric="AUTO",
+        )
+
+        start = time.time()
+        self.model.train(y="__target__", training_frame=h2o_train)
+        train_time = time.time() - start
+
+        return train_time
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        import h2o
+
+        h2o_test = h2o.H2OFrame(X)
+        preds = self.model.leader.predict(h2o_test)
+
+        if self._task and "classification" in self._task:
+            return preds["predict"].as_data_frame().values.flatten()
+        return preds["predict"].as_data_frame().values.flatten()
+
+    def predict_proba(self, X: pd.DataFrame) -> Optional[np.ndarray]:
+        import h2o
+
+        if self._task and "classification" in self._task:
+            h2o_test = h2o.H2OFrame(X)
+            preds = self.model.leader.predict(h2o_test)
+            # Get probability columns (all columns except 'predict')
+            prob_cols = [c for c in preds.columns if c != "predict"]
+            if prob_cols:
+                return preds[prob_cols].as_data_frame().values
+        return None
+
+
 def get_runner(framework: str, time_budget: int) -> AutoMLRunner:
     """Get AutoML runner by framework name."""
     runners = {
         "flaml": FLAMLRunner,
         "autogluon": AutoGluonRunner,
+        "h2o": H2ORunner,
     }
     if framework not in runners:
         raise ValueError(f"Unknown framework: {framework}. Available: {list(runners.keys())}")
@@ -675,7 +746,7 @@ def main():
     parser.add_argument("--datasets", type=str, help="Comma-separated dataset names")
     parser.add_argument("--category", type=str, choices=["classification", "regression", "forecasting", "text"])
     parser.add_argument("--all", action="store_true", help="Run all datasets")
-    parser.add_argument("--framework", type=str, default="all", choices=["flaml", "autogluon", "all"])
+    parser.add_argument("--framework", type=str, default="all", choices=["flaml", "autogluon", "h2o", "all"])
     parser.add_argument("--with-llm", action="store_true", help="Enable LLM engine")
     parser.add_argument("--time-budget", type=int, default=DEFAULT_TIME_BUDGET)
     parser.add_argument("--max-features", type=int, default=DEFAULT_MAX_FEATURES)
