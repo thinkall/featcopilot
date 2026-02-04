@@ -56,6 +56,7 @@ sys.path.insert(0, ".")  # noqa: E402
 
 from benchmarks.datasets import (  # noqa: E402
     CATEGORY_CLASSIFICATION,
+    CATEGORY_FORECASTING,
     CATEGORY_REGRESSION,
     list_datasets,
     load_dataset,
@@ -404,7 +405,11 @@ def main():
     elif args.category:
         dataset_names = list_datasets(args.category)
     elif args.all:
-        dataset_names = list_datasets(CATEGORY_CLASSIFICATION) + list_datasets(CATEGORY_REGRESSION)
+        dataset_names = (
+            list_datasets(CATEGORY_CLASSIFICATION)
+            + list_datasets(CATEGORY_REGRESSION)
+            + list_datasets(CATEGORY_FORECASTING)
+        )
     else:
         dataset_names = QUICK_DATASETS
 

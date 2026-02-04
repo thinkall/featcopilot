@@ -97,8 +97,8 @@ python -m benchmarks.automl.run_automl_benchmark --framework autogluon
 - `--time-budget N` - AutoML time budget (default: 60s)
 
 **Output:**
-- Without LLM: `AUTOML_BENCHMARK.md`
-- With LLM: `AUTOML_BENCHMARK_LLM.md`
+- Without LLM: `AUTOML_{FRAMEWORK}_BENCHMARK.md` (e.g., `AUTOML_FLAML_BENCHMARK.md`)
+- With LLM: `AUTOML_{FRAMEWORK}_BENCHMARK_LLM.md`
 
 ### 2. Simple Models Benchmark (`simple_models/run_simple_models_benchmark.py`)
 
