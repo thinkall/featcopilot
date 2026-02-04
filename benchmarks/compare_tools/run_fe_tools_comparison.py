@@ -1128,7 +1128,7 @@ if __name__ == "__main__":
     parser.add_argument("--datasets", type=str, help="Comma-separated dataset names")
     parser.add_argument("--category", type=str, choices=["classification", "regression", "forecasting", "text"])
     parser.add_argument("--all", action="store_true", help="Run all datasets")
-    parser.add_argument("--tools", nargs="+", default=None, help="Tools to benchmark")
+    parser.add_argument("--tools", nargs="+", default=None, help="Tools to benchmark (use 'all' for all available)")
     parser.add_argument("--max-features", type=int, default=100)
     parser.add_argument("--time-budget", type=int, default=120, help="FLAML time budget")
     parser.add_argument("--output", type=str, default="benchmarks/compare_tools")
@@ -1172,10 +1172,15 @@ if __name__ == "__main__":
         print(f"  {tool}: {status}")
     print()
 
+    # Handle --tools all
+    tools_to_run = args.tools
+    if tools_to_run and "all" in tools_to_run:
+        tools_to_run = None  # None means run all available tools
+
     # Run benchmark
     results = run_comparison_benchmark(
         dataset_names=dataset_names,
-        tools=args.tools,
+        tools=tools_to_run,
         max_features=args.max_features,
         time_budget=args.time_budget,
         random_state=args.seed,

@@ -11,6 +11,12 @@ Comparison modes:
 Supported AutoML frameworks:
 - FLAML (Microsoft) - default
 - AutoGluon (Amazon)
+- all (run all frameworks)
+
+Features:
+- Preprocessed datasets are cached to avoid redundant FeatCopilot runs
+- All frameworks use exactly the same preprocessed data for fair comparison
+- Support --framework all to benchmark all frameworks with one command
 
 Usage:
     python -m benchmarks.automl.run_automl_benchmark [options]
@@ -30,10 +36,15 @@ Examples:
 
     # Use AutoGluon instead of FLAML
     python -m benchmarks.automl.run_automl_benchmark --framework autogluon
+
+    # Run ALL AutoML frameworks (flaml and autogluon)
+    python -m benchmarks.automl.run_automl_benchmark --framework all --all
 """
 
 import argparse
+import hashlib
 import json
+import pickle
 import sys
 import time
 import warnings
@@ -71,6 +82,10 @@ warnings.filterwarnings("ignore")
 DEFAULT_TIME_BUDGET = 120
 DEFAULT_MAX_FEATURES = 100
 QUICK_DATASETS = ["titanic", "house_prices", "credit_risk", "bike_sharing", "customer_churn", "insurance_claims"]
+ALL_FRAMEWORKS = ["flaml", "autogluon"]
+
+# Feature cache directory
+FEATURE_CACHE_DIR = Path("benchmarks/.feature_cache")
 
 
 # =============================================================================
@@ -287,6 +302,128 @@ def apply_featcopilot(
 
 
 # =============================================================================
+# Feature Cache (to reuse FeatCopilot results across frameworks)
+# =============================================================================
+
+
+def get_feature_cache_key(dataset_name: str, max_features: int, with_llm: bool) -> str:
+    """Generate a unique cache key for feature-engineered data."""
+    key_str = f"{dataset_name}_{max_features}_{with_llm}"
+    return hashlib.md5(key_str.encode()).hexdigest()[:12]
+
+
+def get_feature_cache_path(dataset_name: str, max_features: int, with_llm: bool) -> Path:
+    """Get the path for cached feature-engineered data."""
+    FEATURE_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    cache_key = get_feature_cache_key(dataset_name, max_features, with_llm)
+    suffix = "_llm" if with_llm else "_tabular"
+    return FEATURE_CACHE_DIR / f"{dataset_name}{suffix}_{cache_key}.pkl"
+
+
+def save_feature_cache(
+    cache_path: Path,
+    X_train: pd.DataFrame,
+    X_test: pd.DataFrame,
+    y_train: np.ndarray,
+    y_test: np.ndarray,
+    X_train_fe: pd.DataFrame,
+    X_test_fe: pd.DataFrame,
+    fe_time: float,
+    task: str,
+    n_original: int,
+) -> None:
+    """Save feature-engineered data to cache."""
+    cache_data = {
+        "X_train": X_train,
+        "X_test": X_test,
+        "y_train": y_train,
+        "y_test": y_test,
+        "X_train_fe": X_train_fe,
+        "X_test_fe": X_test_fe,
+        "fe_time": fe_time,
+        "task": task,
+        "n_features_original": n_original,
+        "n_features_fe": X_train_fe.shape[1],
+        "timestamp": datetime.now().isoformat(),
+    }
+    with open(cache_path, "wb") as f:
+        pickle.dump(cache_data, f)
+    print(f"   [Cache] Saved to {cache_path.name}")
+
+
+def load_feature_cache(cache_path: Path) -> Optional[dict]:
+    """Load feature-engineered data from cache."""
+    if not cache_path.exists():
+        return None
+    try:
+        with open(cache_path, "rb") as f:
+            cache_data = pickle.load(f)
+        print(f"   [Cache] Loaded from {cache_path.name}")
+        return cache_data
+    except Exception as e:
+        print(f"   [Cache] Failed to load: {e}")
+        return None
+
+
+def prepare_dataset_features(
+    dataset_name: str,
+    max_features: int,
+    with_llm: bool,
+    use_cache: bool = True,
+) -> Optional[dict]:
+    """
+    Prepare dataset with FeatCopilot feature engineering.
+
+    This function caches the results so that multiple frameworks
+    can use the same preprocessed data.
+    """
+    # Check cache first
+    cache_path = get_feature_cache_path(dataset_name, max_features, with_llm)
+    if use_cache:
+        cached = load_feature_cache(cache_path)
+        if cached is not None:
+            return cached
+
+    # Load and preprocess dataset
+    try:
+        X, y, task, name = load_dataset(dataset_name)
+        X_processed, y_processed = preprocess_data(X, y, task)
+
+        # Split data
+        stratify = y_processed if "classification" in task and len(np.unique(y_processed)) < 50 else None
+        X_train, X_test, y_train, y_test = train_test_split(
+            X_processed, y_processed, test_size=0.2, random_state=42, stratify=stratify
+        )
+
+        # Apply FeatCopilot
+        print(f"   [FeatCopilot] Processing {dataset_name} (llm={with_llm})...")
+        X_train_fe, X_test_fe, fe_time = apply_featcopilot(X_train, X_test, y_train, max_features, with_llm)
+        print(f"   [FeatCopilot] Features: {X.shape[1]} -> {X_train_fe.shape[1]}, Time: {fe_time:.1f}s")
+
+        # Save to cache
+        save_feature_cache(
+            cache_path, X_train, X_test, y_train, y_test, X_train_fe, X_test_fe, fe_time, task, X.shape[1]
+        )
+
+        return {
+            "X_train": X_train,
+            "X_test": X_test,
+            "y_train": y_train,
+            "y_test": y_test,
+            "X_train_fe": X_train_fe,
+            "X_test_fe": X_test_fe,
+            "fe_time": fe_time,
+            "task": task,
+            "n_features_original": X.shape[1],
+            "n_features_fe": X_train_fe.shape[1],
+        }
+
+    except Exception as e:
+        print(f"   [FeatCopilot] Error: {e}")
+        return None
+
+
+# =============================================================================
 # Benchmark Runner
 # =============================================================================
 
@@ -297,10 +434,11 @@ def run_single_benchmark(
     time_budget: int,
     max_features: int,
     with_llm: bool = False,
+    use_cache: bool = True,
 ) -> Optional[dict[str, Any]]:
     """Run benchmark on a single dataset."""
     print(f"\n{'='*60}")
-    print(f"Dataset: {dataset_name}")
+    print(f"Dataset: {dataset_name}, Framework: {framework}")
     print(f"{'='*60}")
 
     try:
@@ -537,13 +675,14 @@ def main():
     parser.add_argument("--datasets", type=str, help="Comma-separated dataset names")
     parser.add_argument("--category", type=str, choices=["classification", "regression", "forecasting", "text"])
     parser.add_argument("--all", action="store_true", help="Run all datasets")
-    parser.add_argument("--framework", type=str, default="flaml", choices=["flaml", "autogluon"])
+    parser.add_argument("--framework", type=str, default="all", choices=["flaml", "autogluon", "all"])
     parser.add_argument("--with-llm", action="store_true", help="Enable LLM engine")
     parser.add_argument("--time-budget", type=int, default=DEFAULT_TIME_BUDGET)
     parser.add_argument("--max-features", type=int, default=DEFAULT_MAX_FEATURES)
     parser.add_argument("--output", type=str, default="benchmarks/automl")
     parser.add_argument("--report-only", action="store_true", help="Only regenerate report from cache")
     parser.add_argument("--no-cache", action="store_true", help="Don't save results to cache")
+    parser.add_argument("--no-feature-cache", action="store_true", help="Don't use feature cache (rerun FeatCopilot)")
 
     args = parser.parse_args()
     output_path = Path(args.output)
@@ -551,9 +690,11 @@ def main():
 
     # Report-only mode: load from cache and regenerate report
     if args.report_only:
-        results = load_cache(output_path, args.framework, args.with_llm)
-        if results:
-            generate_report(results, args.framework, args.with_llm, output_path)
+        frameworks = ALL_FRAMEWORKS if args.framework == "all" else [args.framework]
+        for fw in frameworks:
+            results = load_cache(output_path, fw, args.with_llm)
+            if results:
+                generate_report(results, fw, args.with_llm, output_path)
         return
 
     # Determine datasets to run
@@ -571,31 +712,148 @@ def main():
     else:
         dataset_names = QUICK_DATASETS
 
+    # Determine frameworks to run
+    frameworks = ALL_FRAMEWORKS if args.framework == "all" else [args.framework]
+
     print("AutoML Benchmark")
     print("================")
-    print(f"Framework: {args.framework}")
+    print(f"Frameworks: {frameworks}")
     print(f"Time budget: {args.time_budget}s")
     print(f"LLM enabled: {args.with_llm}")
     print(f"Datasets: {len(dataset_names)}")
 
-    # Run benchmarks
-    results = []
-    for name in dataset_names:
-        result = run_single_benchmark(
-            name,
-            args.framework,
-            args.time_budget,
+    # Pre-process all datasets with FeatCopilot first (cache them for reuse)
+    print("\n" + "=" * 60)
+    print("Phase 1: Preprocessing datasets with FeatCopilot")
+    print("=" * 60)
+
+    feature_cache = {}
+    for dataset_name in dataset_names:
+        print(f"\n[{dataset_names.index(dataset_name)+1}/{len(dataset_names)}] {dataset_name}")
+        cache_data = prepare_dataset_features(
+            dataset_name,
             args.max_features,
             args.with_llm,
+            use_cache=not args.no_feature_cache,
         )
-        if result:
-            results.append(result)
+        if cache_data:
+            feature_cache[dataset_name] = cache_data
 
-    # Save cache and generate report
-    if results:
-        if not args.no_cache:
-            save_cache(results, output_path, args.framework, args.with_llm)
-        generate_report(results, args.framework, args.with_llm, output_path)
+    # Run benchmarks for each framework
+    for framework in frameworks:
+        print(f"\n{'='*60}")
+        print(f"Phase 2: Running {framework.upper()} benchmarks")
+        print(f"{'='*60}")
+
+        results = []
+        for dataset_name in dataset_names:
+            if dataset_name not in feature_cache:
+                print(f"\n[SKIP] {dataset_name} - no feature cache")
+                continue
+
+            result = run_benchmark_with_cache(
+                dataset_name,
+                feature_cache[dataset_name],
+                framework,
+                args.time_budget,
+                args.with_llm,
+            )
+            if result:
+                results.append(result)
+
+        # Save cache and generate report for this framework
+        if results:
+            if not args.no_cache:
+                save_cache(results, output_path, framework, args.with_llm)
+            generate_report(results, framework, args.with_llm, output_path)
+
+
+def run_benchmark_with_cache(
+    dataset_name: str,
+    cache_data: dict,
+    framework: str,
+    time_budget: int,
+    with_llm: bool,
+) -> Optional[dict[str, Any]]:
+    """Run benchmark using cached feature-engineered data."""
+    print(f"\n{'='*60}")
+    print(f"Dataset: {dataset_name}, Framework: {framework}")
+    print(f"{'='*60}")
+
+    try:
+        X_train = cache_data["X_train"]
+        X_test = cache_data["X_test"]
+        y_train = cache_data["y_train"]
+        y_test = cache_data["y_test"]
+        X_train_fe = cache_data["X_train_fe"]
+        X_test_fe = cache_data["X_test_fe"]
+        task = cache_data["task"]
+        fe_time = cache_data["fe_time"]
+        n_original = cache_data["n_features_original"]
+
+        print(f"Task: {task}, Features: {n_original} -> {X_train_fe.shape[1]}")
+
+        results = {
+            "dataset": dataset_name,
+            "task": task,
+            "framework": framework,
+            "n_samples": len(X_train) + len(X_test),
+            "n_features_original": n_original,
+            "with_llm": with_llm,
+        }
+        primary_metric = get_primary_metric(task)
+
+        # --- Baseline ---
+        print("\n[1/2] Baseline (no FE)...")
+        runner = get_runner(framework, time_budget)
+        train_time = runner.fit(X_train, y_train, task)
+        y_pred = runner.predict(X_test)
+        y_prob = runner.predict_proba(X_test)
+        baseline_metrics = evaluate(y_test, y_pred, y_prob, task)
+
+        results["baseline_score"] = baseline_metrics[primary_metric]
+        results["baseline_train_time"] = train_time
+        print(f"   {primary_metric}: {baseline_metrics[primary_metric]:.4f}, time: {train_time:.1f}s")
+
+        # --- FeatCopilot ---
+        label = "FeatCopilot + LLM" if with_llm else "FeatCopilot (tabular)"
+        print(f"\n[2/2] {label}...")
+        results["n_features_tabular"] = X_train_fe.shape[1]
+        results["fe_time_tabular"] = fe_time
+
+        runner = get_runner(framework, time_budget)
+        train_time = runner.fit(X_train_fe, y_train, task)
+        y_pred = runner.predict(X_test_fe)
+        y_prob = runner.predict_proba(X_test_fe)
+        fe_metrics = evaluate(y_test, y_pred, y_prob, task)
+
+        results["tabular_score"] = fe_metrics[primary_metric]
+        results["tabular_train_time"] = train_time
+        improvement = (fe_metrics[primary_metric] - baseline_metrics[primary_metric]) / max(
+            baseline_metrics[primary_metric], 0.001
+        )
+        results["tabular_improvement_pct"] = improvement * 100
+        print(
+            f"   {primary_metric}: {fe_metrics[primary_metric]:.4f} "
+            f"({improvement*100:+.2f}%), features: {X_train_fe.shape[1]}"
+        )
+
+        # Store LLM-specific fields if LLM was used
+        if with_llm:
+            results["n_features_llm"] = X_train_fe.shape[1]
+            results["fe_time_llm"] = fe_time
+            results["llm_score"] = fe_metrics[primary_metric]
+            results["llm_train_time"] = train_time
+            results["llm_improvement_pct"] = improvement * 100
+
+        return results
+
+    except Exception as e:
+        print(f"Error: {e}")
+        import traceback
+
+        traceback.print_exc()
+        return None
 
 
 if __name__ == "__main__":
