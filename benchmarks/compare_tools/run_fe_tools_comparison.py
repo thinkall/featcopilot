@@ -30,6 +30,7 @@ Examples:
 """
 
 import argparse
+import json
 import sys
 import time
 import warnings
@@ -1079,6 +1080,49 @@ def generate_report(results: pd.DataFrame, output_path: Optional[str] = None) ->
     return report_text
 
 
+def get_cache_file(output_path: Path) -> Path:
+    """Get cache file path."""
+    return output_path / "FE_TOOLS_COMPARISON_CACHE.json"
+
+
+def save_cache(results: pd.DataFrame, output_path: Path) -> None:
+    """Save benchmark results to cache file."""
+    cache_file = get_cache_file(output_path)
+    # Convert DataFrame to list of dicts for JSON serialization
+    records = results.to_dict(orient="records")
+    # Convert numpy types to native Python types
+    serializable_records = []
+    for r in records:
+        sr = {}
+        for k, v in r.items():
+            if isinstance(v, (np.floating, np.integer)):
+                sr[k] = float(v) if not np.isnan(v) else None
+            elif isinstance(v, np.ndarray):
+                sr[k] = v.tolist()
+            elif pd.isna(v):
+                sr[k] = None
+            else:
+                sr[k] = v
+        serializable_records.append(sr)
+
+    with open(cache_file, "w", encoding="utf-8") as f:
+        json.dump(serializable_records, f, indent=2)
+    print(f"Cache saved: {cache_file}")
+
+
+def load_cache(output_path: Path) -> Optional[pd.DataFrame]:
+    """Load benchmark results from cache file."""
+    cache_file = get_cache_file(output_path)
+    if not cache_file.exists():
+        print(f"Cache file not found: {cache_file}")
+        return None
+    with open(cache_file, encoding="utf-8") as f:
+        records = json.load(f)
+    results = pd.DataFrame(records)
+    print(f"Loaded {len(results)} results from cache: {cache_file}")
+    return results
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Compare FeatCopilot with other FE tools")
     parser.add_argument("--datasets", type=str, help="Comma-separated dataset names")
@@ -1089,8 +1133,21 @@ if __name__ == "__main__":
     parser.add_argument("--time-budget", type=int, default=120, help="FLAML time budget")
     parser.add_argument("--output", type=str, default="benchmarks/compare_tools")
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--report-only", action="store_true", help="Only regenerate report from cache")
+    parser.add_argument("--no-cache", action="store_true", help="Don't save results to cache")
 
     args = parser.parse_args()
+    output_path = Path(args.output)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    # Report-only mode: load from cache and regenerate report
+    if args.report_only:
+        results = load_cache(output_path)
+        if results is not None:
+            report_file = output_path / "FE_TOOLS_COMPARISON.md"
+            report = generate_report(results, str(report_file))
+            print(report)
+        sys.exit(0)
 
     # Determine datasets
     if args.datasets:
@@ -1124,10 +1181,10 @@ if __name__ == "__main__":
         random_state=args.seed,
     )
 
-    # Generate report
+    # Save cache and generate report
     print("\n" + "=" * 70)
-    output_path = Path(args.output)
-    output_path.mkdir(parents=True, exist_ok=True)
+    if not args.no_cache:
+        save_cache(results, output_path)
     report_file = output_path / "FE_TOOLS_COMPARISON.md"
     report = generate_report(results, str(report_file))
     print(report)

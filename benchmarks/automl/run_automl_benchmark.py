@@ -33,6 +33,7 @@ Examples:
 """
 
 import argparse
+import json
 import sys
 import time
 import warnings
@@ -400,9 +401,12 @@ def generate_report(results: list[dict], framework: str, with_llm: bool, output_
     """Generate markdown report."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Separate by task
-    clf_results = [r for r in results if "classification" in r["task"]]
-    reg_results = [r for r in results if "classification" not in r["task"]]
+    # Separate by task category
+    clf_results = [r for r in results if r["task"] == "classification"]
+    reg_results = [r for r in results if r["task"] == "regression"]
+    ts_results = [r for r in results if r["task"] == "timeseries_regression"]
+    text_clf_results = [r for r in results if r["task"] == "text_classification"]
+    text_reg_results = [r for r in results if r["task"] == "text_regression"]
 
     report = f"""# AutoML Benchmark Report
 
@@ -418,48 +422,66 @@ def generate_report(results: list[dict], framework: str, with_llm: bool, output_
 | Total Datasets | {len(results)} |
 | Classification | {len(clf_results)} |
 | Regression | {len(reg_results)} |
+| Forecasting | {len(ts_results)} |
+| Text Classification | {len(text_clf_results)} |
+| Text Regression | {len(text_reg_results)} |
 | Improved ({"LLM" if with_llm else "Tabular"}) | {sum(1 for r in results if r.get('llm_improvement_pct' if with_llm else 'tabular_improvement_pct', 0) > 0)} |
 | Avg Improvement | {np.mean([r.get('llm_improvement_pct' if with_llm else 'tabular_improvement_pct', 0) for r in results]):.2f}% |
 
 """
 
-    if clf_results:
-        report += "## Classification Results\n\n"
-        report += "| Dataset | Baseline | Tabular | Improvement |"
+    def add_classification_table(section_results: list[dict], title: str) -> str:
+        """Generate classification results table."""
+        if not section_results:
+            return ""
+        section = f"## {title}\n\n"
+        section += "| Dataset | Baseline | Tabular | Improvement |"
         if with_llm:
-            report += " LLM | LLM Imp |"
-        report += " Features |\n"
-        report += "|---------|----------|---------|-------------|"
+            section += " LLM | LLM Imp |"
+        section += " Features |\n"
+        section += "|---------|----------|---------|-------------|"
         if with_llm:
-            report += "------|---------|"
-        report += "----------|\n"
+            section += "------|---------|"
+        section += "----------|\n"
 
-        for r in clf_results:
-            report += f"| {r['dataset']} | {r['baseline_score']:.4f} | {r['tabular_score']:.4f} | {r['tabular_improvement_pct']:+.2f}% |"
+        for r in section_results:
+            section += f"| {r['dataset']} | {r['baseline_score']:.4f} | {r['tabular_score']:.4f} | {r['tabular_improvement_pct']:+.2f}% |"
             if with_llm and "llm_score" in r:
-                report += f" {r['llm_score']:.4f} | {r['llm_improvement_pct']:+.2f}% |"
+                section += f" {r['llm_score']:.4f} | {r['llm_improvement_pct']:+.2f}% |"
             elif with_llm:
-                report += " - | - |"
-            report += f" {r['n_features_original']}→{r['n_features_tabular']} |\n"
+                section += " - | - |"
+            section += f" {r['n_features_original']}→{r['n_features_tabular']} |\n"
+        return section + "\n"
 
-    if reg_results:
-        report += "\n## Regression Results\n\n"
-        report += "| Dataset | Baseline R² | Tabular R² | Improvement |"
+    def add_regression_table(section_results: list[dict], title: str) -> str:
+        """Generate regression results table."""
+        if not section_results:
+            return ""
+        section = f"## {title}\n\n"
+        section += "| Dataset | Baseline R² | Tabular R² | Improvement |"
         if with_llm:
-            report += " LLM R² | LLM Imp |"
-        report += " Features |\n"
-        report += "|---------|-------------|------------|-------------|"
+            section += " LLM R² | LLM Imp |"
+        section += " Features |\n"
+        section += "|---------|-------------|------------|-------------|"
         if with_llm:
-            report += "--------|---------|"
-        report += "----------|\n"
+            section += "--------|---------|"
+        section += "----------|\n"
 
-        for r in reg_results:
-            report += f"| {r['dataset']} | {r['baseline_score']:.4f} | {r['tabular_score']:.4f} | {r['tabular_improvement_pct']:+.2f}% |"
+        for r in section_results:
+            section += f"| {r['dataset']} | {r['baseline_score']:.4f} | {r['tabular_score']:.4f} | {r['tabular_improvement_pct']:+.2f}% |"
             if with_llm and "llm_score" in r:
-                report += f" {r['llm_score']:.4f} | {r['llm_improvement_pct']:+.2f}% |"
+                section += f" {r['llm_score']:.4f} | {r['llm_improvement_pct']:+.2f}% |"
             elif with_llm:
-                report += " - | - |"
-            report += f" {r['n_features_original']}→{r['n_features_tabular']} |\n"
+                section += " - | - |"
+            section += f" {r['n_features_original']}→{r['n_features_tabular']} |\n"
+        return section + "\n"
+
+    # Add all category sections
+    report += add_classification_table(clf_results, "Classification Results")
+    report += add_regression_table(reg_results, "Regression Results")
+    report += add_regression_table(ts_results, "Forecasting Results")
+    report += add_classification_table(text_clf_results, "Text Classification Results")
+    report += add_regression_table(text_reg_results, "Text Regression Results")
 
     # Write report
     llm_suffix = "_LLM" if with_llm else ""
@@ -467,6 +489,47 @@ def generate_report(results: list[dict], framework: str, with_llm: bool, output_
     with open(report_file, "w", encoding="utf-8") as f:
         f.write(report)
     print(f"\nReport saved: {report_file}")
+
+
+def get_cache_file(output_path: Path, framework: str, with_llm: bool) -> Path:
+    """Get cache file path."""
+    llm_suffix = "_LLM" if with_llm else ""
+    return output_path / f"AUTOML_{framework.upper()}_CACHE{llm_suffix}.json"
+
+
+def save_cache(results: list[dict], output_path: Path, framework: str, with_llm: bool) -> None:
+    """Save benchmark results to cache file."""
+    cache_file = get_cache_file(output_path, framework, with_llm)
+    # Convert numpy types to native Python types for JSON serialization
+    serializable_results = []
+    for r in results:
+        sr = {}
+        for k, v in r.items():
+            if isinstance(v, (np.floating, np.integer)):
+                sr[k] = float(v)
+            elif isinstance(v, np.ndarray):
+                sr[k] = v.tolist()
+            elif isinstance(v, dict):
+                sr[k] = {kk: float(vv) if isinstance(vv, (np.floating, np.integer)) else vv for kk, vv in v.items()}
+            else:
+                sr[k] = v
+        serializable_results.append(sr)
+
+    with open(cache_file, "w", encoding="utf-8") as f:
+        json.dump(serializable_results, f, indent=2)
+    print(f"Cache saved: {cache_file}")
+
+
+def load_cache(output_path: Path, framework: str, with_llm: bool) -> Optional[list[dict]]:
+    """Load benchmark results from cache file."""
+    cache_file = get_cache_file(output_path, framework, with_llm)
+    if not cache_file.exists():
+        print(f"Cache file not found: {cache_file}")
+        return None
+    with open(cache_file, encoding="utf-8") as f:
+        results = json.load(f)
+    print(f"Loaded {len(results)} results from cache: {cache_file}")
+    return results
 
 
 def main():
@@ -479,8 +542,19 @@ def main():
     parser.add_argument("--time-budget", type=int, default=DEFAULT_TIME_BUDGET)
     parser.add_argument("--max-features", type=int, default=DEFAULT_MAX_FEATURES)
     parser.add_argument("--output", type=str, default="benchmarks/automl")
+    parser.add_argument("--report-only", action="store_true", help="Only regenerate report from cache")
+    parser.add_argument("--no-cache", action="store_true", help="Don't save results to cache")
 
     args = parser.parse_args()
+    output_path = Path(args.output)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    # Report-only mode: load from cache and regenerate report
+    if args.report_only:
+        results = load_cache(output_path, args.framework, args.with_llm)
+        if results:
+            generate_report(results, args.framework, args.with_llm, output_path)
+        return
 
     # Determine datasets to run
     if args.datasets:
@@ -517,10 +591,10 @@ def main():
         if result:
             results.append(result)
 
-    # Generate report
+    # Save cache and generate report
     if results:
-        output_path = Path(args.output)
-        output_path.mkdir(parents=True, exist_ok=True)
+        if not args.no_cache:
+            save_cache(results, output_path, args.framework, args.with_llm)
         generate_report(results, args.framework, args.with_llm, output_path)
 
 
