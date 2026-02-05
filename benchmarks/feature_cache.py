@@ -22,19 +22,25 @@ def sanitize_feature_names(columns: list[str]) -> list[str]:
         safe = re.sub(r"[^0-9a-zA-Z_]+", "_", str(col)).strip("_")
         if not safe:
             safe = "feature"
-        count = seen.get(safe, 0)
-        if count:
-            safe = f"{safe}_{count}"
-        seen[safe] = count + 1
+        if safe in seen:
+            seen[safe] += 1
+            safe = f"{safe}_{seen[safe]}"
+        else:
+            seen[safe] = 0
         sanitized.append(safe)
     return sanitized
 
 
 def sanitize_feature_frames(X_train: pd.DataFrame, X_test: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Apply consistent sanitized column names to train/test frames."""
-    new_columns = sanitize_feature_names(list(X_train.columns))
-    mapping = dict(zip(X_train.columns, new_columns))
-    return X_train.rename(columns=mapping), X_test.rename(columns=mapping)
+    new_columns = sanitize_feature_names([str(col) for col in X_train.columns])
+    if len(new_columns) != len(X_train.columns):
+        raise ValueError(f"Sanitized column count mismatch: {len(new_columns)} vs {len(X_train.columns)}")
+    X_train_sanitized = X_train.set_axis(new_columns, axis=1)
+    X_test_sanitized = X_test.set_axis(new_columns, axis=1)
+    if X_train_sanitized.columns.duplicated().any():
+        raise ValueError("Duplicate feature names detected after sanitization.")
+    return X_train_sanitized, X_test_sanitized
 
 
 def get_feature_cache_key(

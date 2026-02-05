@@ -895,13 +895,23 @@ def run_single_benchmark(
         # Fill NaN values by dtype
         numeric_cols = X_train_fe.select_dtypes(include=[np.number]).columns
         if len(numeric_cols) > 0:
-            X_train_fe[numeric_cols] = X_train_fe[numeric_cols].replace([np.inf, -np.inf], np.nan).fillna(0)
-            X_test_fe[numeric_cols] = X_test_fe[numeric_cols].replace([np.inf, -np.inf], np.nan).fillna(0)
+            X_train_numeric = X_train_fe[numeric_cols].replace([np.inf, -np.inf], np.nan).fillna(0)
+            X_test_numeric = X_test_fe[numeric_cols].replace([np.inf, -np.inf], np.nan).fillna(0)
+            non_numeric_cols = [col for col in X_train_fe.columns if col not in numeric_cols]
+            X_train_non_numeric = X_train_fe[non_numeric_cols]
+            X_test_non_numeric = X_test_fe[non_numeric_cols]
+            X_train_fe = pd.concat([X_train_numeric, X_train_non_numeric], axis=1)
+            X_test_fe = pd.concat([X_test_numeric, X_test_non_numeric], axis=1)
+            X_train_fe = X_train_fe[X_train_numeric.columns.tolist() + non_numeric_cols]
+            X_test_fe = X_test_fe[X_train_fe.columns]
 
         non_numeric_cols = [col for col in X_train_fe.columns if col not in numeric_cols]
         if non_numeric_cols:
             X_train_fe[non_numeric_cols] = X_train_fe[non_numeric_cols].astype("object").fillna("missing")
             X_test_fe[non_numeric_cols] = X_test_fe[non_numeric_cols].astype("object").fillna("missing")
+
+        if X_train_fe.columns.duplicated().any():
+            raise ValueError("Duplicate feature names detected after sanitization.")
 
         result["n_features_engineered"] = runner.n_features_generated
         result["fe_time"] = runner.fit_time
