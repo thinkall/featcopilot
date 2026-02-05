@@ -41,6 +41,7 @@ from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
+from packaging.version import Version
 from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, r2_score, roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
@@ -55,6 +56,9 @@ from benchmarks.datasets import (  # noqa: E402
     list_datasets,
     load_dataset,
 )
+from featcopilot.utils.logger import get_logger  # noqa: E402
+
+logger = get_logger(__name__)
 
 warnings.filterwarnings("ignore")
 
@@ -81,6 +85,9 @@ def check_tool_availability() -> dict[str, Optional[str]]:
         available["featuretools"] = featuretools.__version__
     except ImportError:
         available["featuretools"] = None
+    except Exception as exc:
+        logger.warning("Featuretools import failed, skipping: %s", exc)
+        available["featuretools"] = None
 
     # tsfresh
     try:
@@ -88,6 +95,9 @@ def check_tool_availability() -> dict[str, Optional[str]]:
 
         available["tsfresh"] = tsfresh.__version__
     except ImportError:
+        available["tsfresh"] = None
+    except Exception as exc:
+        logger.warning("tsfresh import failed, skipping: %s", exc)
         available["tsfresh"] = None
 
     # autofeat
@@ -97,6 +107,9 @@ def check_tool_availability() -> dict[str, Optional[str]]:
         available["autofeat"] = autofeat.__version__
     except ImportError:
         available["autofeat"] = None
+    except Exception as exc:
+        logger.warning("autofeat import failed, skipping: %s", exc)
+        available["autofeat"] = None
 
     # openfe
     try:
@@ -104,6 +117,9 @@ def check_tool_availability() -> dict[str, Optional[str]]:
 
         available["openfe"] = openfe.__version__
     except ImportError:
+        available["openfe"] = None
+    except Exception as exc:
+        logger.warning("openfe import failed, skipping: %s", exc)
         available["openfe"] = None
 
     # caafe
@@ -113,6 +129,24 @@ def check_tool_availability() -> dict[str, Optional[str]]:
         available["caafe"] = "0.1.6"  # caafe doesn't expose __version__
     except ImportError:
         available["caafe"] = None
+    except Exception as exc:
+        logger.warning("CAAFE import failed, skipping: %s", exc)
+        available["caafe"] = None
+
+    # Optional: guard against known numpy incompatibilities for downstream deps.
+    try:
+        numpy_major = Version(np.__version__).major
+    except Exception as exc:
+        logger.warning("Unable to parse NumPy version, proceeding: %s", exc)
+        return available
+
+    if numpy_major >= 2:
+        if available.get("featuretools") is not None:
+            logger.warning("Featuretools disabled: requires NumPy < 2.0.")
+            available["featuretools"] = None
+        if available.get("caafe") is not None:
+            logger.warning("CAAFE disabled: requires NumPy < 2.0.")
+            available["caafe"] = None
 
     return available
 
@@ -173,6 +207,7 @@ class FeatCopilotRunner(FeatureEngineeringRunner):
         self.engines_used: list[str] = []
         self._with_llm = with_llm
         self._llm_config = llm_config
+        self._task = ""
 
     @staticmethod
     def _select_engines(task: str, with_llm: bool) -> list[str]:
@@ -891,10 +926,12 @@ def run_single_benchmark(
 
         result["status"] = "success"
 
-    except Exception as e:
+    except Exception as exc:
         result["status"] = "error"
-        result["error"] = str(e)
+        result["error"] = str(exc)
         result["score"] = None
+        if tool_name == "featcopilot":
+            raise
 
     return result
 
@@ -1028,6 +1065,9 @@ def calculate_improvements(results: pd.DataFrame) -> pd.DataFrame:
             }
             improvements.append(improvement)
 
+    if not improvements:
+        return pd.DataFrame(columns=["dataset", "task", "tool", "baseline_score", "tool_score", "improvement_pct"])
+
     return pd.DataFrame(improvements)
 
 
@@ -1094,7 +1134,9 @@ def generate_report(results: pd.DataFrame, output_path: Optional[str] = None) ->
                 avg_improvement = "-"
                 wins = "-"
             else:
-                tool_improvements = improvements[improvements["tool"] == tool]
+                tool_improvements = (
+                    improvements[improvements["tool"] == tool] if not improvements.empty else pd.DataFrame()
+                )
                 avg_improvement = (
                     f"{tool_improvements['improvement_pct'].mean():+.2f}%" if len(tool_improvements) > 0 else "-"
                 )
@@ -1131,7 +1173,9 @@ def generate_report(results: pd.DataFrame, output_path: Optional[str] = None) ->
 
     if len(successful_results) > 0:
         improvements = calculate_improvements(successful_results)
-        featcopilot_improvements = improvements[improvements["tool"] == "featcopilot"]
+        featcopilot_improvements = (
+            improvements[improvements["tool"] == "featcopilot"] if not improvements.empty else pd.DataFrame()
+        )
 
         if len(featcopilot_improvements) > 0:
             avg_imp = featcopilot_improvements["improvement_pct"].mean()
@@ -1145,7 +1189,7 @@ def generate_report(results: pd.DataFrame, output_path: Optional[str] = None) ->
             for tool in tools_tested:
                 if tool in ["baseline", "featcopilot"]:
                     continue
-                tool_imp = improvements[improvements["tool"] == tool]
+                tool_imp = improvements[improvements["tool"] == tool] if not improvements.empty else pd.DataFrame()
                 if len(tool_imp) > 0:
                     tool_avg = tool_imp["improvement_pct"].mean()
                     diff = avg_imp - tool_avg
