@@ -31,7 +31,6 @@ Examples:
 
 import argparse
 import json
-import re
 import sys
 import time
 import warnings
@@ -46,15 +45,19 @@ from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, r2_sco
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
-sys.path.insert(0, ".")  # noqa: E402
-
-from benchmarks.datasets import (  # noqa: E402
+from benchmarks.datasets import (
     CATEGORY_CLASSIFICATION,
     CATEGORY_FORECASTING,
     CATEGORY_REGRESSION,
     CATEGORY_TEXT,
     list_datasets,
     load_dataset,
+)
+from benchmarks.feature_cache import (
+    get_feature_cache_path,
+    load_feature_cache,
+    sanitize_feature_frames,
+    save_feature_cache,
 )
 from featcopilot.utils.logger import get_logger  # noqa: E402
 
@@ -64,6 +67,7 @@ warnings.filterwarnings("ignore")
 
 # Default configuration
 QUICK_DATASETS = ["titanic", "house_prices", "credit_risk", "bike_sharing", "customer_churn", "insurance_claims"]
+FEATURE_CACHE_VERSION = "compare_tools_v1"
 
 
 def check_tool_availability() -> dict[str, Optional[str]]:
@@ -804,30 +808,10 @@ def run_single_benchmark(
     random_state: int = 42,
     with_llm: bool = False,
     llm_config: Optional[dict[str, Any]] = None,
+    use_feature_cache: bool = True,
 ) -> dict[str, Any]:
     """Run benchmark for a single tool on a single dataset using FLAML."""
     from flaml import AutoML
-
-    def sanitize_feature_names(columns: list[str]) -> list[str]:
-        """Sanitize feature names for compatibility with downstream models."""
-        sanitized = []
-        seen: dict[str, int] = {}
-        for col in columns:
-            safe = re.sub(r"[^0-9a-zA-Z_]+", "_", str(col)).strip("_")
-            if not safe:
-                safe = "feature"
-            count = seen.get(safe, 0)
-            if count:
-                safe = f"{safe}_{count}"
-            seen[safe] = count + 1
-            sanitized.append(safe)
-        return sanitized
-
-    def sanitize_feature_frames(X_train: pd.DataFrame, X_test: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-        """Apply consistent sanitized column names to train/test frames."""
-        new_columns = sanitize_feature_names(list(X_train.columns))
-        mapping = dict(zip(X_train.columns, new_columns))
-        return X_train.rename(columns=mapping), X_test.rename(columns=mapping)
 
     # Encode categorical columns
     X_encoded = X.copy()
@@ -862,8 +846,40 @@ def run_single_benchmark(
         if hasattr(runner, "_task"):
             runner._task = task
         if tool_name == "featcopilot":
-            X_train_fe = runner.fit_transform(X_train_raw, y_train)
-            X_test_fe = runner.transform(X_test_raw)
+            engines_used = runner._select_engines(task, with_llm)
+            cache_path = get_feature_cache_path(
+                dataset_name,
+                max_features,
+                with_llm,
+                engines_used,
+                FEATURE_CACHE_VERSION,
+            )
+            cache_data = load_feature_cache(cache_path) if use_feature_cache else None
+            if cache_data is not None:
+                X_train_fe = cache_data["X_train_fe"]
+                X_test_fe = cache_data["X_test_fe"]
+                y_train = cache_data["y_train"]
+                y_test = cache_data["y_test"]
+                runner.fit_time = cache_data["fe_time"]
+                runner.n_features_generated = cache_data.get("n_features_fe", X_train_fe.shape[1])
+                result["n_features_original"] = cache_data.get("n_features_original", X.shape[1])
+            else:
+                X_train_fe = runner.fit_transform(X_train_raw, y_train)
+                X_test_fe = runner.transform(X_test_raw)
+                if use_feature_cache:
+                    save_feature_cache(
+                        cache_path,
+                        X_train_raw,
+                        X_test_raw,
+                        y_train,
+                        y_test,
+                        X_train_fe,
+                        X_test_fe,
+                        runner.fit_time,
+                        task,
+                        X.shape[1],
+                        engines_used,
+                    )
         else:
             X_train_fe = runner.fit_transform(X_train_encoded, y_train)
             X_test_fe = runner.transform(X_test_encoded)
@@ -944,6 +960,7 @@ def run_comparison_benchmark(
     random_state: int = 42,
     with_llm: bool = False,
     llm_config: Optional[dict[str, Any]] = None,
+    use_feature_cache: bool = True,
 ) -> pd.DataFrame:
     """
     Run comparison benchmark across tools and datasets.
@@ -1008,6 +1025,7 @@ def run_comparison_benchmark(
                         random_state=random_state,
                         with_llm=with_llm,
                         llm_config=llm_config,
+                        use_feature_cache=use_feature_cache,
                     )
                     if result["status"] == "success":
                         print(
@@ -1270,6 +1288,7 @@ if __name__ == "__main__":
     parser.add_argument("--report-only", action="store_true", help="Only regenerate report from cache")
     parser.add_argument("--no-cache", action="store_true", help="Don't save results to cache")
     parser.add_argument("--with-llm", action="store_true", help="Enable FeatCopilot LLM engine")
+    parser.add_argument("--no-feature-cache", action="store_true", help="Don't use feature cache (rerun FeatCopilot)")
 
     args = parser.parse_args()
     output_path = Path(args.output)
@@ -1322,6 +1341,7 @@ if __name__ == "__main__":
         random_state=args.seed,
         with_llm=args.with_llm,
         llm_config=llm_config,
+        use_feature_cache=not args.no_feature_cache,
     )
 
     # Save cache and generate report

@@ -43,11 +43,7 @@ Examples:
 """
 
 import argparse
-import hashlib
 import json
-import pickle
-import re
-import sys
 import time
 import warnings
 from datetime import datetime
@@ -67,15 +63,20 @@ from sklearn.metrics import (
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
-sys.path.insert(0, ".")  # noqa: E402
-
-from benchmarks.datasets import (  # noqa: E402
+from benchmarks.datasets import (
     CATEGORY_CLASSIFICATION,
     CATEGORY_FORECASTING,
     CATEGORY_REGRESSION,
     CATEGORY_TEXT,
     list_datasets,
     load_dataset,
+)
+from benchmarks.feature_cache import (
+    get_feature_cache_path,
+    load_feature_cache,
+    sanitize_feature_frames,
+    sanitize_feature_names,
+    save_feature_cache,
 )
 
 warnings.filterwarnings("ignore")
@@ -86,8 +87,7 @@ DEFAULT_MAX_FEATURES = 100
 QUICK_DATASETS = ["titanic", "house_prices", "credit_risk", "bike_sharing", "customer_churn", "insurance_claims"]
 ALL_FRAMEWORKS = ["flaml", "autogluon", "h2o"]
 
-# Feature cache directory
-FEATURE_CACHE_DIR = Path("benchmarks/.feature_cache")
+FEATURE_CACHE_VERSION = "automl_v1"
 
 
 # =============================================================================
@@ -305,29 +305,6 @@ def get_primary_metric(task: str) -> str:
     return "accuracy" if "classification" in task else "r2"
 
 
-def sanitize_feature_names(columns: list[str]) -> list[str]:
-    """Sanitize feature names for compatibility with downstream models."""
-    sanitized = []
-    seen: dict[str, int] = {}
-    for col in columns:
-        safe = re.sub(r"[^0-9a-zA-Z_]+", "_", str(col)).strip("_")
-        if not safe:
-            safe = "feature"
-        count = seen.get(safe, 0)
-        if count:
-            safe = f"{safe}_{count}"
-        seen[safe] = count + 1
-        sanitized.append(safe)
-    return sanitized
-
-
-def sanitize_feature_frames(X_train: pd.DataFrame, X_test: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Apply consistent sanitized column names to train/test frames."""
-    new_columns = sanitize_feature_names(list(X_train.columns))
-    mapping = dict(zip(X_train.columns, new_columns))
-    return X_train.rename(columns=mapping), X_test.rename(columns=mapping)
-
-
 # =============================================================================
 # Data Preparation
 # =============================================================================
@@ -425,79 +402,6 @@ def apply_featcopilot(
     return X_train_fe, X_test_fe, fe_time, engines
 
 
-# =============================================================================
-# Feature Cache (to reuse FeatCopilot results across frameworks)
-# =============================================================================
-
-
-def get_feature_cache_key(dataset_name: str, max_features: int, with_llm: bool, engines: list[str]) -> str:
-    """Generate a unique cache key for feature-engineered data."""
-    engine_key = "-".join(engines)
-    key_str = f"{dataset_name}_{max_features}_{with_llm}_{engine_key}"
-    return hashlib.md5(key_str.encode()).hexdigest()[:12]
-
-
-def get_feature_cache_path(dataset_name: str, max_features: int, with_llm: bool, engines: list[str]) -> Path:
-    """Get the path for cached feature-engineered data."""
-    FEATURE_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    cache_key = get_feature_cache_key(dataset_name, max_features, with_llm, engines)
-    suffix = "_llm" if with_llm else "_tabular"
-    return FEATURE_CACHE_DIR / f"{dataset_name}{suffix}_{cache_key}.pkl"
-
-
-def save_feature_cache(
-    cache_path: Path,
-    X_train: pd.DataFrame,
-    X_test: pd.DataFrame,
-    y_train: np.ndarray,
-    y_test: np.ndarray,
-    X_train_fe: pd.DataFrame,
-    X_test_fe: pd.DataFrame,
-    fe_time: float,
-    task: str,
-    n_original: int,
-) -> None:
-    """Save feature-engineered data to cache."""
-    cache_data = {
-        "X_train": X_train,
-        "X_test": X_test,
-        "y_train": y_train,
-        "y_test": y_test,
-        "X_train_fe": X_train_fe,
-        "X_test_fe": X_test_fe,
-        "fe_time": fe_time,
-        "task": task,
-        "n_features_original": n_original,
-        "n_features_fe": X_train_fe.shape[1],
-        "timestamp": datetime.now().isoformat(),
-    }
-    with open(cache_path, "wb") as f:
-        pickle.dump(cache_data, f)
-    print(f"   [Cache] Saved to {cache_path.name}")
-
-
-def load_feature_cache(cache_path: Path) -> Optional[dict]:
-    """Load feature-engineered data from cache."""
-    if not cache_path.exists():
-        return None
-    try:
-        with open(cache_path, "rb") as f:
-            cache_data = pickle.load(f)
-        if "X_train" in cache_data and "X_test" in cache_data:
-            cache_data["X_train"], cache_data["X_test"] = sanitize_feature_frames(
-                cache_data["X_train"], cache_data["X_test"]
-            )
-        if "X_train_fe" in cache_data and "X_test_fe" in cache_data:
-            cache_data["X_train_fe"], cache_data["X_test_fe"] = sanitize_feature_frames(
-                cache_data["X_train_fe"], cache_data["X_test_fe"]
-            )
-        print(f"   [Cache] Loaded from {cache_path.name}")
-        return cache_data
-    except Exception as e:
-        print(f"   [Cache] Failed to load: {e}")
-        return None
-
-
 def prepare_dataset_features(
     dataset_name: str,
     max_features: int,
@@ -517,7 +421,7 @@ def prepare_dataset_features(
 
         # Check cache first (after task is known)
         task_engines, _ = get_featcopilot_engines(task, with_llm)
-        cache_path = get_feature_cache_path(dataset_name, max_features, with_llm, task_engines)
+        cache_path = get_feature_cache_path(dataset_name, max_features, with_llm, task_engines, FEATURE_CACHE_VERSION)
         if use_cache:
             cached = load_feature_cache(cache_path)
             if cached is not None:
@@ -546,7 +450,17 @@ def prepare_dataset_features(
 
         # Save to cache
         save_feature_cache(
-            cache_path, X_train, X_test, y_train, y_test, X_train_fe, X_test_fe, fe_time, task, X.shape[1]
+            cache_path,
+            X_train,
+            X_test,
+            y_train,
+            y_test,
+            X_train_fe,
+            X_test_fe,
+            fe_time,
+            task,
+            X.shape[1],
+            engines_used,
         )
 
         return {

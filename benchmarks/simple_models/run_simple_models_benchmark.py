@@ -31,7 +31,6 @@ Examples:
 
 import argparse
 import json
-import sys
 import time
 import warnings
 from datetime import datetime
@@ -53,9 +52,7 @@ from sklearn.metrics import (
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
-sys.path.insert(0, ".")  # noqa: E402
-
-from benchmarks.datasets import (  # noqa: E402
+from benchmarks.datasets import (
     CATEGORY_CLASSIFICATION,
     CATEGORY_FORECASTING,
     CATEGORY_REGRESSION,
@@ -63,12 +60,20 @@ from benchmarks.datasets import (  # noqa: E402
     list_datasets,
     load_dataset,
 )
+from benchmarks.feature_cache import (
+    get_feature_cache_path,
+    load_feature_cache,
+    sanitize_feature_frames,
+    sanitize_feature_names,
+    save_feature_cache,
+)
 
 warnings.filterwarnings("ignore")
 
 # Default configuration
 DEFAULT_MAX_FEATURES = 100
 QUICK_DATASETS = ["titanic", "house_prices", "credit_risk", "bike_sharing", "customer_churn", "insurance_claims"]
+FEATURE_CACHE_VERSION = "simple_models_v1"
 
 
 # =============================================================================
@@ -141,6 +146,9 @@ def preprocess_data(X: pd.DataFrame, y, task: str) -> tuple[pd.DataFrame, np.nda
     for col in X_processed.select_dtypes(include=[np.number]).columns:
         X_processed[col] = X_processed[col].fillna(X_processed[col].median())
 
+    column_map = dict(zip(X_processed.columns, sanitize_feature_names(list(X_processed.columns))))
+    X_processed = X_processed.rename(columns=column_map)
+
     # Process target
     if "classification" in task:
         if hasattr(y, "dtype") and (y.dtype == "object" or y.dtype.name == "category"):
@@ -212,6 +220,8 @@ def apply_featcopilot(
         X_train_fe[non_numeric_cols] = X_train_fe[non_numeric_cols].astype("object").fillna("missing")
         X_test_fe[non_numeric_cols] = X_test_fe[non_numeric_cols].astype("object").fillna("missing")
 
+    X_train_fe, X_test_fe = sanitize_feature_frames(X_train_fe, X_test_fe)
+
     return X_train_fe, X_test_fe, fe_time, engines
 
 
@@ -265,6 +275,7 @@ def run_single_benchmark(
     dataset_name: str,
     max_features: int,
     with_llm: bool = False,
+    use_feature_cache: bool = True,
 ) -> Optional[dict[str, Any]]:
     """Run benchmark on a single dataset."""
     print(f"\n{'='*60}")
@@ -289,6 +300,7 @@ def run_single_benchmark(
         X_test = X_processed.iloc[test_idx]
         X_train_raw = X.iloc[train_idx]
         X_test_raw = X.iloc[test_idx]
+        baseline_train = (X_train, X_test, y_train, y_test)
 
         results = {
             "dataset": dataset_name,
@@ -309,14 +321,45 @@ def run_single_benchmark(
         results["baseline_best_score"] = best_baseline[primary_metric]
 
         # --- FeatCopilot (multi-engine) ---
-        X_train_fe, X_test_fe, fe_time, engines_used = apply_featcopilot(
-            X_train_raw, X_test_raw, y_train, task, max_features, with_llm=False
-        )
-        results["n_features_tabular"] = X_train_fe.shape[1]
-        results["fe_time_tabular"] = fe_time
-        results["engines_tabular"] = engines_used
-        print(f"\n[2/3] FeatCopilot ({', '.join(engines_used)})...")
-        print(f"   Features: {X_train_raw.shape[1]} → {X_train_fe.shape[1]}, FE time: {fe_time:.2f}s")
+        engines_used, _ = get_featcopilot_engines(task, False)
+        cache_path = get_feature_cache_path(dataset_name, max_features, False, engines_used, FEATURE_CACHE_VERSION)
+        cache_data = load_feature_cache(cache_path) if use_feature_cache else None
+
+        if cache_data is not None:
+            X_train_fe = cache_data["X_train_fe"]
+            X_test_fe = cache_data["X_test_fe"]
+            y_train = cache_data["y_train"]
+            y_test = cache_data["y_test"]
+            fe_time = cache_data["fe_time"]
+            engines_used = cache_data.get("engines", engines_used)
+            results["n_features_tabular"] = cache_data.get("n_features_fe", X_train_fe.shape[1])
+            results["fe_time_tabular"] = fe_time
+            results["engines_tabular"] = engines_used
+            results["n_features_original"] = cache_data.get("n_features_original", X_train_raw.shape[1])
+            print(f"\n[2/3] FeatCopilot ({', '.join(engines_used)}) [cache]...")
+        else:
+            X_train_fe, X_test_fe, fe_time, engines_used = apply_featcopilot(
+                X_train_raw, X_test_raw, y_train, task, max_features, with_llm=False
+            )
+            results["n_features_tabular"] = X_train_fe.shape[1]
+            results["fe_time_tabular"] = fe_time
+            results["engines_tabular"] = engines_used
+            print(f"\n[2/3] FeatCopilot ({', '.join(engines_used)})...")
+            print(f"   Features: {X_train_raw.shape[1]} → {X_train_fe.shape[1]}, FE time: {fe_time:.2f}s")
+            if use_feature_cache:
+                save_feature_cache(
+                    cache_path,
+                    X_train,
+                    X_test,
+                    y_train,
+                    y_test,
+                    X_train_fe,
+                    X_test_fe,
+                    fe_time,
+                    task,
+                    X.shape[1],
+                    engines_used,
+                )
 
         tabular_results = run_models(X_train_fe, X_test_fe, y_train, y_test, task, "Tabular")
         results["tabular"] = tabular_results
@@ -331,14 +374,46 @@ def run_single_benchmark(
 
         # --- FeatCopilot + LLM (if enabled) ---
         if with_llm:
-            X_train_llm, X_test_llm, fe_time_llm, engines_used = apply_featcopilot(
-                X_train_raw, X_test_raw, y_train, task, max_features, with_llm=True
-            )
-            results["n_features_llm"] = X_train_llm.shape[1]
-            results["fe_time_llm"] = fe_time_llm
-            results["engines_llm"] = engines_used
-            print(f"\n[3/3] FeatCopilot ({', '.join(engines_used)})...")
-            print(f"   Features: {X_train_raw.shape[1]} → {X_train_llm.shape[1]}, FE time: {fe_time_llm:.2f}s")
+            engines_used, _ = get_featcopilot_engines(task, True)
+            cache_path = get_feature_cache_path(dataset_name, max_features, True, engines_used, FEATURE_CACHE_VERSION)
+            cache_data = load_feature_cache(cache_path) if use_feature_cache else None
+
+            if cache_data is not None:
+                X_train_llm = cache_data["X_train_fe"]
+                X_test_llm = cache_data["X_test_fe"]
+                y_train = cache_data["y_train"]
+                y_test = cache_data["y_test"]
+                fe_time_llm = cache_data["fe_time"]
+                engines_used = cache_data.get("engines", engines_used)
+                results["n_features_llm"] = cache_data.get("n_features_fe", X_train_llm.shape[1])
+                results["fe_time_llm"] = fe_time_llm
+                results["engines_llm"] = engines_used
+                results["n_features_original"] = cache_data.get("n_features_original", X_train_raw.shape[1])
+                print(f"\n[3/3] FeatCopilot ({', '.join(engines_used)}) [cache]...")
+            else:
+                X_train_llm, X_test_llm, fe_time_llm, engines_used = apply_featcopilot(
+                    X_train_raw, X_test_raw, y_train, task, max_features, with_llm=True
+                )
+                results["n_features_llm"] = X_train_llm.shape[1]
+                results["fe_time_llm"] = fe_time_llm
+                results["engines_llm"] = engines_used
+                print(f"\n[3/3] FeatCopilot ({', '.join(engines_used)})...")
+                print(f"   Features: {X_train_raw.shape[1]} → {X_train_llm.shape[1]}, FE time: {fe_time_llm:.2f}s")
+                if use_feature_cache:
+                    save_feature_cache(
+                        cache_path,
+                        X_train,
+                        X_test,
+                        y_train,
+                        y_test,
+                        X_train_llm,
+                        X_test_llm,
+                        fe_time_llm,
+                        task,
+                        X.shape[1],
+                        engines_used,
+                    )
+            X_train, X_test, y_train, y_test = baseline_train
 
             llm_results = run_models(X_train_llm, X_test_llm, y_train, y_test, task, "LLM")
             results["llm"] = llm_results
@@ -508,6 +583,7 @@ def main():
     parser.add_argument("--output", type=str, default="benchmarks/simple_models")
     parser.add_argument("--report-only", action="store_true", help="Only regenerate report from cache")
     parser.add_argument("--no-cache", action="store_true", help="Don't save results to cache")
+    parser.add_argument("--no-feature-cache", action="store_true", help="Don't use feature cache (rerun FeatCopilot)")
 
     args = parser.parse_args()
     output_path = Path(args.output)
@@ -544,7 +620,9 @@ def main():
     # Run benchmarks
     results = []
     for name in dataset_names:
-        result = run_single_benchmark(name, args.max_features, args.with_llm)
+        result = run_single_benchmark(
+            name, args.max_features, args.with_llm, use_feature_cache=not args.no_feature_cache
+        )
         if result:
             results.append(result)
 
