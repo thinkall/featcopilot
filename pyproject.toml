@@ -69,6 +69,7 @@ benchmark = [
     "flaml[automl,blendsearch]>=2.0.0",
     "autogluon.tabular[fastai]>=1.5.0",
     "h2o>=3.40.0",
+    "numpy<2",
 ]
 dev = [
     "pytest>=7.0.0",
