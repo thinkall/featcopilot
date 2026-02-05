@@ -61,6 +61,7 @@ from benchmarks.datasets import (
     load_dataset,
 )
 from benchmarks.feature_cache import (
+    FEATURE_CACHE_VERSION,
     get_feature_cache_path,
     load_feature_cache,
     sanitize_feature_frames,
@@ -73,7 +74,6 @@ warnings.filterwarnings("ignore")
 # Default configuration
 DEFAULT_MAX_FEATURES = 100
 QUICK_DATASETS = ["titanic", "house_prices", "credit_risk", "bike_sharing", "customer_churn", "insurance_claims"]
-FEATURE_CACHE_VERSION = "simple_models_v1"
 
 
 # =============================================================================

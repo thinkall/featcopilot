@@ -72,6 +72,7 @@ from benchmarks.datasets import (
     load_dataset,
 )
 from benchmarks.feature_cache import (
+    FEATURE_CACHE_VERSION,
     get_feature_cache_path,
     load_feature_cache,
     sanitize_feature_frames,
@@ -86,8 +87,6 @@ DEFAULT_TIME_BUDGET = 120
 DEFAULT_MAX_FEATURES = 100
 QUICK_DATASETS = ["titanic", "house_prices", "credit_risk", "bike_sharing", "customer_churn", "insurance_claims"]
 ALL_FRAMEWORKS = ["flaml", "autogluon", "h2o"]
-
-FEATURE_CACHE_VERSION = "automl_v1"
 
 
 # =============================================================================

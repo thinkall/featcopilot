@@ -11,6 +11,7 @@ from pathlib import Path
 import pandas as pd
 
 FEATURE_CACHE_DIR = Path("benchmarks/.feature_cache")
+FEATURE_CACHE_VERSION = "v1"
 
 
 def sanitize_feature_names(columns: list[str]) -> list[str]:
