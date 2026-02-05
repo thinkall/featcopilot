@@ -163,7 +163,7 @@ def get_featcopilot_engines(task: str, with_llm: bool) -> tuple[list[str], Optio
         engines.append("text")
     if with_llm:
         engines.append("llm")
-        return engines, {"model": "gpt-4o-mini", "max_suggestions": 10, "backend": "copilot"}
+        return engines, {"model": "gpt-5.2", "max_suggestions": 20, "backend": "copilot"}
     return engines, None
 
 

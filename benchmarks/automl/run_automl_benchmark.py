@@ -46,6 +46,7 @@ import argparse
 import hashlib
 import json
 import pickle
+import re
 import sys
 import time
 import warnings
@@ -304,6 +305,29 @@ def get_primary_metric(task: str) -> str:
     return "accuracy" if "classification" in task else "r2"
 
 
+def sanitize_feature_names(columns: list[str]) -> list[str]:
+    """Sanitize feature names for compatibility with downstream models."""
+    sanitized = []
+    seen: dict[str, int] = {}
+    for col in columns:
+        safe = re.sub(r"[^0-9a-zA-Z_]+", "_", str(col)).strip("_")
+        if not safe:
+            safe = "feature"
+        count = seen.get(safe, 0)
+        if count:
+            safe = f"{safe}_{count}"
+        seen[safe] = count + 1
+        sanitized.append(safe)
+    return sanitized
+
+
+def sanitize_feature_frames(X_train: pd.DataFrame, X_test: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Apply consistent sanitized column names to train/test frames."""
+    new_columns = sanitize_feature_names(list(X_train.columns))
+    mapping = dict(zip(X_train.columns, new_columns))
+    return X_train.rename(columns=mapping), X_test.rename(columns=mapping)
+
+
 # =============================================================================
 # Data Preparation
 # =============================================================================
@@ -321,6 +345,9 @@ def preprocess_data(X: pd.DataFrame, y, task: str) -> tuple[pd.DataFrame, np.nda
     # Fill numeric NaN
     for col in X_processed.select_dtypes(include=[np.number]).columns:
         X_processed[col] = X_processed[col].fillna(X_processed[col].median())
+
+    column_map = dict(zip(X_processed.columns, sanitize_feature_names(list(X_processed.columns))))
+    X_processed = X_processed.rename(columns=column_map)
 
     # Process target
     if "classification" in task:
@@ -344,7 +371,7 @@ def get_featcopilot_engines(task: str, with_llm: bool) -> tuple[list[str], Optio
         engines.append("text")
     if with_llm:
         engines.append("llm")
-        return engines, {"model": "gpt-4o-mini", "max_suggestions": 10, "backend": "copilot"}
+        return engines, {"model": "gpt-5.2", "max_suggestions": 20, "backend": "copilot"}
     return engines, None
 
 
@@ -392,6 +419,8 @@ def apply_featcopilot(
     if non_numeric_cols:
         X_train_fe[non_numeric_cols] = X_train_fe[non_numeric_cols].astype("object").fillna("missing")
         X_test_fe[non_numeric_cols] = X_test_fe[non_numeric_cols].astype("object").fillna("missing")
+
+    X_train_fe, X_test_fe = sanitize_feature_frames(X_train_fe, X_test_fe)
 
     return X_train_fe, X_test_fe, fe_time, engines
 
@@ -454,6 +483,14 @@ def load_feature_cache(cache_path: Path) -> Optional[dict]:
     try:
         with open(cache_path, "rb") as f:
             cache_data = pickle.load(f)
+        if "X_train" in cache_data and "X_test" in cache_data:
+            cache_data["X_train"], cache_data["X_test"] = sanitize_feature_frames(
+                cache_data["X_train"], cache_data["X_test"]
+            )
+        if "X_train_fe" in cache_data and "X_test_fe" in cache_data:
+            cache_data["X_train_fe"], cache_data["X_test_fe"] = sanitize_feature_frames(
+                cache_data["X_train_fe"], cache_data["X_test_fe"]
+            )
         print(f"   [Cache] Loaded from {cache_path.name}")
         return cache_data
     except Exception as e:

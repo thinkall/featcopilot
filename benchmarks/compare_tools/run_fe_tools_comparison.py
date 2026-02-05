@@ -31,6 +31,7 @@ Examples:
 
 import argparse
 import json
+import re
 import sys
 import time
 import warnings
@@ -160,27 +161,38 @@ class FeatCopilotRunner(FeatureEngineeringRunner):
 
     name = "featcopilot"
 
-    def __init__(self, max_features: int = 50, random_state: int = 42):
+    def __init__(
+        self,
+        max_features: int = 50,
+        random_state: int = 42,
+        with_llm: bool = False,
+        llm_config: Optional[dict[str, Any]] = None,
+    ):
         super().__init__(max_features, random_state)
         self.engineer = None
         self.engines_used: list[str] = []
+        self._with_llm = with_llm
+        self._llm_config = llm_config
 
     @staticmethod
-    def _select_engines(task: str) -> list[str]:
+    def _select_engines(task: str, with_llm: bool) -> list[str]:
         engines = ["tabular", "relational"]
         if "timeseries" in task:
             engines.append("timeseries")
         if "text" in task:
             engines.append("text")
+        if with_llm:
+            engines.append("llm")
         return engines
 
     def fit_transform(self, X_train: pd.DataFrame, y_train: pd.Series) -> pd.DataFrame:
         from featcopilot import AutoFeatureEngineer
 
-        self.engines_used = self._select_engines(self._task)
+        self.engines_used = self._select_engines(self._task, self._with_llm)
         self.engineer = AutoFeatureEngineer(
             engines=self.engines_used,
             max_features=self.max_features,
+            llm_config=self._llm_config if self._with_llm else None,
             verbose=False,
         )
 
@@ -695,7 +707,12 @@ class CAAFERunner(FeatureEngineeringRunner):
             return X_numeric[self._feature_columns] if self._feature_columns else X_numeric
 
 
-def get_runner(tool_name: str, max_features: int = 50) -> FeatureEngineeringRunner:
+def get_runner(
+    tool_name: str,
+    max_features: int = 50,
+    with_llm: bool = False,
+    llm_config: Optional[dict[str, Any]] = None,
+) -> FeatureEngineeringRunner:
     """Get feature engineering runner by tool name."""
     runners = {
         "baseline": BaselineRunner,
@@ -708,6 +725,12 @@ def get_runner(tool_name: str, max_features: int = 50) -> FeatureEngineeringRunn
     }
     if tool_name not in runners:
         raise ValueError(f"Unknown tool: {tool_name}. Available: {list(runners.keys())}")
+    if tool_name == "featcopilot":
+        return runners[tool_name](
+            max_features=max_features,
+            with_llm=with_llm,
+            llm_config=llm_config,
+        )
     return runners[tool_name](max_features=max_features)
 
 
@@ -744,9 +767,32 @@ def run_single_benchmark(
     max_features: int = 50,
     time_budget: int = 60,
     random_state: int = 42,
+    with_llm: bool = False,
+    llm_config: Optional[dict[str, Any]] = None,
 ) -> dict[str, Any]:
     """Run benchmark for a single tool on a single dataset using FLAML."""
     from flaml import AutoML
+
+    def sanitize_feature_names(columns: list[str]) -> list[str]:
+        """Sanitize feature names for compatibility with downstream models."""
+        sanitized = []
+        seen: dict[str, int] = {}
+        for col in columns:
+            safe = re.sub(r"[^0-9a-zA-Z_]+", "_", str(col)).strip("_")
+            if not safe:
+                safe = "feature"
+            count = seen.get(safe, 0)
+            if count:
+                safe = f"{safe}_{count}"
+            seen[safe] = count + 1
+            sanitized.append(safe)
+        return sanitized
+
+    def sanitize_feature_frames(X_train: pd.DataFrame, X_test: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+        """Apply consistent sanitized column names to train/test frames."""
+        new_columns = sanitize_feature_names(list(X_train.columns))
+        mapping = dict(zip(X_train.columns, new_columns))
+        return X_train.rename(columns=mapping), X_test.rename(columns=mapping)
 
     # Encode categorical columns
     X_encoded = X.copy()
@@ -772,7 +818,12 @@ def run_single_benchmark(
 
     try:
         # Apply feature engineering
-        runner = get_runner(tool_name, max_features)
+        runner = get_runner(
+            tool_name,
+            max_features,
+            with_llm=with_llm,
+            llm_config=llm_config,
+        )
         if hasattr(runner, "_task"):
             runner._task = task
         if tool_name == "featcopilot":
@@ -781,6 +832,8 @@ def run_single_benchmark(
         else:
             X_train_fe = runner.fit_transform(X_train_encoded, y_train)
             X_test_fe = runner.transform(X_test_encoded)
+
+        X_train_fe, X_test_fe = sanitize_feature_frames(X_train_fe, X_test_fe)
 
         # Align columns
         for col in X_train_fe.columns:
@@ -852,6 +905,8 @@ def run_comparison_benchmark(
     max_features: int = 50,
     time_budget: int = 60,
     random_state: int = 42,
+    with_llm: bool = False,
+    llm_config: Optional[dict[str, Any]] = None,
 ) -> pd.DataFrame:
     """
     Run comparison benchmark across tools and datasets.
@@ -914,6 +969,8 @@ def run_comparison_benchmark(
                         max_features=max_features,
                         time_budget=time_budget,
                         random_state=random_state,
+                        with_llm=with_llm,
+                        llm_config=llm_config,
                     )
                     if result["status"] == "success":
                         print(
@@ -1168,6 +1225,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--report-only", action="store_true", help="Only regenerate report from cache")
     parser.add_argument("--no-cache", action="store_true", help="Don't save results to cache")
+    parser.add_argument("--with-llm", action="store_true", help="Enable FeatCopilot LLM engine")
 
     args = parser.parse_args()
     output_path = Path(args.output)
@@ -1211,12 +1269,15 @@ if __name__ == "__main__":
         tools_to_run = None  # None means run all available tools
 
     # Run benchmark
+    llm_config = {"model": "gpt-5.2", "max_suggestions": 20, "backend": "copilot"} if args.with_llm else None
     results = run_comparison_benchmark(
         dataset_names=dataset_names,
         tools=tools_to_run,
         max_features=args.max_features,
         time_budget=args.time_budget,
         random_state=args.seed,
+        with_llm=args.with_llm,
+        llm_config=llm_config,
     )
 
     # Save cache and generate report
