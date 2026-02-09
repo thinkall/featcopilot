@@ -86,3 +86,4 @@ openfe_tmp_data*
 .feature_cache/
 test.py
 mlruns
+*.log
