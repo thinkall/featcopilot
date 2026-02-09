@@ -30,6 +30,7 @@ Examples:
 """
 
 import argparse
+import inspect
 import json
 import sys
 import time
@@ -151,6 +152,14 @@ def check_tool_availability() -> dict[str, Optional[str]]:
         if available.get("caafe") is not None:
             logger.warning("CAAFE disabled: requires NumPy < 2.0.")
             available["caafe"] = None
+
+    try:
+        mse_signature = inspect.signature(mean_squared_error)
+        if "squared" not in mse_signature.parameters and available.get("openfe") is not None:
+            logger.warning("OpenFE disabled: scikit-learn mean_squared_error lacks 'squared' parameter.")
+            available["openfe"] = None
+    except Exception as exc:
+        logger.warning("Unable to validate scikit-learn compatibility for OpenFE, proceeding: %s", exc)
 
     return available
 
