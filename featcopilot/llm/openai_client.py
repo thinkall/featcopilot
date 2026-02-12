@@ -85,31 +85,41 @@ class OpenAIFeatureClient:
         try:
             import openai
 
-            # Always create an explicit client. AsyncOpenAI() with no args
-            # auto-inherits env vars (OPENAI_API_KEY, OPENAI_BASE_URL, etc.)
-            is_azure = bool(self.config.api_version) or (self.config.api_base and "azure" in self.config.api_base)
+            if self.config.api_key or self.config.api_base or self.config.api_version:
+                # Explicit config provided — create client with those params
+                is_azure = bool(self.config.api_version) or (self.config.api_base and "azure" in self.config.api_base)
 
-            if is_azure:
-                azure_kwargs: dict[str, Any] = {
-                    "timeout": self.config.timeout,
-                    "api_version": self.config.api_version or "2024-12-01-preview",
-                }
-                if self.config.api_key:
-                    azure_kwargs["api_key"] = self.config.api_key
-                if self.config.api_base:
-                    azure_kwargs["azure_endpoint"] = self.config.api_base
+                if is_azure:
+                    azure_kwargs: dict[str, Any] = {
+                        "timeout": self.config.timeout,
+                        "api_version": self.config.api_version or "2024-12-01-preview",
+                    }
+                    if self.config.api_key:
+                        azure_kwargs["api_key"] = self.config.api_key
+                    if self.config.api_base:
+                        azure_kwargs["azure_endpoint"] = self.config.api_base
 
-                self._async_client = openai.AsyncAzureOpenAI(**azure_kwargs)
+                    self._async_client = openai.AsyncAzureOpenAI(**azure_kwargs)
+                else:
+                    client_kwargs: dict[str, Any] = {"timeout": self.config.timeout}
+                    if self.config.api_key:
+                        client_kwargs["api_key"] = self.config.api_key
+                    if self.config.api_base:
+                        client_kwargs["base_url"] = self.config.api_base
+
+                    self._async_client = openai.AsyncOpenAI(**client_kwargs)
             else:
-                client_kwargs: dict[str, Any] = {"timeout": self.config.timeout}
-                if self.config.api_key:
-                    client_kwargs["api_key"] = self.config.api_key
-                if self.config.api_base:
-                    client_kwargs["base_url"] = self.config.api_base
+                # No explicit config — try Fabric credentials, then standard client
+                try:
+                    from synapse.ml.fabric.credentials import get_openai_httpx_async_client
 
-                self._async_client = openai.AsyncOpenAI(**client_kwargs)
-
-            self._use_module_api = False
+                    self._async_client = openai.AsyncAzureOpenAI(
+                        http_client=get_openai_httpx_async_client(),
+                        timeout=self.config.timeout,
+                    )
+                    logger.info("Using Microsoft Fabric credentials for OpenAI")
+                except ImportError:
+                    self._async_client = openai.AsyncOpenAI(timeout=self.config.timeout)
 
             self._openai_available = True
             self._is_started = True
