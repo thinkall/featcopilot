@@ -146,33 +146,39 @@
 <body>
     <div class="reveal">
         <div class="slides">
-            <!-- Title Slide -->
+            <!-- Intro Slide -->
             <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
                 <h1>
                     <span class="logo-text">🔧 Auto Featurization<br>for Fabric</span>
                 </h1>
-                <h3>Completing the ML Pipeline in<br>Microsoft Fabric Data Science</h3>
-                <p class="tagline">A proposal to add intelligent feature engineering to our platform</p>
-                <p class="small" style="margin-top: 40px;">
-                    <span class="fabric-blue">Feature Store</span> +
-                    <span class="fabric-purple">Auto Featurization</span> +
-                    <span class="highlight-green">AutoML</span>
-                </p>
+                <h3>Demo: Intelligent Feature Engineering in<br>Microsoft Fabric Data Science</h3>
+                <p class="tagline">From raw data to production-ready features in minutes</p>
+                <div style="margin-top: 40px; text-align: left; width: 70%; margin-left: auto; margin-right: auto;">
+                    <p class="small fragment">📌 Why auto featurization matters</p>
+                    <p class="small fragment">📌 FeatCopilot capabilities & benchmarks</p>
+                    <p class="small fragment">📌 Live notebook walkthrough</p>
+                    <p class="small fragment">📌 Results & key takeaways</p>
+                </div>
             </section>
 
             <!-- Customer Ask -->
             <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
                 <h2>📣 The Customer Ask</h2>
                 <div class="customer-quote fragment">
-                    <p>"We need a <strong>Feature Store</strong> to manage and serve ML features at enterprise scale."</p>
+                    <p>"We need a <strong>Managed Feature Store</strong> to publish and share engineered features at enterprise scale."</p>
                     <p class="small" style="color: #8b949e;">— Enterprise customers, consistently ranked as top request</p>
                 </div>
                 <div class="fragment" style="margin-top: 30px;">
-                    <p class="highlight-blue" style="font-size: 1.2em;">We're building Feature Store. But there's a gap...</p>
+                    <p class="highlight-blue" style="font-size: 1.2em;">We're building Feature Store. But there's a deeper problem...</p>
                 </div>
                 <div class="fragment" style="margin-top: 30px;">
                     <p>Customers also struggle with <span class="highlight-orange">creating features</span> in the first place.</p>
-                    <p class="small">80% of data science time is spent on feature engineering</p>
+                    <p class="small">Data preparation and feature engineering remain the #1 time sink for data scientists</p>
+                    <p class="small" style="color: #8b949e; font-size: 0.6em;">
+                        — Anaconda State of Data Science 2022: ~40% of time on data prep (largest category)<br>
+                        — dbt Labs State of Analytics Engineering 2024: >50% say organizing data is most time-consuming<br>
+                        — FeatureByte / Databricks 2024: feature engineering remains the main bottleneck
+                    </p>
                 </div>
             </section>
 
@@ -209,53 +215,10 @@
                 </p>
             </section>
 
-            <!-- What Competitors Offer -->
-            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
-                <h2>🏆 What Competitors Offer</h2>
-                <table class="comparison-table">
-                    <thead>
-                        <tr>
-                            <th>Platform</th>
-                            <th>Feature Store</th>
-                            <th>Auto Featurization</th>
-                            <th>AutoML</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class="fragment">
-                            <td><strong>Databricks</strong></td>
-                            <td class="highlight-green">✓ Unity Catalog</td>
-                            <td class="highlight-green">✓ AutoML Features</td>
-                            <td class="highlight-green">✓ AutoML</td>
-                        </tr>
-                        <tr class="fragment">
-                            <td><strong>AWS SageMaker</strong></td>
-                            <td class="highlight-green">✓ Feature Store</td>
-                            <td class="highlight-green">✓ Autopilot</td>
-                            <td class="highlight-green">✓ Autopilot</td>
-                        </tr>
-                        <tr class="fragment">
-                            <td><strong>Google Vertex AI</strong></td>
-                            <td class="highlight-green">✓ Feature Store</td>
-                            <td class="highlight-green">✓ AutoML Tables</td>
-                            <td class="highlight-green">✓ AutoML</td>
-                        </tr>
-                        <tr class="fragment">
-                            <td><strong>Microsoft Fabric</strong></td>
-                            <td class="highlight-orange">🔜 In Development</td>
-                            <td class="highlight-orange">❌ Missing</td>
-                            <td class="highlight-green">✓ FLAML</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <p class="fragment" style="margin-top: 25px;">
-                    We need Auto Featurization to be competitive!
-                </p>
-            </section>
 
-            <!-- Proposal: FeatCopilot -->
+            <!-- FeatCopilot: Key Capabilities -->
             <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
-                <h2>💡 Proposal: Integrate FeatCopilot</h2>
+                <h2>💡 FeatCopilot: Key Capabilities</h2>
                 <p>An LLM-powered auto feature engineering framework</p>
                 <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; margin-top: 30px;">
                     <div class="feature-box fragment">
@@ -360,230 +323,20 @@
                 </div>
             </section>
 
-            <!-- Code Demo -->
-            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
-                <h2>💻 Simple API for Fabric Notebooks</h2>
-                <pre><code class="python" data-trim data-noescape>
-# In a Fabric Notebook
-from featcopilot import AutoFeatureEngineer
-
-# Initialize with LLM support (uses Fabric's Copilot)
-engineer = AutoFeatureEngineer(
-    engines=['tabular', 'llm'],
-    llm_config={'model': 'gpt-4o', 'domain': 'retail'}
-)
-
-# Transform lakehouse data
-df_features = engineer.fit_transform(
-    df_raw, target,
-    column_descriptions={
-        'customer_age': 'Customer age in years',
-        'purchase_amount': 'Total purchase value in USD',
-        'days_since_last_order': 'Days since last purchase'
-    },
-    task_description="Predict customer churn"
-)
-
-# Features: 8 → 42 in seconds!
-print(f"Generated {len(df_features.columns)} features")
-                </code></pre>
-            </section>
-
-            <!-- Feature Store Integration -->
-            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
-                <h2>🏪 Native Feature Store Integration</h2>
-                <pre><code class="python" data-trim data-noescape>
-from featcopilot.stores import FabricFeatureStore
-
-# Save generated features to Fabric Feature Store
-store = FabricFeatureStore(
-    workspace='data-science-workspace',
-    entity_columns=['customer_id'],
-    auto_materialize=True
-)
-
-store.save_features(
-    df=df_features,
-    feature_view_name='customer_churn_features',
-    description='Auto-generated features for churn prediction'
-)
-
-# Retrieve for real-time inference
-online_features = store.get_online_features(
-    entity_dict={'customer_id': [101, 102, 103]}
-)
-                </code></pre>
-                <p class="fragment highlight-green" style="margin-top: 15px;">
-                    From raw data to production features in minutes!
-                </p>
-            </section>
-
-            <!-- LLM-Powered Intelligence -->
-            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
-                <h2>🧠 LLM-Powered Intelligence</h2>
-                <p class="small">Powered by GitHub Copilot or Azure OpenAI</p>
-                <div class="code-output" style="margin-top: 20px;">
-                    <p><span class="highlight-blue">📊 churn_risk_score</span></p>
-                    <p style="margin-left: 20px;">Combines tenure, purchase frequency, and support tickets<br>
-                    to create a composite churn risk indicator.</p>
-                    <br>
-                    <p><span class="highlight-blue">📊 purchase_velocity_trend</span></p>
-                    <p style="margin-left: 20px;">Rate of change in purchase frequency over time.<br>
-                    Declining velocity often precedes churn.</p>
-                    <br>
-                    <p><span class="highlight-blue">📊 engagement_decay_rate</span></p>
-                    <p style="margin-left: 20px;">Measures how quickly customer engagement decreases.<br>
-                    Exponential decay indicates imminent churn risk.</p>
-                </div>
-                <p class="fragment" style="margin-top: 15px;">
-                    <span class="highlight-purple">Domain-aware features</span> with <span class="highlight-green">human-readable explanations</span>
-                </p>
-            </section>
-
-            <!-- Why Now -->
-            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
-                <h2>⏰ Why Now?</h2>
-                <div style="margin-top: 30px;">
-                    <div class="feature-box fragment" style="width: 280px;">
-                        <p class="emoji">🏪</p>
-                        <p><strong>Feature Store in Development</strong></p>
-                        <p class="small">Perfect time to add feature creation</p>
-                    </div>
-                    <div class="feature-box fragment" style="width: 280px;">
-                        <p class="emoji">🤖</p>
-                        <p><strong>Copilot Integration</strong></p>
-                        <p class="small">Leverage our AI investment</p>
-                    </div>
-                </div>
-                <div style="margin-top: 15px;">
-                    <div class="feature-box fragment" style="width: 280px;">
-                        <p class="emoji">📈</p>
-                        <p><strong>Competitive Pressure</strong></p>
-                        <p class="small">Databricks, AWS, Google have this</p>
-                    </div>
-                    <div class="feature-box fragment" style="width: 280px;">
-                        <p class="emoji">👥</p>
-                        <p><strong>Customer Demand</strong></p>
-                        <p class="small">Reduce 80% FE time burden</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Implementation Plan -->
-            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
-                <h2>📋 Implementation Plan</h2>
-                <table class="comparison-table" style="font-size: 0.75em;">
-                    <thead>
-                        <tr>
-                            <th>Phase</th>
-                            <th>Deliverable</th>
-                            <th>Timeline</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class="fragment">
-                            <td><strong>Phase 1</strong></td>
-                            <td>Tabular Engine in Fabric Notebooks</td>
-                            <td>Q2 2026</td>
-                        </tr>
-                        <tr class="fragment">
-                            <td><strong>Phase 2</strong></td>
-                            <td>Feature Store Integration</td>
-                            <td>Q3 2026</td>
-                        </tr>
-                        <tr class="fragment">
-                            <td><strong>Phase 3</strong></td>
-                            <td>LLM Engine with Copilot</td>
-                            <td>Q3 2026</td>
-                        </tr>
-                        <tr class="fragment">
-                            <td><strong>Phase 4</strong></td>
-                            <td>Low-Code UI Experience</td>
-                            <td>Q4 2026</td>
-                        </tr>
-                        <tr class="fragment">
-                            <td><strong>Phase 5</strong></td>
-                            <td>AutoML Deep Integration</td>
-                            <td>Q1 2027</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </section>
-
-            <!-- Expected Impact -->
-            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
-                <h2>🎯 Expected Impact</h2>
-                <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 30px; margin-top: 30px;">
-                    <div class="feature-box fragment" style="width: 220px;">
-                        <p class="big-number" style="font-size: 2em;">80%</p>
-                        <p><strong>Time Saved</strong></p>
-                        <p class="small">On feature engineering tasks</p>
-                    </div>
-                    <div class="feature-box fragment" style="width: 220px;">
-                        <p class="big-number" style="font-size: 2em;">5-20%</p>
-                        <p><strong>Model Improvement</strong></p>
-                        <p class="small">Across various ML tasks</p>
-                    </div>
-                    <div class="feature-box fragment" style="width: 220px;">
-                        <p class="big-number" style="font-size: 2em;">100%</p>
-                        <p><strong>Competitive Parity</strong></p>
-                        <p class="small">Match Databricks & AWS</p>
-                    </div>
-                </div>
-                <p class="fragment" style="margin-top: 30px;">
-                    <span class="highlight-green">Complete the Fabric Data Science story</span>
-                </p>
-            </section>
-
             <!-- Summary -->
             <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
-                <h2>📝 Summary</h2>
+                <h2>📝 Key Takeaways</h2>
                 <div style="text-align: left; width: 80%; margin: 0 auto;">
-                    <p class="fragment">✅ <strong>Customer Need:</strong> Feature engineering is the #1 pain point</p>
-                    <p class="fragment">✅ <strong>Competitive Gap:</strong> We're behind Databricks, AWS, Google</p>
-                    <p class="fragment">✅ <strong>Solution Ready:</strong> FeatCopilot framework is proven</p>
-                    <p class="fragment">✅ <strong>Perfect Timing:</strong> Aligns with Feature Store development</p>
-                    <p class="fragment">✅ <strong>AI Synergy:</strong> Leverages our Copilot investment</p>
+                    <p class="fragment">✅ <strong>Auto Featurization fills the gap</strong> in Fabric's ML pipeline between Lakehouse and Feature Store</p>
+                    <p class="fragment">✅ <strong>Fast & intelligent:</strong> Tabular engine in &lt;1s, LLM engine with domain-aware features</p>
+                    <p class="fragment">✅ <strong>Proven results:</strong> Up to 49% improvement on text tasks, 14% with AutoML combination</p>
+                    <p class="fragment">✅ <strong>Production ready:</strong> Feature Store integration for serving at scale</p>
+                    <p class="fragment">✅ <strong>Simple API:</strong> From raw data to production features in minutes</p>
                 </div>
-            </section>
-
-            <!-- Call to Action -->
-            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
-                <h1 class="highlight-blue">Let's Complete the ML Pipeline</h1>
-                <div class="architecture-flow" style="margin-top: 40px;">
-                    <div class="arch-box">
-                        <p><strong>Lakehouse</strong></p>
-                    </div>
-                    <span class="workflow-arrow">→</span>
-                    <div class="arch-box highlight">
-                        <p><strong>Auto Featurization</strong></p>
-                    </div>
-                    <span class="workflow-arrow">→</span>
-                    <div class="arch-box">
-                        <p><strong>Feature Store</strong></p>
-                    </div>
-                    <span class="workflow-arrow">→</span>
-                    <div class="arch-box">
-                        <p><strong>AutoML</strong></p>
-                    </div>
-                </div>
-                <p style="margin-top: 40px; font-size: 1.3em;">
-                    <span class="fabric-purple">Ready to discuss next steps?</span>
+                <p class="fragment" style="margin-top: 40px; font-size: 1.3em;">
+                    <span class="fabric-purple">Auto Featurization + Feature Store + AutoML</span>
                 </p>
-            </section>
-
-            <!-- Thank You -->
-            <section data-background-gradient="linear-gradient(135deg, #0d1117 0%, #161b22 100%)">
-                <h1>Thank You! 🙏</h1>
-                <p style="font-size: 1.2em; margin-top: 40px;">
-                    <span class="logo-text">Auto Featurization for Fabric</span>
-                </p>
-                <p class="tagline">
-                    Completing the Data Science story with intelligent feature engineering
-                </p>
-                <p style="margin-top: 40px;">
-                    Questions & Discussion
-                </p>
+                <p class="fragment tagline">Completing the Data Science story in Microsoft Fabric</p>
             </section>
         </div>
     </div>

@@ -12,22 +12,13 @@ output_dir.mkdir(exist_ok=True)
 
 # Narration script for each slide
 NARRATIONS = [
-    "Auto Featurization for Microsoft Fabric. A proposal to complete the ML pipeline in Fabric Data Science by adding intelligent feature engineering alongside Feature Store and AutoML.",
-    "The Customer Ask. Enterprise customers consistently rank Feature Store as a top request. We're building it. But there's a gap. Customers also struggle with creating features in the first place. 80% of data science time is spent on feature engineering.",
-    "The Gap in Our Platform. We have Lakehouse for raw data, Feature Store in development, and AutoML available. But what about feature creation? Auto Featurization fills this critical gap in our pipeline.",
-    "What Competitors Offer. Databricks, AWS SageMaker, and Google Vertex AI all have Feature Store, Auto Featurization, and AutoML. Microsoft Fabric has AutoML, Feature Store in development, but Auto Featurization is missing. We need it to be competitive.",
-    "Proposal: Integrate FeatCopilot. An LLM-powered auto feature engineering framework with a fast Tabular Engine, semantic LLM Engine powered by Copilot, human-readable explanations, and native Feature Store integration.",
-    "Proven Performance. FeatCopilot delivers 12.44% average improvement on text classification with up to 49% best case, plus 7.79% improvement on LLM-powered regression with up to 19.66% best case. All in under one second for tabular features. 12 out of 12 wins on text classification benchmarks.",
-    "Fabric Integration Architecture. The flow is simple: OneLake data source, Lakehouse data prep, FeatCopilot auto features, Feature Store to manage and serve, then AutoML for model training. Seamless integration with existing Fabric components using Python, Spark, and scikit-learn compatible APIs.",
-    "Simple API for Fabric Notebooks. Initialize AutoFeatureEngineer with tabular and LLM engines. Provide column descriptions and task context. Transform your data. Features expand from 8 to 42 in seconds. That's it!",
-    "Native Feature Store Integration. Save generated features directly to Fabric Feature Store with one API call. Retrieve features for real-time inference. From raw data to production features in minutes!",
-    "LLM-Powered Intelligence. Powered by GitHub Copilot or Azure OpenAI. Generate domain-aware features like churn risk score, purchase velocity trend, and engagement decay rate. Each feature comes with human-readable explanations.",
-    "Why Now? Feature Store is in development - perfect time to add feature creation. We can leverage our Copilot investment. Competitive pressure from Databricks, AWS, and Google. And customer demand to reduce the 80% feature engineering time burden.",
-    "Implementation Plan. Phase 1: Tabular Engine in Fabric Notebooks by Q2 2026. Phase 2: Feature Store Integration by Q3 2026. Phase 3: LLM Engine with Copilot by Q3 2026. Phase 4: Low-Code UI Experience by Q4 2026. Phase 5: AutoML Deep Integration by Q1 2027.",
-    "Expected Impact. 80% time saved on feature engineering tasks. 5 to 20% model improvement across various ML tasks. 100% competitive parity - matching Databricks and AWS. Complete the Fabric Data Science story.",
-    "Summary. Customer Need: Feature engineering is the number one pain point. Competitive Gap: We're behind Databricks, AWS, and Google. Solution Ready: FeatCopilot framework is proven. Perfect Timing: Aligns with Feature Store development. AI Synergy: Leverages our Copilot investment.",
-    "Let's Complete the ML Pipeline. Lakehouse to Auto Featurization to Feature Store to AutoML. Ready to discuss next steps?",
-    "Thank you! Auto Featurization for Fabric. Completing the Data Science story with intelligent feature engineering. Questions and Discussion.",
+    "Welcome to the Auto Featurization demo for Microsoft Fabric. We'll see why auto featurization matters, explore FeatCopilot's capabilities, and walk through a live notebook demo.",
+    "Enterprise customers consistently ask for a managed feature store to publish and share engineered features at scale. We're building it. But there's a deeper problem — customers struggle with creating features in the first place. According to the Anaconda State of Data Science report and the dbt Labs 2024 survey, data preparation and feature engineering remain the single largest time sink for data scientists.",
+    "We have Lakehouse for raw data, Feature Store in development, and AutoML available. But what about feature creation? Auto Featurization fills this critical gap.",
+    "FeatCopilot is an LLM-powered auto feature engineering framework — a fast Tabular Engine, a semantic LLM Engine with GitHub Copilot as the default AI backend, human-readable explanations, and native Feature Store integration.",
+    "FeatCopilot delivers over 12% average improvement on text classification with up to 49% best case, and nearly 8% on LLM-powered regression. 12 out of 12 wins on text benchmarks.",
+    "The integration flow is straightforward — OneLake, Lakehouse, FeatCopilot, Feature Store, then AutoML. All built on Python, Spark, and scikit-learn compatible APIs.",
+    "Auto Featurization fills the gap in Fabric's ML pipeline. GitHub Copilot powers the LLM engine. Up to 49% improvement on text tasks and 14% combined with AutoML. Feature Store integration makes it production ready. Completing the Data Science story in Microsoft Fabric.",
 ]
 
 
