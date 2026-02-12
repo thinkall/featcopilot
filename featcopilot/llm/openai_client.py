@@ -115,6 +115,7 @@ class OpenAIFeatureClient:
 
                     self._async_client = openai.AsyncAzureOpenAI(
                         http_client=get_openai_httpx_async_client(),
+                        api_version=self.config.api_version or "2024-10-21",
                         timeout=self.config.timeout,
                     )
                     logger.info("Using Microsoft Fabric credentials for OpenAI")
