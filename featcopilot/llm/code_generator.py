@@ -27,8 +27,8 @@ class FeatureCodeGenerator:
         LLM model to use
     validate : bool, default=True
         Whether to validate generated code
-    backend : str, default='copilot'
-        LLM backend to use: 'copilot' or 'litellm'
+    backend : str, default='openai'
+        LLM backend to use: 'openai', 'litellm', or 'copilot'
     api_key : str, optional
         API key for litellm backend
     api_base : str, optional
@@ -48,7 +48,7 @@ class FeatureCodeGenerator:
         model: str = "gpt-5.2",
         validate: bool = True,
         verbose: bool = False,
-        backend: Literal["copilot", "litellm"] = "copilot",
+        backend: Literal["copilot", "litellm", "openai"] = "openai",
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
     ):
@@ -63,7 +63,11 @@ class FeatureCodeGenerator:
     def _ensure_client(self) -> None:
         """Ensure client is initialized."""
         if self._client is None:
-            if self.backend == "litellm":
+            if self.backend == "openai":
+                from featcopilot.llm.openai_client import SyncOpenAIFeatureClient
+
+                self._client = SyncOpenAIFeatureClient(model=self.model, api_key=self.api_key, api_base=self.api_base)
+            elif self.backend == "litellm":
                 from featcopilot.llm.litellm_client import SyncLiteLLMFeatureClient
 
                 self._client = SyncLiteLLMFeatureClient(model=self.model, api_key=self.api_key, api_base=self.api_base)

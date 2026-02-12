@@ -24,8 +24,8 @@ class FeatureExplainer:
     ----------
     model : str, default='gpt-5.2'
         LLM model to use
-    backend : str, default='copilot'
-        LLM backend to use: 'copilot' or 'litellm'
+    backend : str, default='openai'
+        LLM backend to use: 'openai', 'litellm', or 'copilot'
     api_key : str, optional
         API key for litellm backend
     api_base : str, optional
@@ -41,7 +41,7 @@ class FeatureExplainer:
         self,
         model: str = "gpt-5.2",
         verbose: bool = False,
-        backend: Literal["copilot", "litellm"] = "copilot",
+        backend: Literal["copilot", "litellm", "openai"] = "openai",
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
     ):
@@ -55,7 +55,11 @@ class FeatureExplainer:
     def _ensure_client(self) -> None:
         """Ensure client is initialized."""
         if self._client is None:
-            if self.backend == "litellm":
+            if self.backend == "openai":
+                from featcopilot.llm.openai_client import SyncOpenAIFeatureClient
+
+                self._client = SyncOpenAIFeatureClient(model=self.model, api_key=self.api_key, api_base=self.api_base)
+            elif self.backend == "litellm":
                 from featcopilot.llm.litellm_client import SyncLiteLLMFeatureClient
 
                 self._client = SyncLiteLLMFeatureClient(model=self.model, api_key=self.api_key, api_base=self.api_base)

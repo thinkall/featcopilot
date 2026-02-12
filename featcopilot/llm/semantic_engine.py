@@ -25,9 +25,9 @@ class SemanticEngineConfig(EngineConfig):
     validate_features: bool = Field(default=True, description="Validate generated code")
     domain: Optional[str] = Field(default=None, description="Domain context")
     temperature: float = Field(default=0.3, description="LLM temperature")
-    backend: Literal["copilot", "litellm"] = Field(default="copilot", description="LLM backend to use")
-    api_key: Optional[str] = Field(default=None, description="API key for litellm backend")
-    api_base: Optional[str] = Field(default=None, description="Custom API base URL for litellm")
+    backend: Literal["copilot", "litellm", "openai"] = Field(default="openai", description="LLM backend to use")
+    api_key: Optional[str] = Field(default=None, description="API key for litellm/openai backend")
+    api_base: Optional[str] = Field(default=None, description="Custom API base URL for litellm/openai")
     enable_text_features: bool = Field(default=True, description="Generate ML features from text columns")
     keep_text_columns: bool = Field(
         default=True, description="Keep original text columns (for models that handle them natively)"
@@ -60,28 +60,29 @@ class SemanticEngine(BaseEngine):
         Whether to validate generated feature code
     domain : str, optional
         Domain context (e.g., 'healthcare', 'finance', 'retail')
-    backend : str, default='copilot'
-        LLM backend to use: 'copilot' or 'litellm'
+    backend : str, default='openai'
+        LLM backend to use: 'openai', 'litellm', or 'copilot'
     api_key : str, optional
-        API key for litellm backend (uses environment variable if not provided)
+        API key for openai/litellm backend (uses environment variable if not provided)
     api_base : str, optional
-        Custom API base URL for litellm backend (for self-hosted models)
+        Custom API base URL for openai/litellm backend (for internal/self-hosted endpoints)
 
     Examples
     --------
-    Using GitHub Copilot SDK (default):
-    >>> engine = SemanticEngine(model='gpt-5.2', domain='healthcare')
+    Using OpenAI SDK (default):
+    >>> engine = SemanticEngine(model='gpt-4o', domain='healthcare')
     >>> X_features = engine.fit_transform(
     ...     X, y,
     ...     column_descriptions={'age': 'Patient age', 'bmi': 'Body mass index'},
     ...     task_description='Predict diabetes risk'
     ... )
 
-    Using LiteLLM with OpenAI:
+    Using OpenAI SDK with custom endpoint:
     >>> engine = SemanticEngine(
     ...     model='gpt-4o',
-    ...     backend='litellm',
-    ...     api_key='your-api-key'  # or set OPENAI_API_KEY env var
+    ...     backend='openai',
+    ...     api_base='https://internal.endpoint/v1',
+    ...     api_key='your-api-key'
     ... )
 
     Using LiteLLM with Anthropic:
@@ -105,7 +106,7 @@ class SemanticEngine(BaseEngine):
         validate_features: bool = True,
         domain: Optional[str] = None,
         verbose: bool = False,
-        backend: Literal["copilot", "litellm"] = "copilot",
+        backend: Literal["copilot", "litellm", "openai"] = "openai",
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
         enable_text_features: bool = True,
@@ -139,7 +140,15 @@ class SemanticEngine(BaseEngine):
     def _ensure_client(self) -> None:
         """Ensure LLM client is initialized."""
         if self._client is None:
-            if self.config.backend == "litellm":
+            if self.config.backend == "openai":
+                from featcopilot.llm.openai_client import SyncOpenAIFeatureClient
+
+                self._client = SyncOpenAIFeatureClient(
+                    model=self.config.model,
+                    api_key=self.config.api_key,
+                    api_base=self.config.api_base,
+                )
+            elif self.config.backend == "litellm":
                 from featcopilot.llm.litellm_client import SyncLiteLLMFeatureClient
 
                 self._client = SyncLiteLLMFeatureClient(
