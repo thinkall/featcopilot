@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "featcopilot"
-version = "0.3.3"
+version = "0.3.4"
 description = "Next-generation LLM-powered auto feature engineering framework with GitHub Copilot SDK"
 readme = "README.md"
 license = {text = "MIT"}
