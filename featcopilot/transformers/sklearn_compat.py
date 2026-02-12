@@ -209,6 +209,9 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
                 max_suggestions=self.llm_config.get("max_suggestions", 20),
                 domain=self.llm_config.get("domain"),
                 verbose=self.verbose,
+                backend=self.llm_config.get("backend", "copilot"),
+                api_key=self.llm_config.get("api_key"),
+                api_base=self.llm_config.get("api_base"),
             )
         else:
             raise ValueError(f"Unknown engine: {engine_name}")
