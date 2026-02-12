@@ -67,7 +67,8 @@ class OpenAIFeatureClient:
         self._is_started = False
         self._openai_available = False
         self._async_client = None
-        self._sync_client = None
+        self._openai_module = None
+        self._use_module_api = True
 
     async def start(self) -> "OpenAIFeatureClient":
         """
@@ -80,15 +81,25 @@ class OpenAIFeatureClient:
         try:
             import openai
 
-            client_kwargs: dict[str, Any] = {}
-            if self.config.api_key:
-                client_kwargs["api_key"] = self.config.api_key
-            if self.config.api_base:
-                client_kwargs["base_url"] = self.config.api_base
-            client_kwargs["timeout"] = self.config.timeout
+            self._openai_module = openai
 
-            self._async_client = openai.AsyncOpenAI(**client_kwargs)
-            self._sync_client = openai.OpenAI(**client_kwargs)
+            if self.config.api_key or self.config.api_base:
+                # Custom config provided — create explicit client instances
+                client_kwargs: dict[str, Any] = {}
+                if self.config.api_key:
+                    client_kwargs["api_key"] = self.config.api_key
+                if self.config.api_base:
+                    client_kwargs["base_url"] = self.config.api_base
+                client_kwargs["timeout"] = self.config.timeout
+
+                self._async_client = openai.AsyncOpenAI(**client_kwargs)
+                self._use_module_api = False
+            else:
+                # No custom config — use module-level API to inherit
+                # environment auth (Azure AD, managed identity, etc.)
+                self._async_client = None
+                self._use_module_api = True
+
             self._openai_available = True
             self._is_started = True
 
@@ -138,12 +149,18 @@ class OpenAIFeatureClient:
                 messages.append({"role": "system", "content": system_prompt})
             messages.append({"role": "user", "content": prompt})
 
-            response = await self._async_client.chat.completions.create(
-                model=self.config.model,
-                messages=messages,
-                temperature=self.config.temperature,
-                max_tokens=self.config.max_tokens,
-            )
+            call_kwargs: dict[str, Any] = {
+                "model": self.config.model,
+                "messages": messages,
+                "temperature": self.config.temperature,
+                "max_tokens": self.config.max_tokens,
+            }
+
+            if self._use_module_api:
+                # Use module-level API to inherit environment auth
+                response = self._openai_module.chat.completions.create(**call_kwargs)
+            else:
+                response = await self._async_client.chat.completions.create(**call_kwargs)
 
             return response.choices[0].message.content
 
