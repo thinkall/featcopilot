@@ -3,12 +3,11 @@
 Generates human-readable explanations for features.
 """
 
-from typing import Optional
+from typing import Any, Literal, Optional
 
 import pandas as pd
 
 from featcopilot.core.feature import Feature, FeatureSet
-from featcopilot.llm.copilot_client import SyncCopilotFeatureClient
 from featcopilot.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -25,6 +24,12 @@ class FeatureExplainer:
     ----------
     model : str, default='gpt-5.2'
         LLM model to use
+    backend : str, default='copilot'
+        LLM backend to use: 'copilot' or 'litellm'
+    api_key : str, optional
+        API key for litellm backend
+    api_base : str, optional
+        Custom API base URL for litellm backend
 
     Examples
     --------
@@ -32,15 +37,32 @@ class FeatureExplainer:
     >>> explanations = explainer.explain_features(feature_set, task='predict churn')
     """
 
-    def __init__(self, model: str = "gpt-5.2", verbose: bool = False):
+    def __init__(
+        self,
+        model: str = "gpt-5.2",
+        verbose: bool = False,
+        backend: Literal["copilot", "litellm"] = "copilot",
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+    ):
         self.model = model
         self.verbose = verbose
-        self._client: Optional[SyncCopilotFeatureClient] = None
+        self.backend = backend
+        self.api_key = api_key
+        self.api_base = api_base
+        self._client: Optional[Any] = None
 
     def _ensure_client(self) -> None:
         """Ensure client is initialized."""
         if self._client is None:
-            self._client = SyncCopilotFeatureClient(model=self.model)
+            if self.backend == "litellm":
+                from featcopilot.llm.litellm_client import SyncLiteLLMFeatureClient
+
+                self._client = SyncLiteLLMFeatureClient(model=self.model, api_key=self.api_key, api_base=self.api_base)
+            else:
+                from featcopilot.llm.copilot_client import SyncCopilotFeatureClient
+
+                self._client = SyncCopilotFeatureClient(model=self.model)
             self._client.start()
 
     def explain_feature(

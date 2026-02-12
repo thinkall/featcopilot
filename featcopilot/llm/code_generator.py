@@ -4,12 +4,11 @@ Generates Python code for custom features based on natural language descriptions
 """
 
 import re
-from typing import Optional
+from typing import Any, Literal, Optional
 
 import pandas as pd
 
 from featcopilot.core.feature import Feature, FeatureOrigin, FeatureType
-from featcopilot.llm.copilot_client import SyncCopilotFeatureClient
 from featcopilot.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -28,6 +27,12 @@ class FeatureCodeGenerator:
         LLM model to use
     validate : bool, default=True
         Whether to validate generated code
+    backend : str, default='copilot'
+        LLM backend to use: 'copilot' or 'litellm'
+    api_key : str, optional
+        API key for litellm backend
+    api_base : str, optional
+        Custom API base URL for litellm backend
 
     Examples
     --------
@@ -38,16 +43,34 @@ class FeatureCodeGenerator:
     ... )
     """
 
-    def __init__(self, model: str = "gpt-5.2", validate: bool = True, verbose: bool = False):
+    def __init__(
+        self,
+        model: str = "gpt-5.2",
+        validate: bool = True,
+        verbose: bool = False,
+        backend: Literal["copilot", "litellm"] = "copilot",
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+    ):
         self.model = model
         self.validate = validate
         self.verbose = verbose
-        self._client: Optional[SyncCopilotFeatureClient] = None
+        self.backend = backend
+        self.api_key = api_key
+        self.api_base = api_base
+        self._client: Optional[Any] = None
 
     def _ensure_client(self) -> None:
         """Ensure client is initialized."""
         if self._client is None:
-            self._client = SyncCopilotFeatureClient(model=self.model)
+            if self.backend == "litellm":
+                from featcopilot.llm.litellm_client import SyncLiteLLMFeatureClient
+
+                self._client = SyncLiteLLMFeatureClient(model=self.model, api_key=self.api_key, api_base=self.api_base)
+            else:
+                from featcopilot.llm.copilot_client import SyncCopilotFeatureClient
+
+                self._client = SyncCopilotFeatureClient(model=self.model)
             self._client.start()
 
     def generate(
