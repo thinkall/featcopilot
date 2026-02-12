@@ -85,49 +85,42 @@ class OpenAIFeatureClient:
         self : OpenAIFeatureClient
         """
         try:
-            import os
-
             import openai
 
             self._openai_module = openai
 
-            # Detect Azure OpenAI: explicit api_version, env var, or azure endpoint URL
-            api_version = self.config.api_version or os.environ.get("OPENAI_API_VERSION")
-            azure_endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT", "")
-            is_azure = (
-                bool(api_version) or (self.config.api_base and "azure" in self.config.api_base) or bool(azure_endpoint)
-            )
+            # Only create explicit client when user provides constructor params.
+            # Otherwise use module-level API which natively handles env vars
+            # (OPENAI_API_KEY, OPENAI_API_VERSION, AZURE_OPENAI_ENDPOINT, etc.)
+            has_explicit_config = self.config.api_key or self.config.api_base or self.config.api_version
 
-            if self.config.api_key or self.config.api_base or is_azure:
-                # Custom config provided — create explicit client instances
+            if has_explicit_config:
+                is_azure = bool(self.config.api_version) or (self.config.api_base and "azure" in self.config.api_base)
+
                 if is_azure:
-                    # Use Azure OpenAI client
                     azure_kwargs: dict[str, Any] = {
                         "timeout": self.config.timeout,
-                        "api_version": api_version or "2024-12-01-preview",
+                        "api_version": self.config.api_version or "2024-12-01-preview",
                     }
                     if self.config.api_key:
                         azure_kwargs["api_key"] = self.config.api_key
                     if self.config.api_base:
                         azure_kwargs["azure_endpoint"] = self.config.api_base
-                    elif azure_endpoint:
-                        azure_kwargs["azure_endpoint"] = azure_endpoint
 
                     self._async_client = openai.AsyncAzureOpenAI(**azure_kwargs)
                 else:
-                    client_kwargs: dict[str, Any] = {}
+                    client_kwargs: dict[str, Any] = {"timeout": self.config.timeout}
                     if self.config.api_key:
                         client_kwargs["api_key"] = self.config.api_key
                     if self.config.api_base:
                         client_kwargs["base_url"] = self.config.api_base
-                    client_kwargs["timeout"] = self.config.timeout
 
                     self._async_client = openai.AsyncOpenAI(**client_kwargs)
 
                 self._use_module_api = False
             else:
-                # No custom config — use module-level API to inherit
-                # environment auth (Azure AD, managed identity, etc.)
+                # No explicit config — use module-level API which inherits
+                # environment auth (env vars, Azure AD, managed identity, etc.)
                 self._async_client = None
                 self._use_module_api = True
 
