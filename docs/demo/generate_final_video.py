@@ -6,11 +6,10 @@ The video has three parts:
 2. Notebook scrolling walkthrough with narration on key cells
 3. Summary slide from the HTML presentation
 
-Requires: playwright, edge-tts, moviepy, jupyter/nbconvert
+Requires: playwright, edge-tts, moviepy
 """
 
 import asyncio
-import subprocess
 from pathlib import Path
 
 # Output directories
@@ -19,6 +18,10 @@ output_dir.mkdir(exist_ok=True)
 
 HTML_PATH = Path("docs/demo/fabric_proposal.html")
 NOTEBOOK_PATH = Path("examples/featcopilot_demo.ipynb")
+FABRIC_NOTEBOOK_URL = (
+    "https://dxt.powerbi.com/groups/d268e3c1-3b18-4c1d-a3fa-2808afcc23a0"
+    "/synapsenotebooks/a04101d9-5ef9-4be2-be3b-ca1d2e9f4ea9?experience=fabric-developer"
+)
 
 # ============================================================
 # Narration scripts
@@ -44,57 +47,47 @@ SUMMARY_NARRATION = (
     "Completing the Data Science story in Microsoft Fabric."
 )
 
-# Narrations for key notebook sections (keyed by heading or cell index)
-# offset_px: scroll offset from heading to trigger narration at the right visual position
+# Narrations for key notebook sections, keyed by frame index.
+# Frame indices are based on 86-frame capture with 300px scroll steps.
 NOTEBOOK_NARRATIONS = [
     {
-        "trigger": "FeatCopilot Demo",
-        "offset_px": 0,
+        "frame": 0,
         "text": "Let's now walk through the demo notebook to see FeatCopilot in action.",
     },
     {
-        "trigger": "Setup & Imports",
-        "offset_px": 400,
-        "text": "We import FeatCopilot and configure GitHub Copilot as the default LLM backend. This aligns with our strategy of actively using GitHub Copilot across the developer experience.",
+        "frame": 5,
+        "text": "We import FeatCopilot and configure the LLM backend with the gpt-5.1 model via LiteLLM for semantic feature engineering.",
     },
     {
-        "trigger": "Dataset: Healthcare",
-        "offset_px": 600,
+        "frame": 10,
         "text": "We create a synthetic healthcare dataset for diabetes prediction with 2000 samples and 10 clinical features.",
     },
     {
-        "trigger": "Baseline Model",
-        "offset_px": 600,
-        "text": "The baseline with no feature engineering gives 0.6425 accuracy and 0.6353 ROC-AUC. This is our starting point.",
+        "frame": 23,
+        "text": "The baseline with no feature engineering gives 0.7075 accuracy and 0.6958 ROC-AUC. This is our starting point.",
     },
     {
-        "trigger": "Feature Engineering with FeatCopilot",
-        "offset_px": 700,
-        "text": "The tabular engine generates 47 features from 10 originals in under one second, improving ROC-AUC to 0.6751 — a 6.25% improvement.",
+        "frame": 26,
+        "text": "The tabular engine generates 45 features from 10 originals in under 2 seconds, improving ROC-AUC to 0.7263 — a 4.38% improvement with Logistic Regression.",
     },
     {
-        "trigger": "LLM Engine",
-        "offset_px": 700,
-        "text": "Now we add the LLM engine, powered by GitHub Copilot as the default AI backend. It generates 58 features total including domain-aware ones like metabolic syndrome score. ROC-AUC reaches 0.6742, a 6.12% improvement. This aligns with Bogdan's ask to actively use GitHub Copilot across our tools.",
+        "frame": 31,
+        "text": "Now we add the LLM engine, powered by the gpt-5.1 model. It generates 56 features total including domain-aware ones. ROC-AUC reaches 0.7428, a 6.75% improvement over baseline.",
     },
     {
-        "trigger": "Visualize Feature Engineering",
-        "offset_px": 500,
-        "text": "The comparison chart shows clear progression: baseline at 0.6353, tabular at 0.6751, and LLM at 0.6742 ROC-AUC.",
+        "frame": 41,
+        "text": "The comparison chart shows clear progression: baseline at 0.6958, tabular at 0.7263, and LLM at 0.7428 ROC-AUC.",
     },
     {
-        "trigger": "AutoML Training with FLAML",
-        "offset_px": 700,
-        "text": "With FLAML AutoML, LLM-engineered features achieve 0.6767 ROC-AUC — a 3% improvement over AutoML alone at 0.6568.",
+        "frame": 55,
+        "text": "FLAML AutoML selects CatBoost as the best model, reaching 0.8166 ROC-AUC — a significant jump from the Logistic Regression baseline of 0.6958. FeatCopilot is most impactful when paired with simpler models, delivering a 6.75% ROC-AUC improvement.",
     },
     {
-        "trigger": "Feature Store Integration",
-        "offset_px": 600,
+        "frame": 63,
         "text": "Features are saved to Feast feature store for production serving, with automatic materialization for real-time inference.",
     },
     {
-        "trigger": "Summary & Key Takeaways",
-        "offset_px": 200,
+        "frame": 80,
         "text": "That concludes the notebook demo.",
     },
 ]
@@ -140,151 +133,91 @@ async def capture_html_slides():
 
 
 async def capture_notebook_scroll():
-    """Convert notebook to HTML and capture scrolling frames with narration triggers."""
+    """Capture scrolling frames from the Fabric notebook in browser."""
     from playwright.async_api import async_playwright
 
     frames_dir = output_dir / "notebook"
     frames_dir.mkdir(exist_ok=True)
 
-    # Convert notebook to HTML
-    nb_html_path = output_dir / "notebook_rendered.html"
-    print("  Converting notebook to HTML...")
-    subprocess.run(
-        [
-            "jupyter",
-            "nbconvert",
-            "--to",
-            "html",
-            "--no-prompt",
-            str(NOTEBOOK_PATH.absolute()),
-            "--output-dir",
-            str(nb_html_path.parent.absolute()),
-            "--output",
-            nb_html_path.stem,
-        ],
-        check=True,
-        capture_output=True,
-    )
-
     async with async_playwright() as p:
-        browser = await p.chromium.launch()
-        page = await browser.new_page(viewport={"width": 1440, "height": 1080})
-        await page.goto(f"file:///{nb_html_path.absolute()}")
-        await page.wait_for_timeout(2000)
-
-        # Inject custom styling for light/white notebook appearance
-        await page.evaluate(
-            """
-            document.body.style.background = '#ffffff';
-            document.body.style.color = '#24292e';
-            document.body.style.maxWidth = '1400px';
-            document.body.style.margin = '0 auto';
-            document.body.style.padding = '20px 40px';
-            document.body.style.fontFamily = '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif';
-
-            // Style code cells with light theme
-            document.querySelectorAll('.jp-InputArea-editor, .highlight, pre').forEach(el => {
-                el.style.background = '#f6f8fa';
-                el.style.border = '1px solid #d0d7de';
-                el.style.borderRadius = '8px';
-                el.style.color = '#24292e';
-            });
-
-            // Style output cells
-            document.querySelectorAll('.jp-OutputArea-output, .output_text, .output').forEach(el => {
-                el.style.background = '#ffffff';
-                el.style.color = '#24292e';
-            });
-
-            // Style headings
-            document.querySelectorAll('h1, h2, h3, h4').forEach(el => {
-                el.style.color = '#0078d4';
-            });
-
-            // Style tables
-            document.querySelectorAll('table').forEach(el => {
-                el.style.color = '#24292e';
-            });
-            document.querySelectorAll('th').forEach(el => {
-                el.style.background = '#f0f3f6';
-                el.style.color = '#24292e';
-            });
-            document.querySelectorAll('td').forEach(el => {
-                el.style.color = '#24292e';
-                el.style.borderColor = '#d0d7de';
-            });
-        """
+        # Use Edge with the user's existing profile to reuse Fabric login session.
+        # All existing Edge windows must be closed before running this script.
+        user_data = Path.home() / "AppData" / "Local" / "Microsoft" / "Edge" / "User Data"
+        context = await p.chromium.launch_persistent_context(
+            str(user_data),
+            channel="msedge",
+            headless=False,
+            viewport={"width": 1440, "height": 1080},
         )
-        await page.wait_for_timeout(500)
+        page = context.pages[0] if context.pages else await context.new_page()
 
-        # Get total page height
-        total_height = await page.evaluate("document.body.scrollHeight")
-        viewport_height = 1080
-        print(f"  Notebook total height: {total_height}px")
+        print("  Navigating to Fabric notebook...")
+        await page.goto(FABRIC_NOTEBOOK_URL, timeout=120000)
 
-        # Identify key section positions by searching for heading text
-        # Apply offset_px so narration triggers when relevant output is visible
-        section_positions = []
-        for narr in NOTEBOOK_NARRATIONS:
-            trigger = narr["trigger"]
-            offset = narr.get("offset_px", 0)
-            pos = await page.evaluate(
-                f"""
-                (() => {{
-                    const elements = document.querySelectorAll('h1, h2, h3, h4, p, span');
-                    for (const el of elements) {{
-                        if (el.textContent.includes('{trigger}')) {{
-                            return el.getBoundingClientRect().top + window.scrollY;
-                        }}
-                    }}
-                    return -1;
-                }})()
-            """
-            )
-            # Apply offset so narration triggers when output/results are visible
-            if pos >= 0:
-                pos += offset
-            section_positions.append({"trigger": trigger, "position": pos, "narration": narr["text"]})
+        # Wait for Fabric UI to fully render
+        print("  Waiting for notebook to render...")
+        await page.wait_for_timeout(10000)
 
-        # Scroll through notebook, capturing frames
-        scroll_step = 300  # pixels per frame
+        print("  >>> Press Enter in the terminal when the notebook is fully loaded <<<")
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, input)
+
+        # Fabric uses an internal scrollable container; use mouse wheel to scroll.
+        # Place the mouse in the center of the notebook content area.
+        center_x, center_y = 700, 540
+        await page.mouse.move(center_x, center_y)
+
+        # Scroll through notebook, capturing frames via mouse wheel
+        scroll_step = 300  # pixels per wheel event
         frame_idx = 0
-        current_scroll = 0
         narration_frames = {}  # frame_idx -> narration text
-        triggered = set()  # track which narrations already fired
 
-        # Check if we're at a narration trigger point (fire each only once)
-        def check_narration_trigger(scroll_pos):
-            for idx, sp in enumerate(section_positions):
-                if idx not in triggered and sp["position"] >= 0 and abs(scroll_pos - sp["position"]) < scroll_step:
-                    triggered.add(idx)
-                    return sp["narration"]
-            return None
+        # Build narration map from fixed frame indices
+        narration_map = {narr["frame"]: narr["text"] for narr in NOTEBOOK_NARRATIONS}
 
         # Capture the initial view
         screenshot_path = frames_dir / f"frame_{frame_idx:04d}.png"
         await page.screenshot(path=str(screenshot_path))
-        trigger_narr = check_narration_trigger(0)
-        if trigger_narr:
-            narration_frames[frame_idx] = trigger_narr
+        if frame_idx in narration_map:
+            narration_frames[frame_idx] = narration_map[frame_idx]
+            print(f"  Narration trigger at frame {frame_idx}: {narration_map[frame_idx][:50]}...")
         frame_idx += 1
 
-        while current_scroll < total_height - viewport_height:
-            current_scroll += scroll_step
-            await page.evaluate(f"window.scrollTo(0, {current_scroll})")
-            await page.wait_for_timeout(100)
+        # Scroll until we reach the bottom (detected by no further position change)
+        max_no_change = 5
+        no_change_count = 0
+        prev_screenshot_bytes = None
+
+        while no_change_count < max_no_change:
+            await page.mouse.wheel(0, scroll_step)
+            await page.wait_for_timeout(150)
 
             screenshot_path = frames_dir / f"frame_{frame_idx:04d}.png"
             await page.screenshot(path=str(screenshot_path))
 
-            trigger_narr = check_narration_trigger(current_scroll)
-            if trigger_narr:
-                narration_frames[frame_idx] = trigger_narr
-                print(f"  Narration trigger at frame {frame_idx}: {trigger_narr[:50]}...")
+            # Detect end of scroll by comparing screenshots
+            current_bytes = screenshot_path.read_bytes()
+            if prev_screenshot_bytes and current_bytes == prev_screenshot_bytes:
+                no_change_count += 1
+            else:
+                no_change_count = 0
+            prev_screenshot_bytes = current_bytes
+
+            # Check for narration trigger at this frame index
+            if frame_idx in narration_map:
+                narration_frames[frame_idx] = narration_map[frame_idx]
+                print(f"  Narration trigger at frame {frame_idx}: {narration_map[frame_idx][:50]}...")
 
             frame_idx += 1
 
-        await browser.close()
+        # Remove trailing duplicate frames (from end-of-scroll detection)
+        for i in range(no_change_count):
+            dup = frames_dir / f"frame_{frame_idx - 1 - i:04d}.png"
+            if dup.exists():
+                dup.unlink()
+        frame_idx -= no_change_count
+
+        await context.close()
 
     print(f"  Captured {frame_idx} notebook frames")
     return frame_idx, narration_frames
