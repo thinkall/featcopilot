@@ -28,6 +28,7 @@ class SemanticEngineConfig(EngineConfig):
     backend: Literal["copilot", "litellm", "openai"] = Field(default="copilot", description="LLM backend to use")
     api_key: Optional[str] = Field(default=None, description="API key for litellm/openai backend")
     api_base: Optional[str] = Field(default=None, description="Custom API base URL for litellm/openai")
+    api_version: Optional[str] = Field(default=None, description="API version for Azure OpenAI")
     enable_text_features: bool = Field(default=True, description="Generate ML features from text columns")
     keep_text_columns: bool = Field(
         default=True, description="Keep original text columns (for models that handle them natively)"
@@ -109,6 +110,7 @@ class SemanticEngine(BaseEngine):
         backend: Literal["copilot", "litellm", "openai"] = "copilot",
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
+        api_version: Optional[str] = None,
         enable_text_features: bool = True,
         text_feature_types: Optional[list[str]] = None,
         **kwargs,
@@ -122,6 +124,7 @@ class SemanticEngine(BaseEngine):
             backend=backend,
             api_key=api_key,
             api_base=api_base,
+            api_version=api_version,
             enable_text_features=enable_text_features,
             text_feature_types=text_feature_types or ["sentiment", "readability", "linguistic", "semantic"],
             **kwargs,
@@ -147,6 +150,7 @@ class SemanticEngine(BaseEngine):
                     model=self.config.model,
                     api_key=self.config.api_key,
                     api_base=self.config.api_base,
+                    api_version=self.config.api_version,
                 )
             elif self.config.backend == "litellm":
                 from featcopilot.llm.litellm_client import SyncLiteLLMFeatureClient

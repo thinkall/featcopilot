@@ -212,6 +212,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
                 backend=self.llm_config.get("backend", "copilot"),
                 api_key=self.llm_config.get("api_key"),
                 api_base=self.llm_config.get("api_base"),
+                api_version=self.llm_config.get("api_version"),
             )
         else:
             raise ValueError(f"Unknown engine: {engine_name}")
