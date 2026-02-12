@@ -17,6 +17,7 @@ _handler.setFormatter(_formatter)
 if not logger.handlers:
     logger.addHandler(_handler)
     logger.setLevel(logging.INFO)
+    logger.propagate = False
 
 
 def get_logger(name: str | None = None) -> logging.Logger:
