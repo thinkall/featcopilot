@@ -73,8 +73,6 @@ class OpenAIFeatureClient:
         self._is_started = False
         self._openai_available = False
         self._async_client = None
-        self._openai_module = None
-        self._use_module_api = True
 
     async def start(self) -> "OpenAIFeatureClient":
         """
@@ -87,42 +85,31 @@ class OpenAIFeatureClient:
         try:
             import openai
 
-            self._openai_module = openai
+            # Always create an explicit client. AsyncOpenAI() with no args
+            # auto-inherits env vars (OPENAI_API_KEY, OPENAI_BASE_URL, etc.)
+            is_azure = bool(self.config.api_version) or (self.config.api_base and "azure" in self.config.api_base)
 
-            # Only create explicit client when user provides constructor params.
-            # Otherwise use module-level API which natively handles env vars
-            # (OPENAI_API_KEY, OPENAI_API_VERSION, AZURE_OPENAI_ENDPOINT, etc.)
-            has_explicit_config = self.config.api_key or self.config.api_base or self.config.api_version
+            if is_azure:
+                azure_kwargs: dict[str, Any] = {
+                    "timeout": self.config.timeout,
+                    "api_version": self.config.api_version or "2024-12-01-preview",
+                }
+                if self.config.api_key:
+                    azure_kwargs["api_key"] = self.config.api_key
+                if self.config.api_base:
+                    azure_kwargs["azure_endpoint"] = self.config.api_base
 
-            if has_explicit_config:
-                is_azure = bool(self.config.api_version) or (self.config.api_base and "azure" in self.config.api_base)
-
-                if is_azure:
-                    azure_kwargs: dict[str, Any] = {
-                        "timeout": self.config.timeout,
-                        "api_version": self.config.api_version or "2024-12-01-preview",
-                    }
-                    if self.config.api_key:
-                        azure_kwargs["api_key"] = self.config.api_key
-                    if self.config.api_base:
-                        azure_kwargs["azure_endpoint"] = self.config.api_base
-
-                    self._async_client = openai.AsyncAzureOpenAI(**azure_kwargs)
-                else:
-                    client_kwargs: dict[str, Any] = {"timeout": self.config.timeout}
-                    if self.config.api_key:
-                        client_kwargs["api_key"] = self.config.api_key
-                    if self.config.api_base:
-                        client_kwargs["base_url"] = self.config.api_base
-
-                    self._async_client = openai.AsyncOpenAI(**client_kwargs)
-
-                self._use_module_api = False
+                self._async_client = openai.AsyncAzureOpenAI(**azure_kwargs)
             else:
-                # No explicit config — use module-level API which inherits
-                # environment auth (env vars, Azure AD, managed identity, etc.)
-                self._async_client = None
-                self._use_module_api = True
+                client_kwargs: dict[str, Any] = {"timeout": self.config.timeout}
+                if self.config.api_key:
+                    client_kwargs["api_key"] = self.config.api_key
+                if self.config.api_base:
+                    client_kwargs["base_url"] = self.config.api_base
+
+                self._async_client = openai.AsyncOpenAI(**client_kwargs)
+
+            self._use_module_api = False
 
             self._openai_available = True
             self._is_started = True
@@ -180,11 +167,7 @@ class OpenAIFeatureClient:
                 "max_completion_tokens": self.config.max_tokens,
             }
 
-            if self._use_module_api:
-                # Use module-level API to inherit environment auth
-                response = self._openai_module.chat.completions.create(**call_kwargs)
-            else:
-                response = await self._async_client.chat.completions.create(**call_kwargs)
+            response = await self._async_client.chat.completions.create(**call_kwargs)
 
             return response.choices[0].message.content
 
