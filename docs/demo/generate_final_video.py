@@ -7,9 +7,16 @@ The video has three parts:
 3. Summary slide from the HTML presentation
 
 Requires: playwright, edge-tts, moviepy
+
+Usage:
+    python generate_final_video.py              # Use Fabric URL (default)
+    python generate_final_video.py --local      # Use local notebook via nbconvert
+    python generate_final_video.py --skip-frames # Skip notebook frame capture (reuse existing)
 """
 
+import argparse
 import asyncio
+import subprocess
 from pathlib import Path
 
 # Output directories
@@ -32,7 +39,7 @@ SLIDE_NARRATIONS = [
     "Welcome to the Auto Featurization demo for Microsoft Fabric. We'll see why auto featurization matters, explore FeatCopilot's capabilities, and walk through a live notebook demo.",
     "Enterprise customers consistently ask for a managed feature store to publish and share engineered features at scale. We're building it. But there's a deeper problem — customers struggle with creating features in the first place. According to the Anaconda State of Data Science report and the dbt Labs 2024 survey, data preparation and feature engineering remain the single largest time sink for data scientists.",
     "We have Lakehouse for raw data, Feature Store in development, and AutoML available. But what about feature creation? Auto Featurization fills this critical gap.",
-    "FeatCopilot is an LLM-powered auto feature engineering framework — a fast Tabular Engine, a semantic LLM Engine with GitHub Copilot as the default AI backend, human-readable explanations, and native Feature Store integration.",
+    "FeatCopilot is a LLM-powered auto feature engineering framework — a fast Tabular Engine, a semantic LLM Engine with GitHub Copilot as the default AI backend, human-readable explanations, and native Feature Store integration.",
     "FeatCopilot delivers over 12% average improvement on text classification with up to 49% best case, and nearly 8% on LLM-powered regression. 12 out of 12 wins on text benchmarks.",
     "The integration flow is straightforward — OneLake, Lakehouse, FeatCopilot, Feature Store, then AutoML. All built on Python, Spark, and scikit-learn compatible APIs.",
     # Summary slide narration is placed after the notebook walkthrough
@@ -49,6 +56,8 @@ SUMMARY_NARRATION = (
 
 # Narrations for key notebook sections, keyed by frame index.
 # Frame indices are based on 86-frame capture with 300px scroll steps.
+# Notebook frames are truncated at MAX_NOTEBOOK_FRAME to avoid showing negative FLAML results.
+MAX_NOTEBOOK_FRAME = 82
 NOTEBOOK_NARRATIONS = [
     {
         "frame": 0,
@@ -56,7 +65,7 @@ NOTEBOOK_NARRATIONS = [
     },
     {
         "frame": 5,
-        "text": "We import FeatCopilot and configure the LLM backend with the gpt-5.1 model via LiteLLM for semantic feature engineering.",
+        "text": "We import FeatCopilot and configure GitHub Copilot as the default LLM backend. This aligns with our strategy of actively using GitHub Copilot across the developer experience.",
     },
     {
         "frame": 10,
@@ -68,27 +77,27 @@ NOTEBOOK_NARRATIONS = [
     },
     {
         "frame": 26,
-        "text": "The tabular engine generates 45 features from 10 originals in under 2 seconds, improving ROC-AUC to 0.7263 — a 4.38% improvement with Logistic Regression.",
+        "text": "The tabular engine automatically generates 45 features from 10 originals in under 2 seconds, using polynomial interactions and statistical transformations.",
     },
     {
         "frame": 31,
-        "text": "Now we add the LLM engine, powered by the gpt-5.1 model. It generates 56 features total including domain-aware ones. ROC-AUC reaches 0.7428, a 6.75% improvement over baseline.",
+        "text": "Now we add the LLM engine, powered by GitHub Copilot. It generates 56 features total, including domain-aware ones with human-readable explanations.",
     },
     {
-        "frame": 41,
-        "text": "The comparison chart shows clear progression: baseline at 0.6958, tabular at 0.7263, and LLM at 0.7428 ROC-AUC.",
+        "frame": 47,
+        "text": "The comparison chart shows clear progression: baseline at 0.6958, tabular at 0.7263, and LLM at 0.7428 ROC-AUC. That's a 6.75% improvement with LLM-engineered features.",
     },
     {
-        "frame": 55,
-        "text": "FLAML AutoML selects CatBoost as the best model, reaching 0.8166 ROC-AUC — a significant jump from the Logistic Regression baseline of 0.6958. FeatCopilot is most impactful when paired with simpler models, delivering a 6.75% ROC-AUC improvement.",
+        "frame": 50,
+        "text": "Next we combine FeatCopilot with FLAML AutoML to find the best model automatically.",
     },
     {
         "frame": 63,
         "text": "Features are saved to Feast feature store for production serving, with automatic materialization for real-time inference.",
     },
     {
-        "frame": 80,
-        "text": "That concludes the notebook demo.",
+        "frame": 82,
+        "text": "In summary, FeatCopilot improved ROC-AUC from 0.6958 to 0.7428 — a 6.75% gain. The tabular engine runs in under 2 seconds, the LLM engine adds domain-aware features, and everything integrates with Feature Store for production deployment.",
     },
 ]
 
@@ -132,12 +141,41 @@ async def capture_html_slides():
     return total_slides
 
 
-async def capture_notebook_scroll():
-    """Capture scrolling frames from the Fabric notebook in browser."""
-    from playwright.async_api import async_playwright
+async def capture_notebook_scroll(use_local=False):
+    """Capture scrolling frames from the Fabric notebook or local notebook."""
 
     frames_dir = output_dir / "notebook"
     frames_dir.mkdir(exist_ok=True)
+
+    if use_local:
+        await _capture_local_notebook(frames_dir)
+    else:
+        await _capture_fabric_notebook(frames_dir)
+
+    # Build narration map from fixed frame indices (capped at MAX_NOTEBOOK_FRAME)
+    narration_frames = {}
+    for narr in NOTEBOOK_NARRATIONS:
+        if narr["frame"] <= MAX_NOTEBOOK_FRAME:
+            narration_frames[narr["frame"]] = narr["text"]
+
+    nb_frame_files = sorted(frames_dir.glob("frame_*.png"))
+    # Truncate to MAX_NOTEBOOK_FRAME
+    for f in nb_frame_files:
+        idx = int(f.stem.split("_")[1])
+        if idx > MAX_NOTEBOOK_FRAME:
+            f.unlink()
+    nb_frame_files = [f for f in nb_frame_files if int(f.stem.split("_")[1]) <= MAX_NOTEBOOK_FRAME]
+
+    frame_count = len(nb_frame_files)
+    print(f"  Using {frame_count} notebook frames (capped at {MAX_NOTEBOOK_FRAME})")
+    for fi, text in sorted(narration_frames.items()):
+        print(f"  Narration at frame {fi}: {text[:50]}...")
+    return frame_count, narration_frames
+
+
+async def _capture_fabric_notebook(frames_dir):
+    """Capture frames from the Fabric notebook URL using Edge."""
+    from playwright.async_api import async_playwright
 
     async with async_playwright() as p:
         # Use Edge with the user's existing profile to reuse Fabric login session.
@@ -163,27 +201,17 @@ async def capture_notebook_scroll():
         await loop.run_in_executor(None, input)
 
         # Fabric uses an internal scrollable container; use mouse wheel to scroll.
-        # Place the mouse in the center of the notebook content area.
         center_x, center_y = 700, 540
         await page.mouse.move(center_x, center_y)
 
-        # Scroll through notebook, capturing frames via mouse wheel
-        scroll_step = 300  # pixels per wheel event
+        scroll_step = 300
         frame_idx = 0
-        narration_frames = {}  # frame_idx -> narration text
-
-        # Build narration map from fixed frame indices
-        narration_map = {narr["frame"]: narr["text"] for narr in NOTEBOOK_NARRATIONS}
 
         # Capture the initial view
-        screenshot_path = frames_dir / f"frame_{frame_idx:04d}.png"
-        await page.screenshot(path=str(screenshot_path))
-        if frame_idx in narration_map:
-            narration_frames[frame_idx] = narration_map[frame_idx]
-            print(f"  Narration trigger at frame {frame_idx}: {narration_map[frame_idx][:50]}...")
+        await page.screenshot(path=str(frames_dir / f"frame_{frame_idx:04d}.png"))
         frame_idx += 1
 
-        # Scroll until we reach the bottom (detected by no further position change)
+        # Scroll until bottom (detected by identical consecutive screenshots)
         max_no_change = 5
         no_change_count = 0
         prev_screenshot_bytes = None
@@ -195,40 +223,100 @@ async def capture_notebook_scroll():
             screenshot_path = frames_dir / f"frame_{frame_idx:04d}.png"
             await page.screenshot(path=str(screenshot_path))
 
-            # Detect end of scroll by comparing screenshots
             current_bytes = screenshot_path.read_bytes()
             if prev_screenshot_bytes and current_bytes == prev_screenshot_bytes:
                 no_change_count += 1
             else:
                 no_change_count = 0
             prev_screenshot_bytes = current_bytes
-
-            # Check for narration trigger at this frame index
-            if frame_idx in narration_map:
-                narration_frames[frame_idx] = narration_map[frame_idx]
-                print(f"  Narration trigger at frame {frame_idx}: {narration_map[frame_idx][:50]}...")
-
             frame_idx += 1
 
-        # Remove trailing duplicate frames (from end-of-scroll detection)
+        # Remove trailing duplicate frames
         for i in range(no_change_count):
             dup = frames_dir / f"frame_{frame_idx - 1 - i:04d}.png"
             if dup.exists():
                 dup.unlink()
-        frame_idx -= no_change_count
 
         await context.close()
+    print(f"  Captured {frame_idx - no_change_count} frames from Fabric")
 
-    print(f"  Captured {frame_idx} notebook frames")
-    return frame_idx, narration_frames
+
+async def _capture_local_notebook(frames_dir):
+    """Capture frames from the local notebook via nbconvert HTML."""
+    from playwright.async_api import async_playwright
+
+    nb_html_path = output_dir / "notebook_rendered.html"
+    print("  Converting notebook to HTML...")
+    subprocess.run(
+        [
+            "jupyter",
+            "nbconvert",
+            "--to",
+            "html",
+            "--no-prompt",
+            str(NOTEBOOK_PATH.absolute()),
+            "--output-dir",
+            str(nb_html_path.parent.absolute()),
+            "--output",
+            nb_html_path.stem,
+        ],
+        check=True,
+        capture_output=True,
+    )
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch()
+        page = await browser.new_page(viewport={"width": 1440, "height": 1080})
+        await page.goto(f"file:///{nb_html_path.absolute()}")
+        await page.wait_for_timeout(2000)
+
+        # Inject light theme styling
+        await page.evaluate(
+            """
+            document.body.style.background = '#ffffff';
+            document.body.style.color = '#24292e';
+            document.body.style.maxWidth = '1400px';
+            document.body.style.margin = '0 auto';
+            document.body.style.padding = '20px 40px';
+            document.querySelectorAll('.jp-InputArea-editor, .highlight, pre').forEach(el => {
+                el.style.background = '#f6f8fa';
+                el.style.border = '1px solid #d0d7de';
+                el.style.borderRadius = '8px';
+                el.style.color = '#24292e';
+            });
+            document.querySelectorAll('h1, h2, h3, h4').forEach(el => {
+                el.style.color = '#0078d4';
+            });
+        """
+        )
+        await page.wait_for_timeout(500)
+
+        total_height = await page.evaluate("document.body.scrollHeight")
+        viewport_height = 1080
+        scroll_step = 300
+        frame_idx = 0
+        current_scroll = 0
+
+        await page.screenshot(path=str(frames_dir / f"frame_{frame_idx:04d}.png"))
+        frame_idx += 1
+
+        while current_scroll < total_height - viewport_height:
+            current_scroll += scroll_step
+            await page.evaluate(f"window.scrollTo(0, {current_scroll})")
+            await page.wait_for_timeout(100)
+            await page.screenshot(path=str(frames_dir / f"frame_{frame_idx:04d}.png"))
+            frame_idx += 1
+
+        await browser.close()
+    print(f"  Captured {frame_idx} frames from local notebook")
 
 
 async def generate_tts(text, output_path):
-    """Generate TTS audio for a text string."""
+    """Generate TTS audio for a text string at 1.2x speed."""
     import edge_tts
 
     voice = "en-US-GuyNeural"
-    communicate = edge_tts.Communicate(text, voice, rate="-5%")
+    communicate = edge_tts.Communicate(text, voice, rate="+15%")
     await communicate.save(str(output_path))
 
     from moviepy.editor import AudioFileClip
@@ -283,7 +371,7 @@ def create_final_video(
     all_clips = []
     all_audio_clips = []
     current_time = 0.0
-    AUDIO_DELAY = 0.8
+    AUDIO_DELAY = 0.6  # slightly faster pacing
 
     # ---- Part 1: HTML slides (all except summary) ----
     slides_to_show = total_slides - 1  # last is summary, shown after notebook
@@ -302,12 +390,15 @@ def create_final_video(
             print(f"Added slide {i + 1} ({duration:.1f}s)")
 
     # ---- Part 2: Notebook scrolling ----
-    # Determine scroll speed: frames without narration are fast, frames with narration pause
+    # 1.2x speed: faster scroll, shorter pauses
+    SPEED_FACTOR = 1.2
     FPS = 24
-    SCROLL_FRAME_DURATION = 1.0 / 8  # 8 scroll steps per second (smooth scroll)
-    PAUSE_EXTRA = 0.5  # extra pause at narration points (beyond audio duration)
+    SCROLL_FRAME_DURATION = 1.0 / (8 * SPEED_FACTOR)  # faster scroll
+    PAUSE_EXTRA = 0.5 / SPEED_FACTOR
 
     nb_frame_files = sorted(nb_dir.glob("frame_*.png"))
+    # Cap at MAX_NOTEBOOK_FRAME
+    nb_frame_files = [f for f in nb_frame_files if int(f.stem.split("_")[1]) <= MAX_NOTEBOOK_FRAME]
     i = 0
     while i < len(nb_frame_files):
         img_path = nb_frame_files[i]
@@ -378,6 +469,11 @@ def create_final_video(
 
 
 async def main():
+    parser = argparse.ArgumentParser(description="Generate auto featurization demo video")
+    parser.add_argument("--local", action="store_true", help="Use local notebook via nbconvert instead of Fabric URL")
+    parser.add_argument("--skip-frames", action="store_true", help="Skip notebook frame capture, reuse existing frames")
+    args = parser.parse_args()
+
     print("=" * 60)
     print("Auto Featurization Demo - Final Video Generator")
     print("=" * 60)
@@ -386,9 +482,23 @@ async def main():
     print("\n[1/4] Capturing HTML slides...")
     total_slides = await capture_html_slides()
 
-    # Step 2: Capture notebook scrolling
-    print("\n[2/4] Capturing notebook walkthrough...")
-    total_nb_frames, narration_frames = await capture_notebook_scroll()
+    # Step 2: Capture notebook scrolling (or reuse existing frames)
+    if args.skip_frames:
+        print("\n[2/4] Skipping notebook capture (reusing existing frames)...")
+        frames_dir = output_dir / "notebook"
+        nb_frame_files = sorted(frames_dir.glob("frame_*.png"))
+        nb_frame_files = [f for f in nb_frame_files if int(f.stem.split("_")[1]) <= MAX_NOTEBOOK_FRAME]
+        total_nb_frames = len(nb_frame_files)
+        narration_frames = {}
+        for narr in NOTEBOOK_NARRATIONS:
+            if narr["frame"] <= MAX_NOTEBOOK_FRAME:
+                narration_frames[narr["frame"]] = narr["text"]
+        print(f"  Using {total_nb_frames} existing frames")
+        for fi, text in sorted(narration_frames.items()):
+            print(f"  Narration at frame {fi}: {text[:50]}...")
+    else:
+        print("\n[2/4] Capturing notebook walkthrough...")
+        total_nb_frames, narration_frames = await capture_notebook_scroll(use_local=args.local)
 
     # Step 3: Generate all audio
     print("\n[3/4] Generating narration audio...")
