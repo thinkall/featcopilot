@@ -87,3 +87,5 @@ openfe_tmp_data*
 test.py
 mlruns
 *.log
+*.mp4
+final_video_frames/
