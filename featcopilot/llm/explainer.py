@@ -24,8 +24,8 @@ class FeatureExplainer:
     ----------
     model : str, default='gpt-5.2'
         LLM model to use
-    backend : str, default='openai'
-        LLM backend to use: 'openai', 'litellm', or 'copilot'
+    backend : str, default='copilot'
+        LLM backend to use: 'copilot', 'openai', or 'litellm'
     api_key : str, optional
         API key for litellm backend
     api_base : str, optional
@@ -41,7 +41,7 @@ class FeatureExplainer:
         self,
         model: str = "gpt-5.2",
         verbose: bool = False,
-        backend: Literal["copilot", "litellm", "openai"] = "openai",
+        backend: Literal["copilot", "litellm", "openai"] = "copilot",
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
     ):

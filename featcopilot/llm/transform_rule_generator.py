@@ -32,8 +32,8 @@ class TransformRuleGenerator:
         Rule store for saving and retrieving rules
     validate : bool, default=True
         Whether to validate generated code
-    backend : str, default='openai'
-        LLM backend to use: 'openai', 'litellm', or 'copilot'
+    backend : str, default='copilot'
+        LLM backend to use: 'copilot', 'openai', or 'litellm'
     api_key : str, optional
         API key for openai/litellm backend
     api_base : str, optional
@@ -55,7 +55,7 @@ class TransformRuleGenerator:
         store: Optional[TransformRuleStore] = None,
         validate: bool = True,
         verbose: bool = False,
-        backend: Literal["copilot", "litellm", "openai"] = "openai",
+        backend: Literal["copilot", "litellm", "openai"] = "copilot",
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
     ):

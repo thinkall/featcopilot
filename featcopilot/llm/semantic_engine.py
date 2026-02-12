@@ -25,7 +25,7 @@ class SemanticEngineConfig(EngineConfig):
     validate_features: bool = Field(default=True, description="Validate generated code")
     domain: Optional[str] = Field(default=None, description="Domain context")
     temperature: float = Field(default=0.3, description="LLM temperature")
-    backend: Literal["copilot", "litellm", "openai"] = Field(default="openai", description="LLM backend to use")
+    backend: Literal["copilot", "litellm", "openai"] = Field(default="copilot", description="LLM backend to use")
     api_key: Optional[str] = Field(default=None, description="API key for litellm/openai backend")
     api_base: Optional[str] = Field(default=None, description="Custom API base URL for litellm/openai")
     enable_text_features: bool = Field(default=True, description="Generate ML features from text columns")
@@ -60,8 +60,8 @@ class SemanticEngine(BaseEngine):
         Whether to validate generated feature code
     domain : str, optional
         Domain context (e.g., 'healthcare', 'finance', 'retail')
-    backend : str, default='openai'
-        LLM backend to use: 'openai', 'litellm', or 'copilot'
+    backend : str, default='copilot'
+        LLM backend to use: 'copilot', 'openai', or 'litellm'
     api_key : str, optional
         API key for openai/litellm backend (uses environment variable if not provided)
     api_base : str, optional
@@ -69,7 +69,7 @@ class SemanticEngine(BaseEngine):
 
     Examples
     --------
-    Using OpenAI SDK (default):
+    Using GitHub Copilot (default):
     >>> engine = SemanticEngine(model='gpt-4o', domain='healthcare')
     >>> X_features = engine.fit_transform(
     ...     X, y,
@@ -106,7 +106,7 @@ class SemanticEngine(BaseEngine):
         validate_features: bool = True,
         domain: Optional[str] = None,
         verbose: bool = False,
-        backend: Literal["copilot", "litellm", "openai"] = "openai",
+        backend: Literal["copilot", "litellm", "openai"] = "copilot",
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
         enable_text_features: bool = True,
