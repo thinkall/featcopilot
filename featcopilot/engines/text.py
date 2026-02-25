@@ -157,6 +157,15 @@ class TextEngine(BaseEngine):
         if self.config.verbose:
             logger.info(f"TextEngine: Found {len(self._text_columns)} text columns")
 
+        # Fit label encoders for text columns (preserves text identity as numeric feature)
+        self._text_label_encoders: dict[str, Any] = {}
+        for col in self._text_columns:
+            from sklearn.preprocessing import LabelEncoder
+
+            le = LabelEncoder()
+            le.fit(X[col].astype(str).fillna(""))
+            self._text_label_encoders[col] = le
+
         # Fit TF-IDF vectorizers if needed
         if "tfidf" in self.config.features:
             self._fit_tfidf(X)
@@ -366,10 +375,20 @@ class TextEngine(BaseEngine):
                 if emb_features is not None:
                     result = pd.concat([result, emb_features], axis=1)
 
-        # Drop original text columns
-        cols_to_drop = [col for col in self._text_columns if col in result.columns]
-        result = result.drop(columns=cols_to_drop)
+        # Replace text columns with label-encoded numeric versions (preserves text identity)
+        for col in self._text_columns:
+            if col in result.columns and col in self._text_label_encoders:
+                le = self._text_label_encoders[col]
+                text_vals = result[col].astype(str).fillna("")
+                # Handle unseen labels by mapping to -1
+                known_classes = set(le.classes_)
+                encoded = text_vals.apply(
+                    lambda x, _le=le, _kc=known_classes: _le.transform([x])[0] if x in _kc else -1
+                )
+                result[f"{col}_encoded"] = encoded
+                result = result.drop(columns=[col])
 
+        cols_to_drop = self._text_columns
         self._feature_names = [c for c in result.columns if c not in X.columns or c in cols_to_drop]
 
         if self.config.verbose:

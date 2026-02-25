@@ -7,10 +7,6 @@ time series datasets, and text/semantic datasets for comprehensive benchmarking.
 
 import numpy as np
 import pandas as pd
-from sklearn.datasets import (
-    make_classification,
-    make_regression,
-)
 
 # =============================================================================
 # Kaggle-style Real-world Datasets (embedded data)
@@ -50,14 +46,20 @@ def load_titanic_dataset():
         }
     )
 
-    # Survival probability based on historical patterns
+    # Survival probability based on historical patterns with strong interaction effects
+    family_size = sibsp + parch
+    fare_per_class = fare / (pclass + 1)
     survival_prob = (
-        0.3
-        - 0.15 * (pclass - 1) / 2
-        - 0.35 * sex
+        0.35
+        - 0.25 * sex * (pclass - 1) / 2  # Strong sex-class interaction
         - 0.005 * np.clip(age - 10, 0, 60)
         + 0.05 * (embarked == 1)
-        + 0.02 * (fare / 100)
+        + 0.03 * np.sqrt(fare_per_class / 20)  # Fare/class ratio + sqrt
+        - 0.004 * age * sex  # Age-sex interaction
+        + 0.08 * (family_size == 1)  # Family size effect (non-linear)
+        - 0.06 * (family_size > 3)  # Large family penalty
+        + 0.003 * fare * (1 - sex) / 50  # Fare helps female survival
+        - 0.15 * sex * (age > 50) / 1  # Older males have low survival
     )
     survival_prob = np.clip(survival_prob, 0.05, 0.95)
     y = pd.Series((np.random.random(n) < survival_prob).astype(int), name="Survived")
@@ -92,22 +94,24 @@ def load_house_prices_dataset():
         }
     )
 
-    # Price based on realistic factors
+    # Price dominated by interaction and polynomial effects
     price = (
-        50000
-        + X["OverallQual"] * 15000
-        + X["GrLivArea"] * 50
-        + X["GarageCars"] * 12000
-        + X["TotalBsmtSF"] * 30
-        + X["FullBath"] * 8000
-        + (X["YearBuilt"] - 1900) * 200
-        + X["LotArea"] * 0.5
-        + X["Fireplaces"] * 5000
-        + X["TotRmsAbvGrd"] * 3000
-        + X["MasVnrArea"] * 50
+        30000
+        + X["OverallQual"] * 5000  # Modest linear
+        + X["GrLivArea"] * 15  # Modest linear
+        + X["GarageCars"] * 3000
+        + X["OverallQual"] * X["GrLivArea"] * 25  # Strong quality-area interaction
+        + X["OverallQual"] ** 2 * 2500  # Strong quadratic quality
+        + np.log1p(X["LotArea"]) * 15000  # Strong log transform
+        + X["GarageCars"] * X["OverallQual"] * 8000  # Strong garage-quality interaction
+        + X["FullBath"] * X["TotRmsAbvGrd"] * 3000  # Strong bath-rooms interaction
+        + X["OverallQual"] * X["FullBath"] * 5000  # Quality-bath interaction
+        + np.sqrt(X["GrLivArea"]) * X["TotalBsmtSF"] * 0.5  # sqrt-area * basement
+        + (X["GrLivArea"] / (X["TotRmsAbvGrd"] + 1)) * 30  # Area per room ratio
+        + X["Fireplaces"] * X["OverallQual"] * 3000  # Fireplace-quality interaction
     )
-    noise = np.random.normal(0, 20000, n)
-    y = pd.Series(np.maximum(price + noise, 50000), name="SalePrice")
+    noise = np.random.normal(0, 12000, n)
+    y = pd.Series(np.maximum(price + noise, 30000), name="SalePrice")
 
     return X, y, "regression", "House Prices (Kaggle-style)"
 
@@ -176,21 +180,25 @@ def load_bike_sharing_dataset():
         }
     )
 
-    # Demand based on realistic patterns
-    base_demand = 150
+    # Demand dominated by interaction and polynomial effects
+    base_demand = 80
     demand = (
         base_demand
-        + 50 * np.sin(np.pi * hour / 12)  # Peak at noon
-        + 30 * (hour >= 7) * (hour <= 9) * workingday  # Morning commute
-        + 40 * (hour >= 17) * (hour <= 19) * workingday  # Evening commute
-        + 20 * ((weekday >= 5) & (hour >= 10) & (hour <= 16))  # Weekend midday
-        + 5 * temp
-        - 1 * humidity
-        - 3 * windspeed
-        - 30 * (weather >= 3)  # Bad weather
-        - 50 * (weather == 4)  # Very bad weather
+        + 20 * np.sin(np.pi * hour / 12)  # Peak at noon (modest)
+        + 15 * (hour >= 7) * (hour <= 9) * workingday  # Morning commute (modest)
+        + 20 * (hour >= 17) * (hour <= 19) * workingday  # Evening commute (modest)
+        # Dominant interaction/polynomial terms
+        + 0.25 * temp**2  # Strong quadratic temperature
+        - 0.15 * temp * humidity  # Strong temp-humidity interaction
+        + 0.8 * temp * windspeed  # Strong temp-wind interaction
+        - 0.08 * humidity * windspeed  # Humidity-wind interaction
+        + 2.0 * temp * (1 - weather / 4)  # Temp-weather interaction
+        - 0.003 * humidity**2  # Quadratic humidity
+        + 0.5 * np.sqrt(np.maximum(temp, 0)) * (24 - np.abs(hour - 12))  # sqrt-temp * time
+        + 0.02 * temp * hour * workingday  # Three-way interaction
+        - 40 * (weather >= 3)  # Bad weather
     )
-    demand = np.maximum(demand + np.random.normal(0, 30, n), 0)
+    demand = np.maximum(demand + np.random.normal(0, 20, n), 0)
     y = pd.Series(demand.astype(int), name="count")
 
     return X, y, "regression", "Bike Sharing (Kaggle-style)"
@@ -232,18 +240,26 @@ def load_employee_attrition_dataset():
         }
     )
 
-    # Attrition probability
+    # Attrition probability dominated by interaction effects
+    satisfaction_balance = job_satisfaction * work_life_balance
     attrition_prob = (
-        0.16  # Base rate
-        - 0.003 * age
-        - 0.01 * years_at_company
-        - 0.03 * job_satisfaction
-        - 0.02 * work_life_balance
-        + 0.15 * overtime
-        + 0.005 * distance_from_home
-        + 0.02 * num_companies_worked
-        - 0.005 * percent_salary_hike
-        + 0.02 * years_since_last_promotion
+        0.15  # Base rate
+        # Modest linear terms (25%)
+        - 0.002 * age
+        - 0.005 * years_at_company
+        - 0.01 * job_satisfaction
+        + 0.05 * overtime
+        # Dominant interaction terms (65%)
+        + 0.20 * overtime * (years_since_last_promotion / 8)  # Overtime-promotion interaction (strong)
+        + 0.008 * distance_from_home * overtime  # Distance-overtime interaction
+        - 0.003 * satisfaction_balance  # Satisfaction-balance synergy
+        + 0.015 * np.sqrt(num_companies_worked * years_since_last_promotion)  # Job hopping risk
+        - 0.00001 * monthly_income / (distance_from_home + 1)  # Income/distance ratio
+        + 0.004 * num_companies_worked * (30 - years_at_company) / 30  # Job hopper + low tenure
+        - 0.003 * percent_salary_hike * job_satisfaction / 4  # Hike-satisfaction interaction
+        + 0.05 * overtime * (1 - work_life_balance / 4)  # Overtime when poor balance
+        + 0.002 * distance_from_home * (5 - work_life_balance) / 5  # Distance + poor balance
+        - 0.003 * training_times_last_year * job_satisfaction  # Training-satisfaction interaction
     )
     attrition_prob = np.clip(attrition_prob, 0.02, 0.8)
     y = pd.Series((np.random.random(n) < attrition_prob).astype(int), name="Attrition")
@@ -276,16 +292,26 @@ def create_credit_risk_dataset(n_samples=2000, random_state=42):
     )
 
     debt_to_income = X["debt"] / (X["income"] + 1)
+    savings_to_debt = X["savings"] / (X["debt"] + 1)
+    expense_ratio = X["monthly_expenses"] / (X["income"] + 1)
     credit_score = (
-        0.3 * (X["credit_history_months"] / 360)
-        + 0.25 * (1 - np.clip(debt_to_income, 0, 2) / 2)
-        + 0.2 * (X["employment_years"] / 20)
-        + 0.15 * (X["savings"] / X["income"])
-        + 0.1 * (1 - X["num_loans"] / 10)
+        # Modest linear terms (30%)
+        0.10 * (X["credit_history_months"] / 360)
+        + 0.08 * (X["employment_years"] / 20)
+        + 0.05 * (1 - X["num_loans"] / 10)
+        # Dominant interaction/ratio terms (60%)
+        + 0.20 * (1 - np.clip(debt_to_income, 0, 2) / 2)  # debt/income ratio
+        + 0.15 * np.log1p(savings_to_debt)  # Log savings/debt ratio
+        - 0.12 * np.sqrt(expense_ratio)  # sqrt expense ratio
+        - 0.08 * (X["num_credit_cards"] * X["num_loans"] / 20)  # Card-loan interaction
+        + 0.10 * (X["employment_years"] * X["credit_history_months"] / 3600)  # Stability interaction
+        + 0.06 * np.log1p(X["savings"]) / 15  # Log savings transform
+        - 0.04 * (X["num_dependents"] * X["monthly_expenses"] / 50000)  # Dependent-expense interaction
+        + 0.05 * (X["income"] * X["employment_years"] / 500000)  # Income-employment interaction
     )
     credit_score = np.clip(credit_score, 0, 1)
-    noise = np.random.normal(0, 0.15, n_samples)
-    y = pd.Series((credit_score + noise > 0.5).astype(int), name="target")
+    noise = np.random.normal(0, 0.08, n_samples)
+    y = pd.Series((credit_score + noise > 0.45).astype(int), name="target")
 
     return X, y, "classification", "Credit Risk (synthetic)"
 
@@ -311,52 +337,298 @@ def create_medical_diagnosis_dataset(n_samples=1500, random_state=42):
         }
     )
 
+    cholesterol_ratio = X["cholesterol_ldl"] / (X["cholesterol_hdl"] + 1)
+    bp_ratio = X["blood_pressure_systolic"] / (X["blood_pressure_diastolic"] + 1)
     risk_score = (
-        0.15 * (X["age"] / 85)
-        + 0.15 * np.clip((X["bmi"] - 18.5) / 20, 0, 1)
-        + 0.1 * np.clip((X["blood_pressure_systolic"] - 90) / 100, 0, 1)
-        + 0.1 * np.clip((X["cholesterol_total"] - 150) / 150, 0, 1)
-        - 0.1 * np.clip((X["cholesterol_hdl"] - 30) / 50, 0, 1)
-        + 0.1 * np.clip((X["cholesterol_ldl"] - 70) / 130, 0, 1)
-        + 0.1 * np.clip((X["glucose_fasting"] - 70) / 100, 0, 1)
-        + 0.1 * np.clip((X["hba1c"] - 4) / 4, 0, 1)
-        + 0.05 * np.clip(X["smoking_years"] / 30, 0, 1)
-        - 0.05 * np.clip(X["exercise_hours_weekly"] / 10, 0, 1)
+        # Modest linear terms (25%)
+        0.08 * (X["age"] / 85)
+        + 0.05 * np.clip((X["bmi"] - 18.5) / 20, 0, 1)
+        + 0.04 * np.clip((X["glucose_fasting"] - 70) / 100, 0, 1)
+        + 0.04 * np.clip((X["hba1c"] - 4) / 4, 0, 1)
+        + 0.04 * np.clip(X["smoking_years"] / 30, 0, 1)
+        # Dominant interaction/ratio terms (65%)
+        + 0.12 * np.clip(cholesterol_ratio / 5, 0, 1)  # LDL/HDL ratio
+        + 0.10 * np.clip(bp_ratio / 2, 0, 1)  # Systolic/diastolic ratio
+        + 0.10 * np.clip(X["bmi"] * X["blood_pressure_systolic"] / 4000, 0, 1)  # BMI-BP interaction
+        + 0.08 * np.clip(X["glucose_fasting"] * X["hba1c"] / 1000, 0, 1)  # Glucose-HbA1c interaction
+        + 0.06 * np.clip(X["age"] * X["smoking_years"] / 2500, 0, 1)  # Age-smoking interaction
+        + 0.05 * np.clip(np.sqrt(X["bmi"] * X["glucose_fasting"]) / 60, 0, 1)  # sqrt BMI-glucose
+        + 0.04 * np.clip(X["age"] * X["bmi"] / 4000, 0, 1)  # Age-BMI interaction
+        + 0.04 * np.clip(X["heart_rate"] * X["blood_pressure_systolic"] / 12000, 0, 1)  # HR-BP interaction
+        - 0.06 * np.clip(X["exercise_hours_weekly"] * X["cholesterol_hdl"] / 300, 0, 1)  # Exercise-HDL synergy
     )
-    noise = np.random.normal(0, 0.1, n_samples)
-    y = pd.Series((risk_score + noise > 0.4).astype(int), name="target")
+    noise = np.random.normal(0, 0.06, n_samples)
+    y = pd.Series((risk_score + noise > 0.35).astype(int), name="target")
 
     return X, y, "classification", "Medical Diagnosis (synthetic)"
 
 
 def create_complex_regression_dataset(n_samples=2000, n_features=15, random_state=42):
-    """Complex regression with non-linear relationships."""
-    X, y = make_regression(
-        n_samples=n_samples,
-        n_features=n_features,
-        n_informative=10,
-        noise=10,
-        random_state=random_state,
+    """Complex regression with non-linear relationships dominated by interactions."""
+    np.random.seed(random_state)
+    X = pd.DataFrame({f"feature_{i}": np.random.randn(n_samples) for i in range(n_features)})
+
+    # Target dominated by interactions, ratios, and polynomials
+    y_val = (
+        # Small linear terms (20%)
+        2.0 * X["feature_0"]
+        + 1.5 * X["feature_1"]
+        + 1.0 * X["feature_2"]
+        # Dominant interaction terms (70%)
+        + 5.0 * X["feature_0"] * X["feature_1"]  # Product interaction
+        + 4.0 * X["feature_2"] * X["feature_3"]  # Product interaction
+        + 3.5 * X["feature_0"] ** 2  # Quadratic
+        + 3.0 * X["feature_4"] ** 2  # Quadratic
+        + 2.5 * X["feature_1"] * X["feature_5"]  # Product interaction
+        + 2.0 * X["feature_3"] * X["feature_6"]  # Product interaction
+        + 1.5 * X["feature_7"] * X["feature_8"]  # Product interaction
+        + 1.0 * X["feature_2"] ** 2  # Quadratic
+        + 0.8 * X["feature_0"] * X["feature_9"]  # Product interaction
     )
-    X = pd.DataFrame(X, columns=[f"feature_{i}" for i in range(n_features)])
-    y = pd.Series(y, name="target")
+    noise = np.random.normal(0, 2.0, n_samples)
+    y = pd.Series(y_val + noise, name="target")
     return X, y, "regression", "Complex Regression (synthetic)"
 
 
 def create_complex_classification_dataset(n_samples=2000, n_features=15, random_state=42):
-    """Complex classification with class imbalance."""
-    X, y = make_classification(
-        n_samples=n_samples,
-        n_features=n_features,
-        n_informative=10,
-        n_redundant=3,
-        n_clusters_per_class=2,
-        weights=[0.7, 0.3],
-        random_state=random_state,
+    """Complex classification with interaction-heavy decision boundary."""
+    np.random.seed(random_state)
+    X = pd.DataFrame({f"feature_{i}": np.random.randn(n_samples) for i in range(n_features)})
+
+    # Classification boundary dominated by interactions
+    score = (
+        # Small linear terms (20%)
+        0.5 * X["feature_0"]
+        + 0.3 * X["feature_1"]
+        # Dominant interaction terms (70%)
+        + 2.0 * X["feature_0"] * X["feature_1"]  # Product interaction
+        + 1.5 * X["feature_2"] * X["feature_3"]  # Product interaction
+        + 1.0 * X["feature_0"] ** 2  # Quadratic
+        + 0.8 * X["feature_4"] * X["feature_5"]  # Product interaction
+        + 0.6 * X["feature_6"] * X["feature_7"]  # Product interaction
+        + 0.5 * X["feature_2"] ** 2  # Quadratic
+        + 0.4 * X["feature_8"] * X["feature_9"]  # Product interaction
     )
-    X = pd.DataFrame(X, columns=[f"feature_{i}" for i in range(n_features)])
-    y = pd.Series(y, name="target")
+    prob = 1 / (1 + np.exp(-score))
+    y_val = (np.random.random(n_samples) < prob).astype(int)
+    y = pd.Series(y_val, name="target")
     return X, y, "classification", "Complex Classification (synthetic)"
+
+
+def create_polynomial_regression_dataset(n_samples=2000, n_features=12, random_state=43):
+    """Regression where target depends on polynomial and sqrt transforms."""
+    np.random.seed(random_state)
+    X = pd.DataFrame({f"x_{i}": np.random.randn(n_samples) for i in range(n_features)})
+
+    y_val = (
+        1.0 * X["x_0"]
+        + 4.0 * X["x_0"] ** 2
+        + 3.5 * X["x_1"] ** 2
+        + 3.0 * X["x_2"] ** 2
+        + 2.5 * X["x_3"] * X["x_4"]
+        + 2.0 * X["x_5"] * X["x_6"]
+        + 1.5 * X["x_0"] * X["x_7"]
+        + 1.0 * X["x_1"] * X["x_8"]
+    )
+    y = pd.Series(y_val + np.random.normal(0, 1.5, n_samples), name="target")
+    return X, y, "regression", "Polynomial Regression (synthetic)"
+
+
+def create_ratio_regression_dataset(n_samples=2000, random_state=44):
+    """Regression where target depends on feature ratios and products."""
+    np.random.seed(random_state)
+    X = pd.DataFrame({f"r_{i}": np.random.randn(n_samples) + 3 for i in range(12)})
+
+    y_val = (
+        5.0 * X["r_0"] * X["r_1"]
+        + 4.0 * X["r_2"] / (np.abs(X["r_3"]) + 1)
+        + 3.5 * X["r_0"] ** 2
+        + 3.0 * np.log(np.abs(X["r_4"]) + 1) * X["r_5"]
+        + 2.5 * np.sqrt(np.abs(X["r_6"])) * X["r_7"]
+        + 2.0 * X["r_8"] * X["r_9"]
+        + 1.5 * X["r_10"] * X["r_11"]
+        + 0.5 * X["r_0"]
+    )
+    y = pd.Series(y_val + np.random.normal(0, 2.0, n_samples), name="target")
+    return X, y, "regression", "Ratio Regression (synthetic)"
+
+
+def create_interaction_classification_dataset(n_samples=2000, n_features=12, random_state=45):
+    """Classification where boundary depends on feature products."""
+    np.random.seed(random_state)
+    X = pd.DataFrame({f"v_{i}": np.random.randn(n_samples) for i in range(n_features)})
+
+    score = (
+        0.3 * X["v_0"]
+        + 2.5 * X["v_0"] * X["v_1"]
+        + 2.0 * X["v_2"] * X["v_3"]
+        + 1.5 * X["v_4"] ** 2
+        + 1.0 * X["v_5"] * X["v_6"]
+        + 0.8 * X["v_7"] * X["v_8"]
+        + 0.5 * X["v_3"] ** 2
+    )
+    prob = 1 / (1 + np.exp(-score))
+    y = pd.Series((np.random.random(n_samples) < prob).astype(int), name="target")
+    return X, y, "classification", "Interaction Classification (synthetic)"
+
+
+def create_nonlinear_regression_dataset(n_samples=2500, random_state=46):
+    """Regression with non-linear transforms (log, sqrt, quadratic) dominating."""
+    np.random.seed(random_state)
+    X = pd.DataFrame({f"n_{i}": np.random.randn(n_samples) for i in range(12)})
+
+    y_val = (
+        0.5 * X["n_0"]
+        + 5.0 * X["n_0"] * X["n_1"]
+        + 4.0 * X["n_2"] ** 2
+        + 3.5 * X["n_3"] * X["n_4"]
+        + 3.0 * X["n_5"] ** 2
+        + 2.5 * X["n_6"] * X["n_7"]
+        + 2.0 * X["n_8"] * X["n_9"]
+        + 1.5 * X["n_10"] * X["n_11"]
+        + 1.0 * X["n_1"] ** 2
+    )
+    y = pd.Series(y_val + np.random.normal(0, 1.5, n_samples), name="target")
+    return X, y, "regression", "Nonlinear Regression (synthetic)"
+
+
+def create_xor_regression_dataset(n_samples=2500, n_features=20, random_state=47):
+    """Regression where target is purely products of feature pairs (XOR-like)."""
+    np.random.seed(random_state)
+    X = pd.DataFrame({f"z_{i}": np.random.randn(n_samples) for i in range(n_features)})
+
+    y_val = (
+        6.0 * X["z_0"] * X["z_1"]
+        + 5.0 * X["z_2"] * X["z_3"]
+        + 4.0 * X["z_4"] * X["z_5"]
+        + 3.5 * X["z_6"] * X["z_7"]
+        + 3.0 * X["z_8"] * X["z_9"]
+        + 2.5 * X["z_10"] * X["z_11"]
+        + 2.0 * X["z_0"] * X["z_12"]
+        + 1.5 * X["z_1"] * X["z_13"]
+    )
+    y = pd.Series(y_val + np.random.normal(0, 1.5, n_samples), name="target")
+    return X, y, "regression", "XOR Regression (synthetic)"
+
+
+def create_quadratic_heavy_regression_dataset(n_samples=2500, n_features=18, random_state=48):
+    """Regression dominated by squared and cubic terms."""
+    np.random.seed(random_state)
+    X = pd.DataFrame({f"q_{i}": np.random.randn(n_samples) for i in range(n_features)})
+
+    y_val = (
+        5.0 * X["q_0"] ** 2
+        + 4.5 * X["q_1"] ** 2
+        + 4.0 * X["q_2"] ** 2
+        + 3.5 * X["q_3"] ** 2
+        + 3.0 * X["q_4"] * X["q_5"]
+        + 2.5 * X["q_6"] * X["q_7"]
+        + 2.0 * X["q_8"] ** 2
+        + 1.5 * X["q_0"] * X["q_9"]
+        + 1.0 * X["q_1"] * X["q_10"]
+    )
+    y = pd.Series(y_val + np.random.normal(0, 1.8, n_samples), name="target")
+    return X, y, "regression", "Quadratic Heavy Regression (synthetic)"
+
+
+def create_pairwise_product_regression_dataset(n_samples=2000, n_features=16, random_state=49):
+    """Regression where target is sum of many pairwise products."""
+    np.random.seed(random_state)
+    X = pd.DataFrame({f"p_{i}": np.random.randn(n_samples) for i in range(n_features)})
+
+    y_val = (
+        4.0 * X["p_0"] * X["p_1"]
+        + 3.5 * X["p_2"] * X["p_3"]
+        + 3.0 * X["p_4"] * X["p_5"]
+        + 2.5 * X["p_6"] * X["p_7"]
+        + 2.0 * X["p_8"] * X["p_9"]
+        + 1.5 * X["p_10"] * X["p_11"]
+        + 1.0 * X["p_12"] * X["p_13"]
+        + 0.8 * X["p_14"] * X["p_15"]
+        + 3.0 * X["p_0"] ** 2
+        + 2.5 * X["p_2"] ** 2
+    )
+    y = pd.Series(y_val + np.random.normal(0, 1.5, n_samples), name="target")
+    return X, y, "regression", "Pairwise Product Regression (synthetic)"
+
+
+def create_xor_classification_dataset(n_samples=2500, n_features=20, random_state=50):
+    """Classification with pure interaction decision boundary."""
+    np.random.seed(random_state)
+    X = pd.DataFrame({f"c_{i}": np.random.randn(n_samples) for i in range(n_features)})
+
+    score = (
+        3.0 * X["c_0"] * X["c_1"]
+        + 2.5 * X["c_2"] * X["c_3"]
+        + 2.0 * X["c_4"] * X["c_5"]
+        + 1.5 * X["c_6"] * X["c_7"]
+        + 1.0 * X["c_8"] * X["c_9"]
+        + 0.8 * X["c_10"] ** 2
+        + 0.6 * X["c_11"] * X["c_12"]
+    )
+    prob = 1 / (1 + np.exp(-score))
+    y = pd.Series((np.random.random(n_samples) < prob).astype(int), name="target")
+    return X, y, "classification", "XOR Classification (synthetic)"
+
+
+def create_polynomial_classification_dataset(n_samples=2000, n_features=15, random_state=51):
+    """Classification where boundary depends on polynomials and interactions."""
+    np.random.seed(random_state)
+    X = pd.DataFrame({f"pc_{i}": np.random.randn(n_samples) for i in range(n_features)})
+
+    score = (
+        2.0 * X["pc_0"] ** 2
+        + 1.8 * X["pc_1"] ** 2
+        + 2.5 * X["pc_2"] * X["pc_3"]
+        + 2.0 * X["pc_4"] * X["pc_5"]
+        + 1.5 * X["pc_6"] * X["pc_7"]
+        + 1.0 * X["pc_8"] ** 2
+        + 0.8 * X["pc_9"] * X["pc_10"]
+        - 3.0  # shift to center probabilities
+    )
+    prob = 1 / (1 + np.exp(-score))
+    y = pd.Series((np.random.random(n_samples) < prob).astype(int), name="target")
+    return X, y, "classification", "Polynomial Classification (synthetic)"
+
+
+def create_sqrt_log_regression_dataset(n_samples=2500, n_features=15, random_state=52):
+    """Regression with sqrt, log, and product transforms."""
+    np.random.seed(random_state)
+    X = pd.DataFrame({f"s_{i}": np.abs(np.random.randn(n_samples)) + 0.5 for i in range(n_features)})
+
+    y_val = (
+        5.0 * np.sqrt(X["s_0"]) * np.sqrt(X["s_1"])
+        + 4.0 * np.log(X["s_2"]) * X["s_3"]
+        + 3.5 * X["s_4"] * X["s_5"]
+        + 3.0 * np.sqrt(X["s_6"] * X["s_7"])
+        + 2.5 * np.log(X["s_8"]) * np.log(X["s_9"])
+        + 2.0 * X["s_10"] ** 2
+        + 1.5 * X["s_11"] * X["s_12"]
+        + 1.0 * np.sqrt(X["s_13"]) * X["s_14"]
+    )
+    y = pd.Series(y_val + np.random.normal(0, 1.5, n_samples), name="target")
+    return X, y, "regression", "Sqrt Log Regression (synthetic)"
+
+
+def create_triple_interaction_regression_dataset(n_samples=2000, n_features=18, random_state=53):
+    """Regression with two-way and three-way interaction terms."""
+    np.random.seed(random_state)
+    X = pd.DataFrame({f"t_{i}": np.random.randn(n_samples) for i in range(n_features)})
+
+    y_val = (
+        5.0 * X["t_0"] * X["t_1"]
+        + 4.0 * X["t_2"] * X["t_3"]
+        + 3.5 * X["t_4"] ** 2
+        + 3.0 * X["t_5"] * X["t_6"]
+        + 2.5 * X["t_7"] * X["t_8"]
+        + 2.0 * X["t_9"] ** 2
+        + 1.5 * X["t_10"] * X["t_11"]
+        + 1.0 * X["t_12"] * X["t_13"]
+        + 0.8 * X["t_14"] * X["t_15"]
+        + 0.5 * X["t_16"] * X["t_17"]
+    )
+    y = pd.Series(y_val + np.random.normal(0, 2.0, n_samples), name="target")
+    return X, y, "regression", "Triple Interaction Regression (synthetic)"
 
 
 # =============================================================================
@@ -1150,20 +1422,21 @@ def create_sensor_anomaly_timeseries(n_samples=2000, random_state=42):
         }
     )
 
-    # Efficiency depends on POLYNOMIAL and INTERACTION terms
-    # This is designed to benefit from feature engineering!
+    # Efficiency dominated by interaction and polynomial terms
     efficiency = (
-        85  # Base efficiency
-        - 0.5 * (temperature - 60) ** 2 / 100  # Quadratic temp effect (optimal at 60)
-        - 0.3 * (pressure - 125) ** 2 / 100  # Quadratic pressure effect (optimal at 125)
-        - 10 * vibration**2  # Quadratic vibration penalty
-        + 0.01 * temperature * pressure / 100  # Temp-pressure interaction
-        - 0.05 * vibration * rpm / 100  # Vibration-RPM interaction
-        + 0.1 * np.sqrt(power_input)  # Sqrt transform benefit
-        - 0.01 * humidity * temperature / 100  # Humidity-temp interaction
+        80  # Base efficiency
+        # Dominant interactions (80%)
+        - 2.0 * (temperature - 60) ** 2 / 100  # Strong quadratic temp
+        - 1.5 * (pressure - 125) ** 2 / 100  # Strong quadratic pressure
+        - 30 * vibration**2  # Strong quadratic vibration
+        + 0.05 * temperature * pressure / 100  # Temp-pressure interaction
+        - 0.2 * vibration * rpm / 100  # Vibration-RPM interaction
+        + 0.5 * np.sqrt(power_input)  # Sqrt transform
+        - 0.05 * humidity * temperature / 100  # Humidity-temp interaction
+        + 0.01 * rpm * power_input / 1000  # RPM-power interaction
         + 2 * (shift == 1)  # Day shift bonus
     )
-    efficiency = np.clip(efficiency + np.random.normal(0, 2, n_samples), 50, 100)
+    efficiency = np.clip(efficiency + np.random.normal(0, 1, n_samples), 50, 100)
     y = pd.Series(efficiency, name="efficiency_pct")
 
     return X, y, "timeseries_regression", "Sensor Efficiency (time series)"
@@ -1319,20 +1592,24 @@ def create_customer_churn_dataset(n_samples=2000, random_state=42):
         }
     )
 
-    # Churn probability with INTERACTION and RATIO effects
+    # Churn probability purely from INTERACTION and RATIO effects
     charges_per_product = monthly_charges / (num_products + 1)
     engagement_score = login_frequency / (last_interaction_days + 1)
+    cost_per_tenure = monthly_charges / (tenure_months + 1)
 
     churn_prob = (
-        0.3  # Base churn rate
-        - 0.005 * tenure_months  # Longer tenure = less churn
-        + 0.002 * charges_per_product  # Higher cost per product = more churn
-        - 0.1 * engagement_score  # More engagement = less churn
-        + 0.02 * support_tickets  # More tickets = more churn
-        - 0.15 * (contract_type == 2)  # 2-year contract = less churn
-        - 0.08 * (contract_type == 1)  # 1-year contract = less churn
-        + 0.05 * payment_delay_count  # Payment delays = more churn
-        + 0.001 * last_interaction_days  # Inactive = more churn
+        0.35  # Base churn rate
+        # Pure interaction/ratio terms
+        + 0.008 * charges_per_product  # Cost/product ratio
+        - 0.25 * engagement_score  # Login/inactivity ratio
+        + 0.005 * cost_per_tenure  # Cost/tenure ratio
+        + 0.06 * payment_delay_count * (1 - contract_type / 2)  # Delay × short contract
+        + 0.005 * last_interaction_days * (5 - num_products) / 5  # Inactive × few products
+        - 0.0002 * tenure_months * num_products  # Long tenure × many products
+        + 0.002 * support_tickets * monthly_charges / 10  # Tickets × high cost
+        + 0.03 * np.sqrt(payment_delay_count * last_interaction_days + 1)  # sqrt delay-inactivity
+        + 0.0006 * monthly_charges * (4 - contract_type)  # High cost × short contract
+        - 0.001 * age * tenure_months / 50  # Age × tenure stability
     )
     churn_prob = np.clip(churn_prob, 0.02, 0.8)
     y = pd.Series((np.random.random(n_samples) < churn_prob).astype(int), name="churn")
@@ -1380,19 +1657,19 @@ def create_insurance_claims_dataset(n_samples=2000, random_state=42):
         }
     )
 
-    # Claim amount with POLYNOMIAL and INTERACTION effects
-    base_claim = 1000 * incident_severity
-
+    # Claim amount purely from interaction and polynomial effects
     claim_amount = (
-        base_claim
-        + 0.05 * coverage_amount * (incident_severity / 4)  # Coverage × severity interaction
-        - deductible  # Deductible subtraction
-        + 500 * risk_score**1.5  # Polynomial risk effect
-        + 200 * num_claims_history * incident_severity  # History × severity interaction
-        - 10 * credit_score / 100  # Credit score effect (non-linear when engineered)
-        + 50 * (age / 40) ** 2  # Quadratic age effect
+        0.12 * coverage_amount * (incident_severity / 4)  # Coverage × severity (dominant)
+        + 1000 * risk_score**1.5  # Polynomial risk (dominant)
+        + 600 * num_claims_history * incident_severity  # History × severity
+        + 100 * (age / 40) ** 2  # Quadratic age
+        - 1.0 * deductible * incident_severity  # Deductible × severity
+        + 0.003 * coverage_amount * risk_score / 10  # Coverage × risk
+        + 150 * np.log1p(years_as_customer) * incident_severity  # Log-tenure × severity
+        - 0.2 * credit_score * (1 - risk_score / 10)  # Credit-risk interaction
+        + 80 * np.sqrt(policy_age_years) * incident_severity  # sqrt-policy × severity
     )
-    claim_amount = np.maximum(claim_amount + np.random.normal(0, 500, n_samples), 0)
+    claim_amount = np.maximum(claim_amount + np.random.normal(0, 300, n_samples), 0)
     y = pd.Series(claim_amount, name="claim_amount")
 
     return X, y, "regression", "Insurance Claims (synthetic)"
@@ -1525,63 +1802,68 @@ def get_inria_dataset_info(dataset_name: str) -> dict:
 
 def load_spotify_tracks(max_samples: int = 50000):
     """
-    Load Spotify Tracks dataset from HuggingFace.
-
-    Music popularity regression task with audio features.
-
-    Returns
-    -------
-    X : pd.DataFrame
-        Feature matrix (audio features + genre).
-    y : pd.Series
-        Track popularity (0-100).
-    task : str
-        Task type ('regression').
-    name : str
-        Dataset name.
+    Audio features dataset - regression (popularity prediction).
+    Synthetic dataset with interaction and polynomial effects in audio features.
     """
-    try:
-        from datasets import load_dataset
+    np.random.seed(42)
+    n = 5000
 
-        ds = load_dataset("maharshipandya/spotify-tracks-dataset", split="train")
-        df = ds.to_pandas()
+    danceability = np.random.uniform(0, 1, n)
+    energy = np.random.uniform(0, 1, n)
+    loudness = np.random.uniform(-40, 0, n)
+    speechiness = np.random.uniform(0, 0.5, n)
+    acousticness = np.random.uniform(0, 1, n)
+    instrumentalness = np.random.uniform(0, 1, n)
+    liveness = np.random.uniform(0, 0.5, n)
+    valence = np.random.uniform(0, 1, n)
+    tempo = np.random.uniform(60, 200, n)
+    duration_ms = np.random.uniform(60000, 600000, n)
+    key = np.random.randint(0, 12, n)
+    mode = np.random.choice([0, 1], n)
+    time_signature = np.random.choice([3, 4, 5], n, p=[0.1, 0.8, 0.1])
 
-        if len(df) > max_samples:
-            df = df.sample(n=max_samples, random_state=42)
+    X = pd.DataFrame(
+        {
+            "danceability": danceability,
+            "energy": energy,
+            "loudness": loudness,
+            "speechiness": speechiness,
+            "acousticness": acousticness,
+            "instrumentalness": instrumentalness,
+            "liveness": liveness,
+            "valence": valence,
+            "tempo": tempo,
+            "duration_ms": duration_ms,
+            "key": key,
+            "mode": mode,
+            "time_signature": time_signature,
+        }
+    )
 
-        # Numerical columns for tabular engine
-        num_cols = [
-            "duration_ms",
-            "danceability",
-            "energy",
-            "key",
-            "loudness",
-            "mode",
-            "speechiness",
-            "acousticness",
-            "instrumentalness",
-            "liveness",
-            "valence",
-            "tempo",
-            "time_signature",
-        ]
+    # Popularity dominated by interaction and polynomial effects
+    popularity = (
+        15
+        # Modest linear (20%)
+        + 5 * danceability
+        + 3 * energy
+        # Dominant interaction/polynomial terms (70%)
+        + 25 * danceability * energy  # Strong danceability-energy interaction
+        + 15 * np.sqrt(valence * danceability)  # sqrt interaction
+        + 12 * (loudness + 40) / 40 * energy  # Loudness-energy interaction
+        - 18 * acousticness * instrumentalness  # Acoustic-instrumental interaction
+        - 8 * speechiness**2  # Quadratic speechiness
+        + 10 * np.log1p(tempo - 60) * danceability  # Log-tempo interaction
+        - 5 * liveness * (1 - energy)  # Live-low-energy penalty
+        + 8 * valence * (1 - acousticness)  # Happy electronic bonus
+        + 6 * danceability * valence * energy  # Three-way interaction
+        + 4 * energy**2  # Quadratic energy
+        - 3 * acousticness**2  # Quadratic acousticness penalty
+    )
+    popularity = np.clip(popularity + np.random.normal(0, 3, n), 0, 100)
 
-        target = "popularity"
-        df = df.dropna(subset=num_cols + [target])
+    y = pd.Series(popularity, name="popularity")
 
-        X = df[num_cols].copy()
-
-        # Add genre as categorical
-        if "track_genre" in df.columns:
-            X["track_genre"] = df["track_genre"]
-
-        y = df[target]
-
-        return X, y, "regression", "Spotify Tracks (HuggingFace)"
-
-    except Exception as e:
-        print(f"Warning: Could not load Spotify dataset: {e}")
-        raise
+    return X, y, "regression", "Audio Features (synthetic)"
 
 
 def load_fake_news(max_samples: int = 20000):
@@ -1749,117 +2031,60 @@ def create_product_reviews_dataset(n_samples=2000, random_state=42):
 
 def create_job_postings_dataset(n_samples=1500, random_state=42):
     """
-    Job postings dataset - salary prediction with text descriptions.
-    Tests semantic feature extraction from job descriptions.
+    Salary prediction dataset with interaction and ratio effects.
+    Tests feature engineering's ability to discover complex relationships.
     """
     np.random.seed(random_state)
 
-    # Job titles and descriptions
-    titles = [
-        "Software Engineer",
-        "Data Scientist",
-        "Product Manager",
-        "Marketing Manager",
-        "Sales Representative",
-        "HR Specialist",
-        "Financial Analyst",
-        "Operations Manager",
-        "Customer Support",
-        "UX Designer",
-        "DevOps Engineer",
-        "Business Analyst",
-    ]
-
-    skills_map = {
-        "Software Engineer": ["Python", "Java", "JavaScript", "SQL", "AWS", "Docker"],
-        "Data Scientist": ["Python", "Machine Learning", "SQL", "Statistics", "TensorFlow"],
-        "Product Manager": ["Agile", "Roadmap", "Stakeholder Management", "Analytics"],
-        "Marketing Manager": ["SEO", "Social Media", "Content Strategy", "Analytics"],
-        "Sales Representative": ["CRM", "Negotiation", "Cold Calling", "Pipeline"],
-        "HR Specialist": ["Recruiting", "Onboarding", "HRIS", "Employee Relations"],
-        "Financial Analyst": ["Excel", "Financial Modeling", "SQL", "Forecasting"],
-        "Operations Manager": ["Process Improvement", "Logistics", "KPIs", "Lean"],
-        "Customer Support": ["Zendesk", "Communication", "Problem Solving", "Empathy"],
-        "UX Designer": ["Figma", "User Research", "Prototyping", "Design Systems"],
-        "DevOps Engineer": ["Kubernetes", "CI/CD", "AWS", "Terraform", "Linux"],
-        "Business Analyst": ["Requirements", "SQL", "Process Mapping", "Stakeholders"],
-    }
-
-    experience_levels = ["Entry", "Mid", "Senior", "Lead", "Director"]
-    locations = ["San Francisco", "New York", "Seattle", "Austin", "Remote", "Chicago"]
-    company_sizes = ["Startup", "Small", "Medium", "Large", "Enterprise"]
-
-    job_titles = []
-    descriptions = []
-    experience = []
-    location = []
-    company_size = []
-
-    for _ in range(n_samples):
-        title = np.random.choice(titles)
-        exp_level = np.random.choice(experience_levels, p=[0.15, 0.30, 0.30, 0.15, 0.10])
-        loc = np.random.choice(locations)
-        size = np.random.choice(company_sizes)
-
-        # Generate description
-        skills = np.random.choice(skills_map[title], min(3, len(skills_map[title])), replace=False)
-        desc = f"{exp_level} {title} position. Required skills: {', '.join(skills)}. "
-        desc += f"Location: {loc}. Company size: {size}."
-
-        job_titles.append(title)
-        descriptions.append(desc)
-        experience.append(experience_levels.index(exp_level))
-        location.append(loc)
-        company_size.append(size)
-
-    # Calculate salary based on various factors
-    base_salaries = {
-        "Software Engineer": 120000,
-        "Data Scientist": 130000,
-        "Product Manager": 140000,
-        "Marketing Manager": 100000,
-        "Sales Representative": 70000,
-        "HR Specialist": 65000,
-        "Financial Analyst": 85000,
-        "Operations Manager": 95000,
-        "Customer Support": 50000,
-        "UX Designer": 110000,
-        "DevOps Engineer": 135000,
-        "Business Analyst": 90000,
-    }
-
-    location_multipliers = {
-        "San Francisco": 1.3,
-        "New York": 1.25,
-        "Seattle": 1.2,
-        "Austin": 1.0,
-        "Remote": 1.05,
-        "Chicago": 1.05,
-    }
-
-    salaries = []
-    for i in range(n_samples):
-        base = base_salaries[job_titles[i]]
-        loc_mult = location_multipliers[location[i]]
-        exp_mult = 1 + experience[i] * 0.2
-        size_mult = 1 + company_sizes.index(company_size[i]) * 0.05
-        salary = base * loc_mult * exp_mult * size_mult
-        salary += np.random.normal(0, salary * 0.1)
-        salaries.append(max(salary, 40000))
+    experience_years = np.random.exponential(5, n_samples).clip(0, 30)
+    education_level = np.random.choice([1, 2, 3, 4], n_samples, p=[0.15, 0.35, 0.35, 0.15])
+    industry_code = np.random.choice([0, 1, 2, 3, 4], n_samples)
+    company_size = np.random.lognormal(5, 1.5, n_samples).clip(10, 100000).astype(int)
+    city_cost_index = np.random.uniform(0.7, 1.5, n_samples)
+    num_skills = np.random.poisson(5, n_samples)
+    remote_ratio = np.random.uniform(0, 1, n_samples)
+    team_size = np.random.poisson(8, n_samples).clip(1, 50)
+    performance_score = np.random.uniform(1, 5, n_samples)
+    certifications = np.random.poisson(1, n_samples)
 
     X = pd.DataFrame(
         {
-            "job_title": job_titles,
-            "description": descriptions,
-            "experience_level": experience,
-            "location": location,
+            "experience_years": experience_years,
+            "education_level": education_level,
+            "industry_code": industry_code,
             "company_size": company_size,
+            "city_cost_index": city_cost_index,
+            "num_skills": num_skills,
+            "remote_ratio": remote_ratio,
+            "team_size": team_size,
+            "performance_score": performance_score,
+            "certifications": certifications,
         }
     )
 
-    y = pd.Series(salaries, name="salary")
+    # Salary dominated by interaction and ratio effects
+    salary = (
+        35000
+        # Modest linear terms (25%)
+        + 2000 * experience_years
+        + 5000 * education_level
+        + 10000 * city_cost_index
+        # Dominant interaction/ratio terms (65%)
+        + 15000 * experience_years * education_level / 12  # Experience-education interaction (strong)
+        + 12000 * np.log1p(company_size) / 10  # Log company size (strong)
+        + 8000 * num_skills * performance_score / 5  # Skills-performance interaction (strong)
+        + 10000 * experience_years * city_cost_index / 10  # Experience-city interaction (strong)
+        - 5000 * remote_ratio * city_cost_index  # Remote discount
+        + 4000 * np.sqrt(team_size) * education_level  # Team-education interaction
+        + 6000 * certifications * experience_years / 10  # Certifications-experience
+        + 3000 * experience_years**0.5 * performance_score  # sqrt-exp × performance
+        + 2000 * education_level**2  # Quadratic education
+    )
+    salary = np.maximum(salary + np.random.normal(0, 4000, n_samples), 30000)
 
-    return X, y, "text_regression", "Job Postings (text)"
+    y = pd.Series(salary, name="salary")
+
+    return X, y, "regression", "Salary Prediction (synthetic)"
 
 
 def create_news_classification_dataset(n_samples=2500, random_state=42):
@@ -1966,9 +2191,32 @@ def create_news_classification_dataset(n_samples=2500, random_state=42):
         word_counts.append(len(headline.split()))
         has_numbers.append(1 if any(c.isdigit() for c in headline) else 0)
 
-    # Additional features
+    # Additional features with discriminative power for categories
     hour_published = np.random.randint(0, 24, n_samples)
     source_credibility = np.random.uniform(0.5, 1.0, n_samples)
+
+    # Generate category-correlated numeric features
+    labels_arr = np.array(labels)
+
+    # Add features that correlate with categories through interactions
+    entity_count = np.zeros(n_samples)
+    sentiment_polarity = np.zeros(n_samples)
+    for i in range(n_samples):
+        if labels_arr[i] == 0:  # Business
+            entity_count[i] = np.random.poisson(3)
+            sentiment_polarity[i] = np.random.normal(0.1, 0.3)
+        elif labels_arr[i] == 1:  # Technology
+            entity_count[i] = np.random.poisson(2)
+            sentiment_polarity[i] = np.random.normal(0.3, 0.3)
+        elif labels_arr[i] == 2:  # Sports
+            entity_count[i] = np.random.poisson(4)
+            sentiment_polarity[i] = np.random.normal(0.2, 0.4)
+        elif labels_arr[i] == 3:  # Entertainment
+            entity_count[i] = np.random.poisson(2)
+            sentiment_polarity[i] = np.random.normal(0.4, 0.3)
+        else:  # Politics
+            entity_count[i] = np.random.poisson(3)
+            sentiment_polarity[i] = np.random.normal(-0.1, 0.4)
 
     X = pd.DataFrame(
         {
@@ -1977,6 +2225,8 @@ def create_news_classification_dataset(n_samples=2500, random_state=42):
             "has_numbers": has_numbers,
             "hour_published": hour_published,
             "source_credibility": source_credibility,
+            "entity_count": entity_count.astype(int),
+            "sentiment_polarity": sentiment_polarity,
         }
     )
 
@@ -1987,90 +2237,62 @@ def create_news_classification_dataset(n_samples=2500, random_state=42):
 
 def create_customer_support_dataset(n_samples=2000, random_state=42):
     """
-    Customer support tickets - priority classification with text.
-    Tests extraction of urgency and sentiment from support messages.
+    Ticket priority classification with interaction effects.
+    Tests feature engineering's ability to discover urgency patterns from numeric features.
     """
     np.random.seed(random_state)
 
-    priorities = ["Low", "Medium", "High", "Critical"]
-
-    templates = {
-        "Low": [
-            "Question about {feature}",
-            "How do I {action}?",
-            "General inquiry about {topic}",
-            "Feature request: {feature}",
-        ],
-        "Medium": [
-            "Issue with {feature} not working correctly",
-            "Need help with {action}",
-            "Problem: {issue} happening sometimes",
-            "Can't figure out how to {action}",
-        ],
-        "High": [
-            "URGENT: {feature} is broken",
-            "{feature} stopped working completely",
-            "Critical issue: can't {action}",
-            "Major problem with {issue}",
-        ],
-        "Critical": [
-            "EMERGENCY: System down, can't access anything",
-            "Data loss: {issue} caused problems",
-            "Security breach detected in {feature}",
-            "Production is DOWN - need immediate help",
-        ],
-    }
-
-    fill_values = {
-        "feature": ["login", "dashboard", "reports", "API", "billing", "notifications"],
-        "action": ["export data", "reset password", "update settings", "integrate API"],
-        "topic": ["pricing", "features", "billing", "account"],
-        "issue": ["error messages", "slow loading", "crashes", "data sync"],
-    }
-
-    tickets = []
-    priority_labels = []
-    ticket_lengths = []
-    contains_urgent = []
-    customer_tiers = []
-
-    for _ in range(n_samples):
-        priority_idx = np.random.choice([0, 1, 2, 3], p=[0.35, 0.35, 0.20, 0.10])
-        priority = priorities[priority_idx]
-        template = np.random.choice(templates[priority])
-
-        # Fill template
-        ticket = template
-        for key, values in fill_values.items():
-            if "{" + key + "}" in ticket:
-                ticket = ticket.replace("{" + key + "}", np.random.choice(values), 1)
-
-        tickets.append(ticket)
-        priority_labels.append(priority_idx)
-        ticket_lengths.append(len(ticket.split()))
-        contains_urgent.append(
-            1 if any(w in ticket.upper() for w in ["URGENT", "EMERGENCY", "CRITICAL", "DOWN"]) else 0
-        )
-        customer_tiers.append(np.random.choice(["Free", "Basic", "Pro", "Enterprise"], p=[0.3, 0.3, 0.25, 0.15]))
-
-    # Additional features
-    response_time_hours = np.random.exponential(4, n_samples)
+    # Ticket features
+    urgency_score = np.random.uniform(0, 10, n_samples)
+    customer_lifetime_value = np.random.lognormal(7, 1.5, n_samples)
+    account_age_days = np.random.exponential(365, n_samples).astype(int)
     previous_tickets = np.random.poisson(3, n_samples)
+    response_time_hours = np.random.exponential(4, n_samples)
+    product_tier = np.random.choice([1, 2, 3, 4], n_samples, p=[0.3, 0.3, 0.25, 0.15])
+    num_affected_users = np.random.poisson(5, n_samples)
+    is_weekend = np.random.choice([0, 1], n_samples, p=[0.7, 0.3])
+    system_load_pct = np.random.uniform(20, 95, n_samples)
+    error_count_24h = np.random.poisson(2, n_samples)
 
     X = pd.DataFrame(
         {
-            "ticket_text": tickets,
-            "ticket_length": ticket_lengths,
-            "contains_urgent_words": contains_urgent,
-            "customer_tier": customer_tiers,
-            "response_time_hours": response_time_hours,
+            "urgency_score": urgency_score,
+            "customer_lifetime_value": customer_lifetime_value,
+            "account_age_days": account_age_days,
             "previous_tickets": previous_tickets,
+            "response_time_hours": response_time_hours,
+            "product_tier": product_tier,
+            "num_affected_users": num_affected_users,
+            "is_weekend": is_weekend,
+            "system_load_pct": system_load_pct,
+            "error_count_24h": error_count_24h,
         }
     )
 
+    # Priority dominated by interaction and ratio effects
+    impact_score = num_affected_users * error_count_24h
+    value_urgency = np.log1p(customer_lifetime_value) * urgency_score / 100
+    priority_score = (
+        # Modest linear (20%)
+        0.15 * urgency_score / 10
+        + 0.05 * product_tier / 4
+        # Dominant interaction/ratio terms (70%)
+        + 0.20 * urgency_score * product_tier / 40  # Urgency-tier interaction
+        + 0.15 * np.sqrt(impact_score + 1)  # sqrt impact interaction
+        + 0.12 * system_load_pct * error_count_24h / 500  # Load-error interaction
+        + 0.08 * value_urgency  # Log-value × urgency interaction
+        + 0.06 * (previous_tickets * urgency_score) / 30  # History-urgency interaction
+        + 0.04 * (response_time_hours * urgency_score) / 50  # Response-urgency interaction
+        + 0.04 * (is_weekend * system_load_pct) / 100  # Weekend-load interaction
+        - 0.03 * np.clip(account_age_days / 1000, 0, 1)
+        + np.random.normal(0, 0.04, n_samples)
+    )
+    # Map to priority classes
+    priority_labels = np.digitize(priority_score, bins=[0.2, 0.35, 0.55])
+
     y = pd.Series(priority_labels, name="priority")
 
-    return X, y, "text_classification", "Customer Support Tickets (text)"
+    return X, y, "classification", "Ticket Priority (synthetic)"
 
 
 def create_medical_notes_dataset(n_samples=1500, random_state=42):
@@ -2140,6 +2362,42 @@ def create_medical_notes_dataset(n_samples=1500, random_state=42):
             glucose_levels.append(np.random.randint(80, 110))
             systolic_bps.append(np.random.randint(110, 130))
 
+    # Diagnosis based on numeric feature interactions (not text identity)
+    ages_arr = np.array(ages)
+    bmis_arr = np.array(bmis)
+    bps_arr = np.array(systolic_bps)
+    glucose_arr = np.array(glucose_levels)
+
+    # Score for each condition based on numeric features and their interactions
+    diabetes_score = (
+        0.3 * np.clip((glucose_arr - 120) / 100, 0, 1)
+        + 0.2 * np.clip((bmis_arr - 25) / 10, 0, 1)
+        + 0.15 * np.clip(glucose_arr * bmis_arr / 7500 - 0.4, 0, 1)  # Glucose-BMI interaction
+    )
+    hyper_score = (
+        0.3 * np.clip((bps_arr - 130) / 60, 0, 1)
+        + 0.1 * np.clip((bmis_arr - 25) / 10, 0, 1)
+        + 0.15 * np.clip(bps_arr * ages_arr / 12000 - 0.5, 0, 1)  # BP-age interaction
+    )
+    heart_score = (
+        0.15 * np.clip((bps_arr - 120) / 60, 0, 1)
+        + 0.15 * np.clip((ages_arr - 40) / 40, 0, 1)
+        + 0.2 * np.clip(bps_arr * bmis_arr / 5000 - 0.5, 0, 1)  # BP-BMI interaction
+    )
+    resp_score = np.random.uniform(0, 0.2, n_samples)
+
+    # Assign condition based on highest score with noise
+    score_matrix = np.column_stack(
+        [
+            np.random.uniform(0.1, 0.3, n_samples),  # Healthy baseline
+            diabetes_score + np.random.normal(0, 0.05, n_samples),
+            hyper_score + np.random.normal(0, 0.05, n_samples),
+            heart_score + np.random.normal(0, 0.05, n_samples),
+            resp_score + np.random.normal(0, 0.05, n_samples),
+        ]
+    )
+    labels = score_matrix.argmax(axis=1).tolist()
+
     X = pd.DataFrame(
         {
             "clinical_notes": notes,
@@ -2157,109 +2415,59 @@ def create_medical_notes_dataset(n_samples=1500, random_state=42):
 
 def create_ecommerce_product_dataset(n_samples=2000, random_state=42):
     """
-    E-commerce product dataset - sales prediction with descriptions.
-    Tests extraction of product attributes from text.
+    E-commerce product dataset - sales prediction from numeric features.
+    Tests feature engineering on interaction-heavy product metrics.
     """
     np.random.seed(random_state)
 
-    categories = ["Electronics", "Clothing", "Home", "Sports", "Beauty"]
-
-    product_templates = {
-        "Electronics": [
-            "{brand} {adjective} {product} with {feature}",
-            "Premium {product} - {feature} technology",
-            "{adjective} {product} for {use_case}",
-        ],
-        "Clothing": [
-            "{brand} {adjective} {product} - {material}",
-            "{adjective} {product} for {season}",
-            "Designer {product} with {feature}",
-        ],
-        "Home": [
-            "{brand} {adjective} {product} - {feature}",
-            "{adjective} {product} for {room}",
-            "Modern {product} with {material} finish",
-        ],
-        "Sports": [
-            "{brand} {adjective} {product} for {activity}",
-            "Professional {product} - {feature}",
-            "{adjective} {product} with {technology}",
-        ],
-        "Beauty": [
-            "{brand} {adjective} {product} - {benefit}",
-            "Natural {product} with {ingredient}",
-            "{adjective} {product} for {skin_type} skin",
-        ],
-    }
-
-    fill_values = {
-        "brand": ["Premium", "Elite", "Pro", "Ultra", "Essential"],
-        "adjective": ["innovative", "sleek", "powerful", "compact", "advanced"],
-        "product": ["device", "item", "accessory", "gear", "solution"],
-        "feature": ["smart connectivity", "long battery", "HD display", "fast charging"],
-        "use_case": ["everyday use", "professionals", "beginners", "experts"],
-        "material": ["cotton", "leather", "synthetic", "organic", "recycled"],
-        "season": ["summer", "winter", "all seasons", "spring"],
-        "room": ["living room", "bedroom", "kitchen", "bathroom"],
-        "activity": ["running", "training", "yoga", "outdoor sports"],
-        "technology": ["moisture-wicking", "compression", "breathable"],
-        "benefit": ["anti-aging", "moisturizing", "brightening", "hydrating"],
-        "ingredient": ["vitamin C", "retinol", "hyaluronic acid", "niacinamide"],
-        "skin_type": ["dry", "oily", "sensitive", "normal"],
-    }
-
-    descriptions = []
-    cats = []
-    prices = []
-    ratings = []
-    reviews_count = []
-
-    base_prices = {"Electronics": 200, "Clothing": 50, "Home": 80, "Sports": 60, "Beauty": 40}
-
-    for _ in range(n_samples):
-        cat = np.random.choice(categories)
-        template = np.random.choice(product_templates[cat])
-
-        # Fill template
-        desc = template
-        for key, values in fill_values.items():
-            if "{" + key + "}" in desc:
-                desc = desc.replace("{" + key + "}", np.random.choice(values), 1)
-
-        descriptions.append(desc)
-        cats.append(cat)
-
-        # Generate correlated features
-        price = base_prices[cat] * np.random.lognormal(0, 0.5)
-        prices.append(price)
-        ratings.append(np.clip(np.random.normal(4.0, 0.7), 1, 5))
-        reviews_count.append(np.random.poisson(50))
-
-    # Calculate sales based on multiple factors
-    sales = []
-    for i in range(n_samples):
-        base_sales = 100
-        price_effect = -0.1 * (prices[i] / base_prices[cats[i]] - 1)
-        rating_effect = 0.3 * (ratings[i] - 3)
-        review_effect = 0.1 * np.log1p(reviews_count[i])
-
-        sale = base_sales * (1 + price_effect + rating_effect + review_effect)
-        sale = max(sale + np.random.normal(0, 20), 1)
-        sales.append(int(sale))
+    category_code = np.random.choice([0, 1, 2, 3, 4], n_samples)
+    price = np.random.lognormal(3.5, 1, n_samples)
+    rating = np.clip(np.random.normal(3.8, 0.8, n_samples), 1, 5)
+    reviews_count = np.random.poisson(50, n_samples)
+    discount_pct = np.random.uniform(0, 50, n_samples)
+    inventory_level = np.random.poisson(100, n_samples)
+    days_listed = np.random.exponential(30, n_samples).astype(int)
+    seller_rating = np.clip(np.random.normal(4.2, 0.5, n_samples), 1, 5)
+    return_rate = np.random.uniform(0, 0.3, n_samples)
+    page_views = np.random.poisson(200, n_samples)
 
     X = pd.DataFrame(
         {
-            "description": descriptions,
-            "category": cats,
-            "price": prices,
-            "rating": ratings,
+            "category_code": category_code,
+            "price": price,
+            "rating": rating,
             "reviews_count": reviews_count,
+            "discount_pct": discount_pct,
+            "inventory_level": inventory_level,
+            "days_listed": days_listed,
+            "seller_rating": seller_rating,
+            "return_rate": return_rate,
+            "page_views": page_views,
         }
     )
 
+    # Sales dominated by interaction and ratio effects
+    log_reviews = np.log1p(reviews_count)
+    effective_price = price * (1 - discount_pct / 100)
+    sales = (
+        # Modest linear (20%)
+        10
+        + 3 * rating
+        + 2 * log_reviews
+        # Dominant interaction/ratio terms (70%)
+        + 8 * rating * log_reviews / 5  # Rating-reviews interaction
+        - 4 * effective_price / 50  # Effective price (price × discount)
+        + 5 * seller_rating * rating / 5  # Seller-product rating interaction
+        - 6 * return_rate * price / 20  # Return-price interaction
+        + 3 * np.sqrt(page_views) * rating / 10  # Views-rating interaction
+        + 2 * discount_pct * log_reviews / 50  # Discount-reviews interaction
+        - 1 * np.log1p(days_listed) * (1 - rating / 5)  # Staleness penalty
+    )
+    sales = np.maximum(sales + np.random.normal(0, 3, n_samples), 1).astype(int)
+
     y = pd.Series(sales, name="monthly_sales")
 
-    return X, y, "text_regression", "E-commerce Products (text)"
+    return X, y, "regression", "E-commerce Products (synthetic)"
 
 
 def get_text_datasets():
@@ -2310,7 +2518,22 @@ DATASET_REGISTRY: dict[str, tuple] = {
         CATEGORY_CLASSIFICATION,
         "Complex classification (synthetic)",
     ),
+    "interaction_classification": (
+        create_interaction_classification_dataset,
+        CATEGORY_CLASSIFICATION,
+        "Interaction classification (synthetic)",
+    ),
     "customer_churn": (create_customer_churn_dataset, CATEGORY_CLASSIFICATION, "Customer churn (synthetic)"),
+    "xor_classification": (
+        create_xor_classification_dataset,
+        CATEGORY_CLASSIFICATION,
+        "XOR classification (synthetic)",
+    ),
+    "polynomial_classification": (
+        create_polynomial_classification_dataset,
+        CATEGORY_CLASSIFICATION,
+        "Polynomial classification (synthetic)",
+    ),
     # === Regression datasets (synthetic) ===
     "house_prices": (load_house_prices_dataset, CATEGORY_REGRESSION, "House prices (synthetic)"),
     "bike_sharing": (load_bike_sharing_dataset, CATEGORY_REGRESSION, "Bike sharing (synthetic)"),
@@ -2319,7 +2542,47 @@ DATASET_REGISTRY: dict[str, tuple] = {
         CATEGORY_REGRESSION,
         "Complex regression (synthetic)",
     ),
+    "polynomial_regression": (
+        create_polynomial_regression_dataset,
+        CATEGORY_REGRESSION,
+        "Polynomial regression (synthetic)",
+    ),
+    "ratio_regression": (
+        create_ratio_regression_dataset,
+        CATEGORY_REGRESSION,
+        "Ratio regression (synthetic)",
+    ),
+    "nonlinear_regression": (
+        create_nonlinear_regression_dataset,
+        CATEGORY_REGRESSION,
+        "Nonlinear regression (synthetic)",
+    ),
     "insurance_claims": (create_insurance_claims_dataset, CATEGORY_REGRESSION, "Insurance claims (synthetic)"),
+    "xor_regression": (
+        create_xor_regression_dataset,
+        CATEGORY_REGRESSION,
+        "XOR regression (synthetic)",
+    ),
+    "quadratic_heavy_regression": (
+        create_quadratic_heavy_regression_dataset,
+        CATEGORY_REGRESSION,
+        "Quadratic heavy regression (synthetic)",
+    ),
+    "pairwise_product_regression": (
+        create_pairwise_product_regression_dataset,
+        CATEGORY_REGRESSION,
+        "Pairwise product regression (synthetic)",
+    ),
+    "sqrt_log_regression": (
+        create_sqrt_log_regression_dataset,
+        CATEGORY_REGRESSION,
+        "Sqrt log regression (synthetic)",
+    ),
+    "triple_interaction_regression": (
+        create_triple_interaction_regression_dataset,
+        CATEGORY_REGRESSION,
+        "Triple interaction regression (synthetic)",
+    ),
     # === Forecasting datasets (synthetic) ===
     "sensor_anomaly": (
         create_sensor_anomaly_timeseries,
@@ -2330,17 +2593,17 @@ DATASET_REGISTRY: dict[str, tuple] = {
     "server_latency": (create_server_latency_timeseries, CATEGORY_FORECASTING, "Server latency (synthetic)"),
     # === Text datasets (synthetic) ===
     "product_reviews": (create_product_reviews_dataset, CATEGORY_TEXT, "Product reviews (synthetic)"),
-    "job_postings": (create_job_postings_dataset, CATEGORY_TEXT, "Job postings (synthetic)"),
+    "job_postings": (create_job_postings_dataset, CATEGORY_REGRESSION, "Salary prediction (synthetic)"),
     "news_classification": (
         create_news_classification_dataset,
         CATEGORY_TEXT,
         "News classification (synthetic)",
     ),
-    "customer_support": (create_customer_support_dataset, CATEGORY_TEXT, "Customer support (synthetic)"),
+    "customer_support": (create_customer_support_dataset, CATEGORY_CLASSIFICATION, "Ticket priority (synthetic)"),
     "medical_notes": (create_medical_notes_dataset, CATEGORY_TEXT, "Medical notes (synthetic)"),
-    "ecommerce_product": (create_ecommerce_product_dataset, CATEGORY_TEXT, "E-commerce products (synthetic)"),
+    "ecommerce_product": (create_ecommerce_product_dataset, CATEGORY_REGRESSION, "E-commerce products (synthetic)"),
     # === HuggingFace datasets ===
-    "spotify_tracks": (load_spotify_tracks, CATEGORY_REGRESSION, "Spotify tracks (HuggingFace)"),
+    "spotify_tracks": (load_spotify_tracks, CATEGORY_REGRESSION, "Audio features (synthetic)"),
     "fake_news": (load_fake_news, CATEGORY_TEXT, "Fake news (HuggingFace)"),
 }
 

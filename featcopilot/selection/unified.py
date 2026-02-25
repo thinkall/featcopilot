@@ -175,17 +175,28 @@ class FeatureSelector(BaseSelector):
         original_selected = []
         derived_selected = []
 
+        # Compute importance threshold based on original feature scores
+        original_scores = [self._feature_scores.get(f, 0) for f in self.original_features if f in self._feature_scores]
+        if original_scores:
+            median_original = float(np.median(original_scores))
+            # Derived features must score higher than the median original
+            importance_threshold = median_original * 1.5
+        else:
+            max_score = max(self._feature_scores.values()) if self._feature_scores else 1.0
+            importance_threshold = max_score * 0.10
+
         for name, score in sorted_features:
             if name in self.original_features:
                 original_selected.append(name)
             else:
-                # Only include derived features with meaningful importance (> 1% of max)
-                max_score = max(self._feature_scores.values()) if self._feature_scores else 1.0
-                importance_threshold = max_score * 0.01  # 1% threshold
                 if score >= importance_threshold:
                     derived_selected.append(name)
                 elif self.verbose:
                     logger.debug(f"Excluding low-importance feature {name} (score={score:.4f})")
+
+        # Cap derived features at 2x original feature count
+        max_derived_ratio = max(len(self.original_features) * 2, 10)
+        derived_selected = derived_selected[:max_derived_ratio]
 
         # Apply max_features limit only to derived features
         if self.max_features is not None:
