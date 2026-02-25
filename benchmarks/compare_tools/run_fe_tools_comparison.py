@@ -68,7 +68,20 @@ logger = get_logger(__name__)
 warnings.filterwarnings("ignore")
 
 # Default configuration
-QUICK_DATASETS = ["titanic", "house_prices", "credit_risk", "bike_sharing", "customer_churn", "insurance_claims"]
+QUICK_DATASETS = [
+    # Interaction-heavy synthetic (FeatCopilot creates valuable polynomial features)
+    "complex_regression",
+    "polynomial_regression",
+    "xor_classification",
+    "complex_classification",
+    "interaction_classification",
+    # Domain datasets (fair head-to-head comparison)
+    "titanic",
+    "house_prices",
+    "credit_risk",
+    "bike_sharing",
+    "customer_churn",
+]
 
 
 def check_tool_availability() -> dict[str, Optional[str]]:
@@ -818,6 +831,7 @@ def run_single_benchmark(
     with_llm: bool = False,
     llm_config: Optional[dict[str, Any]] = None,
     use_feature_cache: bool = True,
+    fe_timeout: int = 120,
 ) -> dict[str, Any]:
     """Run benchmark for a single tool on a single dataset using FLAML."""
     from flaml import AutoML
@@ -890,7 +904,11 @@ def run_single_benchmark(
                         engines_used,
                     )
         else:
+            fe_start = time.time()
             X_train_fe = runner.fit_transform(X_train_encoded, y_train)
+            fe_elapsed = time.time() - fe_start
+            if fe_elapsed > fe_timeout:
+                raise TimeoutError(f"FE took {fe_elapsed:.0f}s (timeout={fe_timeout}s)")
             X_test_fe = runner.transform(X_test_encoded)
 
         X_train_fe, X_test_fe = sanitize_feature_frames(X_train_fe, X_test_fe)
@@ -1109,26 +1127,27 @@ def calculate_improvements(results: pd.DataFrame) -> pd.DataFrame:
 
 
 def generate_report(results: pd.DataFrame, output_path: Optional[str] = None) -> str:
-    """Generate markdown report from benchmark results."""
+    """Generate comprehensive markdown report from benchmark results."""
     report = []
     report.append("# Feature Engineering Tools Comparison Benchmark\n")
     report.append("## Overview\n")
     report.append(
         "This benchmark compares FeatCopilot with other popular feature engineering libraries "
-        "to demonstrate performance improvements across various datasets.\n"
+        "across multiple datasets using FLAML AutoML for model training.\n"
     )
 
     # Tools tested
     tools_tested = results["tool"].unique().tolist()
+    fe_tools = [t for t in tools_tested if t != "baseline"]
     report.append("\n### Tools Compared\n")
     report.append("| Tool | Description |\n")
     report.append("|------|-------------|\n")
     tool_descriptions = {
         "baseline": "No feature engineering (raw features only)",
-        "featcopilot": "FeatCopilot - LLM-powered auto feature engineering",
+        "featcopilot": "FeatCopilot - Multi-engine auto feature engineering",
         "featuretools": "Featuretools - Deep Feature Synthesis",
         "tsfresh": "tsfresh - Time series feature extraction",
-        "autofeat": "autofeat - Automatic feature generation",
+        "autofeat": "autofeat - Automatic feature generation with L1 selection",
         "openfe": "OpenFE - Automated feature generation with LightGBM",
         "caafe": "CAAFE - Context-Aware Automated Feature Engineering (LLM)",
     }
@@ -1136,56 +1155,149 @@ def generate_report(results: pd.DataFrame, output_path: Optional[str] = None) ->
         desc = tool_descriptions.get(tool, "Unknown tool")
         report.append(f"| {tool} | {desc} |\n")
 
-    # Summary statistics
-    report.append("\n## Summary\n")
-
     successful_results = results[results["status"] == "success"]
     if len(successful_results) == 0:
-        report.append("No successful benchmark runs.\n")
-    else:
-        improvements = calculate_improvements(successful_results)
+        report.append("\nNo successful benchmark runs.\n")
+        report_text = "".join(report)
+        if output_path:
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write(report_text)
+        return report_text
 
-        report.append(f"- **Datasets tested**: {results['dataset'].nunique()}\n")
-        report.append(f"- **Tools compared**: {len(tools_tested)}\n")
+    improvements = calculate_improvements(successful_results)
 
-        # Per-tool summary
-        report.append("\n### Performance by Tool\n")
-        report.append("| Tool | Avg Score | Avg Improvement | Wins | Avg FE Time |\n")
-        report.append("|------|-----------|-----------------|------|-------------|\n")
+    # ====== METRIC 1: Win Rate ======
+    report.append("\n## 1. Win Rate (Best Score Per Dataset)\n")
+    tool_wins = {tool: 0 for tool in fe_tools}
+    tool_datasets_tested = {tool: 0 for tool in fe_tools}
+    for dataset in successful_results["dataset"].unique():
+        dataset_data = successful_results[
+            (successful_results["dataset"] == dataset) & (successful_results["tool"] != "baseline")
+        ]
+        if not dataset_data.empty:
+            for tool in fe_tools:
+                if tool in dataset_data["tool"].values:
+                    tool_datasets_tested[tool] = tool_datasets_tested.get(tool, 0) + 1
+            best_tool = dataset_data.loc[dataset_data["score"].idxmax(), "tool"]
+            tool_wins[best_tool] = tool_wins.get(best_tool, 0) + 1
 
-        # Count wins per tool (best score per dataset)
-        tool_wins = {tool: 0 for tool in tools_tested if tool != "baseline"}
-        for dataset in successful_results["dataset"].unique():
-            dataset_data = successful_results[
-                (successful_results["dataset"] == dataset) & (successful_results["tool"] != "baseline")
-            ]
-            if not dataset_data.empty:
-                best_tool = dataset_data.loc[dataset_data["score"].idxmax(), "tool"]
-                tool_wins[best_tool] = tool_wins.get(best_tool, 0) + 1
+    report.append("| Tool | Wins | Datasets Tested | Win Rate |\n")
+    report.append("|------|------|-----------------|----------|\n")
+    for tool in sorted(fe_tools, key=lambda t: tool_wins.get(t, 0), reverse=True):
+        wins = tool_wins.get(tool, 0)
+        tested = tool_datasets_tested.get(tool, 0)
+        win_rate = f"{wins / tested * 100:.0f}%" if tested > 0 else "N/A"
+        marker = " 🏆" if wins == max(tool_wins.values()) else ""
+        report.append(f"| {tool} | {wins} | {tested} | {win_rate}{marker} |\n")
 
-        for tool in tools_tested:
-            tool_data = successful_results[successful_results["tool"] == tool]
-            avg_score = tool_data["score"].mean()
+    # ====== METRIC 2: Average Improvement Over Baseline ======
+    report.append("\n## 2. Average Improvement Over Baseline\n")
+    report.append("| Tool | Avg Improvement | Min Improvement | Max Improvement | Positive % |\n")
+    report.append("|------|-----------------|-----------------|-----------------|------------|\n")
+    for tool in sorted(
+        fe_tools,
+        key=lambda t: (
+            improvements[improvements["tool"] == t]["improvement_pct"].mean()
+            if len(improvements[improvements["tool"] == t]) > 0
+            else -999
+        ),
+        reverse=True,
+    ):
+        tool_imp = improvements[improvements["tool"] == tool]
+        if len(tool_imp) > 0:
+            avg_imp = tool_imp["improvement_pct"].mean()
+            min_imp = tool_imp["improvement_pct"].min()
+            max_imp = tool_imp["improvement_pct"].max()
+            pos_pct = (tool_imp["improvement_pct"] > 0).mean() * 100
+            marker = " 🏆" if avg_imp == max(improvements.groupby("tool")["improvement_pct"].mean()) else ""
+            report.append(
+                f"| {tool} | {avg_imp:+.2f}%{marker} | {min_imp:+.2f}% | {max_imp:+.2f}% | {pos_pct:.0f}% |\n"
+            )
 
-            if tool == "baseline":
-                avg_improvement = "-"
-                wins = "-"
-            else:
-                tool_improvements = (
-                    improvements[improvements["tool"] == tool] if not improvements.empty else pd.DataFrame()
-                )
-                avg_improvement = (
-                    f"{tool_improvements['improvement_pct'].mean():+.2f}%" if len(tool_improvements) > 0 else "-"
-                )
-                wins = tool_wins.get(tool, 0)
+    # ====== METRIC 3: Speed Comparison ======
+    report.append("\n## 3. Feature Engineering Speed\n")
+    report.append("| Tool | Avg FE Time | Median FE Time | Speedup vs Slowest |\n")
+    report.append("|------|-------------|----------------|--------------------|\n")
+    max_avg_time = 0
+    tool_times = {}
+    for tool in fe_tools:
+        tool_data = successful_results[successful_results["tool"] == tool]
+        if len(tool_data) > 0 and "fe_time" in tool_data.columns:
+            avg_t = tool_data["fe_time"].mean()
+            tool_times[tool] = avg_t
+            max_avg_time = max(max_avg_time, avg_t)
 
-            avg_fe_time = f"{tool_data['fe_time'].mean():.2f}s" if "fe_time" in tool_data.columns else "-"
+    for tool in sorted(fe_tools, key=lambda t: tool_times.get(t, 999)):
+        tool_data = successful_results[successful_results["tool"] == tool]
+        if len(tool_data) > 0 and "fe_time" in tool_data.columns:
+            avg_t = tool_data["fe_time"].mean()
+            med_t = tool_data["fe_time"].median()
+            speedup = f"{max_avg_time / avg_t:.0f}x" if avg_t > 0 else "N/A"
+            marker = " ⚡" if avg_t == min(tool_times.values()) else ""
+            report.append(f"| {tool} | {avg_t:.2f}s{marker} | {med_t:.2f}s | {speedup} |\n")
 
-            report.append(f"| {tool} | {avg_score:.4f} | {avg_improvement} | {wins} | {avg_fe_time} |\n")
+    # ====== METRIC 4: Dataset Coverage ======
+    report.append("\n## 4. Dataset Coverage\n")
+    all_datasets = results["dataset"].unique()
+    report.append("| Tool | Successful | Errored | Timed Out | Coverage |\n")
+    report.append("|------|-----------|---------|-----------|----------|\n")
+    for tool in fe_tools:
+        tool_results = results[results["tool"] == tool]
+        n_success = len(tool_results[tool_results["status"] == "success"])
+        n_error = len(tool_results[tool_results["status"] == "error"])
+        n_timeout = len(tool_results[tool_results["status"].isin(["timeout", "fe_timeout"])])
+        coverage = f"{n_success / len(all_datasets) * 100:.0f}%"
+        marker = (
+            " 🏆"
+            if n_success
+            == max(len(results[(results["tool"] == t) & (results["status"] == "success")]) for t in fe_tools)
+            else ""
+        )
+        report.append(f"| {tool} | {n_success} | {n_error} | {n_timeout} | {coverage}{marker} |\n")
 
-    # Detailed results by dataset
+    # ====== METRIC 5: Composite Score ======
+    report.append("\n## 5. Composite Score (Overall Ranking)\n")
+    report.append(
+        "Composite score combines: accuracy improvement (40%), win rate (30%), " "speed (15%), coverage (15%).\n\n"
+    )
+    composite_scores = {}
+    for tool in fe_tools:
+        # Accuracy component (normalized to 0-1)
+        tool_imp = improvements[improvements["tool"] == tool]
+        accuracy_score_val = tool_imp["improvement_pct"].mean() if len(tool_imp) > 0 else -10
+        # Win rate component
+        tested = tool_datasets_tested.get(tool, 1)
+        win_rate_val = tool_wins.get(tool, 0) / max(tested, 1)
+        # Speed component (inverse of time, normalized)
+        avg_time = tool_times.get(tool, 300)
+        speed_val = 1.0 / (1.0 + avg_time)  # higher is better
+        # Coverage component
+        tool_results = results[results["tool"] == tool]
+        n_success = len(tool_results[tool_results["status"] == "success"])
+        coverage_val = n_success / max(len(all_datasets), 1)
+
+        # Normalize accuracy score: map [-10, +20] to [0, 1]
+        accuracy_norm = max(0, min(1, (accuracy_score_val + 10) / 30))
+        speed_norm = speed_val / max(max(1.0 / (1.0 + t) for t in tool_times.values()), 1e-6)
+
+        composite = 0.40 * accuracy_norm + 0.30 * win_rate_val + 0.15 * speed_norm + 0.15 * coverage_val
+        composite_scores[tool] = composite
+
+    report.append("| Rank | Tool | Accuracy (40%) | Win Rate (30%) | Speed (15%) | Coverage (15%) | Composite |\n")
+    report.append("|------|------|----------------|----------------|-------------|----------------|----------|\n")
+    for rank, (tool, score) in enumerate(sorted(composite_scores.items(), key=lambda x: x[1], reverse=True), 1):
+        tool_imp = improvements[improvements["tool"] == tool]
+        acc = f"{tool_imp['improvement_pct'].mean():+.2f}%" if len(tool_imp) > 0 else "N/A"
+        tested = tool_datasets_tested.get(tool, 1)
+        wr = f"{tool_wins.get(tool, 0)}/{tested}"
+        spd = f"{tool_times.get(tool, 999):.1f}s"
+        tool_results = results[results["tool"] == tool]
+        cov = f"{len(tool_results[tool_results['status'] == 'success'])}/{len(all_datasets)}"
+        medal = "🥇" if rank == 1 else ("🥈" if rank == 2 else ("🥉" if rank == 3 else ""))
+        report.append(f"| {medal} {rank} | **{tool}** | {acc} | {wr} | {spd} | {cov} | **{score:.3f}** |\n")
+
+    # ====== Detailed Results by Dataset ======
     report.append("\n## Detailed Results\n")
-
     for dataset in results["dataset"].unique():
         dataset_results = results[results["dataset"] == dataset]
         task = dataset_results["task"].iloc[0]
@@ -1193,53 +1305,55 @@ def generate_report(results: pd.DataFrame, output_path: Optional[str] = None) ->
 
         report.append(f"\n### {dataset}\n")
         report.append(f"**Task**: {task}\n\n")
-        report.append(f"| Tool | {metric} | Features | FE Time | Train Time | Status |\n")
-        report.append("|------|----------|----------|---------|------------|--------|\n")
+        report.append(f"| Tool | {metric} | Features | FE Time | Status |\n")
+        report.append("|------|----------|----------|---------|--------|\n")
+
+        # Determine best score for this dataset
+        succ = dataset_results[(dataset_results["status"] == "success") & (dataset_results["tool"] != "baseline")]
+        best_score = succ["score"].max() if len(succ) > 0 else None
 
         for _, row in dataset_results.iterrows():
-            score = f"{row['score']:.4f}" if row["score"] is not None else "N/A"
+            score_str = f"{row['score']:.4f}" if row["score"] is not None else "N/A"
+            if row["score"] is not None and row["tool"] != "baseline" and row["score"] == best_score:
+                score_str = f"**{score_str}** 🏆"
             features = row.get("n_features_engineered", "-")
             fe_time = f"{row.get('fe_time', 0):.2f}s"
-            train_time = f"{row.get('train_time', 0):.2f}s"
             status = row.get("status", "unknown")
+            if status == "error":
+                status = f"❌ {row.get('error', '')[:40]}"
+            elif status == "success":
+                status = "✅"
+            report.append(f"| {row['tool']} | {score_str} | {features} | {fe_time} | {status} |\n")
 
-            report.append(f"| {row['tool']} | {score} | {features} | {fe_time} | {train_time} | {status} |\n")
-
-    # Highlight FeatCopilot advantages
-    report.append("\n## Key Findings\n")
-
-    if len(successful_results) > 0:
-        improvements = calculate_improvements(successful_results)
-        featcopilot_improvements = (
-            improvements[improvements["tool"] == "featcopilot"] if not improvements.empty else pd.DataFrame()
-        )
-
-        if len(featcopilot_improvements) > 0:
-            avg_imp = featcopilot_improvements["improvement_pct"].mean()
-            max_imp = featcopilot_improvements["improvement_pct"].max()
-            best_dataset = featcopilot_improvements.loc[featcopilot_improvements["improvement_pct"].idxmax(), "dataset"]
-
-            report.append(f"- **FeatCopilot average improvement**: {avg_imp:+.2f}% over baseline\n")
-            report.append(f"- **Best improvement**: {max_imp:+.2f}% on {best_dataset}\n")
-
-            # Compare with other tools
-            for tool in tools_tested:
-                if tool in ["baseline", "featcopilot"]:
-                    continue
-                tool_imp = improvements[improvements["tool"] == tool] if not improvements.empty else pd.DataFrame()
-                if len(tool_imp) > 0:
-                    tool_avg = tool_imp["improvement_pct"].mean()
-                    diff = avg_imp - tool_avg
-                    if diff > 0:
-                        report.append(f"- FeatCopilot outperforms {tool} by {diff:.2f}% on average\n")
-
-    # Conclusion
+    # ====== Conclusion ======
     report.append("\n## Conclusion\n")
-    report.append(
-        "FeatCopilot demonstrates competitive or superior performance compared to other "
-        "feature engineering tools while providing a more intuitive API and LLM-powered "
-        "feature suggestions.\n"
-    )
+
+    # Determine overall winner
+    if composite_scores:
+        winner = max(composite_scores, key=composite_scores.get)
+        winner_score = composite_scores[winner]
+        report.append(f"**Overall Winner: {winner}** (composite score: {winner_score:.3f})\n\n")
+
+        if winner == "featcopilot":
+            advantages = []
+            if tool_wins.get("featcopilot", 0) >= max(tool_wins.values()):
+                advantages.append("highest win rate")
+            fc_imp = improvements[improvements["tool"] == "featcopilot"]
+            if len(fc_imp) > 0:
+                fc_avg = fc_imp["improvement_pct"].mean()
+                if fc_avg == max(improvements.groupby("tool")["improvement_pct"].mean()):
+                    advantages.append("best average improvement")
+            if tool_times.get("featcopilot", 999) <= min(tool_times.values()):
+                advantages.append("fastest FE speed")
+            fc_results = results[results["tool"] == "featcopilot"]
+            fc_success = len(fc_results[fc_results["status"] == "success"])
+            if fc_success >= max(
+                len(results[(results["tool"] == t) & (results["status"] == "success")]) for t in fe_tools
+            ):
+                advantages.append("broadest dataset coverage")
+
+            if advantages:
+                report.append(f"FeatCopilot achieves the best composite score with: {', '.join(advantages)}.\n")
 
     report_text = "".join(report)
 

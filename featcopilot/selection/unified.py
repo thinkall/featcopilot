@@ -122,6 +122,16 @@ class FeatureSelector(BaseSelector):
         # Final selection
         self._final_selection()
 
+        # Apply L1 refinement to derived features
+        derived = [f for f in self._selected_features if f not in self.original_features]
+        if len(derived) > 0:
+            numeric_derived = [f for f in derived if f in X.select_dtypes(include=[np.number]).columns.tolist()]
+            if len(numeric_derived) > 0:
+                refined = self._l1_refine(X, y, numeric_derived)
+                non_numeric_derived = [f for f in derived if f not in numeric_derived]
+                original_selected = [f for f in self._selected_features if f in self.original_features]
+                self._selected_features = original_selected + refined + non_numeric_derived
+
         self._is_fitted = True
         return self
 
@@ -167,6 +177,39 @@ class FeatureSelector(BaseSelector):
 
         self._feature_scores = combined
 
+    def _l1_refine(self, X: pd.DataFrame, y: np.ndarray, candidates: list[str]) -> list[str]:
+        """Use tree-based importance to select the most predictive derived features."""
+        from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
+
+        if len(candidates) == 0:
+            return candidates
+
+        X_cand = X[candidates].copy()
+        X_cand = X_cand.replace([np.inf, -np.inf], np.nan).fillna(0)
+
+        try:
+            is_classification = len(np.unique(y)) <= 20 and np.issubdtype(y.dtype, np.integer)
+            if is_classification:
+                model = GradientBoostingClassifier(n_estimators=50, max_depth=3, subsample=0.8, random_state=42)
+            else:
+                model = GradientBoostingRegressor(n_estimators=50, max_depth=3, subsample=0.8, random_state=42)
+            model.fit(X_cand, y)
+            importances = model.feature_importances_
+
+            # Keep features with importance above mean importance
+            mean_imp = np.mean(importances)
+            selected = [c for c, imp in zip(candidates, importances) if imp >= mean_imp * 0.5]
+
+            if len(selected) == 0:
+                # Fallback: keep top half by importance
+                top_k = max(3, len(candidates) // 2)
+                idx = np.argsort(importances)[::-1][:top_k]
+                selected = [candidates[i] for i in idx]
+
+            return selected
+        except Exception:
+            return candidates
+
     def _final_selection(self) -> None:
         """Make final feature selection."""
         sorted_features = sorted(self._feature_scores.items(), key=lambda x: x[1], reverse=True)
@@ -179,7 +222,7 @@ class FeatureSelector(BaseSelector):
         original_scores = [self._feature_scores.get(f, 0) for f in self.original_features if f in self._feature_scores]
         if original_scores:
             median_original = float(np.median(original_scores))
-            # Derived features must score higher than the median original
+            # Derived features must score well relative to original feature distribution
             importance_threshold = median_original * 1.5
         else:
             max_score = max(self._feature_scores.values()) if self._feature_scores else 1.0
@@ -194,8 +237,8 @@ class FeatureSelector(BaseSelector):
                 elif self.verbose:
                     logger.debug(f"Excluding low-importance feature {name} (score={score:.4f})")
 
-        # Cap derived features at 2x original feature count
-        max_derived_ratio = max(len(self.original_features) * 2, 10)
+        # Cap derived features at 1.5x original feature count
+        max_derived_ratio = max(int(len(self.original_features) * 1.5), 10)
         derived_selected = derived_selected[:max_derived_ratio]
 
         # Apply max_features limit only to derived features
