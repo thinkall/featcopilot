@@ -2,6 +2,9 @@
 
 **Next-Generation LLM-Powered Auto Feature Engineering Framework**
 
+[![Tests](https://github.com/thinkall/featcopilot/actions/workflows/tests.yml/badge.svg)](https://github.com/thinkall/featcopilot/actions/workflows/tests.yml)
+[![codecov](https://codecov.io/gh/thinkall/featcopilot/graph/badge.svg)](https://codecov.io/gh/thinkall/featcopilot)
+
 FeatCopilot automatically generates, selects, and explains predictive features using semantic understanding. It analyzes column meanings, applies domain-aware transformations, and provides human-readable explanations—turning raw data into ML-ready features in seconds.
 
 ## 🎬 Introduction Video
