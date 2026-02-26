@@ -1,9 +1,13 @@
 """Tests for core module."""
 
+import numpy as np
 import pandas as pd
+import pytest
 
+from featcopilot.core.base import BaseEngine, BaseSelector
 from featcopilot.core.feature import Feature, FeatureOrigin, FeatureSet, FeatureType
 from featcopilot.core.registry import FeatureRegistry
+from featcopilot.core.transform_rule import TransformRule
 
 
 class TestFeature:
@@ -125,3 +129,479 @@ class TestFeatureRegistry:
 
         func = registry.get_transformation("double")
         assert func(5) == 10
+
+
+class TestFeatureComputeNoCode:
+    """Tests for Feature.compute when no code is defined."""
+
+    def test_compute_raises_without_code(self):
+        """Test that compute raises ValueError when no code is set."""
+        feature = Feature(name="no_code_feature")
+        df = pd.DataFrame({"col1": [1, 2, 3]})
+
+        with pytest.raises(ValueError, match="No code defined"):
+            feature.compute(df)
+
+
+class TestFeatureSetIteration:
+    """Tests for FeatureSet iteration and item access."""
+
+    def _make_feature_set(self):
+        """Create a FeatureSet with sample features."""
+        return FeatureSet(
+            [
+                Feature(name="a", importance=0.9, explanation="Explains a"),
+                Feature(name="b", importance=0.5, dtype=FeatureType.CATEGORICAL),
+                Feature(name="c", importance=0.1),
+            ]
+        )
+
+    def test_iter(self):
+        """Test iterating over FeatureSet yields Feature objects."""
+        fs = self._make_feature_set()
+        names = [f.name for f in fs]
+        assert set(names) == {"a", "b", "c"}
+
+    def test_getitem(self):
+        """Test accessing a feature by name with bracket syntax."""
+        fs = self._make_feature_set()
+        assert fs["a"].name == "a"
+
+    def test_getitem_missing_raises(self):
+        """Test KeyError for missing feature name."""
+        fs = self._make_feature_set()
+        with pytest.raises(KeyError):
+            _ = fs["nonexistent"]
+
+    def test_get_existing(self):
+        """Test FeatureSet.get returns feature when present."""
+        fs = self._make_feature_set()
+        feature = fs.get("a")
+        assert feature is not None
+        assert feature.name == "a"
+
+    def test_get_missing_returns_none(self):
+        """Test FeatureSet.get returns None when feature is absent."""
+        fs = self._make_feature_set()
+        assert fs.get("nonexistent") is None
+
+    def test_remove(self):
+        """Test FeatureSet.remove returns the removed feature."""
+        fs = self._make_feature_set()
+        removed = fs.remove("a")
+        assert removed is not None
+        assert removed.name == "a"
+        assert "a" not in fs
+
+    def test_remove_missing_returns_none(self):
+        """Test FeatureSet.remove returns None for missing feature."""
+        fs = self._make_feature_set()
+        assert fs.remove("nonexistent") is None
+
+
+class TestFeatureSetFiltering:
+    """Tests for FeatureSet filtering and sorting."""
+
+    def test_filter_by_type(self):
+        """Test filtering features by FeatureType."""
+        fs = FeatureSet(
+            [
+                Feature(name="num1", dtype=FeatureType.NUMERIC),
+                Feature(name="cat1", dtype=FeatureType.CATEGORICAL),
+                Feature(name="num2", dtype=FeatureType.NUMERIC),
+            ]
+        )
+        numeric = fs.filter_by_type(FeatureType.NUMERIC)
+        assert len(numeric) == 2
+        assert "num1" in numeric
+        assert "num2" in numeric
+
+    def test_filter_by_importance(self):
+        """Test filtering features by minimum importance threshold."""
+        fs = FeatureSet(
+            [
+                Feature(name="high", importance=0.9),
+                Feature(name="low", importance=0.1),
+                Feature(name="none", importance=None),
+            ]
+        )
+        important = fs.filter_by_importance(0.5)
+        assert len(important) == 1
+        assert "high" in important
+
+    def test_sort_by_importance_descending(self):
+        """Test sorting features by importance in descending order."""
+        fs = FeatureSet(
+            [
+                Feature(name="low", importance=0.1),
+                Feature(name="high", importance=0.9),
+                Feature(name="mid", importance=0.5),
+                Feature(name="none", importance=None),
+            ]
+        )
+        sorted_features = fs.sort_by_importance(descending=True)
+        assert len(sorted_features) == 3
+        assert sorted_features[0].name == "high"
+        assert sorted_features[-1].name == "low"
+
+    def test_sort_by_importance_ascending(self):
+        """Test sorting features by importance in ascending order."""
+        fs = FeatureSet(
+            [
+                Feature(name="low", importance=0.1),
+                Feature(name="high", importance=0.9),
+            ]
+        )
+        sorted_features = fs.sort_by_importance(descending=False)
+        assert sorted_features[0].name == "low"
+        assert sorted_features[-1].name == "high"
+
+
+class TestFeatureSetMergeAndExport:
+    """Tests for FeatureSet merge, to_dataframe, and get_explanations."""
+
+    def test_merge(self):
+        """Test merging two FeatureSets."""
+        fs1 = FeatureSet([Feature(name="a"), Feature(name="b")])
+        fs2 = FeatureSet([Feature(name="c"), Feature(name="d")])
+        merged = fs1.merge(fs2)
+        assert len(merged) == 4
+        assert all(n in merged for n in ["a", "b", "c", "d"])
+
+    def test_merge_overwrites_duplicates(self):
+        """Test that merge overwrites features with the same name."""
+        fs1 = FeatureSet([Feature(name="x", importance=0.1)])
+        fs2 = FeatureSet([Feature(name="x", importance=0.9)])
+        merged = fs1.merge(fs2)
+        assert len(merged) == 1
+        assert merged["x"].importance == 0.9
+
+    def test_to_dataframe(self):
+        """Test converting FeatureSet to a pandas DataFrame."""
+        fs = FeatureSet(
+            [
+                Feature(name="a", dtype=FeatureType.NUMERIC),
+                Feature(name="b", dtype=FeatureType.CATEGORICAL),
+            ]
+        )
+        df = fs.to_dataframe()
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) == 2
+        assert "name" in df.columns
+        assert set(df["name"].tolist()) == {"a", "b"}
+
+    def test_get_explanations(self):
+        """Test retrieving explanations from features."""
+        fs = FeatureSet(
+            [
+                Feature(name="a", explanation="Feature A description"),
+                Feature(name="b"),
+                Feature(name="c", explanation="Feature C description"),
+            ]
+        )
+        explanations = fs.get_explanations()
+        assert explanations == {"a": "Feature A description", "c": "Feature C description"}
+
+    def test_get_explanations_empty(self):
+        """Test get_explanations when no feature has an explanation."""
+        fs = FeatureSet([Feature(name="a"), Feature(name="b")])
+        assert fs.get_explanations() == {}
+
+
+class TestFeatureSetComputeAll:
+    """Tests for FeatureSet.compute_all with success and failure cases."""
+
+    def test_compute_all_success(self):
+        """Test compute_all adds computed columns to DataFrame."""
+        fs = FeatureSet(
+            [
+                Feature(name="col1_sq", code="result = df['col1'] ** 2"),
+                Feature(name="col1_dbl", code="result = df['col1'] * 2"),
+            ]
+        )
+        df = pd.DataFrame({"col1": [1, 2, 3]})
+        result = fs.compute_all(df)
+        assert list(result["col1_sq"]) == [1, 4, 9]
+        assert list(result["col1_dbl"]) == [2, 4, 6]
+
+    def test_compute_all_skips_existing_columns(self):
+        """Test compute_all does not overwrite existing columns."""
+        fs = FeatureSet([Feature(name="col1", code="result = df['col1'] * 100")])
+        df = pd.DataFrame({"col1": [1, 2, 3]})
+        result = fs.compute_all(df)
+        assert list(result["col1"]) == [1, 2, 3]
+
+    def test_compute_all_skips_no_code(self):
+        """Test compute_all skips features without code."""
+        fs = FeatureSet([Feature(name="no_code"), Feature(name="sq", code="result = df['col1'] ** 2")])
+        df = pd.DataFrame({"col1": [2, 3]})
+        result = fs.compute_all(df)
+        assert "no_code" not in result.columns
+        assert list(result["sq"]) == [4, 9]
+
+    def test_compute_all_handles_failure_gracefully(self):
+        """Test compute_all logs warning and continues on failure."""
+        fs = FeatureSet(
+            [
+                Feature(name="bad", code="result = df['nonexistent_col']"),
+                Feature(name="good", code="result = df['col1'] + 1"),
+            ]
+        )
+        df = pd.DataFrame({"col1": [10, 20]})
+        result = fs.compute_all(df)
+        assert "bad" not in result.columns
+        assert list(result["good"]) == [11, 21]
+
+
+class TestRegistryGenerators:
+    """Tests for FeatureRegistry generator methods."""
+
+    def test_register_and_get_generator(self):
+        """Test registering and retrieving a generator class."""
+        registry = FeatureRegistry()
+
+        class DummyGenerator:
+            pass
+
+        registry.register_generator("dummy", DummyGenerator)
+        assert registry.get_generator("dummy") is DummyGenerator
+
+    def test_get_generator_missing(self):
+        """Test get_generator returns None for unknown name."""
+        registry = FeatureRegistry()
+        assert registry.get_generator("__nonexistent__") is None
+
+    def test_list_generators(self):
+        """Test listing registered generator names."""
+        registry = FeatureRegistry()
+        registry.register_generator("gen_a", type("GenA", (), {}))
+        names = registry.list_generators()
+        assert "gen_a" in names
+
+
+class TestRegistryCreateFeature:
+    """Tests for FeatureRegistry.create_feature."""
+
+    def test_create_feature_valid(self):
+        """Test creating a feature with a valid transformation."""
+        registry = FeatureRegistry()
+        feature = registry.create_feature(
+            name="col1_sqrt",
+            transformation="sqrt",
+            source_columns=["col1"],
+        )
+        assert feature.name == "col1_sqrt"
+        assert feature.transformation == "sqrt"
+        assert feature.origin == FeatureOrigin.POLYNOMIAL
+
+    def test_create_feature_unknown_transformation(self):
+        """Test that unknown transformation raises ValueError."""
+        registry = FeatureRegistry()
+        with pytest.raises(ValueError, match="Unknown transformation"):
+            registry.create_feature(
+                name="bad",
+                transformation="__nonexistent_transform__",
+                source_columns=["col1"],
+            )
+
+
+class TestBaseEngineValidation:
+    """Tests for BaseEngine input validation and concrete subclass."""
+
+    def test_validate_input_ndarray(self):
+        """Test _validate_input converts ndarray to DataFrame."""
+        engine = _ConcreteEngine()
+        result = engine._validate_input(np.array([[1, 2], [3, 4]]))
+        assert isinstance(result, pd.DataFrame)
+        assert list(result.columns) == ["feature_0", "feature_1"]
+
+    def test_validate_input_invalid_type(self):
+        """Test _validate_input raises TypeError for unsupported types."""
+        engine = _ConcreteEngine()
+        with pytest.raises(TypeError, match="Expected DataFrame or ndarray"):
+            engine._validate_input("not a dataframe")
+
+    def test_validate_input_list_raises(self):
+        """Test _validate_input raises TypeError for list input."""
+        engine = _ConcreteEngine()
+        with pytest.raises(TypeError, match="Expected DataFrame or ndarray"):
+            engine._validate_input([[1, 2], [3, 4]])
+
+    def test_fit_transform(self):
+        """Test fit_transform calls fit then transform."""
+        engine = _ConcreteEngine()
+        df = pd.DataFrame({"a": [1, 2, 3]})
+        result = engine.fit_transform(df)
+        assert engine.is_fitted
+        assert isinstance(result, pd.DataFrame)
+
+    def test_get_feature_metadata(self):
+        """Test get_feature_metadata returns copy of metadata dict."""
+        engine = _ConcreteEngine()
+        engine._feature_metadata = {"key": "value"}
+        meta = engine.get_feature_metadata()
+        assert meta == {"key": "value"}
+        assert meta is not engine._feature_metadata
+
+    def test_abstract_fit_via_concrete(self):
+        """Test abstract fit is callable through concrete subclass."""
+        engine = _ConcreteEngine()
+        df = pd.DataFrame({"a": [1]})
+        returned = engine.fit(df)
+        assert returned is engine
+        assert engine.is_fitted
+
+
+class TestBaseSelectorValidation:
+    """Tests for BaseSelector input validation and is_fitted property."""
+
+    def test_is_fitted_default(self):
+        """Test is_fitted defaults to False."""
+        selector = _ConcreteSelector()
+        assert selector.is_fitted is False
+
+    def test_is_fitted_after_fit(self):
+        """Test is_fitted returns True after fitting."""
+        selector = _ConcreteSelector()
+        df = pd.DataFrame({"a": [1, 2], "b": [3, 4]})
+        y = pd.Series([0, 1])
+        selector.fit(df, y)
+        assert selector.is_fitted is True
+
+    def test_validate_input_ndarray(self):
+        """Test _validate_input converts ndarray to DataFrame."""
+        selector = _ConcreteSelector()
+        result = selector._validate_input(np.array([[1, 2], [3, 4]]))
+        assert isinstance(result, pd.DataFrame)
+        assert list(result.columns) == ["feature_0", "feature_1"]
+
+    def test_validate_input_invalid_type(self):
+        """Test _validate_input raises TypeError for unsupported types."""
+        selector = _ConcreteSelector()
+        with pytest.raises(TypeError, match="Expected DataFrame or ndarray"):
+            selector._validate_input("not a dataframe")
+
+    def test_validate_input_dict_raises(self):
+        """Test _validate_input raises TypeError for dict input."""
+        selector = _ConcreteSelector()
+        with pytest.raises(TypeError, match="Expected DataFrame or ndarray"):
+            selector._validate_input({"a": [1, 2]})
+
+
+class TestTransformRuleOutputName:
+    """Tests for TransformRule.get_output_name edge cases."""
+
+    def test_output_name_explicit(self):
+        """Test get_output_name returns explicit output_name."""
+        rule = TransformRule(
+            name="test_rule",
+            description="Test",
+            code="result = df['a']",
+            output_name="my_output",
+        )
+        assert rule.get_output_name() == "my_output"
+
+    def test_output_name_fallback_no_mapping(self):
+        """Test get_output_name falls back to rule_{name} without mapping."""
+        rule = TransformRule(
+            name="test_rule",
+            description="Test",
+            code="result = df['a']",
+        )
+        assert rule.get_output_name() == "rule_test_rule"
+
+    def test_output_name_no_input_columns(self):
+        """Test get_output_name with mapping but no input_columns."""
+        rule = TransformRule(
+            name="test_rule",
+            description="Test",
+            code="result = df['a']",
+            input_columns=[],
+        )
+        assert rule.get_output_name(column_mapping={"a": "b"}) == "rule_test_rule"
+
+
+class TestTransformRuleMatchesColumns:
+    """Tests for TransformRule.matches_columns."""
+
+    def test_matches_empty_input_columns(self):
+        """Test matches_columns returns True with empty input_columns."""
+        rule = TransformRule(
+            name="rule",
+            description="Test",
+            code="result = 1",
+            input_columns=[],
+        )
+        matches, mapping = rule.matches_columns(["a", "b"])
+        assert matches is True
+        assert mapping == {}
+
+
+class TestTransformRuleApply:
+    """Tests for TransformRule.apply edge cases."""
+
+    def test_apply_no_result_variable(self):
+        """Test apply raises ValueError when code does not set 'result'."""
+        rule = TransformRule(
+            name="no_result",
+            description="Code without result variable",
+            code="x = 42",
+            input_columns=[],
+        )
+        df = pd.DataFrame({"a": [1, 2]})
+        with pytest.raises(ValueError, match="Rule execution failed"):
+            rule.apply(df)
+
+    def test_apply_code_raises_error(self):
+        """Test apply raises ValueError on code execution error."""
+        rule = TransformRule(
+            name="bad_code",
+            description="Code that raises",
+            code="result = df['nonexistent']",
+            input_columns=[],
+        )
+        df = pd.DataFrame({"a": [1, 2]})
+        with pytest.raises(ValueError, match="Rule execution failed"):
+            rule.apply(df)
+
+    def test_repr(self):
+        """Test TransformRule __repr__ output."""
+        rule = TransformRule(
+            name="my_rule",
+            description="A short description for testing repr output",
+            code="result = 1",
+        )
+        r = repr(rule)
+        assert "TransformRule" in r
+        assert "my_rule" in r
+
+
+# ---------------------------------------------------------------------------
+# Helper concrete subclasses for abstract base class tests
+# ---------------------------------------------------------------------------
+
+
+class _ConcreteEngine(BaseEngine):
+    """Concrete engine for testing BaseEngine abstract methods."""
+
+    def fit(self, X, y=None, **kwargs):
+        """Fit the engine."""
+        self._is_fitted = True
+        return self
+
+    def transform(self, X, **kwargs):
+        """Transform data (identity)."""
+        return self._validate_input(X)
+
+
+class _ConcreteSelector(BaseSelector):
+    """Concrete selector for testing BaseSelector abstract methods."""
+
+    def fit(self, X, y, **kwargs):
+        """Fit the selector."""
+        self._is_fitted = True
+        return self
+
+    def transform(self, X, **kwargs):
+        """Transform data (identity)."""
+        return self._validate_input(X)
