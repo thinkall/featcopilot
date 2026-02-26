@@ -172,7 +172,7 @@ class TabularEngine(BaseEngine):
         self._target_label_encoder = None  # For string targets
 
         # Find categorical columns (object or category dtype)
-        cat_cols = X.select_dtypes(include=["object", "category"]).columns.tolist()
+        cat_cols = X.select_dtypes(include=["object", "category", "string"]).columns.tolist()
 
         if not cat_cols:
             return
@@ -183,7 +183,7 @@ class TabularEngine(BaseEngine):
             y_series = pd.Series(y) if not isinstance(y, pd.Series) else y
 
             # Check if target is string/categorical - encode it for target encoding
-            if y_series.dtype == "object" or y_series.dtype.name == "category":
+            if pd.api.types.is_string_dtype(y_series) or y_series.dtype.name == "category":
                 from sklearn.preprocessing import LabelEncoder
 
                 self._target_label_encoder = LabelEncoder()

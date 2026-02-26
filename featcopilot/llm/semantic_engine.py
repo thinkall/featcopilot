@@ -204,14 +204,14 @@ class SemanticEngine(BaseEngine):
         self._text_columns = []
         for col in X.columns:
             dtype = str(X[col].dtype)
-            if X[col].dtype == "object":
+            if pd.api.types.is_string_dtype(X[col]):
                 dtype = "string"
                 # Detect if it's a text column (long strings with high variance)
                 if X[col].str.len().mean() > 20 and X[col].nunique() > 10:
                     self._text_columns.append(col)
-            elif np.issubdtype(X[col].dtype, np.integer):
+            elif pd.api.types.is_integer_dtype(X[col]):
                 dtype = "integer"
-            elif np.issubdtype(X[col].dtype, np.floating):
+            elif pd.api.types.is_float_dtype(X[col]):
                 dtype = "float"
             self._column_info[col] = dtype
 

@@ -235,7 +235,7 @@ class RelationalEngine(BaseEngine):
         result = df.copy()
 
         # Find categorical columns that could be used for grouping
-        cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
+        cat_cols = df.select_dtypes(include=["object", "category", "string"]).columns.tolist()
         num_cols = df.select_dtypes(include=[np.number]).columns.tolist()
 
         # Limit to avoid explosion

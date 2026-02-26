@@ -79,7 +79,7 @@ class FeatureSelector(BaseSelector):
         y = np.array(y)
 
         # Identify categorical/text columns (can't be scored by numeric methods)
-        categorical_cols = X.select_dtypes(include=["object", "category"]).columns.tolist()
+        categorical_cols = X.select_dtypes(include=["object", "category", "string"]).columns.tolist()
         numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
 
         # Initialize and fit each selector
@@ -188,7 +188,7 @@ class FeatureSelector(BaseSelector):
         X_cand = X_cand.replace([np.inf, -np.inf], np.nan).fillna(0)
 
         try:
-            is_classification = len(np.unique(y)) <= 20 and np.issubdtype(y.dtype, np.integer)
+            is_classification = len(np.unique(y)) <= 20 and pd.api.types.is_integer_dtype(y)
             if is_classification:
                 model = GradientBoostingClassifier(n_estimators=50, max_depth=3, subsample=0.8, random_state=42)
             else:

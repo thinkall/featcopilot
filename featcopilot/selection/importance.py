@@ -73,16 +73,16 @@ class ImportanceSelector(BaseSelector):
 
         # Encode string labels if needed
         y_encoded = y
-        if y.dtype == object or y.dtype.kind in ("U", "S"):
+        if pd.api.types.is_string_dtype(y) or y.dtype.kind in ("U", "S"):
             le = LabelEncoder()
             y_encoded = le.fit_transform(y)
 
         # Determine task type
         unique_y = len(np.unique(y_encoded))
         is_classification = (
-            y.dtype == object
+            pd.api.types.is_string_dtype(y)
             or y.dtype.kind in ("U", "S")
-            or (np.issubdtype(y_encoded.dtype, np.integer) and unique_y <= len(y_encoded) * 0.1)
+            or (pd.api.types.is_integer_dtype(y_encoded) and unique_y <= len(y_encoded) * 0.1)
         )
 
         # Create model

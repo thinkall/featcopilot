@@ -148,7 +148,7 @@ class TextEngine(BaseEngine):
         if text_columns:
             self._text_columns = text_columns
         else:
-            self._text_columns = X.select_dtypes(include=["object"]).columns.tolist()
+            self._text_columns = X.select_dtypes(include=["object", "string"]).columns.tolist()
             # Filter to likely text columns (not IDs, not low cardinality)
             self._text_columns = [
                 col for col in self._text_columns if X[col].str.len().mean() > 10 and X[col].nunique() > 10
