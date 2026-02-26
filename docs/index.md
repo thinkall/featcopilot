@@ -11,29 +11,29 @@
 
 <div class="grid cards" markdown>
 
--   :material-rocket-launch:{ .lg .middle } __+197% Max Improvement__
+-   :material-rocket-launch:{ .lg .middle } __+7.52% Avg Improvement__
 
     ---
 
-    Simple models benchmark on delays_zurich dataset
+    Simple models benchmark across 63 datasets
 
--   :material-brain:{ .lg .middle } __+420% with LLM Engine__
-
-    ---
-
-    LLM-enhanced feature generation boosts results
-
--   :material-scale-balance:{ .lg .middle } __48% Datasets Improved__
+-   :material-trophy:{ .lg .middle } __#1 FE Tool__
 
     ---
 
-    Tabular engine improves 20/42 datasets tested
+    80% win rate vs autofeat and featuretools
 
--   :material-speedometer:{ .lg .middle } __+8.55% AutoML Best__
+-   :material-scale-balance:{ .lg .middle } __90% AutoML Success__
 
     ---
 
-    FLAML benchmark improvement on abalone dataset
+    Improves 9/10 datasets with FLAML and AutoGluon
+
+-   :material-speedometer:{ .lg .middle } __+144% Max Improvement__
+
+    ---
+
+    triple_interaction_regression dataset
 
 </div>
 
