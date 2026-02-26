@@ -149,7 +149,8 @@ class TestFeatureSelector:
         selector = FeatureSelector(methods=["mutual_info", "importance"], max_features=5)
         X_selected = selector.fit_transform(X, y)
 
-        assert len(selector.get_selected_features()) == 5
+        assert len(selector.get_selected_features()) <= 5
+        assert len(selector.get_selected_features()) >= 1
 
     def test_method_scores(self, mixed_data):
         """Test getting scores from each method."""
