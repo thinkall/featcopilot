@@ -18,7 +18,7 @@ def sample_df():
             "num1": np.random.randn(100),
             "num2": np.random.randn(100) * 10,
             "num3": np.random.randint(1, 100, 100),
-            "cat1": np.random.choice(["A", "B", "C"], 100),
+            "cat1": pd.array(np.random.choice(["A", "B", "C"], 100), dtype="object"),
         }
     )
 

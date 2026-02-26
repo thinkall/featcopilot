@@ -34,7 +34,7 @@ def sample_df():
             "age": np.random.randint(18, 80, 15),
             "income": np.random.uniform(20000, 150000, 15).round(2),
             "score": np.random.uniform(0, 100, 15).round(2),
-            "category": np.random.choice(["A", "B", "C"], 15),
+            "category": pd.array(np.random.choice(["A", "B", "C"], 15), dtype="object"),
         }
     )
 
@@ -1864,7 +1864,10 @@ class TestSemanticEngineExtended:
     def test_fit_with_text_columns(self):
         """Test fit with text columns detected."""
         # Create DataFrame with a text column (long strings, high cardinality)
-        texts = [f"This is a long text description number {i} with lots of words and content" for i in range(20)]
+        texts = pd.array(
+            [f"This is a long text description number {i} with lots of words and content" for i in range(20)],
+            dtype="object",
+        )
         df = pd.DataFrame(
             {
                 "age": np.random.randint(18, 80, 20),
@@ -1896,7 +1899,7 @@ class TestSemanticEngineExtended:
                 "is_text_feature": True,
             },
         ]
-        df = pd.DataFrame({"text": ["hello", "world!!", "test"], "num": [1, 2, 3]})
+        df = pd.DataFrame({"text": pd.array(["hello", "world!!", "test"], dtype="object"), "num": [1, 2, 3]})
         result = engine.transform(df)
         assert "text_char_length" in result.columns
         assert result["text_char_length"].iloc[0] == 5
@@ -1917,7 +1920,7 @@ class TestSemanticEngineExtended:
                 "is_text_feature": True,
             },
         ]
-        df = pd.DataFrame({"text": ["hello", "world"], "num": [1, 2]})
+        df = pd.DataFrame({"text": pd.array(["hello", "world"], dtype="object"), "num": [1, 2]})
         result = engine.transform(df)
         assert "text" not in result.columns
         assert "text_len" in result.columns
@@ -1996,7 +1999,7 @@ class TestSemanticEngineExtended:
         mock_cl.send_prompt.return_value = '{"mapping": {}}'
         engine._client = mock_cl
 
-        df = pd.DataFrame({"cat": [f"val_{i}" for i in range(100)]})
+        df = pd.DataFrame({"cat": pd.array([f"val_{i}" for i in range(100)], dtype="object")})
         mapping = engine.standardize_categories(df, "cat", max_categories=10)
         assert isinstance(mapping, dict)
 
@@ -2312,7 +2315,10 @@ class TestSemanticEngineExtended:
 
     def test_fit_only_text_columns(self):
         """Test fit when all columns are text (no non-text for general suggestions)."""
-        texts = [f"Long description text content number {i} for testing purposes only" for i in range(20)]
+        texts = pd.array(
+            [f"Long description text content number {i} for testing purposes only" for i in range(20)],
+            dtype="object",
+        )
         df = pd.DataFrame({"desc": texts})
         engine = SemanticEngine(validate_features=False, verbose=True)
         mock_cl = MagicMock()

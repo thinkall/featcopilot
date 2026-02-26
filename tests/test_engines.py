@@ -32,7 +32,7 @@ class TestTabularEngine:
                 "num1": np.random.randn(100),
                 "num2": np.random.randn(100) * 10,
                 "num3": np.random.randint(1, 100, 100),
-                "cat1": np.random.choice(["A", "B", "C"], 100),
+                "cat1": pd.array(np.random.choice(["A", "B", "C"], 100), dtype="object"),
             }
         )
 
@@ -149,7 +149,7 @@ class TestTabularEngineExtended:
                 "num1": np.random.randn(100),
                 "num2": np.random.randn(100) * 10,
                 "num3": np.random.randint(1, 100, 100),
-                "cat1": np.random.choice(["A", "B", "C"], 100),
+                "cat1": pd.array(np.random.choice(["A", "B", "C"], 100), dtype="object"),
             }
         )
 
@@ -199,7 +199,7 @@ class TestTabularEngineExtended:
                 "num3": np.random.randint(1, 50, n),
                 "num4": np.random.randn(n),
                 "num5": np.random.randn(n),
-                "cat1": np.random.choice(["X", "Y", "Z"], n),
+                "cat1": pd.array(np.random.choice(["X", "Y", "Z"], n), dtype="object"),
             }
         )
         engine = TabularEngine(
@@ -229,7 +229,7 @@ class TestTabularEngineExtended:
                 "num4": np.random.randn(n),
                 "num5": np.random.randn(n),
                 # 10 unique values / 100 rows = 0.1, above onehot but below target threshold
-                "cat_medium": np.random.choice([f"cat_{i}" for i in range(10)], n),
+                "cat_medium": pd.array(np.random.choice([f"cat_{i}" for i in range(10)], n), dtype="object"),
             }
         )
         y = np.random.randn(n)
@@ -256,11 +256,11 @@ class TestTabularEngineExtended:
                 "num3": np.random.randint(1, 50, n),
                 "num4": np.random.randn(n),
                 "num5": np.random.randn(n),
-                "cat_medium": np.random.choice([f"cat_{i}" for i in range(10)], n),
+                "cat_medium": pd.array(np.random.choice([f"cat_{i}" for i in range(10)], n), dtype="object"),
             }
         )
         # String target triggers LabelEncoder path
-        y = pd.Series(np.random.choice(["pos", "neg"], n))
+        y = pd.Series(pd.array(np.random.choice(["pos", "neg"], n), dtype="object"))
         engine = TabularEngine(
             polynomial_degree=2,
             include_transforms=[],
@@ -284,7 +284,7 @@ class TestTabularEngineExtended:
                 "num4": np.random.randn(n),
                 "num5": np.random.randn(n),
                 # High cardinality: 50 unique / 50 rows = 1.0
-                "id_col": [f"id_{i}" for i in range(n)],
+                "id_col": pd.array([f"id_{i}" for i in range(n)], dtype="object"),
             }
         )
         engine = TabularEngine(
@@ -375,7 +375,7 @@ class TestTabularEngineExtended:
                 "num3": np.random.randint(1, 50, n),
                 "num4": np.random.randn(n),
                 "num5": np.random.randn(n),
-                "cat1": np.random.choice(["A", "B", "C"], n),
+                "cat1": pd.array(np.random.choice(["A", "B", "C"], n), dtype="object"),
             }
         )
         engine = TabularEngine(
@@ -403,7 +403,7 @@ class TestTabularEngineExtended:
                 "num3": np.random.randint(1, 50, n),
                 "num4": np.random.randn(n),
                 "num5": np.random.randn(n),
-                "cat1": np.random.choice(["A", "B", "C"], n),
+                "cat1": pd.array(np.random.choice(["A", "B", "C"], n), dtype="object"),
             }
         )
         engine = TabularEngine(
@@ -802,7 +802,7 @@ class TestRelationalEngine:
                 "order_id": [1, 2, 3, 4, 5],
                 "customer_id": [1, 1, 2, 2, 3],
                 "amount": [100, 200, 150, 300, 50],
-                "category": ["A", "B", "A", "A", "B"],
+                "category": pd.array(["A", "B", "A", "A", "B"], dtype="object"),
             }
         )
 
@@ -1028,7 +1028,7 @@ class TestTextEngine:
         """Create sample text DataFrame."""
         np.random.seed(42)
         n = 30
-        return pd.DataFrame({"text": self.SAMPLE_TEXTS[:n], "num1": np.random.randn(n)})
+        return pd.DataFrame({"text": pd.array(self.SAMPLE_TEXTS[:n], dtype="object"), "num1": np.random.randn(n)})
 
     def test_text_engine_basic_features(self, text_df):
         """Test basic text feature extraction: length, word_count, char_stats."""

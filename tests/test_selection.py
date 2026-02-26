@@ -424,7 +424,7 @@ class TestFeatureSelectorCoverage:
             {
                 "num1": np.random.randn(n),
                 "num2": np.random.randn(n),
-                "cat1": np.random.choice(["a", "b", "c"], n),
+                "cat1": pd.array(np.random.choice(["a", "b", "c"], n), dtype="object"),
             }
         )
         y = np.array([0, 1] * (n // 2))
