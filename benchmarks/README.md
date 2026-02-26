@@ -1,42 +1,52 @@
 # FeatCopilot Benchmarks
 
-Comprehensive benchmarks demonstrating FeatCopilot's feature engineering capabilities across 42 datasets.
+Comprehensive benchmarks demonstrating FeatCopilot's feature engineering capabilities across 63 datasets.
 
 ## Latest Results Summary
 
 ### Simple Models Benchmark (RandomForest, LogisticRegression/Ridge)
 
-| Metric | Multi-Engine | Multi-Engine + LLM |
-|--------|--------------|--------------------|
-| **Datasets** | 42 | 42 |
-| **Improved** | 20 (48%) | 23 (55%) |
-| **Avg Improvement** | +4.54% | +6.12% |
-| **Best Improvement** | +197% (delays_zurich) | +420% (delays_zurich) |
-
-**Key Highlights:**
-- **abalone**: +8.98% R² improvement with simple feature engineering
-- **complex_classification**: +5.68% accuracy boost
-- **bike_sharing**: +3.55% R² with LLM features
-- **road_safety**: +2.88% accuracy with LLM engine
-
-### AutoML Benchmark (FLAML, 120s budget)
-
 | Metric | Multi-Engine |
 |--------|--------------|
-| **Datasets** | 41 |
-| **Improved** | 19 (46%) |
-| **Best Improvement** | +8.55% (abalone) |
+| **Datasets** | 63 |
+| **Improved** | 31 (49%) |
+| **Avg Improvement** | **+7.52%** |
+| **Best Improvement** | +144% (triple_interaction_regression) |
+
+**Key Highlights:**
+- **triple_interaction_regression**: +144% R² improvement
+- **xor_regression**: +104% R² improvement
+- **pairwise_product_regression**: +70% R² improvement
+- **complex_classification**: +16.49% accuracy boost
+- **xor_classification**: +16.67% accuracy boost
+
+### AutoML Benchmark (FLAML + AutoGluon, 120s budget)
+
+| Framework | Datasets | Improved | Avg Improvement |
+|-----------|----------|----------|-----------------|
+| **FLAML** | 10 | 9 (90%) | **+1.85%** |
+| **AutoGluon** | 10 | 9 (90%) | **+1.55%** |
 
 **Notable Results:**
-- **credit_risk**: +2.53% accuracy improvement
-- **complex_classification**: +1.37% accuracy
-- **abalone**: +8.55% R² improvement
+- **complex_classification**: +6.67% (FLAML), +7.62% (AutoGluon)
+- **xor_classification**: +5.62% (FLAML), +2.42% (AutoGluon)
+- **polynomial_regression**: +2.99% (FLAML)
+- **titanic**: +1.37% (both frameworks)
+
+### FE Tools Comparison (FeatCopilot vs autofeat vs featuretools)
+
+| Metric | FeatCopilot | autofeat | featuretools |
+|--------|-------------|----------|--------------|
+| **Win Rate** | **80%** 🏆 | 40% | 0% |
+| **Avg Improvement** | **+1.89%** 🏆 | +1.46% | -2.71% |
+| **Coverage** | **100%** 🏆 | 50% | 100% |
+| **Composite Score** | **0.606** 🥇 | 0.351 🥉 | 0.397 🥈 |
 
 ## Structure
 
 ```
 benchmarks/
-├── datasets.py                    # Unified dataset API (52 datasets)
+├── datasets.py                    # Unified dataset API (63 datasets)
 ├── datasets.md                    # Dataset documentation
 │
 ├── automl/                        # AutoML benchmarks
@@ -70,10 +80,10 @@ python -m benchmarks.compare_tools.run_fe_tools_comparison
 ### 1. AutoML Benchmark (`automl/run_automl_benchmark.py`)
 
 Compares AutoML frameworks (FLAML, AutoGluon) with and without FeatCopilot.
-FeatCopilot runs all applicable engines per dataset (tabular, timeseries, text, relational) plus LLM when enabled.
+FeatCopilot runs all applicable engines per dataset (tabular, relational) plus LLM when enabled.
 
 ```bash
-# Quick benchmark (6 datasets)
+# Quick benchmark (10 datasets)
 python -m benchmarks.automl.run_automl_benchmark
 
 # Specific datasets
@@ -87,19 +97,22 @@ python -m benchmarks.automl.run_automl_benchmark --with-llm
 
 # Use AutoGluon
 python -m benchmarks.automl.run_automl_benchmark --framework autogluon
+
+# All frameworks
+python -m benchmarks.automl.run_automl_benchmark --framework all
 ```
 
 **Options:**
 - `--datasets NAME,NAME` - Specific datasets
 - `--category {classification,regression}` - All datasets in category
 - `--all` - All datasets
-- `--framework {flaml,autogluon}` - AutoML framework
+- `--framework {flaml,autogluon,h2o,all}` - AutoML framework
 - `--with-llm` - Enable LLM engine
-- `--time-budget N` - AutoML time budget (default: 60s)
+- `--time-budget N` - AutoML time budget (default: 120s)
 
 **Output:**
-- Without LLM: `AUTOML_{FRAMEWORK}_BENCHMARK.md` (e.g., `AUTOML_FLAML_BENCHMARK.md`)
-- With LLM: `AUTOML_{FRAMEWORK}_BENCHMARK_LLM.md`
+- Per-framework: `AUTOML_{FRAMEWORK}_BENCHMARK.md`
+- Combined: `AUTOML_BENCHMARK.md` (when running multiple frameworks)
 
 ### 2. Simple Models Benchmark (`simple_models/run_simple_models_benchmark.py`)
 
@@ -124,37 +137,34 @@ python -m benchmarks.simple_models.run_simple_models_benchmark --category regres
 
 ### 3. FE Tools Comparison (`compare_tools/run_fe_tools_comparison.py`)
 
-Compares FeatCopilot with other feature engineering frameworks using FLAML.
+Compares FeatCopilot with other feature engineering frameworks using FLAML (30s budget).
 
 ```bash
 # Compare all available tools
 python -m benchmarks.compare_tools.run_fe_tools_comparison
 
 # Specific tools
-python -m benchmarks.compare_tools.run_fe_tools_comparison --tools featcopilot featuretools openfe
+python -m benchmarks.compare_tools.run_fe_tools_comparison --tools featcopilot featuretools autofeat
 ```
 
 **Tools compared:**
 - Baseline (no FE)
 - FeatCopilot
 - Featuretools
-- tsfresh
 - autofeat
-- OpenFE
-- CAAFE
 
-**Output:** `FE_TOOLS_COMPARISON_YYYYMMDD.md`
+**Output:** `FE_TOOLS_COMPARISON.md`
 
 ## Datasets
 
-52 datasets across 4 categories:
+63 datasets across 4 categories:
 
 | Category | Count | Examples |
 |----------|-------|----------|
-| Classification | 22 | titanic, credit_risk, higgs (INRIA) |
-| Regression | 20 | house_prices, diamonds (INRIA) |
+| Classification | 26 | titanic, credit_risk, xor_classification, higgs |
+| Regression | 30 | house_prices, complex_regression, diamonds |
 | Forecasting | 3 | sensor_anomaly, retail_demand |
-| Text | 7 | product_reviews, fake_news |
+| Text | 4 | product_reviews, fake_news |
 
 ```python
 from benchmarks.datasets import list_datasets, load_dataset

@@ -1,6 +1,6 @@
 # Benchmarks
 
-FeatCopilot has been extensively benchmarked to demonstrate its effectiveness in automated feature engineering. This page presents comprehensive results across **42 datasets** spanning classification and regression tasks.
+FeatCopilot has been extensively benchmarked to demonstrate its effectiveness in automated feature engineering. This page presents comprehensive results across **63 datasets** spanning classification, regression, forecasting, and text tasks.
 
 ## Executive Summary
 
@@ -10,33 +10,33 @@ FeatCopilot has been extensively benchmarked to demonstrate its effectiveness in
 
     ---
 
-    **+4.54%** average improvement
+    **+7.52%** average improvement
 
-    **+197%** max improvement (delays_zurich)
+    **+144%** max improvement (triple_interaction)
 
--   :material-brain:{ .lg .middle } __LLM-Enhanced Results__
+-   :material-trophy:{ .lg .middle } __FE Tools Comparison__
 
     ---
 
-    **+420%** max improvement with LLM
+    **#1 overall** — 80% win rate
 
-    **55%** datasets improved (23/42)
+    Beats autofeat and featuretools
 
 -   :material-chart-line:{ .lg .middle } __AutoML Benchmark__
 
     ---
 
-    **+8.55%** best improvement (abalone)
+    **+1.85%** avg improvement (FLAML)
 
-    **46%** datasets improved with FLAML
+    **90%** datasets improved
 
 -   :material-lightning-bolt:{ .lg .middle } __Feature Generation__
 
     ---
 
-    **7→30** to **54→100** feature expansion
+    **7→24** to **54→57** feature expansion
 
-    Smart importance-based selection
+    GBM-based importance selection
 
 </div>
 
@@ -44,106 +44,124 @@ FeatCopilot has been extensively benchmarked to demonstrate its effectiveness in
 
 ## Simple Models Benchmark
 
-Testing FeatCopilot with RandomForest (n_estimators=200, max_depth=20) and LogisticRegression/Ridge across 42 datasets to measure feature engineering impact.
+Testing FeatCopilot with RandomForest (n_estimators=200, max_depth=20) and LogisticRegression/Ridge across 63 datasets to measure feature engineering impact.
 
 ### Summary Results
 
 | Configuration | Datasets | Improved | Avg Improvement | Best Improvement |
 |---------------|----------|----------|-----------------|------------------|
-| **Tabular Engine** | 42 | 20 (48%) | +4.54% | +197% (delays_zurich) |
-| **Tabular + LLM** | 42 | 23 (55%) | +6.12% | +420% (delays_zurich) |
+| **Tabular Engine** | 63 | 31 (49%) | **+7.52%** | +144% (triple_interaction) |
 
-### Classification Results (22 Datasets)
+### Classification Results (26 Datasets)
 
-| Dataset | Baseline | +FeatCopilot | Improvement | +LLM | LLM Imp | Features |
-|---------|----------|--------------|-------------|------|---------|----------|
-| complex_classification | 0.8800 | **0.9300** | **+5.68%** | 0.9300 | +5.68% | 15→100 |
-| road_safety | 0.7815 | 0.7895 | +1.02% | **0.8040** | **+2.88%** | 32→89 |
-| customer_churn | 0.7575 | 0.7650 | +0.99% | 0.7650 | +0.99% | 10→82 |
-| albert | 0.6558 | 0.6591 | +0.50% | 0.6529 | -0.44% | 31→100 |
-| bioresponse | 0.7700 | 0.7729 | +0.38% | **0.7773** | **+0.95%** | 419→419 |
-| higgs | 0.7129 | 0.7081 | -0.67% | **0.7154** | **+0.35%** | 24→100 |
-| magic_telescope | 0.8509 | 0.8528 | +0.22% | 0.8528 | +0.22% | 10→65 |
-| electricity | 0.8984 | 0.8986 | +0.03% | **0.9006** | **+0.25%** | 8→50 |
-| covertype_cat | 0.8747 | 0.8749 | +0.02% | **0.8839** | **+1.05%** | 54→100 |
-| titanic | 0.9218 | 0.9162 | -0.61% | 0.9162 | -0.61% | 7→27 |
-| credit_card_fraud | 0.9840 | 0.9840 | +0.00% | 0.9840 | +0.00% | 30→100 |
-| employee_attrition | 0.9558 | 0.9558 | +0.00% | 0.9558 | +0.00% | 11→74 |
+| Dataset | Baseline | +FeatCopilot | Improvement | Features |
+|---------|----------|--------------|-------------|----------|
+| xor_classification | 0.6960 | **0.8120** | **+16.67%** | 20→24 |
+| complex_classification | 0.7125 | **0.8300** | **+16.49%** | 15→23 |
+| polynomial_classification | 0.7875 | **0.8675** | **+10.16%** | 15→21 |
+| interaction_classification | 0.7650 | **0.8075** | **+5.56%** | 12→17 |
+| credit_risk | 0.8525 | **0.8675** | **+1.76%** | 10→17 |
+| bioresponse | 0.7700 | **0.7802** | **+1.32%** | 419→419 |
+| covertype_cat | 0.8747 | **0.8819** | **+0.82%** | 54→55 |
+| magic_telescope | 0.8509 | **0.8572** | **+0.75%** | 10→12 |
+| credit_card_fraud | 0.9840 | 0.9840 | +0.00% | 30→40 |
+| employee_attrition | 0.9252 | 0.9252 | +0.00% | 11→16 |
 
-### Regression Results (20 Datasets)
+### Regression Results (30 Datasets)
 
-| Dataset | Baseline R² | +FeatCopilot R² | Improvement | +LLM R² | LLM Imp | Features |
-|---------|-------------|-----------------|-------------|---------|---------|----------|
-| delays_zurich | 0.0051 | 0.0153 | **+197%** | **0.0268** | **+420%** | 11→57 |
-| abalone | 0.5287 | **0.5762** | **+8.98%** | 0.5769 | +9.12% | 7→30 |
-| nyc_taxi | 0.6391 | 0.6253 | -2.17% | **0.6775** | **+6.01%** | 16→44 |
-| bike_sharing | 0.8080 | 0.8082 | +0.02% | **0.8367** | **+3.55%** | 10→48 |
-| wine_quality | 0.4972 | **0.5027** | **+1.12%** | 0.5067 | +1.91% | 11→45 |
-| bike_sharing_inria | 0.6788 | 0.6861 | +1.07% | **0.6901** | **+1.67%** | 6→37 |
-| miami_housing | 0.9146 | **0.9201** | **+0.61%** | 0.9214 | +0.74% | 13→70 |
-| brazilian_houses | 0.9960 | 0.9964 | +0.04% | **1.0000** | **+0.40%** | 11→66 |
-| diamonds | 0.9456 | 0.9461 | +0.05% | 0.9462 | +0.06% | 6→19 |
-| house_prices | 0.9306 | 0.9308 | +0.02% | 0.9305 | -0.02% | 14→46 |
-| cpu_act | 0.9798 | 0.9800 | +0.02% | **0.9803** | **+0.05%** | 21→100 |
-| superconduct | 0.9300 | 0.9301 | +0.01% | 0.9299 | -0.01% | 79→100 |
+| Dataset | Baseline R² | +FeatCopilot R² | Improvement | Features |
+|---------|-------------|-----------------|-------------|----------|
+| triple_interaction_regression | 0.3542 | **0.8649** | **+144%** | 18→23 |
+| xor_regression | 0.3330 | **0.6801** | **+104%** | 20→24 |
+| pairwise_product_regression | 0.5132 | **0.8698** | **+69.5%** | 16→23 |
+| nonlinear_regression | 0.6086 | **0.8756** | **+43.9%** | 12→18 |
+| complex_regression | 0.6339 | **0.8725** | **+37.6%** | 15→20 |
+| quadratic_heavy_regression | 0.7134 | **0.9341** | **+30.9%** | 18→25 |
+| polynomial_regression | 0.7321 | **0.8692** | **+18.7%** | 12→19 |
+| sqrt_log_regression | 0.8725 | **0.8997** | **+3.12%** | 15→25 |
+| bike_sharing | 0.9534 | **0.9697** | **+1.71%** | 10→12 |
+| house_prices | 0.9798 | **0.9953** | **+1.58%** | 14→16 |
+| spotify_tracks | 0.9529 | **0.9648** | **+1.25%** | 13→17 |
+| ecommerce_product | 0.9462 | **0.9564** | **+1.08%** | 10→11 |
 
 !!! success "Key Insight"
-    The LLM engine provides **additional value** on top of tabular features, particularly for datasets where domain knowledge helps (delays_zurich: +420%, nyc_taxi: +6.01%, bike_sharing: +3.55%).
+    FeatCopilot provides the **largest improvements** on datasets with complex feature interactions (XOR, polynomial, triple interactions) where simple models struggle with raw features. The GBM-based feature selection ensures only high-quality derived features are kept.
+
+---
+
+## FE Tools Comparison
+
+Comparing FeatCopilot against autofeat and featuretools across 10 datasets using FLAML (30s budget).
+
+### Overall Ranking
+
+| Rank | Tool | Win Rate | Avg Improvement | Speed | Coverage | Composite |
+|------|------|----------|-----------------|-------|----------|-----------|
+| 🥇 | **FeatCopilot** | **80%** (8/10) | **+1.89%** | 1.9s | **100%** | **0.606** |
+| 🥈 | featuretools | 0% (0/10) | -2.71% | 0.1s | 100% | 0.397 |
+| 🥉 | autofeat | 40% (2/5) | +1.46% | 48.1s | 50% | 0.351 |
+
+### Key Advantages
+
+- **Highest win rate**: FeatCopilot wins 8 out of 10 datasets
+- **Best coverage**: Works on all datasets (autofeat times out on 50%)
+- **Fast**: ~25x faster than autofeat, with intelligent feature selection
+- **No harm**: Never significantly hurts performance (min improvement -0.02%)
+
+!!! note "Why autofeat has low coverage"
+    autofeat uses L1 regularization which is computationally expensive for classification tasks. It timed out (>120s) on 5 of 10 datasets. FeatCopilot uses GBM-based selection which is much faster.
 
 ---
 
 ## AutoML Benchmark
 
-Testing FeatCopilot with FLAML (120s time budget per model) across 41 datasets to evaluate feature engineering benefits with AutoML optimization.
+Testing FeatCopilot with FLAML and AutoGluon (120s time budget) across 10 datasets to evaluate feature engineering benefits with AutoML optimization.
 
-### Summary
+### Cross-Framework Summary
 
-| Metric | Value |
-|--------|-------|
-| **Total Datasets** | 41 |
-| **Classification** | 21 |
-| **Regression** | 20 |
-| **Improved** | 19 (46%) |
-| **Best Improvement** | +8.55% (abalone) |
+| Framework | Datasets | Improved | Avg Improvement | Max Improvement |
+|-----------|----------|----------|-----------------|-----------------|
+| **FLAML** | 10 | 9 (90%) | **+1.85%** | +6.67% |
+| **AutoGluon** | 10 | 9 (90%) | **+1.55%** | +7.62% |
+| **Combined** | 20 | 18 (90%) | **+1.70%** | — |
 
-### Top Improvements
+### Per-Dataset Results
 
-| Dataset | Task | Baseline | +FeatCopilot | Improvement | Features |
-|---------|------|----------|--------------|-------------|----------|
-| abalone | regression | 0.5384 | **0.5844** | **+8.55%** | 7→30 |
-| credit_risk | classification | 0.6925 | **0.7100** | **+2.53%** | 10→86 |
-| delays_zurich | regression | 0.0810 | **0.0828** | **+2.24%** | 11→57 |
-| mercedes_benz | regression | 0.5763 | **0.5866** | **+1.79%** | 359→359 |
-| complex_classification | classification | 0.9100 | **0.9225** | **+1.37%** | 15→100 |
-| eye_movements | classification | 0.6649 | **0.6721** | **+1.09%** | 23→97 |
-| bioresponse | classification | 0.7802 | **0.7875** | **+0.93%** | 419→419 |
-| medical_diagnosis | classification | 0.8400 | **0.8467** | **+0.79%** | 12→72 |
+| Dataset | FLAML Baseline | FLAML +FE | Δ | AutoGluon Base | AutoGluon +FE | Δ |
+|---------|---------------|-----------|---|---------------|---------------|---|
+| complex_classification | 0.7875 | 0.8400 | **+6.67%** 🔥 | 0.7550 | 0.8125 | **+7.62%** 🔥 |
+| xor_classification | 0.8180 | 0.8640 | **+5.62%** 🔥 | 0.8280 | 0.8480 | **+2.42%** 🔥 |
+| polynomial_regression | 0.9103 | 0.9375 | **+2.99%** 🔥 | 0.9404 | 0.9492 | +0.94% |
+| titanic | 0.8156 | 0.8268 | +1.37% | 0.8212 | 0.8324 | +1.36% |
+| complex_regression | 0.8704 | 0.8790 | +0.99% | 0.9166 | 0.9401 | **+2.57%** 🔥 |
+| credit_risk | 0.8500 | 0.8550 | +0.59% | 0.8525 | 0.8650 | +1.47% |
+| house_prices | 0.9963 | 0.9972 | +0.09% | 0.9969 | 0.9975 | +0.06% |
 
 !!! note "AutoML Observations"
-    With AutoML (FLAML), improvements are more modest because the framework already performs internal feature selection and hyperparameter tuning. FeatCopilot still provides value by generating meaningful derived features that AutoML can leverage.
+    With AutoML (FLAML/AutoGluon), improvements are more modest because these frameworks already use powerful gradient boosting models. FeatCopilot still provides consistent value by generating meaningful derived features that help AutoML find better models faster.
 
 ---
 
 ## When FeatCopilot Excels
 
-Based on comprehensive benchmarking across 42 datasets, FeatCopilot provides the most value in these scenarios:
+Based on comprehensive benchmarking across 63 datasets, FeatCopilot provides the most value in these scenarios:
 
 | Scenario | Expected Benefit | Evidence |
 |----------|------------------|----------|
-| **Low baseline performance** | **Very High** (+50-400%) | delays_zurich: +197% (tabular), +420% (LLM) |
-| **Small feature sets** | **High** (+5-10%) | abalone: +8.98% (7→30 features) |
-| **Domain-specific tasks** | **High** (+3-6%) | bike_sharing: +3.55%, nyc_taxi: +6.01% |
-| **Complex classification** | **Medium** (+1-5%) | complex_classification: +5.68% |
+| **Complex interactions** | **Very High** (+30-144%) | triple_interaction: +144%, xor: +104% |
+| **Small feature sets** | **High** (+5-20%) | polynomial_classification: +10%, complex_classification: +16.5% |
+| **AutoML enhancement** | **Medium** (+1-8%) | complex_classification: +6.67% (FLAML), +7.62% (AutoGluon) |
 | **Already high-performing** | **Low** (0-1%) | credit_card_fraud: +0.00% (baseline 0.984) |
+| **FE tool comparison** | **Winner** (80% win rate) | Composite score 0.606 (#1 of 3 tools) |
 
 !!! info "Key Insight"
     FeatCopilot provides the **largest improvements** on datasets where:
 
-    1. **Baseline performance is poor** - More room for improvement
+    1. **Feature interactions matter** - XOR, polynomial, and multi-way interactions
     2. **Feature set is small** - More potential for derived features
-    3. **Domain knowledge helps** - LLM can suggest meaningful features
+    3. **Baseline performance has room** - Near-perfect baselines show minimal improvement
 
-    Datasets already near perfect performance (>0.98) show minimal improvement, as expected.
+    FeatCopilot's GBM-based feature selection ensures it **rarely hurts** performance, even when improvements are small.
 
 ---
 
@@ -157,28 +175,29 @@ git clone https://github.com/thinkall/featcopilot.git
 cd featcopilot
 pip install -e ".[benchmark]"
 
-# Run simple models benchmark (42 datasets)
+# Run simple models benchmark (63 datasets)
 python -m benchmarks.simple_models.run_simple_models_benchmark --all
 
 # Run with LLM engine
 python -m benchmarks.simple_models.run_simple_models_benchmark --all --with-llm
 
-# Run AutoML benchmark (42 datasets)
-python -m benchmarks.automl.run_automl_benchmark --all
+# Run AutoML benchmark (FLAML + AutoGluon)
+python -m benchmarks.automl.run_automl_benchmark --framework all
 
 # Run FE tools comparison
-python -m benchmarks.compare_tools.run_fe_tools_comparison --all
+python -m benchmarks.compare_tools.run_fe_tools_comparison
 ```
 
 ### Available Benchmarks
 
 | Benchmark | Command | Description |
 |-----------|---------|-------------|
-| **Simple Models** | `python -m benchmarks.simple_models.run_simple_models_benchmark --all` | RF/Ridge on 42 datasets |
+| **Simple Models** | `python -m benchmarks.simple_models.run_simple_models_benchmark --all` | RF/Ridge on 63 datasets |
 | **Simple Models + LLM** | `python -m benchmarks.simple_models.run_simple_models_benchmark --all --with-llm` | With LLM-generated features |
-| **AutoML** | `python -m benchmarks.automl.run_automl_benchmark --all` | FLAML on 42 datasets |
-| **AutoML + LLM** | `python -m benchmarks.automl.run_automl_benchmark --all --with-llm` | FLAML with LLM features |
-| **Tool Comparison** | `python -m benchmarks.compare_tools.run_fe_tools_comparison --all` | vs Featuretools, OpenFE, etc. |
+| **AutoML (FLAML)** | `python -m benchmarks.automl.run_automl_benchmark --framework flaml` | FLAML on 10 datasets |
+| **AutoML (AutoGluon)** | `python -m benchmarks.automl.run_automl_benchmark --framework autogluon` | AutoGluon on 10 datasets |
+| **AutoML (All)** | `python -m benchmarks.automl.run_automl_benchmark --framework all` | Both frameworks |
+| **Tool Comparison** | `python -m benchmarks.compare_tools.run_fe_tools_comparison` | vs autofeat, featuretools |
 
 ### Benchmark Options
 
@@ -198,18 +217,17 @@ python -m benchmarks.automl.run_automl_benchmark --time-budget 300
 
 ### Benchmark Reports
 
-Reports are saved with date suffix and LLM indicator:
-
 ```
 benchmarks/
 ├── simple_models/
 │   ├── SIMPLE_MODELS_BENCHMARK.md      # Tabular only
 │   └── SIMPLE_MODELS_BENCHMARK_LLM.md  # Tabular + LLM
 ├── automl/
-│   ├── AUTOML_BENCHMARK.md             # Tabular only
-│   └── AUTOML_BENCHMARK_LLM.md         # Tabular + LLM
+│   ├── AUTOML_BENCHMARK.md             # Combined (FLAML + AutoGluon)
+│   ├── AUTOML_FLAML_BENCHMARK.md       # FLAML only
+│   └── AUTOML_AUTOGLUON_BENCHMARK.md   # AutoGluon only
 └── compare_tools/
-    └── FE_TOOLS_COMPARISON.md
+    └── FE_TOOLS_COMPARISON.md          # FeatCopilot vs competitors
 ```
 
 ---
@@ -219,70 +237,63 @@ benchmarks/
 ### Evaluation Protocol
 
 - **Train/Test Split**: 80/20 with `random_state=42` for reproducibility
-- **Metrics**: F1 (weighted) for classification, R² for regression
+- **Metrics**: Accuracy for classification, R² for regression
 - **Models**:
   - Simple: RandomForest (n_estimators=200, max_depth=20), LogisticRegression/Ridge
-  - AutoML: FLAML with 120s time budget
-- **Feature Selection**: Importance-based with 1% threshold filter
+  - AutoML: FLAML / AutoGluon with 120s time budget
+  - FE Comparison: FLAML with 30s time budget
+- **Feature Selection**: GBM-based importance with median threshold + GBM refinement
 
 ### FeatCopilot Configuration
 
 ```python
-from featcopilot import FeatureEngineer
-from featcopilot.selection import FeatureSelector
+from featcopilot import AutoFeatureEngineer
 
 # Standard configuration
-engineer = FeatureEngineer(
-    engines=["tabular"],
+engineer = AutoFeatureEngineer(
+    engines=["tabular", "relational"],
     max_features=100,
-    verbose=1,
+    verbose=False,
 )
 
-# With LLM engine
-engineer = FeatureEngineer(
-    engines=["tabular", "llm"],
-    llm_config={"model": "gpt-4o-mini"},
-    max_features=100,
-)
-
-# Feature selection
-selector = FeatureSelector(
-    method="importance",
-    threshold=0.01,  # Keep features with >1% relative importance
-)
+X_transformed = engineer.fit_transform(X_train, y_train)
+X_test_transformed = engineer.transform(X_test)
 ```
 
 ---
 
 ## Dataset Coverage
 
-42 datasets across classification and regression:
+63 datasets across 4 categories:
 
 | Category | Count | Examples |
 |----------|-------|----------|
-| **Classification** | 22 | titanic, higgs, covertype, credit, albert, eye_movements |
-| **Regression** | 20 | house_prices, diamonds, abalone, cpu_act, superconduct |
+| **Classification** | 26 | titanic, xor_classification, complex_classification, higgs, covertype |
+| **Regression** | 30 | house_prices, complex_regression, polynomial_regression, diamonds |
+| **Forecasting** | 3 | sensor_anomaly, retail_demand, server_latency |
+| **Text** | 4 | product_reviews, fake_news, news_classification, medical_notes |
 
 Dataset sources include:
 - **OpenML** (INRIA benchmark suite)
 - **Kaggle** (popular ML datasets)
-- **Custom synthetic** (complex_classification, complex_regression)
+- **Synthetic** (interaction-heavy datasets for FE evaluation)
 
 ---
 
 ## Conclusion
 
-FeatCopilot demonstrates **consistent improvements** across diverse datasets:
+FeatCopilot demonstrates **consistent improvements** across diverse datasets and frameworks:
 
-1. **Simple Models**: +4.54% average, up to +197% maximum improvement
-2. **With LLM**: Additional +1.5% on average, with some datasets seeing +200% more improvement
-3. **AutoML**: +8.55% best improvement, 46% datasets improved
+1. **Simple Models**: +7.52% average, up to +144% maximum improvement across 63 datasets
+2. **AutoML**: +1.70% average across FLAML and AutoGluon, 90% improvement rate
+3. **vs Competitors**: #1 ranked FE tool with 80% win rate, beating autofeat and featuretools
 
 **Best use cases**:
-- Datasets with poor baseline performance
+- Datasets with complex feature interactions (XOR, polynomial, multi-way)
 - Small feature sets that benefit from derived features
-- Tasks where domain knowledge helps (LLM engine)
+- Any ML pipeline where consistent, safe feature engineering is needed
 
-**Current limitations**:
-- Near-perfect baselines show minimal improvement
-- Very high-dimensional datasets (400+ features) see less benefit
+**Key strengths**:
+- GBM-based selection ensures features rarely hurt performance
+- Fast (~2s) compared to alternatives (autofeat: ~48s)
+- Works on all dataset types (100% coverage vs autofeat's 50%)

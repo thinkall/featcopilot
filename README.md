@@ -10,29 +10,36 @@ FeatCopilot automatically generates, selects, and explains predictive features u
 
 ## 📊 Benchmark Highlights
 
-### Simple Models Benchmark (42 Datasets)
+### Simple Models Benchmark (63 Datasets)
 
 | Configuration | Improved | Avg Improvement | Best Improvement |
 |---------------|----------|-----------------|------------------|
-| **Tabular Engine** | 20 (48%) | +4.54% | +197% (delays_zurich) |
-| **Tabular + LLM** | 23 (55%) | +6.12% | +420% (delays_zurich) |
+| **Tabular Engine** | 31 (49%) | **+7.52%** | +144% (triple_interaction) |
 
 Models: RandomForest (n_estimators=200, max_depth=20), LogisticRegression/Ridge
 
-### AutoML Benchmark (FLAML, 120s budget)
+### AutoML Benchmark (FLAML + AutoGluon, 120s budget)
 
-| Metric | Value |
-|--------|-------|
-| **Datasets** | 41 |
-| **Improved** | 19 (46%) |
-| **Best Improvement** | +8.55% (abalone) |
+| Framework | Datasets | Improved | Avg Improvement |
+|-----------|----------|----------|-----------------|
+| **FLAML** | 10 | 9 (90%) | **+1.85%** |
+| **AutoGluon** | 10 | 9 (90%) | **+1.55%** |
+
+### FE Tools Comparison (FeatCopilot vs autofeat vs featuretools)
+
+| Metric | FeatCopilot | autofeat | featuretools |
+|--------|-------------|----------|--------------|
+| **Win Rate** | **80%** 🏆 | 40% | 0% |
+| **Avg Improvement** | **+1.89%** 🏆 | +1.46% | -2.71% |
+| **Coverage** | **100%** 🏆 | 50% | 100% |
+| **Composite Score** | **0.606** 🥇 | 0.351 🥉 | 0.397 🥈 |
 
 ### Key Results
 
-- ✅ **+197% improvement** on delays_zurich (tabular only)
-- 🧠 **+420% improvement** with LLM-enhanced features
-- 📈 **+8.98%** on abalone regression task
-- 🚀 **+5.68%** on complex_classification
+- 🔥 **+144% improvement** on triple_interaction_regression (tabular only)
+- 📈 **+104%** on xor_regression, **+70%** on pairwise_product_regression
+- 🏆 **#1 FE tool** — beats autofeat and featuretools across 10 datasets
+- 🚀 **90% AutoML improvement rate** across FLAML and AutoGluon
 
 [View Full Benchmark Results](https://thinkall.github.io/featcopilot/user-guide/benchmarks/)
 
