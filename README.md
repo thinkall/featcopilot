@@ -86,7 +86,7 @@ print(f"Features: {X.shape[1]} -> {X_transformed.shape[1]}")
 ```python
 from featcopilot import AutoFeatureEngineer
 
-# LLM-powered semantic features (+420% max improvement)
+# LLM-powered semantic features
 engineer = AutoFeatureEngineer(
     engines=['tabular', 'llm'],
     max_features=50

@@ -17,11 +17,11 @@ from benchmarks.datasets import (
 )
 
 # List all available datasets
-all_names = list_datasets()  # 52 datasets
+all_names = list_datasets()  # 63 datasets
 
 # List by category
-classification_names = list_datasets(CATEGORY_CLASSIFICATION)  # 22 datasets
-regression_names = list_datasets(CATEGORY_REGRESSION)  # 20 datasets
+classification_names = list_datasets(CATEGORY_CLASSIFICATION)  # 26 datasets
+regression_names = list_datasets(CATEGORY_REGRESSION)  # 30 datasets
 
 # Load a single dataset by name
 X, y, task, name = load_dataset('titanic')
@@ -42,10 +42,10 @@ all_data = load_all_datasets()
 
 | Category | Count | Description |
 |----------|-------|-------------|
-| `classification` | 22 | Binary and multi-class classification |
-| `regression` | 20 | Continuous target prediction |
+| `classification` | 26 | Binary and multi-class classification |
+| `regression` | 30 | Continuous target prediction |
 | `forecasting` | 3 | Time series forecasting |
-| `text` | 7 | Text/NLP datasets |
+| `text` | 4 | Text/NLP datasets |
 
 ### Classification Datasets
 
@@ -60,12 +60,17 @@ list_datasets('classification')
 | employee_attrition | Employee attrition | Synthetic |
 | credit_risk | Credit risk assessment | Synthetic |
 | medical_diagnosis | Medical diagnosis | Synthetic |
+| complex_classification | Complex interaction-based | Synthetic |
+| interaction_classification | Pairwise interaction | Synthetic |
 | customer_churn | Customer churn | Synthetic |
+| xor_classification | XOR pattern-based | Synthetic |
+| polynomial_classification | Polynomial boundary | Synthetic |
+| customer_support | Support ticket priority | Synthetic |
 | higgs | Higgs boson detection | INRIA |
 | covertype | Forest cover type | INRIA |
 | electricity | Electricity price direction | INRIA |
 | credit | Credit approval | INRIA |
-| ... | +12 more INRIA datasets | INRIA |
+| ... | +11 more INRIA datasets | INRIA |
 
 ### Regression Datasets
 
@@ -77,12 +82,23 @@ list_datasets('regression')
 |------|-------------|--------|
 | house_prices | House price prediction | Synthetic |
 | bike_sharing | Bike sharing demand | Synthetic |
+| complex_regression | Complex interaction target | Synthetic |
+| polynomial_regression | Polynomial target | Synthetic |
+| ratio_regression | Ratio-based target | Synthetic |
+| nonlinear_regression | Nonlinear target | Synthetic |
 | insurance_claims | Insurance claim amount | Synthetic |
+| xor_regression | XOR-based target | Synthetic |
+| quadratic_heavy_regression | Quadratic-heavy target | Synthetic |
+| pairwise_product_regression | Pairwise product target | Synthetic |
+| sqrt_log_regression | Sqrt/log target | Synthetic |
+| triple_interaction_regression | Triple interaction target | Synthetic |
+| job_postings | Job salary prediction | Synthetic |
+| ecommerce_product | E-commerce sales | Synthetic |
 | spotify_tracks | Spotify popularity | HuggingFace |
 | diamonds | Diamond price | INRIA |
 | wine_quality | Wine quality score | INRIA |
 | abalone | Abalone age | INRIA |
-| ... | +13 more datasets | Various |
+| ... | +12 more datasets | Various |
 
 ### Forecasting (Time Series) Datasets
 
@@ -105,11 +121,8 @@ list_datasets('text')
 | Name | Description |
 |------|-------------|
 | product_reviews | Product review sentiment |
-| job_postings | Job posting salary prediction |
 | news_classification | News headline classification |
-| customer_support | Support ticket priority |
 | medical_notes | Medical notes classification |
-| ecommerce_product | E-commerce product sales |
 | fake_news | Fake news detection (HuggingFace) |
 
 ---
