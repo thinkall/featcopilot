@@ -119,14 +119,14 @@ FeatCopilot is a Python library for automated feature engineering powered by lar
 
 | Feature | FeatCopilot | Featuretools | TSFresh | AutoFeat | OpenFE | CAAFE |
 |---------|-------------|--------------|---------|----------|--------|-------|
-| Tabular Features | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ |
-| Time Series | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Tabular Features | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ |
+| Time Series | ✅ | ⚠️ | ✅ | ❌ | ❌ | ❌ |
 | Relational | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
 | **LLM-Powered** | ✅ | ❌ | ❌ | ❌ | ❌ | ⚠️ |
 | **Semantic Understanding** | ✅ | ❌ | ❌ | ❌ | ❌ | ⚠️ |
 | **Code Generation** | ✅ | ❌ | ❌ | ❌ | ❌ | ⚠️ |
 | Sklearn Compatible | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Interpretable | ✅ | ⚠️ | ⚠️ | ⚠️ | ❌ | ✅ |
+| Interpretable | ✅ | ✅ | ⚠️ | ⚠️ | ❌ | ✅ |
 
 ## Installation
 
