@@ -175,14 +175,14 @@ X_selected = selector.fit_transform(X, y)
 
 | Feature | FeatCopilot | Featuretools | TSFresh | AutoFeat | OpenFE | CAAFE |
 |---------|-------------|--------------|---------|----------|--------|-------|
-| Tabular Features | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ |
-| Time Series | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Tabular Features | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ |
+| Time Series | ✅ | ⚠️ | ✅ | ❌ | ❌ | ❌ |
 | Relational | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
 | LLM-Powered | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ |
 | Semantic Understanding | ✅ | ❌ | ❌ | ❌ | ❌ | ⚠️ |
 | Code Generation | ✅ | ❌ | ❌ | ❌ | ❌ | ⚠️ |
 | Sklearn Compatible | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Interpretable | ✅ | ⚠️ | ⚠️ | ⚠️ | ❌ | ✅ |
+| Interpretable | ✅ | ✅ | ⚠️ | ⚠️ | ❌ | ✅ |
 
 ## Documentation
 
