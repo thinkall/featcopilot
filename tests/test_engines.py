@@ -785,6 +785,27 @@ class TestTimeSeriesEngineExtended:
         assert "feature_0_mean" in result.columns
         assert "feature_1_mean" in result.columns
 
+    def test_series_in_rows_mode(self):
+        """Test per-row mode for sequence-like cells."""
+        df = pd.DataFrame(
+            {
+                "series": [np.array([1.0, 2.0, 3.0]), np.array([3.0, 2.0, 1.0])],
+                "event_time": [pd.Timestamp("2024-01-01"), pd.Timestamp("2024-01-02")],
+            }
+        )
+        engine = TimeSeriesEngine(features=["basic_stats"], series_in_rows=True)
+        result = engine.fit_transform(df, time_column="event_time")
+
+        assert isinstance(result, pd.DataFrame)
+        assert len(result) == 2
+        assert "series_mean" in result.columns
+
+    def test_time_column_missing_raises(self, ts_data):
+        """Test invalid time column raises a helpful error."""
+        engine = TimeSeriesEngine(features=["basic_stats"])
+        with pytest.raises(ValueError, match="time_column 'missing_time'"):
+            engine.fit(ts_data, time_column="missing_time")
+
 
 # ---------------------------------------------------------------------------
 # RelationalEngine tests
@@ -949,6 +970,20 @@ class TestRelationalEngine:
         result = engine.transform(orders_data, related_tables={"customers": customers_data})
         assert isinstance(result, pd.DataFrame)
         assert "customers_age_mean" in result.columns
+
+    def test_fit_missing_child_key_raises(self, orders_data, customers_data):
+        """Test fit raises when child key is missing from primary table."""
+        engine = RelationalEngine()
+        engine.add_relationship("orders", "customers", "missing_customer_id")
+        with pytest.raises(ValueError, match="child_key 'missing_customer_id'"):
+            engine.fit(orders_data, related_tables={"customers": customers_data})
+
+    def test_fit_missing_parent_key_raises(self, orders_data, customers_data):
+        """Test fit raises when parent key is missing from related table."""
+        engine = RelationalEngine()
+        engine.add_relationship("orders", "customers", "customer_id", parent_key="missing_parent_key")
+        with pytest.raises(ValueError, match="parent_key 'missing_parent_key'"):
+            engine.fit(orders_data, related_tables={"customers": customers_data})
 
     def test_no_relationships(self, orders_data):
         """Test engine with no relationships defined."""

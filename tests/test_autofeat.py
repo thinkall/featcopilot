@@ -103,6 +103,11 @@ class TestAutoFeatureEngineer:
         with pytest.raises(ValueError, match="Unknown selection methods"):
             AutoFeatureEngineer(selection_methods=["mutual_info", "magic"])
 
+    def test_invalid_leakage_guard_raises(self):
+        """Test invalid leakage guard setting fails early."""
+        with pytest.raises(ValueError, match="leakage_guard must be one of"):
+            AutoFeatureEngineer(leakage_guard="maybe")
+
 
 class TestAutoFeatureEngineerParams:
     """Test parameter handling."""

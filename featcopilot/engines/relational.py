@@ -106,14 +106,14 @@ class RelationalEngine(BaseEngine):
         -------
         self : RelationalEngine
         """
-        self._relationships.append(
-            {
-                "child": child_table,
-                "parent": parent_table,
-                "child_key": key_column,
-                "parent_key": parent_key or key_column,
-            }
-        )
+        relationship = {
+            "child": child_table,
+            "parent": parent_table,
+            "child_key": key_column,
+            "parent_key": parent_key or key_column,
+        }
+        if relationship not in self._relationships:
+            self._relationships.append(relationship)
         return self
 
     def fit(
@@ -142,6 +142,8 @@ class RelationalEngine(BaseEngine):
         X = self._validate_input(X)
         self._related_tables = related_tables or {}
         self._primary_columns = X.columns.tolist()
+
+        self._validate_relationships(X, self._related_tables)
 
         if self.config.verbose:
             logger.info(f"RelationalEngine: {len(self._relationships)} relationships defined")
@@ -175,6 +177,7 @@ class RelationalEngine(BaseEngine):
 
         X = self._validate_input(X)
         related_tables = related_tables or self._related_tables
+        self._validate_relationships(X, related_tables)
         result = X.copy()
 
         # Generate features from relationships
@@ -197,6 +200,23 @@ class RelationalEngine(BaseEngine):
             logger.info(f"RelationalEngine: Generated {len(self._feature_names)} features")
 
         return result
+
+    def _validate_relationships(self, primary_df: pd.DataFrame, related_tables: dict[str, pd.DataFrame]) -> None:
+        """Validate configured relationships against available tables and keys."""
+        for relationship in self._relationships:
+            child_key = relationship["child_key"]
+            parent_table = relationship["parent"]
+            parent_key = relationship["parent_key"]
+
+            if child_key not in primary_df.columns:
+                raise ValueError(f"child_key '{child_key}' not found in primary table")
+
+            if parent_table not in related_tables:
+                continue
+
+            parent_df = related_tables[parent_table]
+            if parent_key not in parent_df.columns:
+                raise ValueError(f"parent_key '{parent_key}' not found in related table '{parent_table}'")
 
     def _aggregate_from_relationship(
         self,
