@@ -85,6 +85,7 @@ nav:
   - Examples:
     - End-to-End Demo: examples/e2e-demo.md
     - Basic Usage: examples/basic.md
+    - Time-Aware Tabular: examples/time-aware-tabular.md
     - LLM-Powered: examples/llm-powered.md
     - Sklearn Pipeline: examples/sklearn-pipeline.md
     - Domain-Specific: examples/domain-specific.md

@@ -3,6 +3,7 @@
 Provides drop-in sklearn transformers for feature engineering pipelines.
 """
 
+import warnings
 from typing import Any, Optional, Union
 
 import numpy as np
@@ -16,6 +17,7 @@ from featcopilot.engines.text import TextEngine
 from featcopilot.engines.timeseries import TimeSeriesEngine
 from featcopilot.selection.unified import FeatureSelector
 from featcopilot.utils.logger import get_logger
+from featcopilot.utils.validation import find_potential_leakage_columns
 
 logger = get_logger(__name__)
 
@@ -110,6 +112,10 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
     >>> X_transformed = engineer.fit_transform(X, y)
     """
 
+    SUPPORTED_ENGINES = {"tabular", "timeseries", "relational", "text", "llm"}
+    SUPPORTED_SELECTION_METHODS = {"mutual_info", "importance", "f_test", "chi2", "correlation", "xgboost"}
+    SUPPORTED_LEAKAGE_GUARDS = {"off", "warn", "raise"}
+
     def __init__(
         self,
         engines: Optional[list[str]] = None,
@@ -118,6 +124,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         correlation_threshold: float = 0.85,
         llm_config: Optional[dict[str, Any]] = None,
         verbose: bool = False,
+        leakage_guard: str = "warn",
     ):
         self.engines = engines or ["tabular"]
         self.max_features = max_features
@@ -125,6 +132,9 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         self.correlation_threshold = correlation_threshold
         self.llm_config = llm_config or {}
         self.verbose = verbose
+        self.leakage_guard = leakage_guard
+
+        self._validate_configuration()
 
         self._engine_instances: dict[str, Any] = {}
         self._selector: Optional[FeatureSelector] = None
@@ -133,12 +143,34 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         self._column_descriptions: dict[str, str] = {}
         self._task_description: str = ""
 
+    def _validate_configuration(self) -> None:
+        """Validate user-facing configuration early."""
+        unknown_engines = sorted(set(self.engines) - self.SUPPORTED_ENGINES)
+        if unknown_engines:
+            raise ValueError(f"Unknown engines: {unknown_engines}. Supported engines: {sorted(self.SUPPORTED_ENGINES)}")
+
+        unknown_methods = sorted(set(self.selection_methods) - self.SUPPORTED_SELECTION_METHODS)
+        if unknown_methods:
+            raise ValueError(
+                "Unknown selection methods: "
+                f"{unknown_methods}. Supported methods: {sorted(self.SUPPORTED_SELECTION_METHODS)}"
+            )
+
+        if self.leakage_guard not in self.SUPPORTED_LEAKAGE_GUARDS:
+            raise ValueError(
+                f"leakage_guard must be one of {sorted(self.SUPPORTED_LEAKAGE_GUARDS)}, got {self.leakage_guard!r}"
+            )
+
+        if self.max_features is not None and self.max_features <= 0:
+            raise ValueError("max_features must be positive when provided")
+
     def fit(
         self,
         X: Union[pd.DataFrame, np.ndarray],
         y: Optional[Union[pd.Series, np.ndarray]] = None,
         column_descriptions: Optional[dict[str, str]] = None,
         task_description: str = "prediction task",
+        target_name: Optional[str] = None,
         **fit_params,
     ) -> "AutoFeatureEngineer":
         """
@@ -167,6 +199,17 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
 
         self._column_descriptions = column_descriptions or {}
         self._task_description = task_description
+
+        suspicious_columns = find_potential_leakage_columns(X.columns.tolist(), target_name=target_name)
+        if suspicious_columns and self.leakage_guard != "off":
+            message = (
+                "Potential leakage-prone columns detected: "
+                f"{suspicious_columns}. Review time/label leakage before fitting, "
+                "or set leakage_guard='off' to disable this check."
+            )
+            if self.leakage_guard == "raise":
+                raise ValueError(message)
+            warnings.warn(message, UserWarning, stacklevel=2)
 
         # Fit each engine
         for engine_name in self.engines:
@@ -271,6 +314,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         y: Optional[Union[pd.Series, np.ndarray]] = None,
         column_descriptions: Optional[dict[str, str]] = None,
         task_description: str = "prediction task",
+        target_name: Optional[str] = None,
         apply_selection: bool = True,
         **fit_params,
     ) -> pd.DataFrame:
@@ -297,7 +341,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         X_transformed : DataFrame
             Transformed data with generated features
         """
-        self.fit(X, y, column_descriptions, task_description, **fit_params)
+        self.fit(X, y, column_descriptions, task_description, target_name=target_name, **fit_params)
         # Reuse transform-relevant kwargs (e.g. text_columns, related_tables) during fit_transform.
         result = self.transform(X, **fit_params)
 
@@ -409,10 +453,12 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             "correlation_threshold": self.correlation_threshold,
             "llm_config": self.llm_config,
             "verbose": self.verbose,
+            "leakage_guard": self.leakage_guard,
         }
 
     def set_params(self, **params):
         """Set parameters for sklearn compatibility."""
         for key, value in params.items():
             setattr(self, key, value)
+        self._validate_configuration()
         return self
