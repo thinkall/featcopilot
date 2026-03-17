@@ -298,7 +298,8 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             Transformed data with generated features
         """
         self.fit(X, y, column_descriptions, task_description, **fit_params)
-        result = self.transform(X)
+        # Reuse transform-relevant kwargs (e.g. text_columns, related_tables) during fit_transform.
+        result = self.transform(X, **fit_params)
 
         # Track original features (input columns) vs derived features
         if isinstance(X, np.ndarray):

@@ -1,5 +1,6 @@
 """Tests for scikit-learn compatible feature engineering transformers."""
 
+import importlib
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -261,6 +262,29 @@ class TestAutoFeatureEngineer:
         assert result is afe
         assert afe.max_features == 20
         assert afe.verbose is True
+
+
+class TestPackageImport:
+    """Tests for top-level package import behavior."""
+
+    def test_import_without_installed_metadata_falls_back(self):
+        """Test source import works even when distribution metadata is unavailable."""
+        import importlib.metadata as importlib_metadata
+
+        import featcopilot
+
+        original_version = importlib_metadata.version
+
+        def fake_version(name):
+            if name == "featcopilot":
+                raise importlib_metadata.PackageNotFoundError
+            return original_version(name)
+
+        with patch("importlib.metadata.version", side_effect=fake_version):
+            reloaded = importlib.reload(featcopilot)
+            assert reloaded.__version__ == "0+unknown"
+
+        importlib.reload(featcopilot)
 
     def test_verbose_logging(self, sample_df, sample_target):
         """Test that verbose=True does not error."""
