@@ -77,9 +77,7 @@ def main() -> None:
 
     X_train_baseline = pd.get_dummies(X_train, drop_first=False)
     X_test_baseline = pd.get_dummies(X_test, drop_first=False)
-    X_train_baseline, X_test_baseline = X_train_baseline.align(
-        X_test_baseline, join="left", axis=1, fill_value=0
-    )
+    X_train_baseline, X_test_baseline = X_train_baseline.align(X_test_baseline, join="left", axis=1, fill_value=0)
 
     baseline = HistGradientBoostingClassifier(max_depth=4, learning_rate=0.05, random_state=42)
     baseline.fit(X_train_baseline, y_train)

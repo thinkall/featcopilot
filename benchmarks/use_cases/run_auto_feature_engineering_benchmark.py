@@ -43,14 +43,7 @@ def create_dataset(n_samples: int = 5000, random_state: int = 42) -> pd.DataFram
     loyalty = ((df["age"] - 18) / 62) * (df["tenure_months"] / 120)
     team_flag = (df["plan_tier"] == "team").astype(int)
 
-    logit = (
-        -1.4
-        + 1.5 * charge_ratio
-        + 1.8 * complaint_rate
-        + 0.004 * product_density
-        - 0.8 * loyalty
-        - 0.4 * team_flag
-    )
+    logit = -1.4 + 1.5 * charge_ratio + 1.8 * complaint_rate + 0.004 * product_density - 0.8 * loyalty - 0.4 * team_flag
     prob = 1 / (1 + np.exp(-logit))
     df["target"] = (rng.random(n_samples) < prob).astype(int)
     return df
@@ -58,6 +51,10 @@ def create_dataset(n_samples: int = 5000, random_state: int = 42) -> pd.DataFram
 
 def evaluate_auc(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Series, y_test: pd.Series) -> float:
     """Train a simple classifier and return ROC-AUC."""
+    X_train = pd.get_dummies(X_train, drop_first=False)
+    X_test = pd.get_dummies(X_test, drop_first=False)
+    X_train, X_test = align_and_fill(X_train, X_test)
+
     model = HistGradientBoostingClassifier(max_depth=4, learning_rate=0.05, random_state=42)
     model.fit(X_train, y_train)
     return roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])
@@ -94,7 +91,9 @@ def run_baseline(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Series
     return {"tool": "baseline", "auc": auc, "n_features": X_train_base.shape[1]}
 
 
-def run_featcopilot_case(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Series, y_test: pd.Series) -> dict[str, Any]:
+def run_featcopilot_case(
+    X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Series, y_test: pd.Series
+) -> dict[str, Any]:
     """Run FeatCopilot benchmark case."""
     engineer = AutoFeatureEngineer(
         engines=["tabular"],
@@ -111,7 +110,9 @@ def run_featcopilot_case(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: p
     return {"tool": "featcopilot", "auc": auc, "n_features": X_train_fe.shape[1]}
 
 
-def run_featuretools_case(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Series, y_test: pd.Series) -> dict[str, Any]:
+def run_featuretools_case(
+    X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Series, y_test: pd.Series
+) -> dict[str, Any]:
     """Run Featuretools if available."""
     try:
         import featuretools as ft
@@ -141,7 +142,9 @@ def run_featuretools_case(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: 
     return {"tool": "featuretools", "auc": auc, "n_features": train_fm.shape[1]}
 
 
-def run_autofeat_case(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Series, y_test: pd.Series) -> dict[str, Any]:
+def run_autofeat_case(
+    X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Series, y_test: pd.Series
+) -> dict[str, Any]:
     """Run autofeat if available."""
     try:
         from autofeat import AutoFeatClassifier
@@ -188,9 +191,7 @@ def main() -> None:
     data = create_dataset(n_samples=args.samples, random_state=args.seed)
     X = data.drop(columns=["target"])
     y = data["target"]
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=args.seed, stratify=y
-    )
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=args.seed, stratify=y)
 
     results = [
         run_baseline(X_train, X_test, y_train, y_test),
