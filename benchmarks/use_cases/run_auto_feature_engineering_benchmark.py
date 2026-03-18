@@ -13,9 +13,13 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 from featcopilot import AutoFeatureEngineer
 
@@ -23,7 +27,7 @@ REPORT_DIR = Path(__file__).resolve().parent
 
 
 def create_dataset(n_samples: int = 5000, random_state: int = 42) -> pd.DataFrame:
-    """Create a synthetic classification dataset with interaction-heavy signal."""
+    """Create a synthetic classification dataset with explicit ratio/interaction signal."""
     rng = np.random.default_rng(random_state)
     df = pd.DataFrame(
         {
@@ -41,23 +45,24 @@ def create_dataset(n_samples: int = 5000, random_state: int = 42) -> pd.DataFram
     complaint_rate = df["support_tickets"] / (df["tenure_months"] + 1)
     product_density = df["monthly_charges"] / (df["num_products"] + 0.5)
     loyalty = ((df["age"] - 18) / 62) * (df["tenure_months"] / 120)
+    free_flag = (df["plan_tier"] == "free").astype(int)
     team_flag = (df["plan_tier"] == "team").astype(int)
 
-    logit = -1.4 + 1.5 * charge_ratio + 1.8 * complaint_rate + 0.004 * product_density - 0.8 * loyalty - 0.4 * team_flag
+    interaction_signal = charge_ratio * complaint_rate * 8.0
+    threshold_bonus = ((charge_ratio > 0.020) & (complaint_rate > 0.045)).astype(float) * 1.2
+    plan_interaction = free_flag * charge_ratio * 6.0 - team_flag * loyalty * 1.5
+
+    logit = (
+        -2.2
+        + 0.0035 * product_density
+        + 1.8 * interaction_signal
+        + threshold_bonus
+        + plan_interaction
+        - 1.1 * loyalty
+    )
     prob = 1 / (1 + np.exp(-logit))
     df["target"] = (rng.random(n_samples) < prob).astype(int)
     return df
-
-
-def evaluate_auc(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Series, y_test: pd.Series) -> float:
-    """Train a simple classifier and return ROC-AUC."""
-    X_train = pd.get_dummies(X_train, drop_first=False)
-    X_test = pd.get_dummies(X_test, drop_first=False)
-    X_train, X_test = align_and_fill(X_train, X_test)
-
-    model = HistGradientBoostingClassifier(max_depth=4, learning_rate=0.05, random_state=42)
-    model.fit(X_train, y_train)
-    return roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])
 
 
 def align_and_fill(X_train: pd.DataFrame, X_test: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -66,20 +71,35 @@ def align_and_fill(X_train: pd.DataFrame, X_test: pd.DataFrame) -> tuple[pd.Data
     return X_train_aligned.fillna(0), X_test_aligned.fillna(0)
 
 
-def run_featcopilot(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Series) -> tuple[float, int]:
-    """Run FeatCopilot and return transformed feature count."""
-    engineer = AutoFeatureEngineer(
-        engines=["tabular"],
-        max_features=40,
-        selection_methods=["mutual_info", "importance"],
-        correlation_threshold=0.9,
-        leakage_guard="warn",
-        verbose=False,
+def evaluate_auc(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Series, y_test: pd.Series) -> float:
+    """Train a simple classifier and return ROC-AUC."""
+    X_train = pd.get_dummies(X_train, drop_first=False)
+    X_test = pd.get_dummies(X_test, drop_first=False)
+    X_train, X_test = align_and_fill(X_train, X_test)
+
+    numeric_features = X_train.columns.tolist()
+    preprocessor = ColumnTransformer(
+        transformers=[
+            (
+                "num",
+                Pipeline(
+                    [
+                        ("imputer", SimpleImputer(strategy="constant", fill_value=0.0)),
+                        ("scaler", StandardScaler()),
+                    ]
+                ),
+                numeric_features,
+            )
+        ]
     )
-    X_train_fe = engineer.fit_transform(X_train, y_train, target_name="target", apply_selection=True)
-    X_test_fe = engineer.transform(X_test)
-    X_train_fe, X_test_fe = align_and_fill(X_train_fe, X_test_fe)
-    return evaluate_auc(X_train_fe, X_test_fe, y_train, y_test=None), X_train_fe.shape[1]
+    model = Pipeline(
+        steps=[
+            ("preprocessor", preprocessor),
+            ("classifier", LogisticRegression(max_iter=2000, C=1.0)),
+        ]
+    )
+    model.fit(X_train, y_train)
+    return roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])
 
 
 def run_baseline(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Series, y_test: pd.Series) -> dict[str, Any]:
@@ -97,9 +117,9 @@ def run_featcopilot_case(
     """Run FeatCopilot benchmark case."""
     engineer = AutoFeatureEngineer(
         engines=["tabular"],
-        max_features=40,
+        max_features=60,
         selection_methods=["mutual_info", "importance"],
-        correlation_threshold=0.9,
+        correlation_threshold=0.95,
         leakage_guard="warn",
         verbose=False,
     )
@@ -116,6 +136,7 @@ def run_featuretools_case(
     """Run Featuretools if available."""
     try:
         import featuretools as ft
+        import woodwork  # noqa: F401
     except Exception as exc:
         return {"tool": "featuretools", "status": f"unavailable: {exc}"}
 
@@ -125,21 +146,26 @@ def run_featuretools_case(
     train_copy["row_id"] = np.arange(len(train_copy))
     test_copy["row_id"] = np.arange(len(test_copy))
 
-    es_train = ft.EntitySet(id="afe_train").add_dataframe(dataframe_name="data", dataframe=train_copy, index="row_id")
-    train_fm, feature_defs = ft.dfs(
-        entityset=es_train,
-        target_dataframe_name="data",
-        trans_primitives=["add_numeric", "multiply_numeric", "divide_numeric"],
-        agg_primitives=[],
-        max_depth=2,
-        max_features=40,
-    )
+    try:
+        train_copy = train_copy.ww.init(name="data", index="row_id")
+        es_train = ft.EntitySet(id="afe_train").add_dataframe(dataframe_name="data", dataframe=train_copy, index="row_id")
+        train_fm, feature_defs = ft.dfs(
+            entityset=es_train,
+            target_dataframe_name="data",
+            trans_primitives=["add_numeric", "multiply_numeric", "divide_numeric"],
+            agg_primitives=[],
+            max_depth=2,
+            max_features=60,
+        )
 
-    es_test = ft.EntitySet(id="afe_test").add_dataframe(dataframe_name="data", dataframe=test_copy, index="row_id")
-    test_fm = ft.calculate_feature_matrix(entityset=es_test, features=feature_defs)
-    train_fm, test_fm = align_and_fill(train_fm, test_fm)
-    auc = evaluate_auc(train_fm, test_fm, y_train, y_test)
-    return {"tool": "featuretools", "auc": auc, "n_features": train_fm.shape[1]}
+        test_copy.ww.init(name="data", index="row_id")
+        es_test = ft.EntitySet(id="afe_test").add_dataframe(dataframe_name="data", dataframe=test_copy, index="row_id")
+        test_fm = ft.calculate_feature_matrix(entityset=es_test, features=feature_defs)
+        train_fm, test_fm = align_and_fill(train_fm, test_fm)
+        auc = evaluate_auc(train_fm, test_fm, y_train, y_test)
+        return {"tool": "featuretools", "auc": auc, "n_features": train_fm.shape[1]}
+    except Exception as exc:
+        return {"tool": "featuretools", "status": f"failed: {exc}"}
 
 
 def run_autofeat_case(
@@ -155,12 +181,15 @@ def run_autofeat_case(
     X_test_num = pd.get_dummies(X_test, drop_first=False)
     X_train_num, X_test_num = align_and_fill(X_train_num, X_test_num)
 
-    model = AutoFeatClassifier(verbose=0, feateng_steps=1, featsel_runs=1)
-    X_train_fe = model.fit_transform(X_train_num, y_train)
-    X_test_fe = model.transform(X_test_num)
-    X_train_fe, X_test_fe = align_and_fill(X_train_fe, X_test_fe)
-    auc = evaluate_auc(X_train_fe, X_test_fe, y_train, y_test)
-    return {"tool": "autofeat", "auc": auc, "n_features": X_train_fe.shape[1]}
+    try:
+        model = AutoFeatClassifier(verbose=0, feateng_steps=2, featsel_runs=2)
+        X_train_fe = model.fit_transform(X_train_num, y_train)
+        X_test_fe = model.transform(X_test_num)
+        X_train_fe, X_test_fe = align_and_fill(X_train_fe, X_test_fe)
+        auc = evaluate_auc(X_train_fe, X_test_fe, y_train, y_test)
+        return {"tool": "autofeat", "auc": auc, "n_features": X_train_fe.shape[1]}
+    except Exception as exc:
+        return {"tool": "autofeat", "status": f"failed: {exc}"}
 
 
 def write_report(results: list[dict[str, Any]], output_path: Path) -> None:
