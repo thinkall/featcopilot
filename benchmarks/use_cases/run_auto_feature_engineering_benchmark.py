@@ -53,12 +53,7 @@ def create_dataset(n_samples: int = 5000, random_state: int = 42) -> pd.DataFram
     plan_interaction = free_flag * charge_ratio * 6.0 - team_flag * loyalty * 1.5
 
     logit = (
-        -2.2
-        + 0.0035 * product_density
-        + 1.8 * interaction_signal
-        + threshold_bonus
-        + plan_interaction
-        - 1.1 * loyalty
+        -2.2 + 0.0035 * product_density + 1.8 * interaction_signal + threshold_bonus + plan_interaction - 1.1 * loyalty
     )
     prob = 1 / (1 + np.exp(-logit))
     df["target"] = (rng.random(n_samples) < prob).astype(int)
@@ -148,7 +143,9 @@ def run_featuretools_case(
 
     try:
         train_copy = train_copy.ww.init(name="data", index="row_id")
-        es_train = ft.EntitySet(id="afe_train").add_dataframe(dataframe_name="data", dataframe=train_copy, index="row_id")
+        es_train = ft.EntitySet(id="afe_train").add_dataframe(
+            dataframe_name="data", dataframe=train_copy, index="row_id"
+        )
         train_fm, feature_defs = ft.dfs(
             entityset=es_train,
             target_dataframe_name="data",
