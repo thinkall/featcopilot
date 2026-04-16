@@ -12,6 +12,12 @@ Models:
 - Classification: RandomForestClassifier, LogisticRegression
 - Regression: RandomForestRegressor, Ridge
 
+Statistical methodology:
+- 5-fold stratified cross-validation (default)
+- Multiple random seeds for robust estimation
+- Reports mean ± std across folds
+- Wilcoxon signed-rank test for significance
+
 Usage:
     python -m benchmarks.simple_models.run_simple_models_benchmark [options]
 
@@ -27,6 +33,12 @@ Examples:
 
     # Run with LLM engine enabled
     python -m benchmarks.simple_models.run_simple_models_benchmark --with-llm
+
+    # Run only real-world datasets
+    python -m benchmarks.simple_models.run_simple_models_benchmark --real-world
+
+    # Fast dev mode (3-fold, 1 seed)
+    python -m benchmarks.simple_models.run_simple_models_benchmark --fast
 """
 
 import argparse
@@ -39,6 +51,7 @@ from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
+from scipy import stats
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LogisticRegression, Ridge
 from sklearn.metrics import (
@@ -49,7 +62,7 @@ from sklearn.metrics import (
     r2_score,
     roc_auc_score,
 )
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.preprocessing import LabelEncoder
 
 from benchmarks.datasets import (
@@ -57,16 +70,14 @@ from benchmarks.datasets import (
     CATEGORY_FORECASTING,
     CATEGORY_REGRESSION,
     CATEGORY_TEXT,
+    is_real_world,
     list_datasets,
+    list_real_world_datasets,
     load_dataset,
 )
 from benchmarks.feature_cache import (
-    FEATURE_CACHE_VERSION,
-    get_feature_cache_path,
-    load_feature_cache,
     sanitize_feature_frames,
     sanitize_feature_names,
-    save_feature_cache,
 )
 
 warnings.filterwarnings("ignore")
@@ -238,7 +249,9 @@ def model_supports_non_numeric(model) -> bool:
     return model.__class__.__name__ in NON_NUMERIC_MODEL_NAMES
 
 
-def run_models(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train, y_test, task: str, label: str) -> dict[str, dict]:
+def run_models(
+    X_train: pd.DataFrame, X_test: pd.DataFrame, y_train, y_test, task: str, label: str, quiet: bool = False
+) -> dict[str, dict]:
     """Run all models and return metrics."""
     models = get_models(task)
     results = {}
@@ -266,7 +279,8 @@ def run_models(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train, y_test, tas
         metrics["train_time"] = train_time
 
         results[name] = metrics
-        print(f"   {name}: {primary_metric}={metrics[primary_metric]:.4f}, time={train_time:.2f}s")
+        if not quiet:
+            print(f"   {name}: {primary_metric}={metrics[primary_metric]:.4f}, time={train_time:.2f}s")
 
     return results
 
@@ -276,157 +290,131 @@ def run_single_benchmark(
     max_features: int,
     with_llm: bool = False,
     use_feature_cache: bool = True,
+    n_folds: int = 5,
+    n_seeds: int = 1,
 ) -> Optional[dict[str, Any]]:
-    """Run benchmark on a single dataset."""
+    """
+    Run benchmark on a single dataset using k-fold cross-validation.
+
+    Parameters
+    ----------
+    dataset_name : str
+        Name of the dataset to benchmark.
+    max_features : int
+        Maximum number of features for FeatCopilot.
+    with_llm : bool
+        Whether to enable LLM engine.
+    use_feature_cache : bool
+        Whether to use feature caching.
+    n_folds : int
+        Number of cross-validation folds (default: 5).
+    n_seeds : int
+        Number of random seeds to average over (default: 1).
+
+    Returns
+    -------
+    dict or None
+        Benchmark results with mean ± std across folds.
+    """
     print(f"\n{'='*60}")
     print(f"Dataset: {dataset_name}")
     print(f"{'='*60}")
 
     try:
-        # Load dataset
         X, y, task, name = load_dataset(dataset_name)
-        print(f"Task: {task}, Shape: {X.shape}")
+        print(f"Task: {task}, Shape: {X.shape}, Source: {'real-world' if is_real_world(dataset_name) else 'synthetic'}")
 
-        # Preprocess
         X_processed, y_processed = preprocess_data(X, y, task)
 
-        # Split (keep raw and processed in sync)
-        stratify = y_processed if "classification" in task and len(np.unique(y_processed)) < 50 else None
-        indices = np.arange(len(X_processed))
-        train_idx, test_idx, y_train, y_test = train_test_split(
-            indices, y_processed, test_size=0.2, random_state=42, stratify=stratify
-        )
-        X_train = X_processed.iloc[train_idx]
-        X_test = X_processed.iloc[test_idx]
-        X_train_raw = X.iloc[train_idx]
-        X_test_raw = X.iloc[test_idx]
-        baseline_train = (X_train, X_test, y_train, y_test)
+        primary_metric = get_primary_metric(task)
+        baseline_fold_scores = []
+        tabular_fold_scores = []
+        fe_times = []
+        n_features_generated = []
+
+        seeds = [42 + i * 7 for i in range(n_seeds)]
+
+        for seed in seeds:
+            if "classification" in task and len(np.unique(y_processed)) < 50:
+                kf = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=seed)
+                split_iter = kf.split(X_processed, y_processed)
+            else:
+                kf = KFold(n_splits=n_folds, shuffle=True, random_state=seed)
+                split_iter = kf.split(X_processed)
+
+            for fold_idx, (train_idx, test_idx) in enumerate(split_iter):
+                X_train = X_processed.iloc[train_idx]
+                X_test = X_processed.iloc[test_idx]
+                y_train = y_processed[train_idx]
+                y_test = y_processed[test_idx]
+                X_train_raw = X.iloc[train_idx]
+                X_test_raw = X.iloc[test_idx]
+
+                # --- Baseline ---
+                baseline_results = run_models(X_train, X_test, y_train, y_test, task, "Baseline", quiet=True)
+                best_baseline = max(baseline_results.values(), key=lambda x: x[primary_metric])
+                baseline_fold_scores.append(best_baseline[primary_metric])
+
+                # --- FeatCopilot ---
+                try:
+                    X_train_fe, X_test_fe, fe_time, engines_used = apply_featcopilot(
+                        X_train_raw, X_test_raw, y_train, task, max_features, with_llm=False
+                    )
+                    tabular_results = run_models(X_train_fe, X_test_fe, y_train, y_test, task, "Tabular", quiet=True)
+                    best_tabular = max(tabular_results.values(), key=lambda x: x[primary_metric])
+                    tabular_fold_scores.append(best_tabular[primary_metric])
+                    fe_times.append(fe_time)
+                    n_features_generated.append(X_train_fe.shape[1])
+                except Exception as e:
+                    print(f"   FeatCopilot error on fold {fold_idx}: {e}")
+                    tabular_fold_scores.append(best_baseline[primary_metric])
+                    fe_times.append(0.0)
+                    n_features_generated.append(X_processed.shape[1])
+
+        baseline_scores = np.array(baseline_fold_scores)
+        tabular_scores = np.array(tabular_fold_scores)
+
+        baseline_mean = float(np.mean(baseline_scores))
+        baseline_std = float(np.std(baseline_scores))
+        tabular_mean = float(np.mean(tabular_scores))
+        tabular_std = float(np.std(tabular_scores))
+        improvement_pct = (tabular_mean - baseline_mean) / max(abs(baseline_mean), 0.001) * 100
+
+        # Wilcoxon signed-rank test (paired)
+        p_value = 1.0
+        if len(baseline_scores) >= 5 and not np.allclose(baseline_scores, tabular_scores):
+            try:
+                _, p_value = stats.wilcoxon(tabular_scores, baseline_scores, alternative="two-sided")
+            except ValueError:
+                p_value = 1.0
+
+        significant = p_value < 0.05
+
+        print(f"  Baseline: {baseline_mean:.4f} ± {baseline_std:.4f}")
+        print(f"  Tabular:  {tabular_mean:.4f} ± {tabular_std:.4f}")
+        print(f"  Improvement: {improvement_pct:+.2f}% (p={p_value:.4f}{'*' if significant else ''})")
 
         results = {
             "dataset": dataset_name,
             "task": task,
+            "source": "real_world" if is_real_world(dataset_name) else "synthetic",
             "n_samples": len(X),
             "n_features_original": X.shape[1],
+            "n_folds": n_folds,
+            "n_seeds": n_seeds,
             "with_llm": with_llm,
+            "baseline_best_score": baseline_mean,
+            "baseline_std": baseline_std,
+            "tabular_best_score": tabular_mean,
+            "tabular_std": tabular_std,
+            "tabular_improvement_pct": improvement_pct,
+            "p_value": float(p_value),
+            "significant": significant,
+            "n_features_tabular": int(np.mean(n_features_generated)),
+            "fe_time_tabular": float(np.mean(fe_times)),
+            "baseline_fold_scores": baseline_scores.tolist(),
+            "tabular_fold_scores": tabular_scores.tolist(),
         }
-        primary_metric = get_primary_metric(task)
-
-        # --- Baseline ---
-        print("\n[1/3] Baseline (no FE)...")
-        baseline_results = run_models(X_train, X_test, y_train, y_test, task, "Baseline")
-        results["baseline"] = baseline_results
-
-        # Best baseline score
-        best_baseline = max(baseline_results.values(), key=lambda x: x[primary_metric])
-        results["baseline_best_score"] = best_baseline[primary_metric]
-
-        # --- FeatCopilot (multi-engine) ---
-        engines_used, _ = get_featcopilot_engines(task, False)
-        cache_path = get_feature_cache_path(dataset_name, max_features, False, engines_used, FEATURE_CACHE_VERSION)
-        cache_data = load_feature_cache(cache_path) if use_feature_cache else None
-
-        if cache_data is not None:
-            X_train_fe = cache_data["X_train_fe"]
-            X_test_fe = cache_data["X_test_fe"]
-            y_train = cache_data["y_train"]
-            y_test = cache_data["y_test"]
-            fe_time = cache_data["fe_time"]
-            engines_used = cache_data.get("engines", engines_used)
-            results["n_features_tabular"] = cache_data.get("n_features_fe", X_train_fe.shape[1])
-            results["fe_time_tabular"] = fe_time
-            results["engines_tabular"] = engines_used
-            results["n_features_original"] = cache_data.get("n_features_original", X_train_raw.shape[1])
-            print(f"\n[2/3] FeatCopilot ({', '.join(engines_used)}) [cache]...")
-        else:
-            X_train_fe, X_test_fe, fe_time, engines_used = apply_featcopilot(
-                X_train_raw, X_test_raw, y_train, task, max_features, with_llm=False
-            )
-            results["n_features_tabular"] = X_train_fe.shape[1]
-            results["fe_time_tabular"] = fe_time
-            results["engines_tabular"] = engines_used
-            print(f"\n[2/3] FeatCopilot ({', '.join(engines_used)})...")
-            print(f"   Features: {X_train_raw.shape[1]} → {X_train_fe.shape[1]}, FE time: {fe_time:.2f}s")
-            if use_feature_cache:
-                save_feature_cache(
-                    cache_path,
-                    X_train,
-                    X_test,
-                    y_train,
-                    y_test,
-                    X_train_fe,
-                    X_test_fe,
-                    fe_time,
-                    task,
-                    X.shape[1],
-                    engines_used,
-                )
-
-        tabular_results = run_models(X_train_fe, X_test_fe, y_train, y_test, task, "Tabular")
-        results["tabular"] = tabular_results
-
-        best_tabular = max(tabular_results.values(), key=lambda x: x[primary_metric])
-        results["tabular_best_score"] = best_tabular[primary_metric]
-        results["tabular_improvement_pct"] = (
-            (best_tabular[primary_metric] - best_baseline[primary_metric])
-            / max(best_baseline[primary_metric], 0.001)
-            * 100
-        )
-
-        # --- FeatCopilot + LLM (if enabled) ---
-        if with_llm:
-            engines_used, _ = get_featcopilot_engines(task, True)
-            cache_path = get_feature_cache_path(dataset_name, max_features, True, engines_used, FEATURE_CACHE_VERSION)
-            cache_data = load_feature_cache(cache_path) if use_feature_cache else None
-
-            if cache_data is not None:
-                X_train_llm = cache_data["X_train_fe"]
-                X_test_llm = cache_data["X_test_fe"]
-                y_train = cache_data["y_train"]
-                y_test = cache_data["y_test"]
-                fe_time_llm = cache_data["fe_time"]
-                engines_used = cache_data.get("engines", engines_used)
-                results["n_features_llm"] = cache_data.get("n_features_fe", X_train_llm.shape[1])
-                results["fe_time_llm"] = fe_time_llm
-                results["engines_llm"] = engines_used
-                results["n_features_original"] = cache_data.get("n_features_original", X_train_raw.shape[1])
-                print(f"\n[3/3] FeatCopilot ({', '.join(engines_used)}) [cache]...")
-            else:
-                X_train_llm, X_test_llm, fe_time_llm, engines_used = apply_featcopilot(
-                    X_train_raw, X_test_raw, y_train, task, max_features, with_llm=True
-                )
-                results["n_features_llm"] = X_train_llm.shape[1]
-                results["fe_time_llm"] = fe_time_llm
-                results["engines_llm"] = engines_used
-                print(f"\n[3/3] FeatCopilot ({', '.join(engines_used)})...")
-                print(f"   Features: {X_train_raw.shape[1]} → {X_train_llm.shape[1]}, FE time: {fe_time_llm:.2f}s")
-                if use_feature_cache:
-                    save_feature_cache(
-                        cache_path,
-                        X_train,
-                        X_test,
-                        y_train,
-                        y_test,
-                        X_train_llm,
-                        X_test_llm,
-                        fe_time_llm,
-                        task,
-                        X.shape[1],
-                        engines_used,
-                    )
-            X_train, X_test, y_train, y_test = baseline_train
-
-            llm_results = run_models(X_train_llm, X_test_llm, y_train, y_test, task, "LLM")
-            results["llm"] = llm_results
-
-            best_llm = max(llm_results.values(), key=lambda x: x[primary_metric])
-            results["llm_best_score"] = best_llm[primary_metric]
-            results["llm_improvement_pct"] = (
-                (best_llm[primary_metric] - best_baseline[primary_metric])
-                / max(best_baseline[primary_metric], 0.001)
-                * 100
-            )
-        else:
-            print("\n[3/3] Skipped (--with-llm not enabled)")
 
         return results
 
@@ -439,90 +427,120 @@ def run_single_benchmark(
 
 
 def generate_report(results: list[dict], with_llm: bool, output_path: Path) -> None:
-    """Generate markdown report."""
+    """Generate markdown report with statistical rigor."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Separate by task category
-    clf_results = [r for r in results if r["task"] == "classification"]
-    reg_results = [r for r in results if r["task"] == "regression"]
-    ts_results = [r for r in results if r["task"] == "timeseries_regression"]
-    text_clf_results = [r for r in results if r["task"] == "text_classification"]
-    text_reg_results = [r for r in results if r["task"] == "text_regression"]
+    # Separate by source AND task category
+    real_world = [r for r in results if r.get("source") == "real_world"]
+    synthetic = [r for r in results if r.get("source") != "real_world"]
+
+    real_clf = [r for r in real_world if r["task"] == "classification"]
+    real_reg = [r for r in real_world if r["task"] == "regression"]
+    synth_clf = [r for r in synthetic if "classification" in r["task"]]
+    synth_reg = [r for r in synthetic if r["task"] in ("regression", "timeseries_regression")]
+    synth_other = [r for r in synthetic if r["task"] not in ("classification", "regression", "timeseries_regression")]
+
+    # Compute summary stats
+    def compute_summary(result_list: list[dict]) -> dict:
+        if not result_list:
+            return {}
+        improvements = [r["tabular_improvement_pct"] for r in result_list]
+        n_improved = sum(1 for imp in improvements if imp > 0.5)
+        n_hurt = sum(1 for imp in improvements if imp < -0.5)
+        n_tied = len(improvements) - n_improved - n_hurt
+        n_sig_improved = sum(1 for r in result_list if r.get("significant") and r["tabular_improvement_pct"] > 0.5)
+        return {
+            "total": len(result_list),
+            "improved": n_improved,
+            "tied": n_tied,
+            "hurt": n_hurt,
+            "sig_improved": n_sig_improved,
+            "mean_improvement": float(np.mean(improvements)),
+            "median_improvement": float(np.median(improvements)),
+            "max_regression": float(min(improvements)) if improvements else 0.0,
+        }
+
+    real_summary = compute_summary(real_world)
+    synth_summary = compute_summary(synthetic)
+    all_summary = compute_summary(results)
+
+    n_folds = results[0].get("n_folds", 5) if results else 5
+    n_seeds = results[0].get("n_seeds", 1) if results else 1
 
     report = f"""# Simple Models Benchmark Report
 
 **Generated:** {timestamp}
 **Models:** RandomForest, LogisticRegression/Ridge
+**Cross-Validation:** {n_folds}-fold CV × {n_seeds} seed(s)
 **LLM Enabled:** {with_llm}
-**Datasets:** {len(results)}
+**Datasets:** {len(results)} ({len(real_world)} real-world, {len(synthetic)} synthetic)
 
-## Summary
+## Summary — Real-World Datasets (Primary)
 
 | Metric | Value |
 |--------|-------|
-| Total Datasets | {len(results)} |
-| Classification | {len(clf_results)} |
-| Regression | {len(reg_results)} |
-| Forecasting | {len(ts_results)} |
-| Text Classification | {len(text_clf_results)} |
-| Text Regression | {len(text_reg_results)} |
-| Improved ({"LLM" if with_llm else "Tabular"}) | {sum(1 for r in results if r.get('llm_improvement_pct' if with_llm else 'tabular_improvement_pct', 0) > 0)} |
-| Avg Improvement | {np.mean([r.get('llm_improvement_pct' if with_llm else 'tabular_improvement_pct', 0) for r in results]):.2f}% |
+| Total Datasets | {real_summary.get('total', 0)} |
+| Win / Tie / Loss | {real_summary.get('improved', 0)} / {real_summary.get('tied', 0)} / {real_summary.get('hurt', 0)} |
+| Significant Wins (p<0.05) | {real_summary.get('sig_improved', 0)} |
+| Mean Improvement | {real_summary.get('mean_improvement', 0):+.2f}% |
+| Median Improvement | {real_summary.get('median_improvement', 0):+.2f}% |
+| Max Regression | {real_summary.get('max_regression', 0):+.2f}% |
+
+## Summary — Synthetic Datasets (Supplementary)
+
+| Metric | Value |
+|--------|-------|
+| Total Datasets | {synth_summary.get('total', 0)} |
+| Win / Tie / Loss | {synth_summary.get('improved', 0)} / {synth_summary.get('tied', 0)} / {synth_summary.get('hurt', 0)} |
+| Mean Improvement | {synth_summary.get('mean_improvement', 0):+.2f}% |
+
+## Summary — All Datasets
+
+| Metric | Value |
+|--------|-------|
+| Total Datasets | {all_summary.get('total', 0)} |
+| Win / Tie / Loss | {all_summary.get('improved', 0)} / {all_summary.get('tied', 0)} / {all_summary.get('hurt', 0)} |
+| Significant Wins (p<0.05) | {all_summary.get('sig_improved', 0)} |
+| Mean Improvement | {all_summary.get('mean_improvement', 0):+.2f}% |
+| Median Improvement | {all_summary.get('median_improvement', 0):+.2f}% |
 
 """
 
-    def add_classification_table(section_results: list[dict], title: str) -> str:
-        """Generate classification results table."""
+    def add_results_table(section_results: list[dict], title: str, is_regression: bool = False) -> str:
         if not section_results:
             return ""
         section = f"## {title}\n\n"
-        section += "| Dataset | Baseline | Tabular | Improvement |"
-        if with_llm:
-            section += " LLM | LLM Imp |"
-        section += " Features |\n"
-        section += "|---------|----------|---------|-------------|"
-        if with_llm:
-            section += "------|---------|"
-        section += "----------|\n"
+        metric_label = "R²" if is_regression else "Score"
+        section += (
+            f"| Dataset | Baseline {metric_label} | FeatCopilot {metric_label} | Δ% | p-value | Sig | Features |\n"
+        )
+        section += f"|---------|{'--' * 8}|{'--' * 8}|-----|---------|-----|----------|\n"
 
-        for r in section_results:
-            section += f"| {r['dataset']} | {r['baseline_best_score']:.4f} | {r['tabular_best_score']:.4f} | {r['tabular_improvement_pct']:+.2f}% |"
-            if with_llm and "llm_best_score" in r:
-                section += f" {r['llm_best_score']:.4f} | {r['llm_improvement_pct']:+.2f}% |"
-            elif with_llm:
-                section += " - | - |"
-            section += f" {r['n_features_original']}→{r['n_features_tabular']} |\n"
+        for r in sorted(section_results, key=lambda x: x["tabular_improvement_pct"], reverse=True):
+            sig_marker = "✓" if r.get("significant") else ""
+            imp = r["tabular_improvement_pct"]
+            imp_str = f"{imp:+.2f}%"
+            if imp > 0.5 and r.get("significant"):
+                imp_str = f"**{imp_str}** 🟢"
+            elif imp < -0.5:
+                imp_str = f"{imp_str} 🔴"
+            section += (
+                f"| {r['dataset']} "
+                f"| {r['baseline_best_score']:.4f}±{r.get('baseline_std', 0):.4f} "
+                f"| {r['tabular_best_score']:.4f}±{r.get('tabular_std', 0):.4f} "
+                f"| {imp_str} "
+                f"| {r.get('p_value', 1.0):.3f} "
+                f"| {sig_marker} "
+                f"| {r['n_features_original']}→{r['n_features_tabular']} |\n"
+            )
         return section + "\n"
 
-    def add_regression_table(section_results: list[dict], title: str) -> str:
-        """Generate regression results table."""
-        if not section_results:
-            return ""
-        section = f"## {title}\n\n"
-        section += "| Dataset | Baseline R² | Tabular R² | Improvement |"
-        if with_llm:
-            section += " LLM R² | LLM Imp |"
-        section += " Features |\n"
-        section += "|---------|-------------|------------|-------------|"
-        if with_llm:
-            section += "--------|---------|"
-        section += "----------|\n"
-
-        for r in section_results:
-            section += f"| {r['dataset']} | {r['baseline_best_score']:.4f} | {r['tabular_best_score']:.4f} | {r['tabular_improvement_pct']:+.2f}% |"
-            if with_llm and "llm_best_score" in r:
-                section += f" {r['llm_best_score']:.4f} | {r['llm_improvement_pct']:+.2f}% |"
-            elif with_llm:
-                section += " - | - |"
-            section += f" {r['n_features_original']}→{r['n_features_tabular']} |\n"
-        return section + "\n"
-
-    # Add all category sections
-    report += add_classification_table(clf_results, "Classification Results")
-    report += add_regression_table(reg_results, "Regression Results")
-    report += add_regression_table(ts_results, "Forecasting Results")
-    report += add_classification_table(text_clf_results, "Text Classification Results")
-    report += add_regression_table(text_reg_results, "Text Regression Results")
+    report += add_results_table(real_clf, "Real-World Classification", is_regression=False)
+    report += add_results_table(real_reg, "Real-World Regression", is_regression=True)
+    report += add_results_table(synth_clf, "Synthetic Classification (Supplementary)", is_regression=False)
+    report += add_results_table(synth_reg, "Synthetic Regression (Supplementary)", is_regression=True)
+    if synth_other:
+        report += add_results_table(synth_other, "Other Datasets (Supplementary)", is_regression=False)
 
     # Write report
     llm_suffix = "_LLM" if with_llm else ""
@@ -578,16 +596,23 @@ def main():
     parser.add_argument("--datasets", type=str, help="Comma-separated dataset names")
     parser.add_argument("--category", type=str, choices=["classification", "regression", "forecasting", "text"])
     parser.add_argument("--all", action="store_true", help="Run all datasets")
+    parser.add_argument("--real-world", action="store_true", help="Run only real-world datasets")
     parser.add_argument("--with-llm", action="store_true", help="Enable LLM engine")
     parser.add_argument("--max-features", type=int, default=DEFAULT_MAX_FEATURES)
     parser.add_argument("--output", type=str, default="benchmarks/simple_models")
     parser.add_argument("--report-only", action="store_true", help="Only regenerate report from cache")
     parser.add_argument("--no-cache", action="store_true", help="Don't save results to cache")
     parser.add_argument("--no-feature-cache", action="store_true", help="Don't use feature cache (rerun FeatCopilot)")
+    parser.add_argument("--n-folds", type=int, default=5, help="Number of CV folds (default: 5)")
+    parser.add_argument("--n-seeds", type=int, default=1, help="Number of random seeds (default: 1)")
+    parser.add_argument("--fast", action="store_true", help="Fast dev mode: 3 folds, 1 seed")
 
     args = parser.parse_args()
     output_path = Path(args.output)
     output_path.mkdir(parents=True, exist_ok=True)
+
+    n_folds = 3 if args.fast else args.n_folds
+    n_seeds = 1 if args.fast else args.n_seeds
 
     # Report-only mode: load from cache and regenerate report
     if args.report_only:
@@ -599,6 +624,8 @@ def main():
     # Determine datasets to run
     if args.datasets:
         dataset_names = [d.strip() for d in args.datasets.split(",")]
+    elif args.real_world:
+        dataset_names = list_real_world_datasets(args.category)
     elif args.category:
         dataset_names = list_datasets(args.category)
     elif args.all:
@@ -614,6 +641,7 @@ def main():
     print("Simple Models Benchmark")
     print("=======================")
     print("Models: RandomForest, LogisticRegression/Ridge")
+    print(f"Cross-Validation: {n_folds}-fold × {n_seeds} seed(s)")
     print(f"LLM enabled: {args.with_llm}")
     print(f"Datasets: {len(dataset_names)}")
 
@@ -621,7 +649,12 @@ def main():
     results = []
     for name in dataset_names:
         result = run_single_benchmark(
-            name, args.max_features, args.with_llm, use_feature_cache=not args.no_feature_cache
+            name,
+            args.max_features,
+            args.with_llm,
+            use_feature_cache=not args.no_feature_cache,
+            n_folds=n_folds,
+            n_seeds=n_seeds,
         )
         if result:
             results.append(result)

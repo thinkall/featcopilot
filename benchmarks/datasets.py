@@ -2492,6 +2492,14 @@ CATEGORY_REGRESSION = "regression"
 CATEGORY_FORECASTING = "forecasting"
 CATEGORY_TEXT = "text"
 
+# Dataset source types
+SOURCE_REAL_WORLD = "real_world"
+SOURCE_SYNTHETIC = "synthetic"
+
+# Source registry: {name: source_type}
+# Tracks whether each dataset is real-world or synthetic
+DATASET_SOURCE: dict[str, str] = {}
+
 # Master registry: {name: (loader_func, category, description)}
 # All datasets are registered here with their category
 DATASET_REGISTRY: dict[str, tuple] = {
@@ -2611,6 +2619,64 @@ DATASET_REGISTRY: dict[str, tuple] = {
 for _name, (_config, _task, _desc) in INRIA_DATASETS.items():
     _category = CATEGORY_CLASSIFICATION if _task == "classification" else CATEGORY_REGRESSION
     DATASET_REGISTRY[_name] = (lambda n=_name: load_inria_dataset(n), _category, f"{_desc} (INRIA)")
+    DATASET_SOURCE[_name] = SOURCE_REAL_WORLD
+
+# Tag synthetic datasets
+for _name in [
+    "titanic",
+    "credit_card_fraud",
+    "employee_attrition",
+    "credit_risk",
+    "medical_diagnosis",
+    "complex_classification",
+    "interaction_classification",
+    "customer_churn",
+    "xor_classification",
+    "polynomial_classification",
+    "house_prices",
+    "bike_sharing",
+    "complex_regression",
+    "polynomial_regression",
+    "ratio_regression",
+    "nonlinear_regression",
+    "insurance_claims",
+    "xor_regression",
+    "quadratic_heavy_regression",
+    "pairwise_product_regression",
+    "sqrt_log_regression",
+    "triple_interaction_regression",
+    "sensor_anomaly",
+    "retail_demand",
+    "server_latency",
+    "product_reviews",
+    "job_postings",
+    "news_classification",
+    "customer_support",
+    "medical_notes",
+    "ecommerce_product",
+    "spotify_tracks",
+]:
+    DATASET_SOURCE[_name] = SOURCE_SYNTHETIC
+
+# Tag HuggingFace datasets as real-world
+DATASET_SOURCE["fake_news"] = SOURCE_REAL_WORLD
+
+
+def is_real_world(dataset_name: str) -> bool:
+    """Check whether a dataset is real-world (not synthetic)."""
+    return DATASET_SOURCE.get(dataset_name, SOURCE_SYNTHETIC) == SOURCE_REAL_WORLD
+
+
+def list_real_world_datasets(category: str | None = None) -> list[str]:
+    """List only real-world datasets, optionally filtered by category."""
+    all_names = list_datasets(category)
+    return [n for n in all_names if is_real_world(n)]
+
+
+def list_synthetic_datasets(category: str | None = None) -> list[str]:
+    """List only synthetic datasets, optionally filtered by category."""
+    all_names = list_datasets(category)
+    return [n for n in all_names if not is_real_world(n)]
 
 
 def list_datasets(category: str | None = None) -> list[str]:
