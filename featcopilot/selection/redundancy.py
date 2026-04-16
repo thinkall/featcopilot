@@ -125,32 +125,37 @@ class RedundancyEliminator(BaseSelector):
                 corr = abs(self._correlation_matrix.loc[col1, col2])
 
                 if corr >= self.correlation_threshold:
-                    # Decide which to remove based on importance + original feature preference
-                    imp1 = self.importance_scores.get(col1, 0)
-                    imp2 = self.importance_scores.get(col2, 0)
-
-                    # Add preference bonus for original features
-                    # This ensures original features are preferred over derived ones
                     is_orig1 = col1 in self.original_features
                     is_orig2 = col2 in self.original_features
 
+                    # Never remove an original feature if the other is derived
                     if is_orig1 and not is_orig2:
-                        # col1 is original, col2 is derived - prefer col1
-                        imp1 += self.original_preference
+                        to_remove.add(col2)
+                        if self.verbose:
+                            logger.info(f"Removing {col2} (derived, corr={corr:.3f} with original {col1})")
+                        continue
                     elif is_orig2 and not is_orig1:
-                        # col2 is original, col1 is derived - prefer col2
-                        imp2 += self.original_preference
+                        to_remove.add(col1)
+                        if self.verbose:
+                            logger.info(f"Removing {col1} (derived, corr={corr:.3f} with original {col2})")
+                        break
+
+                    # Both are original — never remove either
+                    if is_orig1 and is_orig2:
+                        continue
+
+                    # Both are derived — remove the one with lower importance
+                    imp1 = self.importance_scores.get(col1, 0)
+                    imp2 = self.importance_scores.get(col2, 0)
 
                     if imp1 >= imp2:
                         to_remove.add(col2)
                         if self.verbose:
-                            orig_tag = " (derived)" if not is_orig2 else ""
-                            logger.info(f"Removing {col2}{orig_tag} (corr={corr:.3f} with {col1})")
+                            logger.info(f"Removing {col2} (derived, corr={corr:.3f} with {col1})")
                     else:
                         to_remove.add(col1)
                         if self.verbose:
-                            orig_tag = " (derived)" if not is_orig1 else ""
-                            logger.info(f"Removing {col1}{orig_tag} (corr={corr:.3f} with {col2})")
+                            logger.info(f"Removing {col1} (derived, corr={corr:.3f} with {col2})")
                         break  # col1 is removed, move to next
 
         # Selected features are those not removed (numeric) plus all non-numeric columns
