@@ -320,7 +320,119 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             if self.verbose:
                 logger.info(f"Selected {len(self._selector.get_selected_features())} features")
 
+        # Do-no-harm gate: validate derived features help via held-out validation
+        if apply_selection and y is not None:
+            result = self._do_no_harm_gate(result, X, y, original_features)
+
         return result
+
+    def _do_no_harm_gate(
+        self,
+        X_engineered: pd.DataFrame,
+        X_original: Union[pd.DataFrame, np.ndarray],
+        y: Union[pd.Series, np.ndarray],
+        original_features: set[str],
+    ) -> pd.DataFrame:
+        """
+        Validate that engineered features help using held-out validation.
+
+        Holds out 20% of the data, fits a fresh model on the remaining 80%,
+        and compares performance with and without derived features. This avoids
+        the bias from features being selected on the same data.
+
+        Falls back to original features if derived features don't show
+        clear benefit on the held-out set.
+
+        Parameters
+        ----------
+        X_engineered : DataFrame
+            Data with engineered features (selected).
+        X_original : DataFrame or ndarray
+            Original input data.
+        y : Series or ndarray
+            Target variable.
+        original_features : set[str]
+            Names of original (non-derived) features.
+
+        Returns
+        -------
+        DataFrame
+            Either X_engineered if features help, or original-only subset.
+        """
+        from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+        from sklearn.model_selection import ShuffleSplit, StratifiedShuffleSplit
+
+        y_arr = np.array(y)
+
+        orig_cols = [c for c in X_engineered.columns if c in original_features]
+        derived_cols = [c for c in X_engineered.columns if c not in original_features]
+
+        if len(derived_cols) == 0:
+            return X_engineered
+
+        X_full = X_engineered.copy()
+
+        # Use only numeric columns for the gate check
+        X_orig_numeric = X_full[orig_cols].select_dtypes(include=[np.number])
+        X_full_numeric = X_full.select_dtypes(include=[np.number])
+
+        if X_orig_numeric.shape[1] == 0 or X_full_numeric.shape[1] == 0:
+            return X_engineered
+
+        X_orig_numeric = X_orig_numeric.replace([np.inf, -np.inf], np.nan).fillna(0)
+        X_full_numeric = X_full_numeric.replace([np.inf, -np.inf], np.nan).fillna(0)
+
+        try:
+            is_classification = len(np.unique(y_arr)) <= 20 and np.issubdtype(y_arr.dtype, np.integer)
+            if is_classification:
+                model_cls = RandomForestClassifier
+                splitter = StratifiedShuffleSplit(n_splits=3, test_size=0.2, random_state=42)
+                split_target = y_arr
+            else:
+                model_cls = RandomForestRegressor
+                splitter = ShuffleSplit(n_splits=3, test_size=0.2, random_state=42)
+                split_target = y_arr
+
+            model_params = {"n_estimators": 50, "max_depth": 10, "random_state": 42, "n_jobs": -1}
+
+            orig_scores = []
+            full_scores = []
+
+            for train_idx, val_idx in splitter.split(X_orig_numeric, split_target):
+                # Fit and score on held-out data
+                m_orig = model_cls(**model_params)
+                m_orig.fit(X_orig_numeric.iloc[train_idx], y_arr[train_idx])
+                orig_scores.append(m_orig.score(X_orig_numeric.iloc[val_idx], y_arr[val_idx]))
+
+                m_full = model_cls(**model_params)
+                m_full.fit(X_full_numeric.iloc[train_idx], y_arr[train_idx])
+                full_scores.append(m_full.score(X_full_numeric.iloc[val_idx], y_arr[val_idx]))
+
+            orig_mean = np.mean(orig_scores)
+            full_mean = np.mean(full_scores)
+            improvement = full_mean - orig_mean
+
+            if self.verbose:
+                logger.info(
+                    f"Do-no-harm gate: orig={orig_mean:.4f}, full={full_mean:.4f}, "
+                    f"delta={improvement:+.4f} ({len(derived_cols)} derived features)"
+                )
+
+            # Require clear positive benefit to keep derived features
+            if improvement < 0.001:
+                if self.verbose:
+                    logger.warning(
+                        f"Do-no-harm: Derived features not beneficial ({improvement:+.4f}). "
+                        f"Falling back to {len(orig_cols)} original features."
+                    )
+                self._selector = None
+                return X_engineered[orig_cols]
+
+        except Exception as e:
+            if self.verbose:
+                logger.warning(f"Do-no-harm gate skipped due to error: {e}")
+
+        return X_engineered
 
     def get_feature_names(self) -> list[str]:
         """Get names of all generated features."""
