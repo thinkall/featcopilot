@@ -1,126 +1,52 @@
 # Simple Models Benchmark Report
 
-**Generated:** 2026-04-16 18:06:06
+**Generated:** 2026-04-16 18:17:01
 **Models:** RandomForest, LogisticRegression/Ridge
-**Cross-Validation:** 3-fold CV × 1 seed(s)
+**Cross-Validation:** 5-fold CV × 1 seed(s)
 **LLM Enabled:** False
-**Datasets:** 63 (31 real-world, 32 synthetic)
+**Datasets:** 5 (3 real-world, 2 synthetic)
 
 ## Summary — Real-World Datasets (Primary)
 
 | Metric | Value |
 |--------|-------|
-| Total Datasets | 31 |
-| Win / Tie / Loss | 2 / 27 / 2 |
+| Total Datasets | 3 |
+| Win / Tie / Loss | 1 / 1 / 1 |
 | Significant Wins (p<0.05) | 0 |
-| Mean Improvement | +0.01% |
-| Median Improvement | +0.00% |
-| Max Regression | -1.42% |
+| Mean Improvement | +0.84% |
+| Median Improvement | +0.02% |
+| Max Regression | -1.14% |
 
 ## Summary — Synthetic Datasets (Supplementary)
 
 | Metric | Value |
 |--------|-------|
-| Total Datasets | 32 |
-| Win / Tie / Loss | 18 / 12 / 2 |
-| Mean Improvement | +14.49% |
+| Total Datasets | 2 |
+| Win / Tie / Loss | 2 / 0 / 0 |
+| Mean Improvement | +19.24% |
 
 ## Summary — All Datasets
 
 | Metric | Value |
 |--------|-------|
-| Total Datasets | 63 |
-| Win / Tie / Loss | 20 / 39 / 4 |
+| Total Datasets | 5 |
+| Win / Tie / Loss | 3 / 1 / 1 |
 | Significant Wins (p<0.05) | 0 |
-| Mean Improvement | +7.36% |
-| Median Improvement | +0.03% |
+| Mean Improvement | +8.20% |
+| Median Improvement | +1.57% |
 
 ## Real-World Classification
 
 | Dataset | Baseline Score | FeatCopilot Score | Δ% | p-value | Sig | Features |
 |---------|----------------|----------------|-----|---------|-----|----------|
-| eye_movements | 0.6376±0.0097 | 0.6512±0.0146 | +2.12% | 1.000 |  | 23→32 |
-| road_safety | 0.7732±0.0045 | 0.7744±0.0016 | +0.15% | 1.000 |  | 32→36 |
-| california | 0.8940±0.0010 | 0.8953±0.0013 | +0.15% | 1.000 |  | 8→8 |
-| jannis | 0.7818±0.0005 | 0.7828±0.0018 | +0.13% | 1.000 |  | 54→62 |
-| credit | 0.7717±0.0037 | 0.7726±0.0014 | +0.12% | 1.000 |  | 10→10 |
-| magic_telescope | 0.8593±0.0042 | 0.8602±0.0053 | +0.10% | 1.000 |  | 10→10 |
-| miniboone | 0.9296±0.0010 | 0.9299±0.0011 | +0.03% | 1.000 |  | 50→50 |
-| diabetes | 0.6018±0.0022 | 0.6018±0.0022 | +0.00% | 1.000 |  | 7→7 |
-| albert | 0.6548±0.0011 | 0.6542±0.0006 | -0.10% | 1.000 |  | 31→32 |
-| bioresponse | 0.7874±0.0055 | 0.7865±0.0111 | -0.11% | 1.000 |  | 419→419 |
-| covertype | 0.8551±0.0004 | 0.8542±0.0015 | -0.11% | 1.000 |  | 10→10 |
-| higgs | 0.7163±0.0032 | 0.7154±0.0038 | -0.13% | 1.000 |  | 24→24 |
-| electricity | 0.8913±0.0014 | 0.8886±0.0023 | -0.30% | 1.000 |  | 8→10 |
-| bank_marketing | 0.8032±0.0042 | 0.7970±0.0058 | -0.77% 🔴 | 1.000 |  | 7→7 |
-| covertype_cat | 0.8692±0.0051 | 0.8569±0.0048 | -1.42% 🔴 | 1.000 |  | 54→58 |
-
-## Real-World Regression
-
-| Dataset | Baseline R² | FeatCopilot R² | Δ% | p-value | Sig | Features |
-|---------|----------------|----------------|-----|---------|-----|----------|
-| miami_housing | 0.9140±0.0009 | 0.9151±0.0020 | +0.12% | 1.000 |  | 13→13 |
-| abalone | 0.5323±0.0131 | 0.5327±0.0123 | +0.08% | 1.000 |  | 7→7 |
-| allstate_claims | 0.5010±0.0041 | 0.5012±0.0041 | +0.03% | 1.000 |  | 124→124 |
-| cpu_act | 0.9815±0.0025 | 0.9817±0.0024 | +0.01% | 1.000 |  | 21→21 |
-| brazilian_houses | 0.9859±0.0146 | 0.9859±0.0147 | +0.00% | 1.000 |  | 11→11 |
-| superconduct | 0.9219±0.0011 | 0.9219±0.0010 | +0.00% | 1.000 |  | 79→79 |
-| houses | 0.8351±0.0026 | 0.8351±0.0025 | +0.00% | 1.000 |  | 8→8 |
-| house_sales | 0.8756±0.0021 | 0.8756±0.0022 | +0.00% | 1.000 |  | 15→15 |
-| bike_sharing_inria | 0.6709±0.0032 | 0.6709±0.0032 | +0.00% | 1.000 |  | 6→6 |
-| diamonds | 0.9436±0.0005 | 0.9436±0.0005 | +0.00% | 1.000 |  | 6→6 |
-| mercedes_benz | 0.5193±0.0424 | 0.5193±0.0424 | -0.00% | 1.000 |  | 359→359 |
-| delays_zurich | 0.0094±0.0012 | 0.0094±0.0012 | -0.00% | 1.000 |  | 11→11 |
-| nyc_taxi | 0.6159±0.0088 | 0.6159±0.0088 | -0.00% | 1.000 |  | 16→16 |
-| elevators | 0.8281±0.0020 | 0.8280±0.0016 | -0.00% | 1.000 |  | 16→16 |
-| wine_quality | 0.5000±0.0011 | 0.4979±0.0027 | -0.41% | 1.000 |  | 11→12 |
-
-## Synthetic Classification (Supplementary)
-
-| Dataset | Baseline Score | FeatCopilot Score | Δ% | p-value | Sig | Features |
-|---------|----------------|----------------|-----|---------|-----|----------|
-| xor_classification | 0.6912±0.0051 | 0.8000±0.0064 | +15.74% | 1.000 |  | 20→24 |
-| polynomial_classification | 0.7735±0.0170 | 0.8765±0.0080 | +13.32% | 1.000 |  | 15→21 |
-| complex_classification | 0.7040±0.0076 | 0.7935±0.0240 | +12.71% | 1.000 |  | 15→20 |
-| interaction_classification | 0.7565±0.0051 | 0.8280±0.0035 | +9.45% | 1.000 |  | 12→17 |
-| customer_support | 0.8885±0.0056 | 0.8930±0.0082 | +0.51% | 1.000 |  | 10→13 |
-| titanic | 0.8215±0.0073 | 0.8249±0.0099 | +0.41% | 1.000 |  | 7→7 |
-| medical_diagnosis | 0.8227±0.0082 | 0.8240±0.0065 | +0.16% | 1.000 |  | 12→12 |
-| credit_card_fraud | 0.9842±0.0003 | 0.9842±0.0003 | +0.00% | 1.000 |  | 30→30 |
-| employee_attrition | 0.9259±0.0010 | 0.9259±0.0010 | +0.00% | 1.000 |  | 11→12 |
-| credit_risk | 0.8540±0.0087 | 0.8525±0.0040 | -0.18% | 1.000 |  | 10→14 |
-| medical_notes | 0.7200±0.0107 | 0.7173±0.0164 | -0.37% | 1.000 |  | 5→6 |
-| customer_churn | 0.7515±0.0080 | 0.7480±0.0042 | -0.47% | 1.000 |  | 10→10 |
-| news_classification | 0.8660±0.0151 | 0.8588±0.0195 | -0.83% 🔴 | 1.000 |  | 7→10 |
-| product_reviews | 0.9290±0.0063 | 0.9115±0.0089 | -1.88% 🔴 | 1.000 |  | 6→6 |
+| eye_movements | 0.6442±0.0136 | 0.6676±0.0168 | +3.63% | 0.062 |  | 23→30 |
+| bank_marketing | 0.8012±0.0090 | 0.8014±0.0086 | +0.02% | 1.000 |  | 7→7 |
+| covertype_cat | 0.8734±0.0030 | 0.8634±0.0032 | -1.14% 🔴 | 0.062 |  | 54→58 |
 
 ## Synthetic Regression (Supplementary)
 
 | Dataset | Baseline R² | FeatCopilot R² | Δ% | p-value | Sig | Features |
 |---------|----------------|----------------|-----|---------|-----|----------|
-| xor_regression | 0.3159±0.0261 | 0.6949±0.0193 | +119.99% | 1.000 |  | 20→24 |
-| triple_interaction_regression | 0.3939±0.0359 | 0.8446±0.0089 | +114.42% | 1.000 |  | 18→23 |
-| pairwise_product_regression | 0.5415±0.0438 | 0.8735±0.0025 | +61.29% | 1.000 |  | 16→22 |
-| complex_regression | 0.6282±0.0096 | 0.8824±0.0228 | +40.46% | 1.000 |  | 15→20 |
-| nonlinear_regression | 0.5859±0.0189 | 0.8021±0.0101 | +36.89% | 1.000 |  | 12→17 |
-| quadratic_heavy_regression | 0.7220±0.0094 | 0.8631±0.0195 | +19.54% | 1.000 |  | 18→23 |
-| polynomial_regression | 0.7397±0.0087 | 0.8241±0.0109 | +11.42% | 1.000 |  | 12→17 |
-| sqrt_log_regression | 0.8677±0.0033 | 0.8983±0.0038 | +3.52% | 1.000 |  | 15→20 |
-| house_prices | 0.9767±0.0018 | 0.9955±0.0004 | +1.93% | 1.000 |  | 14→16 |
-| bike_sharing | 0.9347±0.0105 | 0.9517±0.0079 | +1.83% | 1.000 |  | 10→12 |
-| ratio_regression | 0.9621±0.0033 | 0.9763±0.0002 | +1.48% | 1.000 |  | 12→16 |
-| ecommerce_product | 0.9425±0.0090 | 0.9549±0.0171 | +1.32% | 1.000 |  | 10→12 |
-| spotify_tracks | 0.9504±0.0003 | 0.9600±0.0050 | +1.01% | 1.000 |  | 13→16 |
-| job_postings | 0.9668±0.0015 | 0.9677±0.0019 | +0.10% | 1.000 |  | 10→13 |
-| server_latency | 0.9932±0.0004 | 0.9932±0.0004 | +0.00% | 1.000 |  | 8→8 |
-| sensor_anomaly | 0.8736±0.0125 | 0.8735±0.0124 | -0.02% | 1.000 |  | 8→8 |
-| retail_demand | 0.8927±0.0080 | 0.8924±0.0079 | -0.03% | 1.000 |  | 10→13 |
-| insurance_claims | 0.9657±0.0061 | 0.9654±0.0063 | -0.04% | 1.000 |  | 10→10 |
+| complex_regression | 0.6437±0.0265 | 0.8813±0.0181 | +36.91% | 0.062 |  | 15→20 |
+| house_prices | 0.9802±0.0030 | 0.9956±0.0004 | +1.57% | 0.062 |  | 14→16 |
 
-## Other Datasets (Supplementary)
-
-| Dataset | Baseline Score | FeatCopilot Score | Δ% | p-value | Sig | Features |
-|---------|----------------|----------------|-----|---------|-----|----------|
-| medical_notes | 0.7200±0.0107 | 0.7173±0.0164 | -0.37% | 1.000 |  | 5→6 |
-| news_classification | 0.8660±0.0151 | 0.8588±0.0195 | -0.83% 🔴 | 1.000 |  | 7→10 |
-| product_reviews | 0.9290±0.0063 | 0.9115±0.0089 | -1.88% 🔴 | 1.000 |  | 6→6 |

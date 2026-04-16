@@ -386,11 +386,11 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             is_classification = len(np.unique(y_arr)) <= 20 and np.issubdtype(y_arr.dtype, np.integer)
             if is_classification:
                 model_cls = RandomForestClassifier
-                splitter = StratifiedShuffleSplit(n_splits=3, test_size=0.2, random_state=42)
+                splitter = StratifiedShuffleSplit(n_splits=5, test_size=0.2, random_state=42)
                 split_target = y_arr
             else:
                 model_cls = RandomForestRegressor
-                splitter = ShuffleSplit(n_splits=3, test_size=0.2, random_state=42)
+                splitter = ShuffleSplit(n_splits=5, test_size=0.2, random_state=42)
                 split_target = y_arr
 
             model_params = {"n_estimators": 50, "max_depth": 10, "random_state": 42, "n_jobs": -1}
@@ -412,14 +412,19 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             full_mean = np.mean(full_scores)
             improvement = full_mean - orig_mean
 
+            # Scale threshold by feature ratio — more added features = higher bar
+            feature_ratio = len(derived_cols) / max(len(orig_cols), 1)
+            threshold = 0.001 + 0.001 * feature_ratio
+
             if self.verbose:
                 logger.info(
                     f"Do-no-harm gate: orig={orig_mean:.4f}, full={full_mean:.4f}, "
-                    f"delta={improvement:+.4f} ({len(derived_cols)} derived features)"
+                    f"delta={improvement:+.4f}, threshold={threshold:.4f} "
+                    f"({len(derived_cols)} derived features)"
                 )
 
             # Require clear positive benefit to keep derived features
-            if improvement < 0.001:
+            if improvement < threshold:
                 if self.verbose:
                     logger.warning(
                         f"Do-no-harm: Derived features not beneficial ({improvement:+.4f}). "
