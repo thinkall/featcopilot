@@ -97,10 +97,14 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         Maximum features to generate/select
     selection_methods : list, default=['mutual_info', 'importance']
         Feature selection methods
+    correlation_threshold : float, default=0.85
+        Maximum pairwise correlation allowed during correlation-based selection
     llm_config : dict, optional
         Configuration for LLM engine
     verbose : bool, default=False
         Verbose output
+    leakage_guard : {'off', 'warn', 'raise'}, default='warn'
+        How to handle columns whose names suggest target, label, or future-information leakage
 
     Examples
     --------
@@ -186,6 +190,8 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             Human-readable descriptions of columns (for LLM)
         task_description : str
             Description of the ML task (for LLM)
+        target_name : str, optional
+            Target column name used by leakage checks to identify related feature columns
         **fit_params : dict
             Additional parameters
 
@@ -331,6 +337,8 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             Human-readable column descriptions
         task_description : str
             ML task description
+        target_name : str, optional
+            Target column name used by leakage checks to identify related feature columns
         apply_selection : bool, default=True
             Whether to apply feature selection
         **fit_params : dict

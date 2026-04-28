@@ -1,7 +1,7 @@
 """Validation helpers for safer feature engineering workflows."""
 
 import re
-from typing import Optional
+from typing import Any, Optional
 
 DEFAULT_LEAKAGE_KEYWORDS = [
     "target",
@@ -14,9 +14,9 @@ DEFAULT_LEAKAGE_KEYWORDS = [
 ]
 
 
-def _normalize_column_name(name: str) -> str:
+def _normalize_column_name(name: Any) -> str:
     """Normalize a column name for fuzzy matching."""
-    return re.sub(r"[^a-z0-9]+", "", name.lower())
+    return re.sub(r"[^a-z0-9]+", "", str(name).lower())
 
 
 def find_potential_leakage_columns(
@@ -52,7 +52,6 @@ def find_potential_leakage_columns(
         keyword_hit = any(keyword and keyword in normalized_column for keyword in normalized_keywords)
         target_hit = bool(
             normalized_target
-            and normalized_target
             and (
                 normalized_column == normalized_target
                 or normalized_target in normalized_column

@@ -21,6 +21,17 @@ from featcopilot.utils.models import (
     list_models,
 )
 from featcopilot.utils.parallel import parallel_apply, parallel_transform
+from featcopilot.utils.validation import find_potential_leakage_columns
+
+# ---------------------------------------------------------------------------
+# Validation tests
+# ---------------------------------------------------------------------------
+
+
+def test_find_potential_leakage_columns_handles_non_string_columns():
+    """Test leakage detection accepts non-string column labels."""
+    assert find_potential_leakage_columns([123, "future_label"], target_name="label") == ["future_label"]
+
 
 # ---------------------------------------------------------------------------
 # FeatureCache tests
