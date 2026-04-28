@@ -20,26 +20,26 @@ def _normalize_column_name(name: Any) -> str:
 
 
 def find_potential_leakage_columns(
-    columns: list[str],
-    target_name: Optional[str] = None,
+    columns: list[Any],
+    target_name: Optional[Any] = None,
     keywords: Optional[list[str]] = None,
-) -> list[str]:
+) -> list[Any]:
     """
     Find suspicious columns that may leak label or future information.
 
     Parameters
     ----------
-    columns : list[str]
-        Input column names to inspect.
-    target_name : str, optional
-        Expected target/label column name. Related variants will be flagged.
+    columns : list
+        Input column names or labels to inspect.
+    target_name : optional
+        Expected target/label column name or label. Related variants will be flagged.
     keywords : list[str], optional
         Additional suspicious keywords to match against normalized column names.
 
     Returns
     -------
-    list[str]
-        Column names that deserve manual review for leakage.
+    list
+        Column names or labels that deserve manual review for leakage.
 
     Notes
     -----
@@ -50,7 +50,7 @@ def find_potential_leakage_columns(
     normalized_keywords = [_normalize_column_name(keyword) for keyword in keywords]
     normalized_target = _normalize_column_name(target_name) if target_name else None
 
-    suspicious: list[str] = []
+    suspicious: list[Any] = []
     for column in columns:
         normalized_column = _normalize_column_name(column)
 

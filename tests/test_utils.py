@@ -34,6 +34,7 @@ def test_leakage_detection_non_string_columns():
     assert find_potential_leakage_columns([123, "future_label"], target_name="label") == ["future_label"]
     assert find_potential_leakage_columns([123, "target"], target_name="other") == ["target"]
     assert find_potential_leakage_columns([123, 456], target_name="label") == []
+    assert find_potential_leakage_columns([123, "feature"], target_name=123) == [123]
     assert find_potential_leakage_columns(["Churn Label"], target_name="churn_label") == ["Churn Label"]
     assert find_potential_leakage_columns(["future-target!"], target_name="target") == ["future-target!"]
 
