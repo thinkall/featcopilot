@@ -40,6 +40,11 @@ def find_potential_leakage_columns(
     -------
     list[str]
         Column names that deserve manual review for leakage.
+
+    Notes
+    -----
+    Target-name matching is intentionally fuzzy: labels are normalized and substring
+    variants are flagged so derived names such as ``target_encoded`` are reviewed.
     """
     keywords = keywords or DEFAULT_LEAKAGE_KEYWORDS
     normalized_keywords = [_normalize_column_name(keyword) for keyword in keywords]
