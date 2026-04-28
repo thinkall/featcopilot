@@ -50,13 +50,10 @@ def find_potential_leakage_columns(
         normalized_column = _normalize_column_name(column)
 
         keyword_hit = any(keyword and keyword in normalized_column for keyword in normalized_keywords)
-        target_hit = bool(
-            normalized_target
-            and (
-                normalized_column == normalized_target
-                or normalized_target in normalized_column
-                or normalized_column in normalized_target
-            )
+        target_hit = normalized_target is not None and (
+            normalized_column == normalized_target
+            or normalized_target in normalized_column
+            or normalized_column in normalized_target
         )
 
         if keyword_hit or target_hit:
