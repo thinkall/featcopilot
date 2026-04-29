@@ -106,6 +106,13 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
     leakage_guard : {'off', 'warn', 'raise'}, default='warn'
         How to handle columns whose names suggest target, label, or future-information leakage
 
+    Other Parameters
+    ----------------
+    target_name : str, optional
+        Fit-time parameter accepted by :meth:`fit` and :meth:`fit_transform`.
+        When provided, the leakage guard cross-references column names against
+        the target so derived variants (e.g. ``target_encoded``) are flagged.
+
     Examples
     --------
     >>> engineer = AutoFeatureEngineer(
@@ -113,7 +120,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
     ...     max_features=100,
     ...     llm_config={'model': 'gpt-5.2', 'enable_semantic': True}
     ... )
-    >>> X_transformed = engineer.fit_transform(X, y)
+    >>> X_transformed = engineer.fit_transform(X, y, target_name='label')
     """
 
     SUPPORTED_ENGINES = {"tabular", "timeseries", "relational", "text", "llm"}

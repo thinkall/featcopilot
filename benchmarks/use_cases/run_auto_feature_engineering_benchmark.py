@@ -17,10 +17,10 @@ from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
-from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
+from benchmarks.splits import split_benchmark_data
 from featcopilot import AutoFeatureEngineer
 
 REPORT_DIR = Path(__file__).resolve().parent
@@ -217,7 +217,9 @@ def main() -> None:
     data = create_dataset(n_samples=args.samples, random_state=args.seed)
     X = data.drop(columns=["target"])
     y = data["target"]
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=args.seed, stratify=y)
+    train_idx, test_idx, y_train, y_test = split_benchmark_data(X, y, "classification", random_state=args.seed)
+    X_train = X.iloc[train_idx]
+    X_test = X.iloc[test_idx]
 
     results = [
         run_baseline(X_train, X_test, y_train, y_test),

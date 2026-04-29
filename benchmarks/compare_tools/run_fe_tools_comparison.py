@@ -43,7 +43,6 @@ import numpy as np
 import pandas as pd
 from packaging.version import Version
 from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, r2_score, roc_auc_score
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
 from benchmarks.datasets import (
@@ -61,48 +60,12 @@ from benchmarks.feature_cache import (
     sanitize_feature_frames,
     save_feature_cache,
 )
+from benchmarks.splits import split_benchmark_data
 from featcopilot.utils.logger import get_logger  # noqa: E402
 
 logger = get_logger(__name__)
 
 warnings.filterwarnings("ignore")
-
-
-def split_benchmark_data(
-    X: pd.DataFrame,
-    y: pd.Series,
-    task: str,
-    random_state: int,
-    test_size: float = 0.2,
-) -> tuple[np.ndarray, np.ndarray, pd.Series, pd.Series]:
-    """Split benchmark data with slightly more realistic defaults by task type."""
-    indices = np.arange(len(X))
-
-    if "forecast" in task or "timeseries" in task:
-        split_idx = int(len(indices) * (1 - test_size))
-        train_idx = indices[:split_idx]
-        test_idx = indices[split_idx:]
-        y_train = y.iloc[train_idx]
-        y_test = y.iloc[test_idx]
-        return train_idx, test_idx, y_train, y_test
-
-    stratify = None
-    if "classification" in task:
-        try:
-            class_counts = pd.Series(y).value_counts(dropna=False)
-            if len(class_counts) > 1 and class_counts.min() >= 2:
-                stratify = y
-        except Exception:
-            stratify = None
-
-    train_idx, test_idx, y_train, y_test = train_test_split(
-        indices,
-        y,
-        test_size=test_size,
-        random_state=random_state,
-        stratify=stratify,
-    )
-    return train_idx, test_idx, y_train, y_test
 
 
 # Default configuration
