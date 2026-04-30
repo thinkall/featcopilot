@@ -311,6 +311,100 @@ class TestAutoFeatureEngineer:
         assert cloned.max_features == 7
         assert cloned.selection_methods == ["mutual_info", "importance"]
 
+    def test_set_params_invalid_value_rolls_back_state(self, sample_df):
+        """A failing set_params call must leave every parameter at its pre-call value."""
+        afe = AutoFeatureEngineer(
+            engines=["tabular"],
+            max_features=5,
+            selection_methods=["mutual_info"],
+            correlation_threshold=0.9,
+            llm_config={"model": "gpt-5.2"},
+            verbose=False,
+            leakage_guard="warn",
+        )
+
+        with pytest.raises(ValueError):
+            afe.set_params(
+                max_features=10,
+                engines=["bogus_engine"],
+                leakage_guard="not_a_mode",
+            )
+
+        # Every parameter that was part of the failing call must be restored.
+        assert afe.engines == ["tabular"]
+        assert afe.max_features == 5
+        assert afe.leakage_guard == "warn"
+        # Untouched parameters are obviously unchanged but assert anyway to
+        # guard against unrelated mutations.
+        assert afe.selection_methods == ["mutual_info"]
+        assert afe.correlation_threshold == 0.9
+        assert afe.llm_config == {"model": "gpt-5.2"}
+        assert afe.verbose is False
+
+    def test_set_params_invalid_value_after_none_normalization_rolls_back(self):
+        """Rollback must capture the pre-call value, not the None-normalized one."""
+        afe = AutoFeatureEngineer(engines=["tabular", "timeseries"])
+
+        with pytest.raises(ValueError):
+            afe.set_params(engines=None, max_features=-1)
+
+        # engines was None-normalized to ["tabular"] mid-call; rollback must
+        # restore the original ["tabular", "timeseries"], not ["tabular"].
+        assert afe.engines == ["tabular", "timeseries"]
+        assert afe.max_features is None
+
+    def test_fit_resets_engine_instances_when_engines_change(self, sample_df, sample_target):
+        """Refitting after removing an engine must drop the previously fitted engine."""
+        afe = AutoFeatureEngineer(engines=["tabular", "timeseries"], verbose=False)
+        afe.fit(sample_df, sample_target)
+        assert set(afe._engine_instances) == {"tabular", "timeseries"}
+
+        afe.set_params(engines=["tabular"])
+        afe.fit(sample_df, sample_target)
+
+        # The previously fitted "timeseries" engine must not survive into the
+        # new fit, otherwise transform() would invoke a stale engine.
+        assert set(afe._engine_instances) == {"tabular"}
+
+    def test_fit_resets_selector_after_prior_fit_transform(self, sample_df, sample_target):
+        """A plain fit() following fit_transform() must clear the selector."""
+        afe = AutoFeatureEngineer(engines=["tabular"], max_features=3, verbose=False)
+        afe.fit_transform(sample_df, sample_target)
+        assert afe._selector is not None
+
+        afe.fit(sample_df, sample_target)
+
+        # Without a selector reset, transform() would still apply the stale
+        # selection from the previous fit_transform call.
+        assert afe._selector is None
+        result = afe.transform(sample_df)
+        # Every input column must survive transform when no selector is active.
+        for col in sample_df.columns:
+            assert col in result.columns
+
+    def test_fit_resets_state_when_called_after_failed_fit(self, sample_df, sample_target, monkeypatch):
+        """If fit raises mid-flight, _is_fitted must be False so transform errors out."""
+        afe = AutoFeatureEngineer(engines=["tabular"], verbose=False)
+        afe.fit(sample_df, sample_target)
+        assert afe._is_fitted is True
+
+        # Force the next fit to fail partway through engine fitting.
+        from featcopilot.engines.tabular import TabularEngine
+
+        def _boom(self, X, y=None, **kwargs):
+            raise RuntimeError("simulated engine failure")
+
+        monkeypatch.setattr(TabularEngine, "fit", _boom)
+        with pytest.raises(RuntimeError, match="simulated engine failure"):
+            afe.fit(sample_df, sample_target)
+
+        # The failed fit must not leave the estimator in a "fitted" state
+        # that points at stale engines from the previous successful fit.
+        assert afe._is_fitted is False
+        assert afe._engine_instances == {}
+        with pytest.raises(RuntimeError, match="Must call fit"):
+            afe.transform(sample_df)
+
 
 class TestPackageImport:
     """Tests for top-level package import behavior."""

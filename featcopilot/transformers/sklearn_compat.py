@@ -179,6 +179,21 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         if self.max_features is not None and self.max_features <= 0:
             raise ValueError("max_features must be positive when provided")
 
+    def _reset_fit_state(self) -> None:
+        """Reset all attributes populated during ``fit``/``fit_transform``.
+
+        Called at the start of ``fit`` so that re-fitting (e.g. after changing
+        ``engines`` via ``set_params``) cannot leave stale fitted engines, a
+        stale selector, or fit-time metadata in place. Mirrors the fit-derived
+        attribute initialization in ``__init__``.
+        """
+        self._engine_instances = {}
+        self._selector = None
+        self._feature_set = FeatureSet()
+        self._is_fitted = False
+        self._column_descriptions = {}
+        self._task_description = ""
+
     def fit(
         self,
         X: Union[pd.DataFrame, np.ndarray],
@@ -210,6 +225,14 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         -------
         self : AutoFeatureEngineer
         """
+        # Reset all fit-derived state so a refit (e.g. after changing ``engines``
+        # or after a previous ``fit_transform`` that built a selector) cannot leak
+        # stale engines, a stale selector, or the previous ``_is_fitted`` flag
+        # into a subsequent ``transform`` call. Any early exit below (validation
+        # error, leakage_guard='raise', engine fit failure) leaves the estimator
+        # in a clean, unfitted state rather than a partially-fitted one.
+        self._reset_fit_state()
+
         # Convert to DataFrame if needed
         if isinstance(X, np.ndarray):
             X = pd.DataFrame(X, columns=[f"feature_{i}" for i in range(X.shape[1])])
@@ -487,6 +510,11 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         collection-valued parameters and have it normalized back to the default
         rather than raising during validation.
 
+        The update is atomic: if any provided value fails configuration
+        validation, all in-flight mutations are rolled back so the estimator
+        is left in its pre-call state rather than a partially-mutated invalid
+        one.
+
         Parameters
         ----------
         **params
@@ -503,7 +531,9 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         ValueError
             If ``params`` contains a key that is not a known estimator
             parameter, or if any provided value fails configuration
-            validation (see :meth:`_validate_configuration`).
+            validation (see :meth:`_validate_configuration`). On validation
+            failure the estimator's parameters are restored to the values
+            they held before the call.
         """
         valid_params = self.get_params(deep=True)
         invalid_keys = sorted(set(params) - set(valid_params))
@@ -512,13 +542,26 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
                 f"Invalid parameter(s) {invalid_keys} for estimator {type(self).__name__}. "
                 f"Valid parameters are: {sorted(valid_params)}."
             )
-        for key, value in params.items():
-            setattr(self, key, value)
-        if self.engines is None:
-            self.engines = ["tabular"]
-        if self.selection_methods is None:
-            self.selection_methods = ["mutual_info", "importance"]
-        if self.llm_config is None:
-            self.llm_config = {}
-        self._validate_configuration()
+
+        # Snapshot the current values for every parameter we are about to
+        # change (including any whose final value will come from None
+        # normalization below) so that a validation failure can roll back to
+        # a fully consistent pre-call state.
+        snapshot = {key: getattr(self, key) for key in params}
+
+        try:
+            for key, value in params.items():
+                setattr(self, key, value)
+            if self.engines is None:
+                self.engines = ["tabular"]
+            if self.selection_methods is None:
+                self.selection_methods = ["mutual_info", "importance"]
+            if self.llm_config is None:
+                self.llm_config = {}
+            self._validate_configuration()
+        except Exception:
+            for key, value in snapshot.items():
+                setattr(self, key, value)
+            raise
+
         return self
