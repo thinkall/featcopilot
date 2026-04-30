@@ -182,6 +182,23 @@ class BaseSelector(ABC):
         """Get names of selected features."""
         return self._selected_features.copy()
 
+    def set_selected_features(self, features: list[str]) -> None:
+        """
+        Override the set of selected features in place.
+
+        This is a small public hook used by callers (e.g. the do-no-harm gate
+        in :class:`AutoFeatureEngineer`) that need to constrain a fitted
+        selector to a specific subset of feature names without reaching into
+        private attributes.
+
+        Parameters
+        ----------
+        features : list[str]
+            Feature names to keep. The list is copied so callers can mutate
+            their own list freely afterwards.
+        """
+        self._selected_features = list(features)
+
     def get_feature_scores(self) -> dict[str, float]:
         """Get importance scores for all features."""
         return self._feature_scores.copy()

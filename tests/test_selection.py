@@ -162,6 +162,27 @@ class TestFeatureSelector:
         assert "mutual_info" in method_scores
         assert "f_test" in method_scores
 
+    def test_set_selected_features_overrides_selection(self, mixed_data):
+        """set_selected_features replaces the active selection and is reflected in transform()."""
+        X, y = mixed_data
+        selector = FeatureSelector(methods=["mutual_info", "importance"], max_features=5)
+        selector.fit_transform(X, y)
+
+        new_selection = ["feature_0", "feature_1"]
+        selector.set_selected_features(new_selection)
+
+        # Public getter returns a copy of the new selection.
+        assert selector.get_selected_features() == new_selection
+
+        # transform() honours the override (uses the new selection only).
+        result = selector.transform(X)
+        assert list(result.columns) == new_selection
+
+        # The setter copies its input, so mutating the caller's list does not
+        # leak into the selector's internal state.
+        new_selection.append("feature_2")
+        assert selector.get_selected_features() == ["feature_0", "feature_1"]
+
 
 class TestImportanceSelectorCoverage:
     """Additional coverage tests for ImportanceSelector."""

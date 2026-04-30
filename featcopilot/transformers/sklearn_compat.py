@@ -495,6 +495,11 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         and compares performance with and without derived features. This avoids
         the bias from features being selected on the same data.
 
+        The original-only baseline is built from ``X_original`` (the truly
+        original input), not from a column-subset of ``X_engineered``, so the
+        comparison stays meaningful even if selection or downstream steps drop
+        or rename original columns in the engineered frame.
+
         Falls back to original features if derived features don't show
         clear benefit on the held-out set.
 
@@ -503,7 +508,8 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         X_engineered : DataFrame
             Data with engineered features (selected).
         X_original : DataFrame or ndarray
-            Original input data.
+            The unmodified original input. Used as the baseline for the
+            engineered-vs-original comparison.
         y : Series or ndarray
             Target variable.
         original_features : set[str]
@@ -520,20 +526,29 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
 
         y_arr = np.array(y)
 
-        orig_cols = [c for c in X_engineered.columns if c in original_features]
+        # Normalize X_original to a DataFrame so the baseline matrix is built
+        # from the truly original input, independent of the engineered frame.
+        if isinstance(X_original, np.ndarray):
+            X_original_df = pd.DataFrame(X_original, columns=[f"feature_{i}" for i in range(X_original.shape[1])])
+        else:
+            X_original_df = X_original
+
         derived_cols = [c for c in X_engineered.columns if c not in original_features]
 
         if len(derived_cols) == 0:
             return X_engineered
 
-        X_full = X_engineered.copy()
-
         # Use only numeric columns for the gate check
-        X_orig_numeric = X_full[orig_cols].select_dtypes(include=[np.number])
-        X_full_numeric = X_full.select_dtypes(include=[np.number])
+        X_orig_numeric = X_original_df.select_dtypes(include=[np.number])
+        X_full_numeric = X_engineered.select_dtypes(include=[np.number])
 
         if X_orig_numeric.shape[1] == 0 or X_full_numeric.shape[1] == 0:
             return X_engineered
+
+        # Align indices so positional iloc() lines up between the two matrices.
+        if not X_orig_numeric.index.equals(X_full_numeric.index):
+            X_orig_numeric = X_orig_numeric.reset_index(drop=True)
+            X_full_numeric = X_full_numeric.reset_index(drop=True)
 
         X_orig_numeric = X_orig_numeric.replace([np.inf, -np.inf], np.nan).fillna(0)
         X_full_numeric = X_full_numeric.replace([np.inf, -np.inf], np.nan).fillna(0)
@@ -575,7 +590,8 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             improvement = full_mean - orig_mean
 
             # Scale threshold by feature ratio — more added features = higher bar
-            feature_ratio = len(derived_cols) / max(len(orig_cols), 1)
+            n_orig = max(X_orig_numeric.shape[1], 1)
+            feature_ratio = len(derived_cols) / n_orig
             threshold = 0.001 + 0.001 * feature_ratio
 
             if self.verbose:
@@ -587,17 +603,21 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
 
             # Require clear positive benefit to keep derived features
             if improvement < threshold:
+                # Names of original features that survived selection / are present
+                # in the engineered frame — these are what we keep on fall-back.
+                orig_cols_in_engineered = [c for c in X_engineered.columns if c in original_features]
                 if self.verbose:
                     logger.warning(
                         f"Do-no-harm: Derived features not beneficial ({improvement:+.4f}). "
-                        f"Falling back to {len(orig_cols)} original features."
+                        f"Falling back to {len(orig_cols_in_engineered)} original features."
                     )
                 # Keep the selector but constrain it to original-only columns so
                 # subsequent transform() calls (e.g. inside a sklearn Pipeline)
-                # emit the same feature set as fit_transform.
+                # emit the same feature set as fit_transform. Use the public
+                # setter on BaseSelector instead of mutating private state.
                 if self._selector is not None:
-                    self._selector._selected_features = list(orig_cols)
-                return X_engineered[orig_cols]
+                    self._selector.set_selected_features(orig_cols_in_engineered)
+                return X_engineered[orig_cols_in_engineered]
 
         except Exception as e:
             if self.verbose:

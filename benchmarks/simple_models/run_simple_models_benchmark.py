@@ -62,7 +62,7 @@ from sklearn.metrics import (
     r2_score,
     roc_auc_score,
 )
-from sklearn.model_selection import KFold, StratifiedKFold
+from sklearn.model_selection import KFold, StratifiedKFold, TimeSeriesSplit
 from sklearn.preprocessing import LabelEncoder
 
 from benchmarks.datasets import (
@@ -331,8 +331,22 @@ def run_single_benchmark(
 
         seeds = [42 + i * 7 for i in range(n_seeds)]
 
+        # Time-series / forecasting tasks need chronological folds — using
+        # KFold(shuffle=True) here would leak future information into training
+        # folds and produce overly optimistic scores. We mirror the policy used
+        # in benchmarks/splits.split_benchmark_data.
+        is_time_series = "forecast" in task or "timeseries" in task
+
         for seed in seeds:
-            if "classification" in task and len(np.unique(y_processed)) < 50:
+            if is_time_series:
+                # TimeSeriesSplit ignores random_state by design; emit one warning
+                # the first time we'd otherwise vary the seed so users aren't
+                # surprised that --n-seeds has no effect on time-series datasets.
+                if seed != seeds[0]:
+                    continue
+                kf = TimeSeriesSplit(n_splits=n_folds)
+                split_iter = kf.split(X_processed)
+            elif "classification" in task and len(np.unique(y_processed)) < 50:
                 kf = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=seed)
                 split_iter = kf.split(X_processed, y_processed)
             else:

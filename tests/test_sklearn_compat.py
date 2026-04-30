@@ -742,10 +742,19 @@ class TestDoNoHarmGate:
     def _make_fitted_engineer(self):
         """Create an AutoFeatureEngineer with a stub selector so the gate gating allows entry."""
         afe = AutoFeatureEngineer(engines=["tabular"], max_features=5, verbose=False)
-        # The do-no-harm gate doesn't query the selector contents, only its presence,
-        # so a lightweight stub is sufficient for unit-testing the gate in isolation.
-        afe._selector = MagicMock()
-        afe._selector._selected_features = []
+
+        # The do-no-harm gate doesn't query the selector contents, only its presence
+        # and its `set_selected_features` setter, so a lightweight stub is sufficient
+        # for unit-testing the gate in isolation. We wire `set_selected_features` to
+        # update `_selected_features` so the assertion can verify the fall-back path.
+        selector = MagicMock()
+        selector._selected_features = []
+
+        def _set_selected(features):
+            selector._selected_features = list(features)
+
+        selector.set_selected_features.side_effect = _set_selected
+        afe._selector = selector
         return afe
 
     def test_gate_keeps_features_when_derived_help(self):
@@ -790,18 +799,46 @@ class TestDoNoHarmGate:
             }
         )
         original_features = {"orig_signal"}
+        X_original = X_engineered[list(original_features)]
 
         afe = self._make_fitted_engineer()
         selector_before = afe._selector
 
-        result = afe._do_no_harm_gate(X_engineered, X_engineered[list(original_features)], y, original_features)
+        result = afe._do_no_harm_gate(X_engineered, X_original, y, original_features)
 
         # Only original columns remain in the returned frame.
         assert list(result.columns) == ["orig_signal"]
-        # Selector is preserved (not cleared) and rewritten to original-only,
+        # Selector is preserved (not cleared) and updated via the public setter,
         # so subsequent transform() calls stay consistent with this fall-back.
         assert afe._selector is selector_before
+        afe._selector.set_selected_features.assert_called_once_with(["orig_signal"])
         assert afe._selector._selected_features == ["orig_signal"]
+
+    def test_gate_uses_x_original_for_baseline(self):
+        """The baseline is built from X_original, not from a slice of X_engineered."""
+        rng = np.random.default_rng(7)
+        n = 200
+        # X_original holds a strong predictor; X_engineered has only noise in
+        # the "orig_signal" column (simulating a downstream step that overwrote
+        # original values). If the baseline came from X_engineered, the gate
+        # would (wrongly) think the derived feature dominates.
+        signal = rng.standard_normal(n)
+        y = (signal > 0).astype(int)
+        X_original = pd.DataFrame({"orig_signal": signal})
+        X_engineered = pd.DataFrame(
+            {
+                "orig_signal": rng.standard_normal(n),  # corrupted in engineered frame
+                "derived_weak": rng.standard_normal(n),  # also pure noise
+            }
+        )
+        original_features = {"orig_signal"}
+
+        afe = self._make_fitted_engineer()
+        result = afe._do_no_harm_gate(X_engineered, X_original, y, original_features)
+
+        # The truly original signal beats the noise-only engineered frame -> fall back.
+        assert list(result.columns) == ["orig_signal"]
+        afe._selector.set_selected_features.assert_called_once_with(["orig_signal"])
 
     def test_gate_handles_float_encoded_binary_target(self):
         """Float-encoded {0.0, 1.0} targets must be detected as classification, not regression."""
