@@ -91,6 +91,40 @@ def test_custom_test_size_respected():
     assert len(train_idx) == 60
 
 
+@pytest.mark.parametrize("bad_test_size", [0.0, 1.0, -0.1, 1.5, 2])
+def test_split_benchmark_data_rejects_out_of_range_test_size(bad_test_size):
+    """``test_size`` must be strictly between 0 and 1 for both branches."""
+    X = pd.DataFrame({"f": np.arange(100.0)})
+    y = pd.Series(np.arange(100, dtype=float))
+
+    # Random branch.
+    with pytest.raises(ValueError, match="test_size must be a float strictly between 0 and 1"):
+        split_benchmark_data(X, y, "regression", random_state=0, test_size=bad_test_size)
+
+    # Chronological branch -- previously silently produced empty/overlapping splits.
+    with pytest.raises(ValueError, match="test_size must be a float strictly between 0 and 1"):
+        split_benchmark_data(X, y, "forecasting", random_state=0, test_size=bad_test_size)
+
+
+def test_split_benchmark_data_chronological_rejects_empty_train_split():
+    """Tiny datasets with extreme ``test_size`` must raise instead of producing an empty train set."""
+    X = pd.DataFrame({"t": np.arange(2)})
+    y = pd.Series(np.arange(2, dtype=float))
+
+    # len=2, test_size=0.9 -> split_idx = int(2 * 0.1) = 0 -> empty train.
+    with pytest.raises(ValueError, match="Chronological split would leave one side empty"):
+        split_benchmark_data(X, y, "forecasting", random_state=0, test_size=0.9)
+
+
+def test_split_benchmark_data_chronological_single_row_dataset_raises():
+    """A single-row dataset cannot be chronologically split for any valid ``test_size``."""
+    X = pd.DataFrame({"t": [0]})
+    y = pd.Series([0.0])
+
+    with pytest.raises(ValueError, match="Chronological split would leave one side empty"):
+        split_benchmark_data(X, y, "forecasting", random_state=0, test_size=0.5)
+
+
 # ---------------------------------------------------------------------------
 # Wiring tests: ensure benchmark scripts actually use the shared helper.
 # These guard against the regression flagged on PR #2 where the helper was

@@ -353,6 +353,30 @@ class TestAutoFeatureEngineer:
         assert afe.engines == ["tabular", "timeseries"]
         assert afe.max_features is None
 
+    def test_validate_engines_rejects_non_string_entries(self):
+        """Mixed-type engine lists must raise ValueError, not TypeError from sorted()."""
+        # A bare ``sorted(set(...))`` over a mix of None/str would raise
+        # ``TypeError: '<' not supported between instances of 'str' and 'NoneType'``.
+        # The validator must surface a clear ValueError instead.
+        with pytest.raises(ValueError, match="engines must contain only strings"):
+            AutoFeatureEngineer(engines=[None, "tabular"])
+        with pytest.raises(ValueError, match="engines must contain only strings"):
+            AutoFeatureEngineer(engines=["tabular", 42])
+
+    def test_validate_selection_methods_rejects_non_string_entries(self):
+        """Mixed-type selection_methods lists must raise ValueError, not TypeError from sorted()."""
+        with pytest.raises(ValueError, match="selection_methods must contain only strings"):
+            AutoFeatureEngineer(selection_methods=[None, "mutual_info"])
+        with pytest.raises(ValueError, match="selection_methods must contain only strings"):
+            AutoFeatureEngineer(selection_methods=["mutual_info", 0])
+
+    def test_set_params_rejects_non_string_engine_entries_and_rolls_back(self):
+        """set_params must surface the same ValueError and roll back state."""
+        afe = AutoFeatureEngineer(engines=["tabular"])
+        with pytest.raises(ValueError, match="engines must contain only strings"):
+            afe.set_params(engines=[None, "spaceship"])
+        assert afe.engines == ["tabular"]
+
     def test_fit_resets_engine_instances_when_engines_change(self, sample_df, sample_target):
         """Refitting after removing an engine must drop the previously fitted engine."""
         afe = AutoFeatureEngineer(engines=["tabular", "timeseries"], verbose=False)

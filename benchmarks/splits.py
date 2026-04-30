@@ -49,11 +49,31 @@ def split_benchmark_data(
         Target values for the training rows.
     y_test : pandas.Series
         Target values for the test rows.
+
+    Raises
+    ------
+    ValueError
+        If ``test_size`` is not strictly between 0 and 1, or if the resulting
+        chronological split would leave either side empty (for example, a
+        very small dataset combined with an extreme ``test_size``).
     """
+    # Validate ``test_size`` up front so the chronological branch matches the
+    # behavior of ``sklearn.model_selection.train_test_split`` (which rejects
+    # ``test_size <= 0`` / ``>= 1``) instead of silently producing an empty
+    # or overlapping split.
+    if not (0 < test_size < 1):
+        raise ValueError(f"test_size must be a float strictly between 0 and 1; got {test_size!r}")
+
     indices = np.arange(len(X))
 
     if "forecast" in task or "timeseries" in task:
         split_idx = int(len(indices) * (1 - test_size))
+        if split_idx <= 0 or split_idx >= len(indices):
+            raise ValueError(
+                "Chronological split would leave one side empty: "
+                f"len(X)={len(indices)}, test_size={test_size} -> split_idx={split_idx}. "
+                "Provide more rows or pick a different ``test_size``."
+            )
         train_idx = indices[:split_idx]
         test_idx = indices[split_idx:]
         y_train = y.iloc[train_idx]

@@ -160,6 +160,24 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
 
     def _validate_configuration(self) -> None:
         """Validate user-facing configuration early."""
+        # Reject non-string entries up front so that the diff against the
+        # supported-name sets (and the ``sorted(...)`` used to build the error
+        # message) cannot raise an unrelated ``TypeError`` for mixed-type
+        # inputs (e.g. ``engines=[None, "spaceship"]``).
+        non_string_engines = [e for e in self.engines if not isinstance(e, str)]
+        if non_string_engines:
+            raise ValueError(
+                "engines must contain only strings; got non-string entries: "
+                f"{non_string_engines!r}. Supported engines: {sorted(self.SUPPORTED_ENGINES)}"
+            )
+
+        non_string_methods = [m for m in self.selection_methods if not isinstance(m, str)]
+        if non_string_methods:
+            raise ValueError(
+                "selection_methods must contain only strings; got non-string entries: "
+                f"{non_string_methods!r}. Supported methods: {sorted(self.SUPPORTED_SELECTION_METHODS)}"
+            )
+
         unknown_engines = sorted(set(self.engines) - self.SUPPORTED_ENGINES)
         if unknown_engines:
             raise ValueError(f"Unknown engines: {unknown_engines}. Supported engines: {sorted(self.SUPPORTED_ENGINES)}")
