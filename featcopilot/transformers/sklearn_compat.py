@@ -108,10 +108,12 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
 
     Other Parameters
     ----------------
-    target_name : str, optional
+    target_name : hashable, optional
         Fit-time parameter accepted by :meth:`fit` and :meth:`fit_transform`.
-        When provided, the leakage guard cross-references column names against
-        the target so derived variants (e.g. ``target_encoded``) are flagged.
+        When provided, the leakage guard cross-references column labels
+        against the target so derived variants (e.g. ``target_encoded``) are
+        flagged. Accepts any column-label type DataFrames support
+        (typically ``str``, but also ``int`` or other hashables).
 
     Examples
     --------
@@ -160,6 +162,28 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
 
     def _validate_configuration(self) -> None:
         """Validate user-facing configuration early."""
+        # Reject non-sequence containers (and ``str``/``bytes``, which are
+        # technically iterable but would be iterated character-by-character)
+        # before any iteration so that the downstream non-string-entry,
+        # empty, and set-diff checks all run on a real list/tuple. Without
+        # this guard, ``engines="tabular"`` would silently expand into
+        # individual characters and produce a confusing "Unknown engines"
+        # error, and ``engines=5`` would raise an unrelated ``TypeError``
+        # from ``set(self.engines)``.
+        if not isinstance(self.engines, (list, tuple)):
+            raise ValueError(
+                "engines must be a list or tuple of strings; got "
+                f"{type(self.engines).__name__}={self.engines!r}. "
+                f"Supported engines: {sorted(self.SUPPORTED_ENGINES)}"
+            )
+
+        if not isinstance(self.selection_methods, (list, tuple)):
+            raise ValueError(
+                "selection_methods must be a list or tuple of strings; got "
+                f"{type(self.selection_methods).__name__}={self.selection_methods!r}. "
+                f"Supported methods: {sorted(self.SUPPORTED_SELECTION_METHODS)}"
+            )
+
         # Reject non-string entries up front so that the diff against the
         # supported-name sets (and the ``sorted(...)`` used to build the error
         # message) cannot raise an unrelated ``TypeError`` for mixed-type
@@ -236,7 +260,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         y: Optional[Union[pd.Series, np.ndarray]] = None,
         column_descriptions: Optional[dict[str, str]] = None,
         task_description: str = "prediction task",
-        target_name: Optional[str] = None,
+        target_name: Optional[Any] = None,
         **fit_params,
     ) -> "AutoFeatureEngineer":
         """
@@ -252,8 +276,11 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             Human-readable descriptions of columns (for LLM)
         task_description : str
             Description of the ML task (for LLM)
-        target_name : str, optional
-            Target column name used by leakage checks to identify related feature columns
+        target_name : hashable, optional
+            Target column label used by leakage checks to identify related
+            feature columns. Accepts any column-label type DataFrames support
+            (typically ``str``, but also ``int`` or other hashables); the
+            leakage helper normalizes labels via ``str(...)`` before matching.
         **fit_params : dict
             Additional parameters
 
@@ -390,7 +417,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         y: Optional[Union[pd.Series, np.ndarray]] = None,
         column_descriptions: Optional[dict[str, str]] = None,
         task_description: str = "prediction task",
-        target_name: Optional[str] = None,
+        target_name: Optional[Any] = None,
         apply_selection: bool = True,
         **fit_params,
     ) -> pd.DataFrame:
@@ -407,8 +434,11 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             Human-readable column descriptions
         task_description : str
             ML task description
-        target_name : str, optional
-            Target column name used by leakage checks to identify related feature columns
+        target_name : hashable, optional
+            Target column label used by leakage checks to identify related
+            feature columns. Accepts any column-label type DataFrames support
+            (typically ``str``, but also ``int`` or other hashables); the
+            leakage helper normalizes labels via ``str(...)`` before matching.
         apply_selection : bool, default=True
             Whether to apply feature selection
         **fit_params : dict

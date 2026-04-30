@@ -403,6 +403,58 @@ class TestAutoFeatureEngineer:
         afe = AutoFeatureEngineer(engines=None)
         assert afe.engines == ["tabular"]
 
+    def test_init_rejects_string_engines_argument(self):
+        """A bare ``str`` for ``engines`` must raise instead of iterating char-by-char."""
+        # Without the container-type guard, ``engines="tabular"`` would expand
+        # into individual characters and produce a confusing "Unknown engines"
+        # error such as ``Unknown engines: ['a', 'b', 'l', 'r', 't', 'u']``.
+        with pytest.raises(ValueError, match="engines must be a list or tuple of strings"):
+            AutoFeatureEngineer(engines="tabular")
+
+    def test_init_rejects_non_sequence_engines_argument(self):
+        """Non-sequence ``engines`` (e.g. ``int``) must raise a clear ValueError."""
+        # Without the guard, ``set(self.engines)`` would raise a bare
+        # ``TypeError: 'int' object is not iterable``.
+        with pytest.raises(ValueError, match="engines must be a list or tuple of strings"):
+            AutoFeatureEngineer(engines=5)
+        with pytest.raises(ValueError, match="engines must be a list or tuple of strings"):
+            AutoFeatureEngineer(engines={"tabular": True})
+
+    def test_init_rejects_string_selection_methods_argument(self):
+        """A bare ``str`` for ``selection_methods`` must raise."""
+        with pytest.raises(ValueError, match="selection_methods must be a list or tuple of strings"):
+            AutoFeatureEngineer(selection_methods="mutual_info")
+
+    def test_init_rejects_non_sequence_selection_methods_argument(self):
+        """Non-sequence ``selection_methods`` must raise a clear ValueError."""
+        with pytest.raises(ValueError, match="selection_methods must be a list or tuple of strings"):
+            AutoFeatureEngineer(selection_methods=42)
+
+    def test_init_accepts_tuple_engines(self):
+        """Tuples of strings are an acceptable container for ``engines``."""
+        afe = AutoFeatureEngineer(engines=("tabular",))
+        assert afe.engines == ("tabular",)
+
+    def test_set_params_rejects_string_engines_and_rolls_back(self):
+        """``set_params`` inherits the container-type check and rolls back on failure."""
+        afe = AutoFeatureEngineer(engines=["tabular"], max_features=5)
+        with pytest.raises(ValueError, match="engines must be a list or tuple of strings"):
+            afe.set_params(engines="tabular")
+        assert afe.engines == ["tabular"]
+        assert afe.max_features == 5
+
+    def test_fit_accepts_non_string_target_name(self, sample_df, sample_target):
+        """``target_name`` is typed Optional[Any]; integer column labels must work."""
+        # Build a DataFrame with an integer column name that overlaps the target.
+        df = sample_df.copy()
+        df.columns = [0, 1, 2, 3]
+        afe = AutoFeatureEngineer(engines=["tabular"], leakage_guard="raise")
+        # Integer target_name=0 must be honored (and would raise here because
+        # leakage_guard="raise" + a column named 0). This pins the type-hint
+        # contract: non-string target labels are accepted at runtime.
+        with pytest.raises(ValueError, match="leakage-prone"):
+            afe.fit(df, sample_target, target_name=0)
+
     def test_fit_resets_engine_instances_when_engines_change(self, sample_df, sample_target):
         """Refitting after removing an engine must drop the previously fitted engine."""
         afe = AutoFeatureEngineer(engines=["tabular", "timeseries"], verbose=False)
