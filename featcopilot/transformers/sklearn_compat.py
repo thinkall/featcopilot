@@ -137,11 +137,15 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         verbose: bool = False,
         leakage_guard: str = "warn",
     ):
-        self.engines = engines or ["tabular"]
+        # Use ``is not None`` defaulting (rather than ``or``) so that explicit
+        # empty containers and identity-bearing arguments are preserved. This
+        # also keeps ``self.<param> is param`` for any non-None argument, which
+        # is required for sklearn's ``clone`` round-trip identity check.
+        self.engines = engines if engines is not None else ["tabular"]
         self.max_features = max_features
-        self.selection_methods = selection_methods or ["mutual_info", "importance"]
+        self.selection_methods = selection_methods if selection_methods is not None else ["mutual_info", "importance"]
         self.correlation_threshold = correlation_threshold
-        self.llm_config = llm_config or {}
+        self.llm_config = llm_config if llm_config is not None else {}
         self.verbose = verbose
         self.leakage_guard = leakage_guard
 
@@ -472,8 +476,21 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         }
 
     def set_params(self, **params):
-        """Set parameters for sklearn compatibility."""
+        """
+        Set parameters for sklearn compatibility.
+
+        Mirrors the defaulting performed in ``__init__`` so callers (e.g. sklearn
+        cloning, ``GridSearchCV`` parameter grids) can pass ``None`` for
+        collection-valued parameters and have it normalized back to the default
+        rather than raising during validation.
+        """
         for key, value in params.items():
             setattr(self, key, value)
+        if self.engines is None:
+            self.engines = ["tabular"]
+        if self.selection_methods is None:
+            self.selection_methods = ["mutual_info", "importance"]
+        if self.llm_config is None:
+            self.llm_config = {}
         self._validate_configuration()
         return self

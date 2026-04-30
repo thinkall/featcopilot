@@ -263,6 +263,38 @@ class TestAutoFeatureEngineer:
         assert afe.max_features == 20
         assert afe.verbose is True
 
+    def test_set_params_none_normalizes_to_defaults(self):
+        """set_params should accept None for collection-valued params (sklearn compat).
+
+        Sklearn's ``clone`` and ``GridSearchCV`` may pass ``None`` for parameters
+        whose default in ``__init__`` is also ``None``. Validation should not raise
+        in that case; ``None`` should be normalized to the same defaults
+        ``__init__`` applies.
+        """
+        afe = AutoFeatureEngineer(engines=["tabular", "timeseries"])
+        afe.set_params(engines=None, selection_methods=None, llm_config=None)
+
+        assert afe.engines == ["tabular"]
+        assert afe.selection_methods == ["mutual_info", "importance"]
+        assert afe.llm_config == {}
+
+    def test_set_params_invalid_engine_still_raises(self):
+        """set_params should still validate non-None values."""
+        afe = AutoFeatureEngineer()
+        with pytest.raises(ValueError, match="Unknown engines"):
+            afe.set_params(engines=["not_a_real_engine"])
+
+    def test_sklearn_clone_round_trip(self):
+        """A cloned estimator must be configurable identically to the original."""
+        from sklearn.base import clone
+
+        afe = AutoFeatureEngineer(engines=["tabular"], max_features=7)
+        cloned = clone(afe)
+
+        assert cloned.engines == ["tabular"]
+        assert cloned.max_features == 7
+        assert cloned.selection_methods == ["mutual_info", "importance"]
+
 
 class TestPackageImport:
     """Tests for top-level package import behavior."""

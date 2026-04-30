@@ -142,7 +142,7 @@ def run_featuretools_case(
     test_copy["row_id"] = np.arange(len(test_copy))
 
     try:
-        train_copy = train_copy.ww.init(name="data", index="row_id")
+        train_copy.ww.init(name="data", index="row_id")
         es_train = ft.EntitySet(id="afe_train").add_dataframe(
             dataframe_name="data", dataframe=train_copy, index="row_id"
         )
@@ -180,7 +180,8 @@ def run_autofeat_case(
 
     try:
         model = AutoFeatClassifier(verbose=0, feateng_steps=2, featsel_runs=2)
-        X_train_fe = model.fit_transform(X_train_num, y_train)
+        y_train_arr = np.asarray(y_train).ravel()
+        X_train_fe = model.fit_transform(X_train_num, y_train_arr)
         X_test_fe = model.transform(X_test_num)
         X_train_fe, X_test_fe = align_and_fill(X_train_fe, X_test_fe)
         auc = evaluate_auc(X_train_fe, X_test_fe, y_train, y_test)
