@@ -728,3 +728,154 @@ class TestPackageImport:
         )
 
         assert isinstance(result, pd.DataFrame)
+
+
+class TestDoNoHarmGate:
+    """Tests for AutoFeatureEngineer._do_no_harm_gate."""
+
+    def _make_engineered_frame(self, original_cols, derived_cols, n_rows=200, seed=0):
+        """Build a (X_engineered, original_features) pair with the given columns."""
+        rng = np.random.default_rng(seed)
+        data = {col: rng.standard_normal(n_rows) for col in original_cols + derived_cols}
+        return pd.DataFrame(data), set(original_cols)
+
+    def _make_fitted_engineer(self):
+        """Create an AutoFeatureEngineer with a stub selector so the gate gating allows entry."""
+        afe = AutoFeatureEngineer(engines=["tabular"], max_features=5, verbose=False)
+        # The do-no-harm gate doesn't query the selector contents, only its presence,
+        # so a lightweight stub is sufficient for unit-testing the gate in isolation.
+        afe._selector = MagicMock()
+        afe._selector._selected_features = []
+        return afe
+
+    def test_gate_keeps_features_when_derived_help(self):
+        """Derived features that perfectly predict y must be kept."""
+        rng = np.random.default_rng(0)
+        n = 200
+        # Original features are pure noise, derived feature equals y -> obvious win
+        y = rng.integers(0, 2, size=n)
+        X_engineered = pd.DataFrame(
+            {
+                "orig1": rng.standard_normal(n),
+                "orig2": rng.standard_normal(n),
+                "derived_signal": y.astype(float),
+            }
+        )
+        original_features = {"orig1", "orig2"}
+
+        afe = self._make_fitted_engineer()
+        selector_before = afe._selector
+
+        result = afe._do_no_harm_gate(X_engineered, X_engineered[list(original_features)], y, original_features)
+
+        # All engineered columns survive when derived features clearly help.
+        assert "derived_signal" in result.columns
+        assert set(result.columns) == set(X_engineered.columns)
+        # Selector instance is preserved (not cleared).
+        assert afe._selector is selector_before
+
+    def test_gate_falls_back_when_derived_do_not_help(self):
+        """When derived features add no signal, gate falls back to original-only."""
+        rng = np.random.default_rng(1)
+        n = 200
+        # Original feature predicts y; derived features are pure noise (no benefit).
+        signal = rng.standard_normal(n)
+        y = (signal > 0).astype(int)
+        X_engineered = pd.DataFrame(
+            {
+                "orig_signal": signal,
+                "derived_noise1": rng.standard_normal(n),
+                "derived_noise2": rng.standard_normal(n),
+                "derived_noise3": rng.standard_normal(n),
+            }
+        )
+        original_features = {"orig_signal"}
+
+        afe = self._make_fitted_engineer()
+        selector_before = afe._selector
+
+        result = afe._do_no_harm_gate(X_engineered, X_engineered[list(original_features)], y, original_features)
+
+        # Only original columns remain in the returned frame.
+        assert list(result.columns) == ["orig_signal"]
+        # Selector is preserved (not cleared) and rewritten to original-only,
+        # so subsequent transform() calls stay consistent with this fall-back.
+        assert afe._selector is selector_before
+        assert afe._selector._selected_features == ["orig_signal"]
+
+    def test_gate_handles_float_encoded_binary_target(self):
+        """Float-encoded {0.0, 1.0} targets must be detected as classification, not regression."""
+        rng = np.random.default_rng(2)
+        n = 200
+        y_float = rng.integers(0, 2, size=n).astype(float)  # {0.0, 1.0}
+        X_engineered = pd.DataFrame(
+            {
+                "orig1": rng.standard_normal(n),
+                "derived1": y_float + rng.standard_normal(n) * 0.01,  # near-perfect predictor
+            }
+        )
+        original_features = {"orig1"}
+
+        afe = self._make_fitted_engineer()
+
+        # Capture which model class the gate uses by patching both.
+        with (
+            patch("sklearn.ensemble.RandomForestClassifier") as mock_clf,
+            patch("sklearn.ensemble.RandomForestRegressor") as mock_reg,
+        ):
+            # Make the mocks behave like a real estimator so the gate can finish.
+            inst = MagicMock()
+            inst.score.return_value = 0.5
+            mock_clf.return_value = inst
+            mock_reg.return_value = inst
+
+            afe._do_no_harm_gate(X_engineered, X_engineered[list(original_features)], y_float, original_features)
+
+        # type_of_target() on float {0.0, 1.0} returns "binary" -> classifier path.
+        assert mock_clf.called
+        assert not mock_reg.called
+
+    def test_gate_skipped_when_no_selector(self, sample_df, sample_target):
+        """When max_features=None (no selection), gate must not run."""
+        afe = AutoFeatureEngineer(engines=["tabular"], max_features=None, verbose=False)
+
+        with patch.object(AutoFeatureEngineer, "_do_no_harm_gate") as mock_gate:
+            afe.fit_transform(sample_df, sample_target, apply_selection=True)
+
+            # Selector was never created, so the gate must be bypassed.
+            assert afe._selector is None
+            assert not mock_gate.called
+
+    def test_gate_runs_when_selector_fitted(self, sample_df, sample_target):
+        """When selection actually runs, the gate is invoked."""
+        afe = AutoFeatureEngineer(engines=["tabular"], max_features=5, verbose=False)
+
+        with patch.object(
+            AutoFeatureEngineer, "_do_no_harm_gate", side_effect=lambda result, *a, **k: result
+        ) as mock_gate:
+            afe.fit_transform(sample_df, sample_target, apply_selection=True)
+
+            assert afe._selector is not None
+            assert mock_gate.called
+
+    def test_transform_after_fallback_returns_original_only(self):
+        """After gate fall-back, transform() must emit the same original-only column set."""
+        rng = np.random.default_rng(3)
+        n = 200
+        df = pd.DataFrame(
+            {
+                "num1": rng.standard_normal(n),
+                "num2": rng.standard_normal(n),
+                "num3": rng.standard_normal(n),
+            }
+        )
+        # Random noise target so derived features cannot help -> gate should fall back.
+        y = pd.Series(rng.integers(0, 2, size=n))
+
+        afe = AutoFeatureEngineer(engines=["tabular"], max_features=10, verbose=False)
+        result_fit = afe.fit_transform(df, y, apply_selection=True)
+
+        # If the gate triggered fall-back, the selector should remain (not be None)
+        # and transform() should produce a column set consistent with fit_transform.
+        result_transform = afe.transform(df)
+        assert list(result_transform.columns) == list(result_fit.columns)

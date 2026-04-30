@@ -473,8 +473,10 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             if self.verbose:
                 logger.info(f"Selected {len(self._selector.get_selected_features())} features")
 
-        # Do-no-harm gate: validate derived features help via held-out validation
-        if apply_selection and y is not None:
+        # Do-no-harm gate: validate derived features help via held-out validation.
+        # Only run when selection actually fitted a selector — otherwise this is a
+        # no-op for users who explicitly opt out of selection (e.g., max_features=None).
+        if apply_selection and y is not None and self._selector is not None:
             result = self._do_no_harm_gate(result, X, y, original_features)
 
         return result
@@ -514,6 +516,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         """
         from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
         from sklearn.model_selection import ShuffleSplit, StratifiedShuffleSplit
+        from sklearn.utils.multiclass import type_of_target
 
         y_arr = np.array(y)
 
@@ -536,7 +539,13 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         X_full_numeric = X_full_numeric.replace([np.inf, -np.inf], np.nan).fillna(0)
 
         try:
-            is_classification = len(np.unique(y_arr)) <= 20 and np.issubdtype(y_arr.dtype, np.integer)
+            # Use sklearn's task inference so bool / nullable Int64 / float-encoded
+            # binary labels (e.g. {0.0, 1.0}) are correctly detected as classification.
+            try:
+                target_type = type_of_target(y_arr)
+            except (ValueError, TypeError):
+                target_type = "unknown"
+            is_classification = target_type in {"binary", "multiclass"}
             if is_classification:
                 model_cls = RandomForestClassifier
                 splitter = StratifiedShuffleSplit(n_splits=5, test_size=0.2, random_state=42)
@@ -583,7 +592,11 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
                         f"Do-no-harm: Derived features not beneficial ({improvement:+.4f}). "
                         f"Falling back to {len(orig_cols)} original features."
                     )
-                self._selector = None
+                # Keep the selector but constrain it to original-only columns so
+                # subsequent transform() calls (e.g. inside a sklearn Pipeline)
+                # emit the same feature set as fit_transform.
+                if self._selector is not None:
+                    self._selector._selected_features = list(orig_cols)
                 return X_engineered[orig_cols]
 
         except Exception as e:

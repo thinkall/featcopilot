@@ -289,7 +289,6 @@ def run_single_benchmark(
     dataset_name: str,
     max_features: int,
     with_llm: bool = False,
-    use_feature_cache: bool = True,
     n_folds: int = 5,
     n_seeds: int = 1,
 ) -> Optional[dict[str, Any]]:
@@ -304,8 +303,6 @@ def run_single_benchmark(
         Maximum number of features for FeatCopilot.
     with_llm : bool
         Whether to enable LLM engine.
-    use_feature_cache : bool
-        Whether to use feature caching.
     n_folds : int
         Number of cross-validation folds (default: 5).
     n_seeds : int
@@ -358,7 +355,7 @@ def run_single_benchmark(
                 # --- FeatCopilot ---
                 try:
                     X_train_fe, X_test_fe, fe_time, engines_used = apply_featcopilot(
-                        X_train_raw, X_test_raw, y_train, task, max_features, with_llm=False
+                        X_train_raw, X_test_raw, y_train, task, max_features, with_llm=with_llm
                     )
                     tabular_results = run_models(X_train_fe, X_test_fe, y_train, y_test, task, "Tabular", quiet=True)
                     best_tabular = max(tabular_results.values(), key=lambda x: x[primary_metric])
@@ -602,7 +599,6 @@ def main():
     parser.add_argument("--output", type=str, default="benchmarks/simple_models")
     parser.add_argument("--report-only", action="store_true", help="Only regenerate report from cache")
     parser.add_argument("--no-cache", action="store_true", help="Don't save results to cache")
-    parser.add_argument("--no-feature-cache", action="store_true", help="Don't use feature cache (rerun FeatCopilot)")
     parser.add_argument("--n-folds", type=int, default=5, help="Number of CV folds (default: 5)")
     parser.add_argument("--n-seeds", type=int, default=1, help="Number of random seeds (default: 1)")
     parser.add_argument("--fast", action="store_true", help="Fast dev mode: 3 folds, 1 seed")
@@ -652,7 +648,6 @@ def main():
             name,
             args.max_features,
             args.with_llm,
-            use_feature_cache=not args.no_feature_cache,
             n_folds=n_folds,
             n_seeds=n_seeds,
         )
