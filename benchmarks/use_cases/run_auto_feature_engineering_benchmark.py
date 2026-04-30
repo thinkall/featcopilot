@@ -61,13 +61,28 @@ def create_dataset(n_samples: int = 5000, random_state: int = 42) -> pd.DataFram
 
 
 def align_and_fill(X_train: pd.DataFrame, X_test: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Align train/test columns and fill missing values safely."""
+    """Align train/test columns and replace NaN/±inf with 0 for downstream models.
+
+    Several feature-engineering tools can emit ``±inf`` (e.g. Featuretools'
+    ``divide_numeric`` primitive on rows where the denominator is 0). Scaling
+    or fitting any sklearn estimator on those values raises, so we sanitize
+    them here as part of column alignment.
+    """
     X_train_aligned, X_test_aligned = X_train.align(X_test, join="left", axis=1, fill_value=0)
-    return X_train_aligned.fillna(0), X_test_aligned.fillna(0)
+    X_train_clean = X_train_aligned.replace([np.inf, -np.inf], 0).fillna(0)
+    X_test_clean = X_test_aligned.replace([np.inf, -np.inf], 0).fillna(0)
+    return X_train_clean, X_test_clean
 
 
 def evaluate_auc(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Series, y_test: pd.Series) -> float:
-    """Train a simple classifier and return ROC-AUC."""
+    """Train a simple classifier and return ROC-AUC.
+
+    Owns the categorical encoding + column alignment so individual benchmark
+    cases don't have to repeat that step. The encoding is idempotent for
+    already-numeric inputs (``get_dummies`` is a no-op when there are no
+    object/categorical columns), so per-tool runners that produce numeric
+    matrices can pass them in directly without first one-hot encoding again.
+    """
     X_train = pd.get_dummies(X_train, drop_first=False)
     X_test = pd.get_dummies(X_test, drop_first=False)
     X_train, X_test = align_and_fill(X_train, X_test)
@@ -98,12 +113,15 @@ def evaluate_auc(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Series
 
 
 def run_baseline(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Series, y_test: pd.Series) -> dict[str, Any]:
-    """Run one-hot baseline."""
-    X_train_base = pd.get_dummies(X_train, drop_first=False)
-    X_test_base = pd.get_dummies(X_test, drop_first=False)
-    X_train_base, X_test_base = align_and_fill(X_train_base, X_test_base)
-    auc = evaluate_auc(X_train_base, X_test_base, y_train, y_test)
-    return {"tool": "baseline", "auc": auc, "n_features": X_train_base.shape[1]}
+    """Run one-hot baseline.
+
+    Encoding and alignment are owned by :func:`evaluate_auc`, so we pass the
+    raw frames straight through. ``n_features`` is reported as the post-encoding
+    column count to match what the model actually trains on.
+    """
+    auc = evaluate_auc(X_train, X_test, y_train, y_test)
+    n_features = pd.get_dummies(X_train, drop_first=False).shape[1]
+    return {"tool": "baseline", "auc": auc, "n_features": n_features}
 
 
 def run_featcopilot_case(

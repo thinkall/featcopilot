@@ -4,7 +4,7 @@ Compares a plain baseline with FeatCopilot and common automatic feature engineer
 
 | Tool | Status | ROC-AUC | Feature Count |
 |------|--------|---------|---------------|
-| baseline | ok | 0.7440 | 9 |
-| featcopilot | ok | 0.7563 | 15 |
-| featuretools | failed: 'NoneType' object has no attribute 'columns' | - | - |
-| autofeat | failed: 'Series' object has no attribute 'ravel' | - | - |
+| baseline | ok | 0.6330 | 9 |
+| featcopilot | ok | 0.6328 | 11 |
+| featuretools | ok | 0.6362 | 60 |
+| autofeat | failed: check_array() got an unexpected keyword argument 'force_all_finite' | - | - |

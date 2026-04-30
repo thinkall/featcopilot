@@ -284,6 +284,22 @@ class TestAutoFeatureEngineer:
         with pytest.raises(ValueError, match="Unknown engines"):
             afe.set_params(engines=["not_a_real_engine"])
 
+    def test_set_params_unknown_key_raises(self):
+        """set_params should reject unknown parameter names (sklearn convention)."""
+        afe = AutoFeatureEngineer()
+        with pytest.raises(ValueError, match="Invalid parameter"):
+            afe.set_params(not_a_real_param=42)
+
+    def test_set_params_unknown_key_does_not_mutate_state(self):
+        """A failing set_params call must leave the estimator unchanged."""
+        afe = AutoFeatureEngineer(engines=["tabular"], max_features=5)
+        with pytest.raises(ValueError):
+            afe.set_params(typo_param=99)
+
+        assert afe.engines == ["tabular"]
+        assert afe.max_features == 5
+        assert not hasattr(afe, "typo_param")
+
     def test_sklearn_clone_round_trip(self):
         """A cloned estimator must be configurable identically to the original."""
         from sklearn.base import clone

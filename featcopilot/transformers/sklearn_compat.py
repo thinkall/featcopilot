@@ -479,11 +479,39 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         """
         Set parameters for sklearn compatibility.
 
-        Mirrors the defaulting performed in ``__init__`` so callers (e.g. sklearn
-        cloning, ``GridSearchCV`` parameter grids) can pass ``None`` for
+        Validates parameter keys against the estimator's known parameters
+        (raising :class:`ValueError` on unknown keys, matching scikit-learn
+        ``BaseEstimator.set_params`` behavior) and then mirrors the defaulting
+        performed in ``__init__`` so callers (e.g. sklearn cloning,
+        ``GridSearchCV`` parameter grids) can pass ``None`` for
         collection-valued parameters and have it normalized back to the default
         rather than raising during validation.
+
+        Parameters
+        ----------
+        **params
+            Estimator parameters to update. Each key must already be a
+            top-level parameter accepted by ``__init__``.
+
+        Returns
+        -------
+        AutoFeatureEngineer
+            ``self``, to support fluent chaining.
+
+        Raises
+        ------
+        ValueError
+            If ``params`` contains a key that is not a known estimator
+            parameter, or if any provided value fails configuration
+            validation (see :meth:`_validate_configuration`).
         """
+        valid_params = self.get_params(deep=True)
+        invalid_keys = sorted(set(params) - set(valid_params))
+        if invalid_keys:
+            raise ValueError(
+                f"Invalid parameter(s) {invalid_keys} for estimator {type(self).__name__}. "
+                f"Valid parameters are: {sorted(valid_params)}."
+            )
         for key, value in params.items():
             setattr(self, key, value)
         if self.engines is None:
