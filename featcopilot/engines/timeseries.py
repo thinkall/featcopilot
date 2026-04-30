@@ -21,6 +21,7 @@ class TimeSeriesEngineConfig(EngineConfig):
     """Configuration for time series feature engine."""
 
     name: str = "TimeSeriesEngine"
+    series_in_rows: bool = Field(default=False, description="Treat each row as an independent time series")
     features: list[str] = Field(
         default_factory=lambda: [
             "basic_stats",
@@ -92,6 +93,7 @@ class TimeSeriesEngine(BaseEngine):
         window_sizes: Optional[list[int]] = None,
         max_features: Optional[int] = None,
         verbose: bool = False,
+        series_in_rows: bool = False,
         **kwargs,
     ):
         config = TimeSeriesEngineConfig(
@@ -99,6 +101,7 @@ class TimeSeriesEngine(BaseEngine):
             window_sizes=window_sizes or [5, 10, 20],
             max_features=max_features,
             verbose=verbose,
+            series_in_rows=series_in_rows,
             **kwargs,
         )
         super().__init__(config=config)
@@ -131,11 +134,24 @@ class TimeSeriesEngine(BaseEngine):
         """
         X = self._validate_input(X)
 
+        if time_column is not None and time_column not in X.columns:
+            raise ValueError(f"time_column '{time_column}' not found in input data")
+
+        self._time_index_column = time_column
+
         # Identify numeric columns for time series analysis
-        self._time_columns = X.select_dtypes(include=[np.number]).columns.tolist()
+        if self.config.series_in_rows:
+            self._time_columns = [col for col in X.columns if col != time_column]
+        else:
+            self._time_columns = X.select_dtypes(include=[np.number]).columns.tolist()
+            if time_column is not None:
+                self._time_columns = [col for col in self._time_columns if col != time_column]
 
         if self.config.verbose:
-            logger.info(f"TimeSeriesEngine: Found {len(self._time_columns)} numeric columns")
+            logger.info(
+                f"TimeSeriesEngine: Found {len(self._time_columns)} columns "
+                f"(series_in_rows={self.config.series_in_rows})"
+            )
 
         self._is_fitted = True
         return self
@@ -158,21 +174,10 @@ class TimeSeriesEngine(BaseEngine):
             raise RuntimeError("Engine must be fitted before transform")
 
         X = self._validate_input(X)
-        features_dict = {}
 
-        for col in self._time_columns:
-            series = X[col].values
-
-            for feature_group in self.config.features:
-                if feature_group in self.FEATURE_EXTRACTORS:
-                    method_name = self.FEATURE_EXTRACTORS[feature_group]
-                    method = getattr(self, method_name)
-                    extracted = method(series, col)
-                    features_dict.update(extracted)
-
-        # For DataFrames with multiple rows, extract features across the entire column
-        if len(X) > 1:
-            # Each column is treated as a single time series
+        if self.config.series_in_rows:
+            result = self._extract_per_row(X)
+        else:
             features_dict = {}
             for col in self._time_columns:
                 series = X[col].values
@@ -184,7 +189,7 @@ class TimeSeriesEngine(BaseEngine):
                         extracted = method(series, col)
                         features_dict.update(extracted)
 
-        result = pd.DataFrame([features_dict])
+            result = pd.DataFrame([features_dict])
 
         self._feature_names = list(result.columns)
 
