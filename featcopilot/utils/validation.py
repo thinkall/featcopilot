@@ -45,10 +45,30 @@ def find_potential_leakage_columns(
     -----
     Target-name matching is intentionally fuzzy: labels are normalized and substring
     variants are flagged so derived names such as ``target_encoded`` are reviewed.
+
+    Pass ``keywords=[]`` to opt out of keyword-based matching entirely (only
+    the explicit ``target_name`` will be used). ``target_name`` is treated as
+    absent only when it is ``None`` *or* normalizes to an empty string after
+    stripping non-alphanumerics; this lets falsy-but-meaningful values such
+    as ``0`` participate in matching while preventing ``target_name=""``
+    from matching every column via the empty-substring trap.
     """
-    keywords = keywords or DEFAULT_LEAKAGE_KEYWORDS
+    # Use ``is None`` defaulting (rather than ``or``) so callers can pass an
+    # empty list to explicitly disable keyword matching.
+    if keywords is None:
+        keywords = DEFAULT_LEAKAGE_KEYWORDS
     normalized_keywords = [_normalize_column_name(keyword) for keyword in keywords]
-    normalized_target = _normalize_column_name(target_name) if target_name else None
+
+    # Use explicit ``is None`` so falsy but meaningful target labels (e.g. ``0``)
+    # still participate in matching. After normalization, an empty string is
+    # treated as "no target" so that ``target_name=""`` (or values like ``"---"``
+    # that strip to nothing) cannot match every column via the
+    # ``normalized_target in normalized_column`` substring check.
+    if target_name is None:
+        normalized_target: Optional[str] = None
+    else:
+        normalized = _normalize_column_name(target_name)
+        normalized_target = normalized if normalized else None
 
     suspicious: list[Any] = []
     for column in columns:

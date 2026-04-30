@@ -377,6 +377,32 @@ class TestAutoFeatureEngineer:
             afe.set_params(engines=[None, "spaceship"])
         assert afe.engines == ["tabular"]
 
+    def test_init_rejects_empty_engines_list(self):
+        """An explicitly empty ``engines=[]`` must raise rather than silently no-op."""
+        # ``engines=None`` defaults to ['tabular']; an explicit empty list is a
+        # different intent and would otherwise let ``fit()`` mark the estimator
+        # fitted with zero engines so that ``transform()`` becomes a silent no-op.
+        with pytest.raises(ValueError, match="engines must contain at least one engine"):
+            AutoFeatureEngineer(engines=[])
+
+    def test_init_rejects_empty_selection_methods_list(self):
+        """An explicitly empty ``selection_methods=[]`` must raise."""
+        with pytest.raises(ValueError, match="selection_methods must contain at least one method"):
+            AutoFeatureEngineer(selection_methods=[])
+
+    def test_set_params_rejects_empty_engines_and_rolls_back(self):
+        """set_params must reject empty ``engines=[]`` and leave state untouched."""
+        afe = AutoFeatureEngineer(engines=["tabular"], max_features=5)
+        with pytest.raises(ValueError, match="engines must contain at least one engine"):
+            afe.set_params(engines=[])
+        assert afe.engines == ["tabular"]
+        assert afe.max_features == 5
+
+    def test_init_engines_none_still_defaults_to_tabular(self):
+        """``engines=None`` continues to normalize to the default ['tabular']."""
+        afe = AutoFeatureEngineer(engines=None)
+        assert afe.engines == ["tabular"]
+
     def test_fit_resets_engine_instances_when_engines_change(self, sample_df, sample_target):
         """Refitting after removing an engine must drop the previously fitted engine."""
         afe = AutoFeatureEngineer(engines=["tabular", "timeseries"], verbose=False)

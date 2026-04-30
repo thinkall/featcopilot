@@ -171,11 +171,29 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
                 f"{non_string_engines!r}. Supported engines: {sorted(self.SUPPORTED_ENGINES)}"
             )
 
+        # Reject empty collections explicitly. ``engines=None`` is normalized to
+        # the default in ``__init__`` / ``set_params``; an explicit empty list
+        # would otherwise leave ``fit()`` running zero engines and ``transform()``
+        # silently returning the input (modulo NaN/inf cleanup), which is a
+        # surprising silent no-op rather than a misconfiguration.
+        if not self.engines:
+            raise ValueError(
+                "engines must contain at least one engine; got an empty sequence. "
+                f"Pass ``engines=None`` for the default ['tabular'] or pick from {sorted(self.SUPPORTED_ENGINES)}."
+            )
+
         non_string_methods = [m for m in self.selection_methods if not isinstance(m, str)]
         if non_string_methods:
             raise ValueError(
                 "selection_methods must contain only strings; got non-string entries: "
                 f"{non_string_methods!r}. Supported methods: {sorted(self.SUPPORTED_SELECTION_METHODS)}"
+            )
+
+        if not self.selection_methods:
+            raise ValueError(
+                "selection_methods must contain at least one method; got an empty sequence. "
+                "Pass ``selection_methods=None`` for the default "
+                f"['mutual_info', 'importance'] or pick from {sorted(self.SUPPORTED_SELECTION_METHODS)}."
             )
 
         unknown_engines = sorted(set(self.engines) - self.SUPPORTED_ENGINES)

@@ -39,6 +39,37 @@ def test_leakage_detection_non_string_columns():
     assert find_potential_leakage_columns(["future-target!"], target_name="target") == ["future-target!"]
 
 
+def test_leakage_detection_empty_keywords_disables_keyword_matching():
+    """Passing ``keywords=[]`` must opt out of keyword-based matching entirely."""
+    # Without an explicit empty keywords list, "target" / "future_score" would
+    # be flagged via DEFAULT_LEAKAGE_KEYWORDS. With ``keywords=[]`` and no
+    # ``target_name``, no column should be flagged.
+    assert find_potential_leakage_columns(["target", "future_score", "x"], keywords=[]) == []
+
+    # Explicit ``target_name`` still works alongside ``keywords=[]``.
+    assert find_potential_leakage_columns(
+        ["target", "future_score", "label_x"],
+        target_name="label",
+        keywords=[],
+    ) == ["label_x"]
+
+
+def test_leakage_detection_falsy_target_name_zero_still_matches():
+    """Falsy but meaningful targets (e.g. ``0``) must still drive matching."""
+    # Previously ``if target_name`` would treat ``0`` as absent and skip target
+    # matching entirely. The integer column ``0`` should now be flagged.
+    assert find_potential_leakage_columns([0, "feature"], target_name=0) == [0]
+
+
+def test_leakage_detection_empty_string_target_does_not_match_everything():
+    """``target_name=''`` must not flag every column via the empty-substring trap."""
+    # An empty (or whitespace-only) target normalizes to "" which would otherwise
+    # be treated as a substring of every column. Treating empty normalized
+    # results as absent prevents that.
+    assert find_potential_leakage_columns(["a", "b", "c"], target_name="", keywords=[]) == []
+    assert find_potential_leakage_columns(["a", "b", "c"], target_name="---", keywords=[]) == []
+
+
 # ---------------------------------------------------------------------------
 # FeatureCache tests
 # ---------------------------------------------------------------------------
