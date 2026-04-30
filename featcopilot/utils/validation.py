@@ -51,7 +51,10 @@ def find_potential_leakage_columns(
     absent only when it is ``None`` *or* normalizes to an empty string after
     stripping non-alphanumerics; this lets falsy-but-meaningful values such
     as ``0`` participate in matching while preventing ``target_name=""``
-    from matching every column via the empty-substring trap.
+    from matching every column via the empty-substring trap. Symmetrically,
+    columns whose labels normalize to an empty string (e.g. ``"---"``,
+    ``"!!!"``) are skipped entirely so the empty ``normalized_column`` cannot
+    be reported as a substring of every ``normalized_target``.
     """
     # Use ``is None`` defaulting (rather than ``or``) so callers can pass an
     # empty list to explicitly disable keyword matching.
@@ -73,6 +76,16 @@ def find_potential_leakage_columns(
     suspicious: list[Any] = []
     for column in columns:
         normalized_column = _normalize_column_name(column)
+
+        # A column whose label normalizes to an empty string (e.g. ``"---"`` or
+        # ``"!!!"``) has no meaningful content to compare against. Skipping it
+        # closes the column-side counterpart of the ``"" in normalized_target``
+        # trap (the empty ``normalized_column`` would otherwise be a substring
+        # of every non-empty ``normalized_target`` and be flagged whenever a
+        # target was provided), and similarly avoids any keyword false-positive
+        # via the same empty-substring path.
+        if not normalized_column:
+            continue
 
         keyword_hit = any(keyword and keyword in normalized_column for keyword in normalized_keywords)
         target_hit = normalized_target is not None and (

@@ -70,6 +70,22 @@ def test_leakage_detection_empty_string_target_does_not_match_everything():
     assert find_potential_leakage_columns(["a", "b", "c"], target_name="---", keywords=[]) == []
 
 
+def test_leakage_detection_columns_normalizing_to_empty_string_are_skipped():
+    """Columns whose labels normalize to an empty string must not be flagged."""
+    # Without the column-side guard, the empty ``normalized_column`` would be
+    # a substring of every non-empty ``normalized_target`` (``"" in "label"``
+    # is True), so any column literally labeled ``"---"`` / ``"!!!"`` would be
+    # flagged whenever a target was provided. The guard skips such columns.
+    assert find_potential_leakage_columns(["---", "!!!"], target_name="label") == []
+    assert find_potential_leakage_columns(["---", "label_x"], target_name="label", keywords=[]) == ["label_x"]
+    # Mixing meaningful and empty-normalizing column labels still reports only
+    # the meaningful ones.
+    assert find_potential_leakage_columns(["target", "---", "future_x"], target_name="label") == [
+        "target",
+        "future_x",
+    ]
+
+
 # ---------------------------------------------------------------------------
 # FeatureCache tests
 # ---------------------------------------------------------------------------
