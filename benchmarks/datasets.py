@@ -5,6 +5,8 @@ Includes real-world datasets (Kaggle-style), synthetic datasets,
 time series datasets, and text/semantic datasets for comprehensive benchmarking.
 """
 
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 

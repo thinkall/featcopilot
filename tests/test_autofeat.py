@@ -75,6 +75,39 @@ class TestAutoFeatureEngineer:
         assert result is not None
         assert len(result.columns) > 0
 
+    def test_leakage_guard_warns_on_suspicious_columns(self, sample_data):
+        """Test leakage guard warns when suspicious columns are present."""
+        X, y = sample_data
+        X = X.rename(columns={"balance": "future_target_signal"})
+        engineer = AutoFeatureEngineer(engines=["tabular"], leakage_guard="warn")
+
+        with pytest.warns(UserWarning, match="Potential leakage-prone columns detected"):
+            engineer.fit(X, y, target_name="target")
+
+    def test_leakage_guard_raises_on_suspicious_columns(self, sample_data):
+        """Test leakage guard can hard-fail when suspicious columns are present."""
+        X, y = sample_data
+        X = X.rename(columns={"balance": "churn_label_proxy"})
+        engineer = AutoFeatureEngineer(engines=["tabular"], leakage_guard="raise")
+
+        with pytest.raises(ValueError, match="Potential leakage-prone columns detected"):
+            engineer.fit(X, y, target_name="churn")
+
+    def test_invalid_engine_configuration_raises(self):
+        """Test invalid engine names fail early."""
+        with pytest.raises(ValueError, match="Unknown engines"):
+            AutoFeatureEngineer(engines=["tabular", "spaceship"])
+
+    def test_invalid_selection_method_raises(self):
+        """Test invalid selection methods fail early."""
+        with pytest.raises(ValueError, match="Unknown selection methods"):
+            AutoFeatureEngineer(selection_methods=["mutual_info", "magic"])
+
+    def test_invalid_leakage_guard_raises(self):
+        """Test invalid leakage guard setting fails early."""
+        with pytest.raises(ValueError, match="leakage_guard must be one of"):
+            AutoFeatureEngineer(leakage_guard="maybe")
+
 
 class TestAutoFeatureEngineerParams:
     """Test parameter handling."""

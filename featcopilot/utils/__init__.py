@@ -10,6 +10,7 @@ from featcopilot.utils.models import (
     list_models,
 )
 from featcopilot.utils.parallel import parallel_apply
+from featcopilot.utils.validation import find_potential_leakage_columns
 
 __all__ = [
     "parallel_apply",
@@ -20,4 +21,5 @@ __all__ = [
     "get_default_model",
     "get_model_names",
     "is_valid_model",
+    "find_potential_leakage_columns",
 ]

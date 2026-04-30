@@ -1,5 +1,6 @@
 """Tests for scikit-learn compatible feature engineering transformers."""
 
+import importlib
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -261,6 +262,273 @@ class TestAutoFeatureEngineer:
         assert result is afe
         assert afe.max_features == 20
         assert afe.verbose is True
+
+    def test_set_params_none_normalizes_to_defaults(self):
+        """set_params should accept None for collection-valued params (sklearn compat).
+
+        Sklearn's ``clone`` and ``GridSearchCV`` may pass ``None`` for parameters
+        whose default in ``__init__`` is also ``None``. Validation should not raise
+        in that case; ``None`` should be normalized to the same defaults
+        ``__init__`` applies.
+        """
+        afe = AutoFeatureEngineer(engines=["tabular", "timeseries"])
+        afe.set_params(engines=None, selection_methods=None, llm_config=None)
+
+        assert afe.engines == ["tabular"]
+        assert afe.selection_methods == ["mutual_info", "importance"]
+        assert afe.llm_config == {}
+
+    def test_set_params_invalid_engine_still_raises(self):
+        """set_params should still validate non-None values."""
+        afe = AutoFeatureEngineer()
+        with pytest.raises(ValueError, match="Unknown engines"):
+            afe.set_params(engines=["not_a_real_engine"])
+
+    def test_set_params_unknown_key_raises(self):
+        """set_params should reject unknown parameter names (sklearn convention)."""
+        afe = AutoFeatureEngineer()
+        with pytest.raises(ValueError, match="Invalid parameter"):
+            afe.set_params(not_a_real_param=42)
+
+    def test_set_params_unknown_key_does_not_mutate_state(self):
+        """A failing set_params call must leave the estimator unchanged."""
+        afe = AutoFeatureEngineer(engines=["tabular"], max_features=5)
+        with pytest.raises(ValueError):
+            afe.set_params(typo_param=99)
+
+        assert afe.engines == ["tabular"]
+        assert afe.max_features == 5
+        assert not hasattr(afe, "typo_param")
+
+    def test_sklearn_clone_round_trip(self):
+        """A cloned estimator must be configurable identically to the original."""
+        from sklearn.base import clone
+
+        afe = AutoFeatureEngineer(engines=["tabular"], max_features=7)
+        cloned = clone(afe)
+
+        assert cloned.engines == ["tabular"]
+        assert cloned.max_features == 7
+        assert cloned.selection_methods == ["mutual_info", "importance"]
+
+    def test_set_params_invalid_value_rolls_back_state(self, sample_df):
+        """A failing set_params call must leave every parameter at its pre-call value."""
+        afe = AutoFeatureEngineer(
+            engines=["tabular"],
+            max_features=5,
+            selection_methods=["mutual_info"],
+            correlation_threshold=0.9,
+            llm_config={"model": "gpt-5.2"},
+            verbose=False,
+            leakage_guard="warn",
+        )
+
+        with pytest.raises(ValueError):
+            afe.set_params(
+                max_features=10,
+                engines=["bogus_engine"],
+                leakage_guard="not_a_mode",
+            )
+
+        # Every parameter that was part of the failing call must be restored.
+        assert afe.engines == ["tabular"]
+        assert afe.max_features == 5
+        assert afe.leakage_guard == "warn"
+        # Untouched parameters are obviously unchanged but assert anyway to
+        # guard against unrelated mutations.
+        assert afe.selection_methods == ["mutual_info"]
+        assert afe.correlation_threshold == 0.9
+        assert afe.llm_config == {"model": "gpt-5.2"}
+        assert afe.verbose is False
+
+    def test_set_params_invalid_value_after_none_normalization_rolls_back(self):
+        """Rollback must capture the pre-call value, not the None-normalized one."""
+        afe = AutoFeatureEngineer(engines=["tabular", "timeseries"])
+
+        with pytest.raises(ValueError):
+            afe.set_params(engines=None, max_features=-1)
+
+        # engines was None-normalized to ["tabular"] mid-call; rollback must
+        # restore the original ["tabular", "timeseries"], not ["tabular"].
+        assert afe.engines == ["tabular", "timeseries"]
+        assert afe.max_features is None
+
+    def test_validate_engines_rejects_non_string_entries(self):
+        """Mixed-type engine lists must raise ValueError, not TypeError from sorted()."""
+        # A bare ``sorted(set(...))`` over a mix of None/str would raise
+        # ``TypeError: '<' not supported between instances of 'str' and 'NoneType'``.
+        # The validator must surface a clear ValueError instead.
+        with pytest.raises(ValueError, match="engines must contain only strings"):
+            AutoFeatureEngineer(engines=[None, "tabular"])
+        with pytest.raises(ValueError, match="engines must contain only strings"):
+            AutoFeatureEngineer(engines=["tabular", 42])
+
+    def test_validate_selection_methods_rejects_non_string_entries(self):
+        """Mixed-type selection_methods lists must raise ValueError, not TypeError from sorted()."""
+        with pytest.raises(ValueError, match="selection_methods must contain only strings"):
+            AutoFeatureEngineer(selection_methods=[None, "mutual_info"])
+        with pytest.raises(ValueError, match="selection_methods must contain only strings"):
+            AutoFeatureEngineer(selection_methods=["mutual_info", 0])
+
+    def test_set_params_rejects_non_string_engine_entries_and_rolls_back(self):
+        """set_params must surface the same ValueError and roll back state."""
+        afe = AutoFeatureEngineer(engines=["tabular"])
+        with pytest.raises(ValueError, match="engines must contain only strings"):
+            afe.set_params(engines=[None, "spaceship"])
+        assert afe.engines == ["tabular"]
+
+    def test_init_rejects_empty_engines_list(self):
+        """An explicitly empty ``engines=[]`` must raise rather than silently no-op."""
+        # ``engines=None`` defaults to ['tabular']; an explicit empty list is a
+        # different intent and would otherwise let ``fit()`` mark the estimator
+        # fitted with zero engines so that ``transform()`` becomes a silent no-op.
+        with pytest.raises(ValueError, match="engines must contain at least one engine"):
+            AutoFeatureEngineer(engines=[])
+
+    def test_init_rejects_empty_selection_methods_list(self):
+        """An explicitly empty ``selection_methods=[]`` must raise."""
+        with pytest.raises(ValueError, match="selection_methods must contain at least one method"):
+            AutoFeatureEngineer(selection_methods=[])
+
+    def test_set_params_rejects_empty_engines_and_rolls_back(self):
+        """set_params must reject empty ``engines=[]`` and leave state untouched."""
+        afe = AutoFeatureEngineer(engines=["tabular"], max_features=5)
+        with pytest.raises(ValueError, match="engines must contain at least one engine"):
+            afe.set_params(engines=[])
+        assert afe.engines == ["tabular"]
+        assert afe.max_features == 5
+
+    def test_init_engines_none_still_defaults_to_tabular(self):
+        """``engines=None`` continues to normalize to the default ['tabular']."""
+        afe = AutoFeatureEngineer(engines=None)
+        assert afe.engines == ["tabular"]
+
+    def test_init_rejects_string_engines_argument(self):
+        """A bare ``str`` for ``engines`` must raise instead of iterating char-by-char."""
+        # Without the container-type guard, ``engines="tabular"`` would expand
+        # into individual characters and produce a confusing "Unknown engines"
+        # error such as ``Unknown engines: ['a', 'b', 'l', 'r', 't', 'u']``.
+        with pytest.raises(ValueError, match="engines must be a list or tuple of strings"):
+            AutoFeatureEngineer(engines="tabular")
+
+    def test_init_rejects_non_sequence_engines_argument(self):
+        """Non-sequence ``engines`` (e.g. ``int``) must raise a clear ValueError."""
+        # Without the guard, ``set(self.engines)`` would raise a bare
+        # ``TypeError: 'int' object is not iterable``.
+        with pytest.raises(ValueError, match="engines must be a list or tuple of strings"):
+            AutoFeatureEngineer(engines=5)
+        with pytest.raises(ValueError, match="engines must be a list or tuple of strings"):
+            AutoFeatureEngineer(engines={"tabular": True})
+
+    def test_init_rejects_string_selection_methods_argument(self):
+        """A bare ``str`` for ``selection_methods`` must raise."""
+        with pytest.raises(ValueError, match="selection_methods must be a list or tuple of strings"):
+            AutoFeatureEngineer(selection_methods="mutual_info")
+
+    def test_init_rejects_non_sequence_selection_methods_argument(self):
+        """Non-sequence ``selection_methods`` must raise a clear ValueError."""
+        with pytest.raises(ValueError, match="selection_methods must be a list or tuple of strings"):
+            AutoFeatureEngineer(selection_methods=42)
+
+    def test_init_accepts_tuple_engines(self):
+        """Tuples of strings are an acceptable container for ``engines``."""
+        afe = AutoFeatureEngineer(engines=("tabular",))
+        assert afe.engines == ("tabular",)
+
+    def test_set_params_rejects_string_engines_and_rolls_back(self):
+        """``set_params`` inherits the container-type check and rolls back on failure."""
+        afe = AutoFeatureEngineer(engines=["tabular"], max_features=5)
+        with pytest.raises(ValueError, match="engines must be a list or tuple of strings"):
+            afe.set_params(engines="tabular")
+        assert afe.engines == ["tabular"]
+        assert afe.max_features == 5
+
+    def test_fit_accepts_non_string_target_name(self, sample_df, sample_target):
+        """``target_name`` is typed Optional[Any]; integer column labels must work."""
+        # Build a DataFrame with an integer column name that overlaps the target.
+        df = sample_df.copy()
+        df.columns = [0, 1, 2, 3]
+        afe = AutoFeatureEngineer(engines=["tabular"], leakage_guard="raise")
+        # Integer target_name=0 must be honored (and would raise here because
+        # leakage_guard="raise" + a column named 0). This pins the type-hint
+        # contract: non-string target labels are accepted at runtime.
+        with pytest.raises(ValueError, match="leakage-prone"):
+            afe.fit(df, sample_target, target_name=0)
+
+    def test_fit_resets_engine_instances_when_engines_change(self, sample_df, sample_target):
+        """Refitting after removing an engine must drop the previously fitted engine."""
+        afe = AutoFeatureEngineer(engines=["tabular", "timeseries"], verbose=False)
+        afe.fit(sample_df, sample_target)
+        assert set(afe._engine_instances) == {"tabular", "timeseries"}
+
+        afe.set_params(engines=["tabular"])
+        afe.fit(sample_df, sample_target)
+
+        # The previously fitted "timeseries" engine must not survive into the
+        # new fit, otherwise transform() would invoke a stale engine.
+        assert set(afe._engine_instances) == {"tabular"}
+
+    def test_fit_resets_selector_after_prior_fit_transform(self, sample_df, sample_target):
+        """A plain fit() following fit_transform() must clear the selector."""
+        afe = AutoFeatureEngineer(engines=["tabular"], max_features=3, verbose=False)
+        afe.fit_transform(sample_df, sample_target)
+        assert afe._selector is not None
+
+        afe.fit(sample_df, sample_target)
+
+        # Without a selector reset, transform() would still apply the stale
+        # selection from the previous fit_transform call.
+        assert afe._selector is None
+        result = afe.transform(sample_df)
+        # Every input column must survive transform when no selector is active.
+        for col in sample_df.columns:
+            assert col in result.columns
+
+    def test_fit_resets_state_when_called_after_failed_fit(self, sample_df, sample_target, monkeypatch):
+        """If fit raises mid-flight, _is_fitted must be False so transform errors out."""
+        afe = AutoFeatureEngineer(engines=["tabular"], verbose=False)
+        afe.fit(sample_df, sample_target)
+        assert afe._is_fitted is True
+
+        # Force the next fit to fail partway through engine fitting.
+        from featcopilot.engines.tabular import TabularEngine
+
+        def _boom(self, X, y=None, **kwargs):
+            raise RuntimeError("simulated engine failure")
+
+        monkeypatch.setattr(TabularEngine, "fit", _boom)
+        with pytest.raises(RuntimeError, match="simulated engine failure"):
+            afe.fit(sample_df, sample_target)
+
+        # The failed fit must not leave the estimator in a "fitted" state
+        # that points at stale engines from the previous successful fit.
+        assert afe._is_fitted is False
+        assert afe._engine_instances == {}
+        with pytest.raises(RuntimeError, match="Must call fit"):
+            afe.transform(sample_df)
+
+
+class TestPackageImport:
+    """Tests for top-level package import behavior."""
+
+    def test_import_without_installed_metadata_falls_back(self):
+        """Test source import works even when distribution metadata is unavailable."""
+        import importlib.metadata as importlib_metadata
+
+        import featcopilot
+
+        original_version = importlib_metadata.version
+
+        def fake_version(name):
+            if name == "featcopilot":
+                raise importlib_metadata.PackageNotFoundError
+            return original_version(name)
+
+        with patch("importlib.metadata.version", side_effect=fake_version):
+            reloaded = importlib.reload(featcopilot)
+            assert reloaded.__version__ == "0+unknown"
+
+        importlib.reload(featcopilot)
 
     def test_verbose_logging(self, sample_df, sample_target):
         """Test that verbose=True does not error."""

@@ -43,7 +43,6 @@ import numpy as np
 import pandas as pd
 from packaging.version import Version
 from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, r2_score, roc_auc_score
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
 from benchmarks.datasets import (
@@ -61,11 +60,13 @@ from benchmarks.feature_cache import (
     sanitize_feature_frames,
     save_feature_cache,
 )
+from benchmarks.splits import split_benchmark_data
 from featcopilot.utils.logger import get_logger  # noqa: E402
 
 logger = get_logger(__name__)
 
 warnings.filterwarnings("ignore")
+
 
 # Default configuration
 QUICK_DATASETS = [
@@ -843,8 +844,7 @@ def run_single_benchmark(
         X_encoded[col] = le.fit_transform(X_encoded[col].astype(str))
 
     # Split data (keep raw and encoded in sync)
-    indices = np.arange(len(X_encoded))
-    train_idx, test_idx, y_train, y_test = train_test_split(indices, y, test_size=0.2, random_state=random_state)
+    train_idx, test_idx, y_train, y_test = split_benchmark_data(X_encoded, y, task, random_state)
     X_train_encoded = X_encoded.iloc[train_idx]
     X_test_encoded = X_encoded.iloc[test_idx]
     X_train_raw = X.iloc[train_idx]

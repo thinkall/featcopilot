@@ -3,6 +3,7 @@
 Provides drop-in sklearn transformers for feature engineering pipelines.
 """
 
+import warnings
 from typing import Any, Optional, Union
 
 import numpy as np
@@ -16,6 +17,7 @@ from featcopilot.engines.text import TextEngine
 from featcopilot.engines.timeseries import TimeSeriesEngine
 from featcopilot.selection.unified import FeatureSelector
 from featcopilot.utils.logger import get_logger
+from featcopilot.utils.validation import find_potential_leakage_columns
 
 logger = get_logger(__name__)
 
@@ -95,10 +97,23 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         Maximum features to generate/select
     selection_methods : list, default=['mutual_info', 'importance']
         Feature selection methods
+    correlation_threshold : float, default=0.85
+        Maximum pairwise correlation allowed during correlation-based selection
     llm_config : dict, optional
         Configuration for LLM engine
     verbose : bool, default=False
         Verbose output
+    leakage_guard : {'off', 'warn', 'raise'}, default='warn'
+        How to handle columns whose names suggest target, label, or future-information leakage
+
+    Other Parameters
+    ----------------
+    target_name : hashable, optional
+        Fit-time parameter accepted by :meth:`fit` and :meth:`fit_transform`.
+        When provided, the leakage guard cross-references column labels
+        against the target so derived variants (e.g. ``target_encoded``) are
+        flagged. Accepts any column-label type DataFrames support
+        (typically ``str``, but also ``int`` or other hashables).
 
     Examples
     --------
@@ -107,8 +122,12 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
     ...     max_features=100,
     ...     llm_config={'model': 'gpt-5.2', 'enable_semantic': True}
     ... )
-    >>> X_transformed = engineer.fit_transform(X, y)
+    >>> X_transformed = engineer.fit_transform(X, y, target_name='label')
     """
+
+    SUPPORTED_ENGINES = {"tabular", "timeseries", "relational", "text", "llm"}
+    SUPPORTED_SELECTION_METHODS = {"mutual_info", "importance", "f_test", "chi2", "correlation", "xgboost"}
+    SUPPORTED_LEAKAGE_GUARDS = {"off", "warn", "raise"}
 
     def __init__(
         self,
@@ -118,13 +137,21 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         correlation_threshold: float = 0.85,
         llm_config: Optional[dict[str, Any]] = None,
         verbose: bool = False,
+        leakage_guard: str = "warn",
     ):
-        self.engines = engines or ["tabular"]
+        # Use ``is not None`` defaulting (rather than ``or``) so that explicit
+        # empty containers and identity-bearing arguments are preserved. This
+        # also keeps ``self.<param> is param`` for any non-None argument, which
+        # is required for sklearn's ``clone`` round-trip identity check.
+        self.engines = engines if engines is not None else ["tabular"]
         self.max_features = max_features
-        self.selection_methods = selection_methods or ["mutual_info", "importance"]
+        self.selection_methods = selection_methods if selection_methods is not None else ["mutual_info", "importance"]
         self.correlation_threshold = correlation_threshold
-        self.llm_config = llm_config or {}
+        self.llm_config = llm_config if llm_config is not None else {}
         self.verbose = verbose
+        self.leakage_guard = leakage_guard
+
+        self._validate_configuration()
 
         self._engine_instances: dict[str, Any] = {}
         self._selector: Optional[FeatureSelector] = None
@@ -133,12 +160,107 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         self._column_descriptions: dict[str, str] = {}
         self._task_description: str = ""
 
+    def _validate_configuration(self) -> None:
+        """Validate user-facing configuration early."""
+        # Reject non-sequence containers (and ``str``/``bytes``, which are
+        # technically iterable but would be iterated character-by-character)
+        # before any iteration so that the downstream non-string-entry,
+        # empty, and set-diff checks all run on a real list/tuple. Without
+        # this guard, ``engines="tabular"`` would silently expand into
+        # individual characters and produce a confusing "Unknown engines"
+        # error, and ``engines=5`` would raise an unrelated ``TypeError``
+        # from ``set(self.engines)``.
+        if not isinstance(self.engines, (list, tuple)):
+            raise ValueError(
+                "engines must be a list or tuple of strings; got "
+                f"{type(self.engines).__name__}={self.engines!r}. "
+                f"Supported engines: {sorted(self.SUPPORTED_ENGINES)}"
+            )
+
+        if not isinstance(self.selection_methods, (list, tuple)):
+            raise ValueError(
+                "selection_methods must be a list or tuple of strings; got "
+                f"{type(self.selection_methods).__name__}={self.selection_methods!r}. "
+                f"Supported methods: {sorted(self.SUPPORTED_SELECTION_METHODS)}"
+            )
+
+        # Reject non-string entries up front so that the diff against the
+        # supported-name sets (and the ``sorted(...)`` used to build the error
+        # message) cannot raise an unrelated ``TypeError`` for mixed-type
+        # inputs (e.g. ``engines=[None, "spaceship"]``).
+        non_string_engines = [e for e in self.engines if not isinstance(e, str)]
+        if non_string_engines:
+            raise ValueError(
+                "engines must contain only strings; got non-string entries: "
+                f"{non_string_engines!r}. Supported engines: {sorted(self.SUPPORTED_ENGINES)}"
+            )
+
+        # Reject empty collections explicitly. ``engines=None`` is normalized to
+        # the default in ``__init__`` / ``set_params``; an explicit empty list
+        # would otherwise leave ``fit()`` running zero engines and ``transform()``
+        # silently returning the input (modulo NaN/inf cleanup), which is a
+        # surprising silent no-op rather than a misconfiguration.
+        if not self.engines:
+            raise ValueError(
+                "engines must contain at least one engine; got an empty sequence. "
+                f"Pass ``engines=None`` for the default ['tabular'] or pick from {sorted(self.SUPPORTED_ENGINES)}."
+            )
+
+        non_string_methods = [m for m in self.selection_methods if not isinstance(m, str)]
+        if non_string_methods:
+            raise ValueError(
+                "selection_methods must contain only strings; got non-string entries: "
+                f"{non_string_methods!r}. Supported methods: {sorted(self.SUPPORTED_SELECTION_METHODS)}"
+            )
+
+        if not self.selection_methods:
+            raise ValueError(
+                "selection_methods must contain at least one method; got an empty sequence. "
+                "Pass ``selection_methods=None`` for the default "
+                f"['mutual_info', 'importance'] or pick from {sorted(self.SUPPORTED_SELECTION_METHODS)}."
+            )
+
+        unknown_engines = sorted(set(self.engines) - self.SUPPORTED_ENGINES)
+        if unknown_engines:
+            raise ValueError(f"Unknown engines: {unknown_engines}. Supported engines: {sorted(self.SUPPORTED_ENGINES)}")
+
+        unknown_methods = sorted(set(self.selection_methods) - self.SUPPORTED_SELECTION_METHODS)
+        if unknown_methods:
+            raise ValueError(
+                "Unknown selection methods: "
+                f"{unknown_methods}. Supported methods: {sorted(self.SUPPORTED_SELECTION_METHODS)}"
+            )
+
+        if self.leakage_guard not in self.SUPPORTED_LEAKAGE_GUARDS:
+            raise ValueError(
+                f"leakage_guard must be one of {sorted(self.SUPPORTED_LEAKAGE_GUARDS)}, got {self.leakage_guard!r}"
+            )
+
+        if self.max_features is not None and self.max_features <= 0:
+            raise ValueError("max_features must be positive when provided")
+
+    def _reset_fit_state(self) -> None:
+        """Reset all attributes populated during ``fit``/``fit_transform``.
+
+        Called at the start of ``fit`` so that re-fitting (e.g. after changing
+        ``engines`` via ``set_params``) cannot leave stale fitted engines, a
+        stale selector, or fit-time metadata in place. Mirrors the fit-derived
+        attribute initialization in ``__init__``.
+        """
+        self._engine_instances = {}
+        self._selector = None
+        self._feature_set = FeatureSet()
+        self._is_fitted = False
+        self._column_descriptions = {}
+        self._task_description = ""
+
     def fit(
         self,
         X: Union[pd.DataFrame, np.ndarray],
         y: Optional[Union[pd.Series, np.ndarray]] = None,
         column_descriptions: Optional[dict[str, str]] = None,
         task_description: str = "prediction task",
+        target_name: Optional[Any] = None,
         **fit_params,
     ) -> "AutoFeatureEngineer":
         """
@@ -154,6 +276,11 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             Human-readable descriptions of columns (for LLM)
         task_description : str
             Description of the ML task (for LLM)
+        target_name : hashable, optional
+            Target column label used by leakage checks to identify related
+            feature columns. Accepts any column-label type DataFrames support
+            (typically ``str``, but also ``int`` or other hashables); the
+            leakage helper normalizes labels via ``str(...)`` before matching.
         **fit_params : dict
             Additional parameters
 
@@ -161,12 +288,31 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         -------
         self : AutoFeatureEngineer
         """
+        # Reset all fit-derived state so a refit (e.g. after changing ``engines``
+        # or after a previous ``fit_transform`` that built a selector) cannot leak
+        # stale engines, a stale selector, or the previous ``_is_fitted`` flag
+        # into a subsequent ``transform`` call. Any early exit below (validation
+        # error, leakage_guard='raise', engine fit failure) leaves the estimator
+        # in a clean, unfitted state rather than a partially-fitted one.
+        self._reset_fit_state()
+
         # Convert to DataFrame if needed
         if isinstance(X, np.ndarray):
             X = pd.DataFrame(X, columns=[f"feature_{i}" for i in range(X.shape[1])])
 
         self._column_descriptions = column_descriptions or {}
         self._task_description = task_description
+
+        suspicious_columns = find_potential_leakage_columns(X.columns.tolist(), target_name=target_name)
+        if suspicious_columns and self.leakage_guard != "off":
+            message = (
+                "Potential leakage-prone columns detected: "
+                f"{suspicious_columns}. Review time/label leakage before fitting, "
+                "or set leakage_guard='off' to disable this check."
+            )
+            if self.leakage_guard == "raise":
+                raise ValueError(message)
+            warnings.warn(message, UserWarning, stacklevel=2)
 
         # Fit each engine
         for engine_name in self.engines:
@@ -271,6 +417,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         y: Optional[Union[pd.Series, np.ndarray]] = None,
         column_descriptions: Optional[dict[str, str]] = None,
         task_description: str = "prediction task",
+        target_name: Optional[Any] = None,
         apply_selection: bool = True,
         **fit_params,
     ) -> pd.DataFrame:
@@ -287,6 +434,11 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             Human-readable column descriptions
         task_description : str
             ML task description
+        target_name : hashable, optional
+            Target column label used by leakage checks to identify related
+            feature columns. Accepts any column-label type DataFrames support
+            (typically ``str``, but also ``int`` or other hashables); the
+            leakage helper normalizes labels via ``str(...)`` before matching.
         apply_selection : bool, default=True
             Whether to apply feature selection
         **fit_params : dict
@@ -297,8 +449,9 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         X_transformed : DataFrame
             Transformed data with generated features
         """
-        self.fit(X, y, column_descriptions, task_description, **fit_params)
-        result = self.transform(X)
+        self.fit(X, y, column_descriptions, task_description, target_name=target_name, **fit_params)
+        # Reuse transform-relevant kwargs (e.g. text_columns, related_tables) during fit_transform.
+        result = self.transform(X, **fit_params)
 
         # Track original features (input columns) vs derived features
         if isinstance(X, np.ndarray):
@@ -525,10 +678,73 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             "correlation_threshold": self.correlation_threshold,
             "llm_config": self.llm_config,
             "verbose": self.verbose,
+            "leakage_guard": self.leakage_guard,
         }
 
     def set_params(self, **params):
-        """Set parameters for sklearn compatibility."""
-        for key, value in params.items():
-            setattr(self, key, value)
+        """
+        Set parameters for sklearn compatibility.
+
+        Validates parameter keys against the estimator's known parameters
+        (raising :class:`ValueError` on unknown keys, matching scikit-learn
+        ``BaseEstimator.set_params`` behavior) and then mirrors the defaulting
+        performed in ``__init__`` so callers (e.g. sklearn cloning,
+        ``GridSearchCV`` parameter grids) can pass ``None`` for
+        collection-valued parameters and have it normalized back to the default
+        rather than raising during validation.
+
+        The update is atomic: if any provided value fails configuration
+        validation, all in-flight mutations are rolled back so the estimator
+        is left in its pre-call state rather than a partially-mutated invalid
+        one.
+
+        Parameters
+        ----------
+        **params
+            Estimator parameters to update. Each key must already be a
+            top-level parameter accepted by ``__init__``.
+
+        Returns
+        -------
+        AutoFeatureEngineer
+            ``self``, to support fluent chaining.
+
+        Raises
+        ------
+        ValueError
+            If ``params`` contains a key that is not a known estimator
+            parameter, or if any provided value fails configuration
+            validation (see :meth:`_validate_configuration`). On validation
+            failure the estimator's parameters are restored to the values
+            they held before the call.
+        """
+        valid_params = self.get_params(deep=True)
+        invalid_keys = sorted(set(params) - set(valid_params))
+        if invalid_keys:
+            raise ValueError(
+                f"Invalid parameter(s) {invalid_keys} for estimator {type(self).__name__}. "
+                f"Valid parameters are: {sorted(valid_params)}."
+            )
+
+        # Snapshot the current values for every parameter we are about to
+        # change (including any whose final value will come from None
+        # normalization below) so that a validation failure can roll back to
+        # a fully consistent pre-call state.
+        snapshot = {key: getattr(self, key) for key in params}
+
+        try:
+            for key, value in params.items():
+                setattr(self, key, value)
+            if self.engines is None:
+                self.engines = ["tabular"]
+            if self.selection_methods is None:
+                self.selection_methods = ["mutual_info", "importance"]
+            if self.llm_config is None:
+                self.llm_config = {}
+            self._validate_configuration()
+        except Exception:
+            for key, value in snapshot.items():
+                setattr(self, key, value)
+            raise
+
         return self

@@ -21,6 +21,70 @@ from featcopilot.utils.models import (
     list_models,
 )
 from featcopilot.utils.parallel import parallel_apply, parallel_transform
+from featcopilot.utils.validation import find_potential_leakage_columns
+
+# ---------------------------------------------------------------------------
+# Validation tests
+# ---------------------------------------------------------------------------
+
+
+def test_leakage_detection_non_string_columns():
+    """Test leakage detection accepts non-string column labels."""
+    assert find_potential_leakage_columns([], target_name="label") == []
+    assert find_potential_leakage_columns([123, "future_label"], target_name="label") == ["future_label"]
+    assert find_potential_leakage_columns([123, "target"], target_name="other") == ["target"]
+    assert find_potential_leakage_columns([123, 456], target_name="label") == []
+    assert find_potential_leakage_columns([123, "feature"], target_name=123) == [123]
+    assert find_potential_leakage_columns(["Churn Label"], target_name="churn_label") == ["Churn Label"]
+    assert find_potential_leakage_columns(["future-target!"], target_name="target") == ["future-target!"]
+
+
+def test_leakage_detection_empty_keywords_disables_keyword_matching():
+    """Passing ``keywords=[]`` must opt out of keyword-based matching entirely."""
+    # Without an explicit empty keywords list, "target" / "future_score" would
+    # be flagged via DEFAULT_LEAKAGE_KEYWORDS. With ``keywords=[]`` and no
+    # ``target_name``, no column should be flagged.
+    assert find_potential_leakage_columns(["target", "future_score", "x"], keywords=[]) == []
+
+    # Explicit ``target_name`` still works alongside ``keywords=[]``.
+    assert find_potential_leakage_columns(
+        ["target", "future_score", "label_x"],
+        target_name="label",
+        keywords=[],
+    ) == ["label_x"]
+
+
+def test_leakage_detection_falsy_target_name_zero_still_matches():
+    """Falsy but meaningful targets (e.g. ``0``) must still drive matching."""
+    # Previously ``if target_name`` would treat ``0`` as absent and skip target
+    # matching entirely. The integer column ``0`` should now be flagged.
+    assert find_potential_leakage_columns([0, "feature"], target_name=0) == [0]
+
+
+def test_leakage_detection_empty_string_target_does_not_match_everything():
+    """``target_name=''`` must not flag every column via the empty-substring trap."""
+    # An empty (or whitespace-only) target normalizes to "" which would otherwise
+    # be treated as a substring of every column. Treating empty normalized
+    # results as absent prevents that.
+    assert find_potential_leakage_columns(["a", "b", "c"], target_name="", keywords=[]) == []
+    assert find_potential_leakage_columns(["a", "b", "c"], target_name="---", keywords=[]) == []
+
+
+def test_leakage_detection_columns_normalizing_to_empty_string_are_skipped():
+    """Columns whose labels normalize to an empty string must not be flagged."""
+    # Without the column-side guard, the empty ``normalized_column`` would be
+    # a substring of every non-empty ``normalized_target`` (``"" in "label"``
+    # is True), so any column literally labeled ``"---"`` / ``"!!!"`` would be
+    # flagged whenever a target was provided. The guard skips such columns.
+    assert find_potential_leakage_columns(["---", "!!!"], target_name="label") == []
+    assert find_potential_leakage_columns(["---", "label_x"], target_name="label", keywords=[]) == ["label_x"]
+    # Mixing meaningful and empty-normalizing column labels still reports only
+    # the meaningful ones.
+    assert find_potential_leakage_columns(["target", "---", "future_x"], target_name="label") == [
+        "target",
+        "future_x",
+    ]
+
 
 # ---------------------------------------------------------------------------
 # FeatureCache tests

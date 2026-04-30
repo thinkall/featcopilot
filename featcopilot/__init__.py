@@ -5,9 +5,14 @@ A unified feature engineering framework combining traditional approaches
 with novel LLM-powered capabilities via GitHub Copilot SDK.
 """
 
-from importlib.metadata import version
+from importlib.metadata import PackageNotFoundError, version
 
-__version__ = version("featcopilot")
+try:
+    __version__ = version("featcopilot")
+except PackageNotFoundError:
+    # Allow importing directly from a source checkout before editable/install step.
+    __version__ = "0+unknown"
+
 __author__ = "FeatCopilot Contributors"
 
 from featcopilot.core.base import BaseEngine, BaseSelector
