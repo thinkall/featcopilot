@@ -101,6 +101,38 @@ def test_encoder_handles_categorical_dtype_with_missing_category_present():
     assert len(train_classes) == 2  # {"a", "missing"} → 2 codes
 
 
+def test_encoder_handles_datetime_columns_without_raising():
+    """Datetime columns must not crash on the string sentinel.
+
+    ``pd.Series.fillna("missing")`` raises on ``datetime64`` dtype because
+    the string is not type-compatible. ``select_dtypes(exclude=[np.number])``
+    *does* include datetime64 columns (timedelta64 is treated as numeric and
+    excluded, which is fine — it stays untouched). The ``_safe_fillna_string``
+    helper casts to object first so the encoder works on datetime dtypes.
+    """
+    X_train = pd.DataFrame(
+        {
+            "ts": pd.to_datetime(["2024-01-01", "2024-01-02", pd.NaT, "2024-01-04"]),
+        }
+    )
+    X_test = pd.DataFrame(
+        {
+            "ts": pd.to_datetime(["2024-01-02", pd.NaT, "2024-02-01"]),
+        }
+    )
+
+    # Must not raise on datetime dtype.
+    X_train_enc, X_test_enc = _label_encode_non_numeric(X_train, X_test)
+
+    # Encoded as int.
+    assert X_train_enc["ts"].dtype.kind in "iu"
+    assert X_test_enc["ts"].dtype.kind in "iu"
+
+    # Unseen test value ("2024-02-01") → unknown bucket.
+    train_classes = set(X_train_enc["ts"].unique())
+    assert X_test_enc["ts"].iloc[2] not in train_classes
+
+
 def test_encoder_preserves_numeric_columns_alongside_categorical():
     """Mixed-dtype frames: only non-numeric columns are encoded."""
     rng = np.random.default_rng(0)

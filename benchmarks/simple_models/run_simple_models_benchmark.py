@@ -146,9 +146,11 @@ def _safe_fillna_string(series: pd.Series, sentinel: str = "missing") -> pd.Seri
     """
     Replace NaN with ``sentinel`` and cast to string, safely for any dtype.
 
-    On pandas ``Categorical`` dtype, ``series.fillna(sentinel)`` raises if
-    ``sentinel`` is not already a category. Cast to object first (which loses
-    the categorical metadata but preserves all values) before filling.
+    Some non-numeric pandas dtypes (``Categorical``, ``datetime64``,
+    ``timedelta64``, ``period``, etc.) raise on ``series.fillna("missing")``
+    because the string sentinel is not a valid value for the dtype. Casting
+    to object first preserves all values and lets ``fillna`` accept any
+    sentinel uniformly.
 
     Order matters: ``fillna`` MUST run before ``astype(str)``. If the order is
     reversed, NaN becomes the literal string ``"nan"`` and lives in a separate
@@ -166,7 +168,13 @@ def _safe_fillna_string(series: pd.Series, sentinel: str = "missing") -> pd.Seri
     Series
         String-dtype series with no NaN.
     """
-    if isinstance(series.dtype, pd.CategoricalDtype):
+    # Cast through ``object`` for any dtype that doesn't natively accept a
+    # string sentinel. ``object`` (already ``object``) and the pandas
+    # extension string dtypes accept ``"missing"`` directly; everything else
+    # (Categorical, datetime, timedelta, period, numeric, boolean, etc.) is
+    # safer to widen first. The downstream consumer always calls
+    # ``astype(str)`` on the result, so losing dtype metadata here is fine.
+    if not (series.dtype == object or pd.api.types.is_string_dtype(series.dtype)):
         series = series.astype(object)
     return series.fillna(sentinel).astype(str)
 
@@ -467,7 +475,12 @@ def run_single_benchmark(
     print(f"{'='*60}")
 
     try:
-        X, y, task, name = load_dataset(dataset_name)
+        # ``load_dataset`` returns ``(X, y, task, loader_name)``. The loader's
+        # canonical name may match ``dataset_name`` or be a longer label.
+        # We don't currently surface it (``dataset_name`` is the registry key
+        # used everywhere else), but capture it under ``_`` to make the
+        # contract explicit and avoid ruff F841.
+        X, y, task, _ = load_dataset(dataset_name)
         print(f"Task: {task}, Shape: {X.shape}, Source: {'real-world' if is_real_world(dataset_name) else 'synthetic'}")
 
         # Process target once (fold-independent — labels don't change between folds).
@@ -483,6 +496,7 @@ def run_single_benchmark(
         tabular_fold_scores = []
         fe_times = []
         n_features_generated = []
+        engines_used: list[str] = []
 
         seeds = [42 + i * 7 for i in range(n_seeds)]
         if not seeds:
@@ -537,7 +551,7 @@ def run_single_benchmark(
 
                 # --- FeatCopilot ---
                 try:
-                    X_train_fe, X_test_fe, fe_time, engines_used = apply_featcopilot(
+                    X_train_fe, X_test_fe, fe_time, fold_engines = apply_featcopilot(
                         X_train_raw, X_test_raw, y_train, task, max_features, with_llm=with_llm
                     )
                     tabular_results = run_models(X_train_fe, X_test_fe, y_train, y_test, task, "Tabular", quiet=True)
@@ -545,6 +559,10 @@ def run_single_benchmark(
                     tabular_fold_scores.append(best_tabular[primary_metric])
                     fe_times.append(fe_time)
                     n_features_generated.append(X_train_fe.shape[1])
+                    # Record the engine list once (it's identical across folds
+                    # because we configure engines from ``task`` only).
+                    if not engines_used:
+                        engines_used = [getattr(e, "__class__", type(e)).__name__ for e in fold_engines]
                 except Exception as e:
                     print(f"   FeatCopilot error on fold {fold_idx}: {e}")
                     tabular_fold_scores.append(best_baseline[primary_metric])
@@ -594,6 +612,7 @@ def run_single_benchmark(
             "significant": significant,
             "n_features_tabular": int(np.mean(n_features_generated)),
             "fe_time_tabular": float(np.mean(fe_times)),
+            "engines_used": engines_used,
             "baseline_fold_scores": baseline_scores.tolist(),
             "tabular_fold_scores": tabular_scores.tolist(),
         }
