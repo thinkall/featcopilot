@@ -85,6 +85,73 @@ DEFAULT_MAX_FEATURES = 100
 QUICK_DATASETS = ["titanic", "house_prices", "credit_risk", "bike_sharing", "customer_churn", "insurance_claims"]
 
 
+# Markers that indicate a loader returned synthetic data despite the
+# registry tagging the dataset as real-world (e.g., a Kaggle/OpenML/HF
+# loader that fell back to a synthesized dataset because the upstream
+# fetch failed). Markers are matched case-insensitively against the
+# loader_name suffix string (the 4th element of ``load_dataset`` output).
+_SYNTHETIC_FALLBACK_MARKERS = ("synthetic", "-style")
+
+
+def _infer_source(dataset_name: str, loader_name: str | None = None) -> str:
+    """
+    Infer the actual data source for a benchmark run.
+
+    The dataset registry (``DATASET_SOURCE``) only knows whether a dataset
+    is *intended* to be real-world or synthetic. Some loaders attempt to
+    fetch real data and fall back to a synthesized dataset on failure
+    (e.g., Kaggle/OpenML/HF loaders); in that case ``loader_name`` carries
+    a marker like ``(synthetic)`` or ``(Kaggle-style)``. When such a
+    marker is present we downgrade the source to ``synthetic`` so the
+    real-world vs synthetic split in the report stays accurate even when
+    upstream fetches fail.
+
+    Parameters
+    ----------
+    dataset_name : str
+        Registry key passed to ``load_dataset``.
+    loader_name : str, optional
+        The 4th element of ``load_dataset``'s return tuple (the loader's
+        canonical label). When ``None`` the registry verdict is used.
+
+    Returns
+    -------
+    str
+        Either ``"real_world"`` or ``"synthetic"``.
+    """
+    if not is_real_world(dataset_name):
+        return "synthetic"
+    if loader_name:
+        lname = loader_name.lower()
+        if any(marker in lname for marker in _SYNTHETIC_FALLBACK_MARKERS):
+            return "synthetic"
+    return "real_world"
+
+
+def _resolve_source(result: dict) -> str:
+    """
+    Return the source label for a (possibly legacy) cached result row.
+
+    Newer runs always store ``source`` directly. Older cached results
+    saved before the field existed don't have it; for those we fall back
+    to ``is_real_world(result["dataset"])`` via the registry, which is
+    strictly more accurate than the previous behaviour of treating every
+    legacy row as synthetic. Note: this fallback can't detect a
+    synthetic-fallback loader event (``loader_name`` isn't preserved in
+    cached results), but for stable real-world datasets (INRIA,
+    ``fake_news``) the registry verdict matches the historical run.
+    """
+    if "source" in result:
+        return result["source"]
+    dataset = result.get("dataset")
+    if not isinstance(dataset, str):
+        return "synthetic"
+    try:
+        return "real_world" if is_real_world(dataset) else "synthetic"
+    except Exception:
+        return "synthetic"
+
+
 # =============================================================================
 # Models
 # =============================================================================
@@ -496,12 +563,18 @@ def run_single_benchmark(
 
     try:
         # ``load_dataset`` returns ``(X, y, task, loader_name)``. The loader's
-        # canonical name may match ``dataset_name`` or be a longer label.
-        # We don't currently surface it (``dataset_name`` is the registry key
-        # used everywhere else), but capture it under ``_`` to make the
-        # contract explicit and avoid ruff F841.
-        X, y, task, _ = load_dataset(dataset_name)
-        print(f"Task: {task}, Shape: {X.shape}, Source: {'real-world' if is_real_world(dataset_name) else 'synthetic'}")
+        # canonical name carries source information (e.g. a Kaggle loader
+        # may return "House Prices (Kaggle)" on success or
+        # "House Prices (Kaggle-style)" when it falls back to synthetic
+        # data on fetch failure). We propagate it through ``_infer_source``
+        # so the real-world vs synthetic split stays accurate even when
+        # the registry tags a dataset as real-world but the upstream fetch
+        # actually fell back to a synthesized dataset.
+        X, y, task, loader_name = load_dataset(dataset_name)
+        source = _infer_source(dataset_name, loader_name)
+        print(
+            f"Task: {task}, Shape: {X.shape}, Source: {'real-world' if source == 'real_world' else 'synthetic'} ({loader_name})"
+        )
 
         # Process target once (fold-independent — labels don't change between folds).
         # X is left raw at the dataset level; baseline preprocessing is performed
@@ -621,7 +694,8 @@ def run_single_benchmark(
         results = {
             "dataset": dataset_name,
             "task": task,
-            "source": "real_world" if is_real_world(dataset_name) else "synthetic",
+            "source": source,
+            "loader_name": loader_name,
             "n_samples": len(X),
             "n_features_original": X.shape[1],
             "n_folds": n_folds,
@@ -655,9 +729,12 @@ def generate_report(results: list[dict], with_llm: bool, output_path: Path) -> N
     """Generate markdown report with statistical rigor."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Separate by source AND task category
-    real_world = [r for r in results if r.get("source") == "real_world"]
-    synthetic = [r for r in results if r.get("source") != "real_world"]
+    # Separate by source AND task category. Use ``_resolve_source`` so legacy
+    # cached results without a ``source`` field (loaded via ``--report-only``)
+    # get bucketed via the registry instead of being silently lumped into
+    # "synthetic".
+    real_world = [r for r in results if _resolve_source(r) == "real_world"]
+    synthetic = [r for r in results if _resolve_source(r) != "real_world"]
 
     # Use substring matching for both classification AND regression (e.g.
     # "text_classification", "timeseries_regression", "text_regression"),

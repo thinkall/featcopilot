@@ -557,3 +557,112 @@ def test_main_does_not_mutate_global_warnings_filter(monkeypatch):
 
     after = list(warnings_mod.filters)
     assert before == after, "main() must not mutate the global warnings filter"
+
+
+# =============================================================================
+# Round 23: source-inference helpers (_infer_source / _resolve_source)
+# =============================================================================
+
+
+def test_infer_source_synthetic_dataset_always_synthetic():
+    """If the registry tags a dataset as synthetic, source is always synthetic
+    regardless of loader_name."""
+    from benchmarks.simple_models.run_simple_models_benchmark import _infer_source
+
+    # ``titanic`` is registered as synthetic.
+    assert _infer_source("titanic", "Titanic (Kaggle-style)") == "synthetic"
+    assert _infer_source("titanic", "Titanic (Real)") == "synthetic"
+    assert _infer_source("titanic", None) == "synthetic"
+
+
+def test_infer_source_real_world_no_marker_returns_real_world():
+    """Real-world dataset + non-synthetic loader_name → real_world."""
+    from benchmarks.simple_models.run_simple_models_benchmark import _infer_source
+
+    # ``fake_news`` is registered as real_world.
+    assert _infer_source("fake_news", "Fake News (HuggingFace)") == "real_world"
+    assert _infer_source("fake_news", None) == "real_world"
+
+
+def test_infer_source_real_world_with_synthetic_fallback_marker():
+    """Real-world dataset whose loader fell back to synthetic data must be
+    downgraded to ``synthetic`` so the report split stays accurate."""
+    from benchmarks.simple_models.run_simple_models_benchmark import _infer_source
+
+    # Simulate a future Kaggle/HF loader for a real-world dataset that
+    # falls back to synthetic data on fetch failure.
+    assert _infer_source("fake_news", "Fake News (synthetic)") == "synthetic"
+    assert _infer_source("fake_news", "Fake News (HF-style)") == "synthetic"
+    # Case-insensitive marker matching.
+    assert _infer_source("fake_news", "Fake News (SYNTHETIC)") == "synthetic"
+    assert _infer_source("fake_news", "Fake News (Kaggle-Style)") == "synthetic"
+
+
+def test_resolve_source_uses_explicit_field_when_present():
+    """New-format results have ``source`` set; ``_resolve_source`` returns it verbatim."""
+    from benchmarks.simple_models.run_simple_models_benchmark import _resolve_source
+
+    assert _resolve_source({"source": "real_world", "dataset": "anything"}) == "real_world"
+    assert _resolve_source({"source": "synthetic", "dataset": "anything"}) == "synthetic"
+    # Even a value the registry would override is preserved (caller chose it).
+    assert _resolve_source({"source": "real_world", "dataset": "titanic"}) == "real_world"
+
+
+def test_resolve_source_falls_back_to_registry_for_legacy_results():
+    """Legacy cached results predating the ``source`` field must be bucketed via
+    ``is_real_world(dataset)``, not blindly treated as synthetic."""
+    from benchmarks.simple_models.run_simple_models_benchmark import _resolve_source
+
+    # ``fake_news`` is registered as real_world; legacy cached row should resolve to real_world.
+    assert _resolve_source({"dataset": "fake_news"}) == "real_world"
+    # ``titanic`` is registered as synthetic.
+    assert _resolve_source({"dataset": "titanic"}) == "synthetic"
+    # Unknown dataset → safe default ``synthetic``.
+    assert _resolve_source({"dataset": "totally_unknown_dataset"}) == "synthetic"
+    # Missing ``dataset`` field → safe default ``synthetic``.
+    assert _resolve_source({}) == "synthetic"
+
+
+def test_generate_report_buckets_legacy_results_via_registry(tmp_path):
+    """``generate_report`` on legacy results (no ``source`` field) must bucket
+    them via the registry instead of lumping all rows into ``synthetic``.
+
+    Regression test for Copilot review on commit 61f0e9c: previously
+    ``r.get("source") != "real_world"`` treated every legacy row as synthetic.
+    """
+    from benchmarks.simple_models.run_simple_models_benchmark import generate_report
+
+    base_row = {
+        "task": "classification",
+        "n_samples": 100,
+        "n_features_original": 5,
+        "n_folds": 5,
+        "n_seeds": 1,
+        "with_llm": False,
+        "baseline_best_score": 0.85,
+        "baseline_std": 0.02,
+        "tabular_best_score": 0.86,
+        "tabular_std": 0.02,
+        "tabular_improvement_pct": 1.0,
+        "p_value": 0.04,
+        "significant": True,
+        "n_features_tabular": 8,
+        "fe_time_tabular": 0.5,
+        "engines_used": ["tabular"],
+        "baseline_fold_scores": [0.85] * 5,
+        "tabular_fold_scores": [0.86] * 5,
+    }
+    # Legacy results: NO ``source`` field at all.
+    legacy_real = {**base_row, "dataset": "fake_news"}  # registry: real_world
+    legacy_synth = {**base_row, "dataset": "titanic"}  # registry: synthetic
+
+    out_dir = tmp_path / "report_dir"
+    out_dir.mkdir()
+    generate_report([legacy_real, legacy_synth], with_llm=False, output_path=out_dir)
+    body = (out_dir / "SIMPLE_MODELS_BENCHMARK.md").read_text(encoding="utf-8")
+
+    # Both real-world and synthetic sections must be populated; if legacy
+    # results were all bucketed as synthetic the real-world section would
+    # be empty / show 0 datasets.
+    assert "fake_news" in body, "legacy real_world dataset must surface in report"
+    assert "titanic" in body, "legacy synthetic dataset must surface in report"
