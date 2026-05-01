@@ -41,6 +41,11 @@ class RedundancyEliminator(BaseSelector):
     original_features : set[str], optional
         Set of original feature names. Originals are categorically
         protected from removal (see rules above).
+    original_preference : float, optional
+        **Deprecated, accepted for backward compatibility only.** Has no
+        effect; passing any non-``None`` value raises a ``FutureWarning``.
+        Originals are now categorically protected regardless of importance,
+        so there is no tunable trade-off to express.
 
     Examples
     --------

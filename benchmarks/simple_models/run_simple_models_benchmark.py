@@ -194,7 +194,9 @@ def preprocess_target(y, task: str) -> np.ndarray:
         Target values.
     task : str
         Task name. Substring "classification" triggers label encoding for
-        non-numeric targets; otherwise the target is float-cast.
+        any non-numeric, non-bool target dtype (object, category, pandas
+        ``string``/``StringDtype``, etc.); otherwise the target is
+        float-cast.
 
     Returns
     -------
@@ -202,9 +204,17 @@ def preprocess_target(y, task: str) -> np.ndarray:
         Numeric target array.
     """
     if "classification" in task:
-        if hasattr(y, "dtype") and (y.dtype == "object" or y.dtype.name == "category"):
-            le = LabelEncoder()
-            return le.fit_transform(y.astype(str))
+        # Use the pandas dtype-introspection helpers so all non-numeric,
+        # non-bool extension dtypes (object, category, string/StringDtype,
+        # ArrowString, etc.) get label-encoded — not just the historical
+        # ``object``/``category`` pair, which would otherwise leave a
+        # pandas ``string``-typed series as a non-numeric ndarray and
+        # break sklearn estimators downstream.
+        if hasattr(y, "dtype"):
+            is_numeric_or_bool = pd.api.types.is_numeric_dtype(y) or pd.api.types.is_bool_dtype(y)
+            if not is_numeric_or_bool:
+                le = LabelEncoder()
+                return le.fit_transform(y.astype(str))
         return np.array(y)
     return np.array(y).astype(float)
 
@@ -226,8 +236,13 @@ def preprocess_X_train_test(X_train: pd.DataFrame, X_test: pd.DataFrame) -> tupl
     training and biasing the paired Wilcoxon p-values).
 
     Numeric NaNs in the test fold use the **train** median; never compute
-    medians from the test fold itself. Non-numeric encoding reuses
-    :func:`_label_encode_non_numeric` (train-only fit + unknown-bucket).
+    medians from the test fold itself. If a numeric column is entirely
+    missing in the train fold (so ``median()`` returns NaN), we fall back
+    to ``0.0`` instead of leaving the NaN in place — otherwise
+    ``fillna(NaN)`` would be a no-op and downstream model fitting would
+    raise ``ValueError: Input X contains NaN``. Non-numeric encoding
+    reuses :func:`_label_encode_non_numeric` (train-only fit + unknown
+    bucket).
 
     Parameters
     ----------
@@ -245,6 +260,11 @@ def preprocess_X_train_test(X_train: pd.DataFrame, X_test: pd.DataFrame) -> tupl
     # Median-impute numeric NaN using TRAIN medians only.
     for col in X_train_proc.select_dtypes(include=[np.number]).columns:
         train_median = X_train_proc[col].median()
+        # All-missing columns produce a NaN median; ``fillna(NaN)`` is a
+        # no-op and would leave NaNs for the model to choke on. Fall back
+        # to 0.0 so the column becomes a constant (useless but safe).
+        if pd.isna(train_median):
+            train_median = 0.0
         X_train_proc[col] = X_train_proc[col].fillna(train_median)
         if col in X_test_proc.columns:
             X_test_proc[col] = X_test_proc[col].fillna(train_median)
@@ -827,10 +847,6 @@ def load_cache(output_path: Path, with_llm: bool) -> list[dict] | None:
 
 
 def main():
-    # Suppress benchmark-noise warnings here (CLI entrypoint only) so
-    # importing this module from tests / other code stays side-effect free.
-    warnings.filterwarnings("ignore")
-
     parser = argparse.ArgumentParser(description="Simple Models Benchmark for FeatCopilot")
     parser.add_argument("--datasets", type=str, help="Comma-separated dataset names")
     parser.add_argument("--category", type=str, choices=["classification", "regression", "forecasting", "text"])
@@ -909,4 +925,9 @@ def main():
 
 
 if __name__ == "__main__":
+    # Suppress benchmark-noise warnings only when this module is invoked
+    # directly as a CLI entrypoint. ``main()`` itself does NOT mutate the
+    # global warnings filter so that programmatic / test callers don't
+    # have warnings silently suppressed for the rest of the process.
+    warnings.filterwarnings("ignore")
     main()

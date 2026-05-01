@@ -475,3 +475,85 @@ def test_generate_report_buckets_text_classification_into_classification(tmp_pat
     assert "Real-World Classification" in text
     assert "text_clf" in text
     assert "Real-World Other" not in text
+
+
+# ---------------------------------------------------------------------------
+# Round-22 fold-local preprocessing edge cases
+# ---------------------------------------------------------------------------
+
+
+def test_preprocess_X_train_test_handles_all_missing_train_column():
+    """A numeric column that is entirely NaN in the train fold has a NaN
+    median, so naive ``fillna(train_median)`` would be a no-op and leave
+    NaNs for the model to choke on. The function must fall back to a
+    fixed sentinel (0.0) and emit no NaNs."""
+    X_train = pd.DataFrame({"all_nan": [np.nan, np.nan, np.nan, np.nan], "ok": [1.0, 2.0, 3.0, 4.0]})
+    X_test = pd.DataFrame({"all_nan": [np.nan, 5.0, np.nan], "ok": [np.nan, 5.0, 6.0]})
+
+    X_train_proc, X_test_proc = preprocess_X_train_test(X_train, X_test)
+
+    assert X_train_proc["all_nan"].notna().all()
+    assert X_test_proc["all_nan"].notna().all()
+    # The all-missing train column collapses to the 0.0 sentinel.
+    assert (X_train_proc["all_nan"] == 0.0).all()
+    # Test rows without a value also fill with 0.0; the lone 5.0 survives.
+    assert X_test_proc["all_nan"].iloc[0] == 0.0
+    assert X_test_proc["all_nan"].iloc[1] == 5.0
+    assert X_test_proc["all_nan"].iloc[2] == 0.0
+
+
+def test_preprocess_target_handles_pandas_string_dtype():
+    """Pandas ``StringDtype`` (``"string"``) targets are non-numeric
+    extension dtypes, but the legacy implementation only checked for
+    ``object``/``category`` and would fall through, returning a
+    non-numeric ndarray that breaks sklearn estimators downstream."""
+    y = pd.Series(["a", "b", "a", "c"], dtype="string")
+    encoded = preprocess_target(y, "classification")
+    assert encoded.shape == (4,)
+    # Must be numeric (label-encoded), not still strings.
+    assert np.issubdtype(encoded.dtype, np.integer) or np.issubdtype(encoded.dtype, np.floating)
+    assert set(encoded.tolist()) == {0, 1, 2}
+
+
+def test_preprocess_target_passes_through_numeric_classification():
+    """Numeric classification targets (e.g. {0, 1}) must NOT be label-encoded."""
+    y = pd.Series([0, 1, 0, 1, 1])
+    encoded = preprocess_target(y, "classification")
+    # Identity: numeric classification targets pass through unchanged.
+    assert (encoded == y.values).all()
+
+
+def test_preprocess_target_passes_through_bool_classification():
+    """Bool classification targets must be treated as numeric (no encoding)."""
+    y = pd.Series([True, False, True, False])
+    encoded = preprocess_target(y, "classification")
+    # Bool is a numeric dtype in pandas; passes through.
+    assert encoded.shape == (4,)
+    # Values comparable to original after a numeric cast.
+    assert encoded.tolist() == [True, False, True, False] or encoded.tolist() == [1, 0, 1, 0]
+
+
+def test_main_does_not_mutate_global_warnings_filter(monkeypatch):
+    """Calling ``main()`` programmatically (e.g. from tests) must NOT
+    silently suppress warnings for the rest of the process. The CLI-only
+    ``filterwarnings("ignore")`` lives under ``if __name__ == "__main__"``."""
+    import warnings as warnings_mod
+
+    from benchmarks.simple_models import run_simple_models_benchmark as bench
+
+    # Snapshot the warnings filter before invoking main().
+    before = list(warnings_mod.filters)
+
+    monkeypatch.setattr(
+        "sys.argv",
+        ["run_simple_models_benchmark.py", "--datasets", "d1", "--n-folds", "1"],
+    )
+    # main() will exit via parser.error (n_folds < 2); we only care that
+    # it doesn't mutate the global filter on the way out.
+    try:
+        bench.main()
+    except SystemExit:
+        pass
+
+    after = list(warnings_mod.filters)
+    assert before == after, "main() must not mutate the global warnings filter"
