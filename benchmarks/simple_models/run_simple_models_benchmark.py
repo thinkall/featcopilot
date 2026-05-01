@@ -639,23 +639,18 @@ def generate_report(results: list[dict], with_llm: bool, output_path: Path) -> N
     real_world = [r for r in results if r.get("source") == "real_world"]
     synthetic = [r for r in results if r.get("source") != "real_world"]
 
-    # Use substring matching for real-world (mirrors synthetic) so datasets with
-    # tasks like "text_classification" or "timeseries_regression" land in the
-    # right bucket instead of being counted in the summary but omitted from tables.
+    # Use substring matching for both classification AND regression (e.g.
+    # "text_classification", "timeseries_regression", "text_regression"),
+    # so non-canonical task names land in the correct bucket and pick up the
+    # right metric label instead of being swept into the catch-all "Other"
+    # table. Note: "regression" is a substring of "timeseries_regression",
+    # so the substring check naturally subsumes both.
     real_clf = [r for r in real_world if "classification" in r["task"]]
-    real_reg = [r for r in real_world if r["task"] in ("regression", "timeseries_regression")]
-    real_other = [
-        r
-        for r in real_world
-        if "classification" not in r["task"] and r["task"] not in ("regression", "timeseries_regression")
-    ]
+    real_reg = [r for r in real_world if "regression" in r["task"]]
+    real_other = [r for r in real_world if "classification" not in r["task"] and "regression" not in r["task"]]
     synth_clf = [r for r in synthetic if "classification" in r["task"]]
-    synth_reg = [r for r in synthetic if r["task"] in ("regression", "timeseries_regression")]
-    synth_other = [
-        r
-        for r in synthetic
-        if "classification" not in r["task"] and r["task"] not in ("regression", "timeseries_regression")
-    ]
+    synth_reg = [r for r in synthetic if "regression" in r["task"]]
+    synth_other = [r for r in synthetic if "classification" not in r["task"] and "regression" not in r["task"]]
 
     # Compute summary stats
     def compute_summary(result_list: list[dict]) -> dict:

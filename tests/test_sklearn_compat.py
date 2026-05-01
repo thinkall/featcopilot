@@ -731,7 +731,21 @@ class TestPackageImport:
 
 
 class TestDoNoHarmGate:
-    """Tests for AutoFeatureEngineer._do_no_harm_gate."""
+    """Tests for AutoFeatureEngineer._do_no_harm_gate.
+
+    Most tests in this class run the gate end-to-end, which fits ~10
+    RandomForests (50 trees each) per call. We deliberately keep the
+    real estimator instead of patching it to a stub: the behavioral
+    assertions ("keeps features when derived help", "falls back when
+    derived don't help", "verbose log fires", etc.) depend on the
+    actual gate decision, which depends on real model scores. Mocking
+    ``RandomForestClassifier.score`` to a fixed value would let the
+    tests pass without exercising the real ratio/threshold logic, and
+    sub-classing the RF to shrink it breaks sklearn's parameter
+    introspection (``_get_param_names`` requires explicit kwargs in
+    ``__init__``). Total runtime is ~10s for this class — acceptable
+    given the determinism payoff.
+    """
 
     def _make_fitted_engineer(self):
         """Create an AutoFeatureEngineer with a stub selector so the gate gating allows entry."""

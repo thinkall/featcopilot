@@ -390,3 +390,88 @@ def test_main_rejects_invalid_n_seeds(monkeypatch, capsys):
     assert exc_info.value.code == 2
     err = capsys.readouterr().err
     assert "--n-seeds" in err and ">= 1" in err
+
+
+# ---------------------------------------------------------------------------
+# Report task-bucketing regression tests
+# ---------------------------------------------------------------------------
+
+
+def test_generate_report_buckets_text_regression_into_regression(tmp_path):
+    """Tasks containing 'regression' (e.g. 'text_regression', 'timeseries_regression')
+    must land in the Regression table, not the catch-all Other table — and pick up
+    the R² metric label rather than 'Score'."""
+    from benchmarks.simple_models.run_simple_models_benchmark import generate_report
+
+    base_row = {
+        "n_samples": 100,
+        "n_features_original": 5,
+        "n_folds": 5,
+        "n_seeds": 1,
+        "with_llm": False,
+        "baseline_best_score": 0.7,
+        "baseline_std": 0.01,
+        "tabular_best_score": 0.71,
+        "tabular_std": 0.01,
+        "tabular_improvement_pct": 1.4,
+        "p_value": 0.04,
+        "significant": True,
+        "n_features_tabular": 6,
+        "fe_time_tabular": 0.5,
+        "engines_used": ["tabular"],
+        "baseline_fold_scores": [0.7] * 5,
+        "tabular_fold_scores": [0.71] * 5,
+    }
+    results = [
+        {**base_row, "dataset": "ts_reg", "task": "timeseries_regression", "source": "real_world"},
+        {**base_row, "dataset": "text_reg", "task": "text_regression", "source": "real_world"},
+    ]
+
+    out_dir = tmp_path
+    out_dir.mkdir(exist_ok=True)
+    generate_report(results, with_llm=False, output_path=out_dir)
+    text = (out_dir / "SIMPLE_MODELS_BENCHMARK.md").read_text(encoding="utf-8")
+
+    # Both rows must appear under the Regression table (R² header), not Other.
+    assert "Real-World Regression" in text
+    assert "ts_reg" in text and "text_reg" in text
+    # If they had been mis-bucketed into "Other", the section title would appear.
+    assert "Real-World Other" not in text
+
+
+def test_generate_report_buckets_text_classification_into_classification(tmp_path):
+    """Regression-guard the classification substring matching too — make sure
+    the both-buckets symmetry isn't accidentally broken by the regression fix."""
+    from benchmarks.simple_models.run_simple_models_benchmark import generate_report
+
+    base_row = {
+        "n_samples": 100,
+        "n_features_original": 5,
+        "n_folds": 5,
+        "n_seeds": 1,
+        "with_llm": False,
+        "baseline_best_score": 0.85,
+        "baseline_std": 0.01,
+        "tabular_best_score": 0.86,
+        "tabular_std": 0.01,
+        "tabular_improvement_pct": 1.2,
+        "p_value": 0.04,
+        "significant": True,
+        "n_features_tabular": 6,
+        "fe_time_tabular": 0.5,
+        "engines_used": ["tabular"],
+        "baseline_fold_scores": [0.85] * 5,
+        "tabular_fold_scores": [0.86] * 5,
+    }
+    results = [
+        {**base_row, "dataset": "text_clf", "task": "text_classification", "source": "real_world"},
+    ]
+
+    out_dir = tmp_path
+    out_dir.mkdir(exist_ok=True)
+    generate_report(results, with_llm=False, output_path=out_dir)
+    text = (out_dir / "SIMPLE_MODELS_BENCHMARK.md").read_text(encoding="utf-8")
+
+    assert "Real-World Classification" in text
+    assert "text_clf" in text
+    assert "Real-World Other" not in text
