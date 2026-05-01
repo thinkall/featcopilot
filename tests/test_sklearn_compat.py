@@ -1326,10 +1326,13 @@ class TestEncodeForGate:
         assert col.isna().tolist() == [False, False, True, False, True]
         # No row should equal the int64-min sentinel value.
         assert not (col == np.iinfo(np.int64).min).any()
-        # Non-NaT values should be finite and large (~nanoseconds since epoch in 2024).
+        # Non-NaT values should be finite and large (~time-units since epoch
+        # for 2024 dates: ~1.7e15 in microseconds or ~1.7e18 in nanoseconds,
+        # depending on pandas' default datetime resolution).
         finite = col.dropna()
-        assert (finite > 1e15).all()
-        assert (finite < 1e16).all()
+        assert np.isfinite(finite).all()
+        assert (finite > 1e14).all()
+        assert (finite < 1e19).all()
 
 
 class TestGetParamsRoundTrip:
