@@ -1200,3 +1200,52 @@ class TestDoNoHarmGate:
         assert mock_rf_cls.call_count >= 1
         for call in mock_rf_cls.call_args_list:
             assert call.kwargs.get("n_jobs") == 3
+
+    @pytest.mark.parametrize("bad_value", [0, -2, 1.5, "1", True, False])
+    def test_gate_n_jobs_validation_rejects_invalid(self, bad_value):
+        """Invalid ``gate_n_jobs`` values must raise at construction (early-fail)."""
+        with pytest.raises(ValueError, match="gate_n_jobs"):
+            AutoFeatureEngineer(engines=["tabular"], max_features=5, gate_n_jobs=bad_value)
+
+    @pytest.mark.parametrize("good_value", [-1, 1, 2, 8])
+    def test_gate_n_jobs_validation_accepts_valid(self, good_value):
+        """Sklearn-style ``n_jobs`` values (-1 or positive int) must be accepted."""
+        afe = AutoFeatureEngineer(engines=["tabular"], max_features=5, gate_n_jobs=good_value)
+        assert afe.gate_n_jobs == good_value
+
+    def test_gate_falls_back_when_encoding_raises(self):
+        """If ``_encode_for_gate`` raises, the gate must fall back instead of bubbling."""
+        rng = np.random.default_rng(0)
+        n = 50
+        signal = rng.standard_normal(n)
+        y = (signal > 0).astype(int)
+        X_engineered = pd.DataFrame(
+            {
+                "orig1": signal,
+                "orig2": rng.standard_normal(n),
+                "derived1": rng.standard_normal(n),
+            }
+        )
+        original_features = {"orig1", "orig2"}
+
+        afe = self._make_fitted_engineer()
+
+        # Force the preprocessing step to raise. Prior to broadening the try
+        # block, this would propagate up to fit_transform; now it must trigger
+        # the conservative fallback (returning original-only columns).
+        with (
+            patch.object(
+                AutoFeatureEngineer,
+                "_encode_for_gate",
+                staticmethod(lambda df: (_ for _ in ()).throw(RuntimeError("boom"))),
+            ),
+            patch("featcopilot.transformers.sklearn_compat.logger") as mock_logger,
+        ):
+            result = afe._do_no_harm_gate(X_engineered, X_engineered[["orig1", "orig2"]], y, original_features)
+
+        # Result must contain only original columns (no derived).
+        assert "derived1" not in result.columns
+        assert set(result.columns) == {"orig1", "orig2"}
+        # And a warning must have been emitted (always — not gated by verbose).
+        warning_messages = [c.args[0] for c in mock_logger.warning.call_args_list]
+        assert any("Do-no-harm gate failed" in m and "boom" in m for m in warning_messages)

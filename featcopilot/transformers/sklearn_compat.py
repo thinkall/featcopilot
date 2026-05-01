@@ -247,6 +247,11 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         if self.max_features is not None and self.max_features <= 0:
             raise ValueError("max_features must be positive when provided")
 
+        if not isinstance(self.gate_n_jobs, (int, np.integer)) or isinstance(self.gate_n_jobs, bool):
+            raise ValueError(f"gate_n_jobs must be an int, got {type(self.gate_n_jobs).__name__}")
+        if self.gate_n_jobs == 0 or self.gate_n_jobs < -1:
+            raise ValueError(f"gate_n_jobs must be -1 or a positive int, got {self.gate_n_jobs}")
+
     def _reset_fit_state(self) -> None:
         """Reset all attributes populated during ``fit``/``fit_transform``.
 
@@ -619,25 +624,28 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
                 self._selector.set_selected_features(orig_cols_in_engineered)
             return X_engineered[orig_cols_in_engineered]
 
-        # Build numeric-encoded matrices that include ordinal-encoded categorical /
-        # string / datetime / bool columns so the baseline isn't artificially weak
-        # when signal lives in non-numeric original columns.
-        X_orig_for_gate = self._encode_for_gate(X_original_df)
-        X_full_for_gate = self._encode_for_gate(X_engineered)
-
-        if X_orig_for_gate.shape[1] == 0 or X_full_for_gate.shape[1] == 0:
-            # Nothing to compare — leave engineered frame untouched.
-            return X_engineered
-
-        # Align indices so positional iloc() lines up between the two matrices.
-        if not X_orig_for_gate.index.equals(X_full_for_gate.index):
-            X_orig_for_gate = X_orig_for_gate.reset_index(drop=True)
-            X_full_for_gate = X_full_for_gate.reset_index(drop=True)
-
-        X_orig_for_gate = X_orig_for_gate.replace([np.inf, -np.inf], np.nan).fillna(0)
-        X_full_for_gate = X_full_for_gate.replace([np.inf, -np.inf], np.nan).fillna(0)
-
         try:
+            # Build numeric-encoded matrices that include ordinal-encoded categorical /
+            # string / datetime / bool columns so the baseline isn't artificially weak
+            # when signal lives in non-numeric original columns. Performed inside the
+            # try block so any encoding/alignment exception (e.g. an unsupported dtype
+            # or pandas API surprise) triggers the same conservative fallback as a
+            # validation-model failure, instead of bubbling up to fit_transform().
+            X_orig_for_gate = self._encode_for_gate(X_original_df)
+            X_full_for_gate = self._encode_for_gate(X_engineered)
+
+            if X_orig_for_gate.shape[1] == 0 or X_full_for_gate.shape[1] == 0:
+                # Nothing to compare — leave engineered frame untouched.
+                return X_engineered
+
+            # Align indices so positional iloc() lines up between the two matrices.
+            if not X_orig_for_gate.index.equals(X_full_for_gate.index):
+                X_orig_for_gate = X_orig_for_gate.reset_index(drop=True)
+                X_full_for_gate = X_full_for_gate.reset_index(drop=True)
+
+            X_orig_for_gate = X_orig_for_gate.replace([np.inf, -np.inf], np.nan).fillna(0)
+            X_full_for_gate = X_full_for_gate.replace([np.inf, -np.inf], np.nan).fillna(0)
+
             # Use sklearn's task inference so bool / nullable Int64 / float-encoded
             # binary labels (e.g. {0.0, 1.0}) are correctly detected as classification.
             try:
