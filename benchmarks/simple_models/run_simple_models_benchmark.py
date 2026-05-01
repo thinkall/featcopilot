@@ -144,16 +144,45 @@ def get_primary_metric(task: str) -> str:
 # =============================================================================
 
 
+def _safe_fillna_string(series: pd.Series, sentinel: str = "missing") -> pd.Series:
+    """
+    Replace NaN with ``sentinel`` and cast to string, safely for any dtype.
+
+    On pandas ``Categorical`` dtype, ``series.fillna(sentinel)`` raises if
+    ``sentinel`` is not already a category. Cast to object first (which loses
+    the categorical metadata but preserves all values) before filling.
+
+    Order matters: ``fillna`` MUST run before ``astype(str)``. If the order is
+    reversed, NaN becomes the literal string ``"nan"`` and lives in a separate
+    code from real ``sentinel`` values — a subtle but real bug.
+
+    Parameters
+    ----------
+    series : Series
+        Any-dtype series. NaN/NA cells are replaced with ``sentinel``.
+    sentinel : str, default ``"missing"``
+        String used in place of missing values.
+
+    Returns
+    -------
+    Series
+        String-dtype series with no NaN.
+    """
+    if isinstance(series.dtype, pd.CategoricalDtype):
+        series = series.astype(object)
+    return series.fillna(sentinel).astype(str)
+
+
 def preprocess_data(X: pd.DataFrame, y, task: str) -> tuple[pd.DataFrame, np.ndarray]:
     """Preprocess data for modeling."""
     X_processed = X.copy()
 
-    # Encode categorical columns. NaN -> "missing" BEFORE astype(str) so NaN
-    # doesn't become the literal string "nan" first (which would map all NaNs
-    # to a distinct class from the intended "missing" sentinel).
+    # Encode categorical columns. ``_safe_fillna_string`` handles pandas
+    # ``Categorical`` dtype (which would otherwise raise on
+    # ``fillna("missing")`` if "missing" is not in ``cat.categories``).
     for col in X_processed.select_dtypes(include=["object", "category"]).columns:
         le = LabelEncoder()
-        X_processed[col] = le.fit_transform(X_processed[col].fillna("missing").astype(str))
+        X_processed[col] = le.fit_transform(_safe_fillna_string(X_processed[col]))
 
     # Fill numeric NaN
     for col in X_processed.select_dtypes(include=[np.number]).columns:
@@ -275,9 +304,11 @@ def _label_encode_non_numeric(X_train: pd.DataFrame, X_test: pd.DataFrame) -> tu
     X_train_enc = X_train.copy()
     X_test_enc = X_test.copy()
     for col in X_train.select_dtypes(exclude=[np.number]).columns:
-        # NaN -> "missing" BEFORE str-cast so NaN doesn't end up as literal "nan".
-        train_str = X_train[col].fillna("missing").astype(str)
-        test_str = X_test[col].fillna("missing").astype(str)
+        # ``_safe_fillna_string`` handles pandas ``Categorical`` dtype (which
+        # would otherwise raise on ``fillna("missing")`` if "missing" is not
+        # already a category).
+        train_str = _safe_fillna_string(X_train[col])
+        test_str = _safe_fillna_string(X_test[col])
 
         le = LabelEncoder()
         le.fit(train_str)

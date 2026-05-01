@@ -5,7 +5,10 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from benchmarks.simple_models.run_simple_models_benchmark import _label_encode_non_numeric
+from benchmarks.simple_models.run_simple_models_benchmark import (
+    _label_encode_non_numeric,
+    preprocess_data,
+)
 
 
 def test_encoder_fits_on_train_only_and_handles_unseen_categories():
@@ -62,6 +65,39 @@ def test_encoder_passes_through_when_all_numeric():
     assert X_train.iloc[0, 0] != 999.0
 
 
+def test_encoder_handles_categorical_dtype_without_raising():
+    """Pandas ``Categorical`` dtype must not crash even when "missing" isn't a category.
+
+    Previously the code did ``series.fillna("missing")`` directly on Categoricals,
+    which raises ``ValueError: fill value must be in categories``. The
+    ``_safe_fillna_string`` helper casts to object first to avoid this.
+    """
+    X_train = pd.DataFrame({"cat": pd.Categorical(["a", "b", None, "a"], categories=["a", "b"])})
+    X_test = pd.DataFrame({"cat": pd.Categorical(["b", None, "z"], categories=["a", "b", "z"])})
+
+    # Must not raise.
+    X_train_enc, X_test_enc = _label_encode_non_numeric(X_train, X_test)
+
+    # NaN cells should map to the same code as the literal "missing" sentinel.
+    assert X_train_enc["cat"].dtype.kind in "iu"
+    assert X_test_enc["cat"].dtype.kind in "iu"
+    # Test row with "z" (unseen in train) → unknown bucket. Length 3 train classes
+    # ("a", "b", "missing") → unknown_code = 3.
+    assert X_test_enc["cat"].iloc[2] == 3
+
+
+def test_encoder_handles_categorical_dtype_with_missing_category_present():
+    """If "missing" already exists as a category, encoding must still succeed."""
+    X_train = pd.DataFrame({"cat": pd.Categorical(["a", "missing", None], categories=["a", "missing"])})
+    X_test = pd.DataFrame({"cat": pd.Categorical(["a", None], categories=["a"])})
+
+    X_train_enc, X_test_enc = _label_encode_non_numeric(X_train, X_test)
+
+    # All NaN and explicit "missing" cells in train share one code.
+    train_classes = set(X_train_enc["cat"].unique())
+    assert len(train_classes) == 2  # {"a", "missing"} → 2 codes
+
+
 def test_encoder_preserves_numeric_columns_alongside_categorical():
     """Mixed-dtype frames: only non-numeric columns are encoded."""
     rng = np.random.default_rng(0)
@@ -86,3 +122,25 @@ def test_encoder_preserves_numeric_columns_alongside_categorical():
     assert (X_train_enc["num2"].values == X_train["num2"].values).all()
     assert X_train_enc["cat1"].dtype.kind in "iu"
     assert X_test_enc["cat1"].dtype.kind in "iu"
+
+
+def test_preprocess_data_handles_categorical_dtype():
+    """``preprocess_data`` must encode pandas Categorical columns without raising.
+
+    Pre-fix this would raise ``ValueError: fill value must be in categories`` on
+    the ``fillna("missing")`` step because "missing" wasn't a category.
+    """
+    X = pd.DataFrame(
+        {
+            "num": [1.0, 2.0, np.nan],
+            "cat": pd.Categorical(["a", "b", None], categories=["a", "b"]),
+        }
+    )
+    y = pd.Series([0, 1, 0])
+
+    # Must not raise.
+    X_processed, y_processed = preprocess_data(X, y, "classification")
+
+    assert X_processed["num"].notna().all()  # NaN filled with median
+    assert X_processed["cat"].dtype.kind in "iu"  # categorical → integer codes
+    assert len(y_processed) == 3

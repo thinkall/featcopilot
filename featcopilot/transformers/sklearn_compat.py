@@ -501,11 +501,13 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
 
         Numeric columns pass through unchanged. Scalar non-numeric columns
         (``bool``, ``category``, scalar ``object``) are ordinal-encoded via
-        ``pd.Categorical(...).codes``. Datetime columns are converted to int64
-        nanoseconds. Object columns whose values are not scalar (e.g., embeddings
-        stored as numpy arrays / lists / dicts) are skipped — encoding them
-        would create row-id-like codes that fool the model rather than
-        carrying real signal.
+        ``pd.Categorical(...).codes``, which uses ``-1`` as the missing-value
+        sentinel — preserving missingness through the encoding instead of
+        collapsing NaN into a real category. Datetime columns are converted to
+        int64 nanoseconds. Object columns whose values are not scalar (e.g.,
+        embeddings stored as numpy arrays / lists / dicts) are skipped —
+        encoding them would create row-id-like codes that fool the model
+        rather than carrying real signal.
 
         Parameters
         ----------
@@ -523,6 +525,12 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         for col in numeric_part.select_dtypes(include=["bool"]).columns:
             numeric_part[col] = numeric_part[col].astype(np.int8)
 
+        def _is_scalar_like(value: Any) -> bool:
+            """Treat strings/bytes/numbers/booleans/None as scalar-like for encoding."""
+            if value is None:
+                return True
+            return np.isscalar(value) or isinstance(value, (str, bytes))
+
         encoded_cols: dict[str, pd.Series] = {}
         for col in df.columns:
             if col in numeric_part.columns:
@@ -535,20 +543,30 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
                 continue
 
             if isinstance(dtype, pd.CategoricalDtype):
-                encoded_cols[col] = pd.Series(pd.Categorical(series.astype(str)).codes, index=series.index, name=col)
+                # ``cat.codes`` already uses -1 for missing values — much better
+                # than ``astype(str)`` which would coerce NaN into the literal
+                # string "nan" and assign it a real code, fabricating signal.
+                encoded_cols[col] = series.cat.codes.astype("int64").rename(col)
                 continue
 
             if pd.api.types.is_object_dtype(dtype) or pd.api.types.is_string_dtype(dtype):
                 # Skip object columns containing non-scalar values (arrays, lists,
                 # dicts, ...) — ordinal-encoding by str() would produce row-id-like
                 # codes that fool the gate model rather than reflecting real signal.
+                # Sample up to 50 non-null values rather than just the first one
+                # so mixed columns (mostly strings + a few embeddings) still
+                # trigger the skip.
                 non_null = series.dropna()
                 if len(non_null) == 0:
                     continue
-                sample = non_null.iloc[0]
-                if not np.isscalar(sample) and not isinstance(sample, (str, bytes)):
+                sample = non_null.head(50)
+                if not all(_is_scalar_like(v) for v in sample):
                     continue
-                encoded_cols[col] = pd.Series(pd.Categorical(series.astype(str)).codes, index=series.index, name=col)
+                # Build a Categorical from the object values directly so NaN is
+                # preserved as code -1 (instead of being str()-cast to "nan").
+                encoded_cols[col] = pd.Series(
+                    pd.Categorical(series).codes.astype("int64"), index=series.index, name=col
+                )
 
         if encoded_cols:
             extra = pd.DataFrame(encoded_cols, index=df.index)
@@ -815,6 +833,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             "llm_config": self.llm_config,
             "verbose": self.verbose,
             "leakage_guard": self.leakage_guard,
+            "gate_n_jobs": self.gate_n_jobs,
         }
 
     def set_params(self, **params):

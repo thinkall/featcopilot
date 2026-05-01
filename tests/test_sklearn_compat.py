@@ -1249,3 +1249,86 @@ class TestDoNoHarmGate:
         # And a warning must have been emitted (always — not gated by verbose).
         warning_messages = [c.args[0] for c in mock_logger.warning.call_args_list]
         assert any("Do-no-harm gate failed" in m and "boom" in m for m in warning_messages)
+
+
+class TestEncodeForGate:
+    """Tests for AutoFeatureEngineer._encode_for_gate."""
+
+    def test_categorical_dtype_preserves_nan_as_negative_one_code(self):
+        """Categorical NaN must map to ``-1`` (cat.codes sentinel), not a real category."""
+        df = pd.DataFrame(
+            {
+                "cat": pd.Categorical(["a", "b", None, "a"], categories=["a", "b"]),
+            }
+        )
+
+        encoded = AutoFeatureEngineer._encode_for_gate(df)
+
+        # cat.codes uses -1 for missing — so the NaN row must be -1, distinct
+        # from the codes for "a" (0) and "b" (1).
+        assert encoded["cat"].iloc[2] == -1
+        assert encoded["cat"].iloc[0] == 0  # "a"
+        assert encoded["cat"].iloc[1] == 1  # "b"
+
+    def test_object_dtype_preserves_nan_via_pd_categorical(self):
+        """Object-column NaN must map to ``-1`` (no spurious "nan" string code)."""
+        df = pd.DataFrame({"obj": ["x", "y", None, "x"]})
+
+        encoded = AutoFeatureEngineer._encode_for_gate(df)
+
+        assert encoded["obj"].iloc[2] == -1
+        # "x" rows must share a code distinct from -1.
+        assert encoded["obj"].iloc[0] == encoded["obj"].iloc[3]
+        assert encoded["obj"].iloc[0] != -1
+
+    def test_object_column_with_mixed_scalar_and_array_is_skipped(self):
+        """A mostly-string column with a few embedded arrays must be skipped, not encoded.
+
+        Single-sample detection (the previous behaviour) would inspect only the
+        first non-null element, miss the array, and ordinal-encode the column —
+        creating row-id-like codes that fool the gate. Multi-sample detection
+        catches the non-scalar.
+        """
+        col = ["a", "b", "c", "a", np.array([1.0, 2.0, 3.0]), "b"]
+        df = pd.DataFrame({"mixed": pd.Series(col, dtype=object), "num": [0, 1, 2, 3, 4, 5]})
+
+        encoded = AutoFeatureEngineer._encode_for_gate(df)
+
+        # ``mixed`` must be dropped; ``num`` survives unchanged.
+        assert "mixed" not in encoded.columns
+        assert (encoded["num"].values == df["num"].values).all()
+
+    def test_pure_scalar_object_column_is_encoded(self):
+        """Sanity check: all-scalar object columns are still encoded (no regression)."""
+        df = pd.DataFrame({"obj": ["a", "b", "a", "c"]})
+        encoded = AutoFeatureEngineer._encode_for_gate(df)
+        assert "obj" in encoded.columns
+        assert encoded["obj"].dtype.kind in "iu"
+
+
+class TestGetParamsRoundTrip:
+    """Tests for AutoFeatureEngineer.get_params/set_params plumbing."""
+
+    def test_gate_n_jobs_in_get_params(self):
+        """``gate_n_jobs`` must be returned by ``get_params`` so sklearn clone/grid search works."""
+        afe = AutoFeatureEngineer(engines=["tabular"], max_features=5, gate_n_jobs=2)
+        params = afe.get_params(deep=True)
+        assert "gate_n_jobs" in params
+        assert params["gate_n_jobs"] == 2
+
+    def test_gate_n_jobs_round_trips_via_set_params(self):
+        """``set_params`` must accept ``gate_n_jobs`` and update the instance."""
+        afe = AutoFeatureEngineer(engines=["tabular"], max_features=5)
+        assert afe.gate_n_jobs == 1
+        afe.set_params(gate_n_jobs=4)
+        assert afe.gate_n_jobs == 4
+        # And it round-trips back through get_params.
+        assert afe.get_params()["gate_n_jobs"] == 4
+
+    def test_sklearn_clone_preserves_gate_n_jobs(self):
+        """``sklearn.base.clone`` must round-trip ``gate_n_jobs`` (regression guard)."""
+        from sklearn.base import clone
+
+        afe = AutoFeatureEngineer(engines=["tabular"], max_features=5, gate_n_jobs=3)
+        cloned = clone(afe)
+        assert cloned.gate_n_jobs == 3
