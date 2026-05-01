@@ -1,5 +1,7 @@
 """Redundancy elimination through correlation analysis."""
 
+import warnings
+
 import numpy as np
 import pandas as pd
 
@@ -11,10 +13,22 @@ logger = get_logger(__name__)
 
 class RedundancyEliminator(BaseSelector):
     """
-    Eliminate redundant features based on correlation.
+    Eliminate redundant features based on pairwise correlation.
 
-    Removes highly correlated features, keeping the one with
-    higher importance (if provided) or the first one.
+    For every pair of numeric columns whose ``|correlation|`` reaches
+    ``correlation_threshold``, exactly one column is removed. The choice
+    follows three rules so original input columns are never silently
+    dropped:
+
+    * **original vs derived** — the **derived** column is always removed;
+      the original is kept regardless of importance.
+    * **original vs original** — neither is removed; original input
+      columns are categorically protected from this selector.
+    * **derived vs derived** — the column with **lower importance** (per
+      ``importance_scores``) is removed; ties keep the first column seen.
+
+    Non-numeric columns (categorical / string / datetime) are not part of
+    the correlation analysis and pass through unchanged.
 
     Parameters
     ----------
@@ -22,9 +36,11 @@ class RedundancyEliminator(BaseSelector):
         Correlation threshold for redundancy
     method : str, default='pearson'
         Correlation method ('pearson', 'spearman', 'kendall')
+    importance_scores : dict[str, float], optional
+        Per-column importance used to break derived-vs-derived ties.
     original_features : set[str], optional
         Set of original feature names. Originals are categorically
-        protected from removal when correlated with any derived feature.
+        protected from removal (see rules above).
 
     Examples
     --------
@@ -39,8 +55,18 @@ class RedundancyEliminator(BaseSelector):
         importance_scores: dict[str, float] | None = None,
         original_features: set[str] | None = None,
         verbose: bool = False,
+        original_preference: float | None = None,
         **kwargs,
     ):
+        if original_preference is not None:
+            warnings.warn(
+                "`original_preference` is deprecated and has no effect. "
+                "Original input columns are now categorically protected "
+                "from removal regardless of importance — there is no "
+                "tunable trade-off to express.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         super().__init__(**kwargs)
         self.correlation_threshold = correlation_threshold
         self.method = method

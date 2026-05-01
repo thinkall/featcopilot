@@ -604,9 +604,15 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         """
         Validate that engineered features help using held-out validation.
 
-        Holds out 20% of the data, fits a fresh model on the remaining 80%,
-        and compares performance with and without derived features. This avoids
-        the bias from features being selected on the same data.
+        Runs 5 stratified (classification) or random (regression) shuffle
+        splits at ``test_size=0.2``, fits a fresh RandomForest on each
+        train fold, scores on each held-out fold, and compares the
+        AVERAGE original-only score to the AVERAGE original+derived score.
+        Repeated splits damp single-split variance — the reported
+        ``orig_mean`` / ``full_mean`` and the ``threshold`` decision are
+        all based on these 5-split means. Cost-wise this trains
+        ``2 * 5 = 10`` RandomForests per ``fit_transform()`` call, each
+        capped at ``n_estimators=50`` and ``max_depth=10``.
 
         The original-only baseline is built from ``X_original`` (the truly
         original input), not from a column-subset of ``X_engineered``, so the
@@ -616,9 +622,9 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         signal carried by them is reflected in the baseline (see
         :meth:`_encode_for_gate`).
 
-        Falls back to original features if derived features don't show
-        clear benefit on the held-out set, or — fail-closed — if validation
-        raises an exception.
+        Falls back to original features if the mean derived improvement
+        doesn't clear the (feature-ratio-scaled) threshold, or — fail-closed —
+        if validation raises an exception.
 
         Parameters
         ----------
