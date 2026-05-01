@@ -178,14 +178,14 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         # individual characters and produce a confusing "Unknown engines"
         # error, and ``engines=5`` would raise an unrelated ``TypeError``
         # from ``set(self.engines)``.
-        if not isinstance(self.engines, list | tuple):
+        if not isinstance(self.engines, (list, tuple)):
             raise ValueError(
                 "engines must be a list or tuple of strings; got "
                 f"{type(self.engines).__name__}={self.engines!r}. "
                 f"Supported engines: {sorted(self.SUPPORTED_ENGINES)}"
             )
 
-        if not isinstance(self.selection_methods, list | tuple):
+        if not isinstance(self.selection_methods, (list, tuple)):
             raise ValueError(
                 "selection_methods must be a list or tuple of strings; got "
                 f"{type(self.selection_methods).__name__}={self.selection_methods!r}. "
@@ -247,7 +247,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         if self.max_features is not None and self.max_features <= 0:
             raise ValueError("max_features must be positive when provided")
 
-        if not isinstance(self.gate_n_jobs, int | np.integer) or isinstance(self.gate_n_jobs, bool):
+        if not isinstance(self.gate_n_jobs, (int, np.integer)) or isinstance(self.gate_n_jobs, bool):
             raise ValueError(f"gate_n_jobs must be an int, got {type(self.gate_n_jobs).__name__}")
         if self.gate_n_jobs == 0 or self.gate_n_jobs < -1:
             raise ValueError(f"gate_n_jobs must be -1 or a positive int, got {self.gate_n_jobs}")
@@ -529,7 +529,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             """Treat strings/bytes/numbers/booleans/None as scalar-like for encoding."""
             if value is None:
                 return True
-            return np.isscalar(value) or isinstance(value, str | bytes)
+            return np.isscalar(value) or isinstance(value, (str, bytes))
 
         encoded_cols: dict[str, pd.Series] = {}
         for col in df.columns:
@@ -539,7 +539,12 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             dtype = series.dtype
 
             if pd.api.types.is_datetime64_any_dtype(dtype):
-                encoded_cols[col] = series.astype("int64")
+                # Cast to int64 nanoseconds, but preserve NaT as NaN so the
+                # gate's `.fillna(0)` neutralises missing datetimes instead
+                # of letting numpy's int64 NaT sentinel (-9223372036854775808)
+                # leak through as a giant artificial signal.
+                nan_mask = series.isna()
+                encoded_cols[col] = series.astype("int64").astype("float64").mask(nan_mask, np.nan)
                 continue
 
             if isinstance(dtype, pd.CategoricalDtype):

@@ -762,12 +762,12 @@ def save_cache(results: list[dict], output_path: Path, with_llm: bool) -> None:
     for r in results:
         sr = {}
         for k, v in r.items():
-            if isinstance(v, np.floating | np.integer):
+            if isinstance(v, (np.floating, np.integer)):
                 sr[k] = float(v)
             elif isinstance(v, np.ndarray):
                 sr[k] = v.tolist()
             elif isinstance(v, dict):
-                sr[k] = {kk: float(vv) if isinstance(vv, np.floating | np.integer) else vv for kk, vv in v.items()}
+                sr[k] = {kk: float(vv) if isinstance(vv, (np.floating, np.integer)) else vv for kk, vv in v.items()}
             else:
                 sr[k] = v
         serializable_results.append(sr)

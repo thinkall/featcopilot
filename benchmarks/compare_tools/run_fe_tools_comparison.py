@@ -1380,7 +1380,7 @@ def save_cache(results: pd.DataFrame, output_path: Path) -> None:
     for r in records:
         sr = {}
         for k, v in r.items():
-            if isinstance(v, np.floating | np.integer):
+            if isinstance(v, (np.floating, np.integer)):
                 sr[k] = float(v) if not np.isnan(v) else None
             elif isinstance(v, np.ndarray):
                 sr[k] = v.tolist()

@@ -204,7 +204,7 @@ class TimeSeriesEngine(BaseEngine):
             row_features = {}
             for col in self._time_columns:
                 value = X[col].iloc[idx]
-                if isinstance(value, list | np.ndarray):
+                if isinstance(value, (list, np.ndarray)):
                     series = np.array(value)
                 else:
                     # Single value - create minimal features

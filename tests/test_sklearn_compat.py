@@ -1049,9 +1049,9 @@ class TestDoNoHarmGate:
         # Bool column was cast to int8 within the numeric block.
         assert "flag" in encoded.columns
         assert encoded["flag"].dtype == np.int8
-        # Datetime column converted to int64 nanoseconds.
+        # Datetime column converted to numeric nanoseconds.
         assert "ts" in encoded.columns
-        assert pd.api.types.is_integer_dtype(encoded["ts"])
+        assert pd.api.types.is_numeric_dtype(encoded["ts"])
         # Categorical column ordinal-encoded.
         assert "cat" in encoded.columns
         assert pd.api.types.is_integer_dtype(encoded["cat"])
@@ -1304,6 +1304,32 @@ class TestEncodeForGate:
         encoded = AutoFeatureEngineer._encode_for_gate(df)
         assert "obj" in encoded.columns
         assert encoded["obj"].dtype.kind in "iu"
+
+    def test_datetime_nat_becomes_nan_not_int64_min(self):
+        """NaT in datetime columns must become NaN, not int64's min sentinel.
+
+        Regression test: ``series.astype("int64")`` on a datetime column converts
+        ``NaT`` to ``-9223372036854775808`` (numpy's int64 minimum), which would
+        survive the gate's ``.fillna(0)`` and inject a giant artificial signal
+        for missing datetimes. Encoding should produce NaN at those positions
+        so the gate's downstream ``.replace([inf,-inf], NaN).fillna(0)`` works.
+        """
+        ts = pd.to_datetime(["2024-01-01", "2024-02-01", None, "2024-04-01", None])
+        df = pd.DataFrame({"ts": ts})
+        encoded = AutoFeatureEngineer._encode_for_gate(df)
+
+        assert "ts" in encoded.columns
+        col = encoded["ts"]
+        # Must be a floating dtype so NaN is representable.
+        assert pd.api.types.is_float_dtype(col)
+        # NaT positions must become NaN, NOT the int64-min sentinel.
+        assert col.isna().tolist() == [False, False, True, False, True]
+        # No row should equal the int64-min sentinel value.
+        assert not (col == np.iinfo(np.int64).min).any()
+        # Non-NaT values should be finite and large (~nanoseconds since epoch in 2024).
+        finite = col.dropna()
+        assert (finite > 1e15).all()
+        assert (finite < 1e16).all()
 
 
 class TestGetParamsRoundTrip:
