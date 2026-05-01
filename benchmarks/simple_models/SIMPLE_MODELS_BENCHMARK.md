@@ -1,10 +1,11 @@
 # Simple Models Benchmark Report
 
 > **Scope: curated subset (26 of 63 datasets).** This snapshot covers a
-> publication-ready selection — 15 of the 31 INRIA real-world datasets and
-> 11 of the 32 synthetic datasets — focused on the most informative
-> classification-leaning benchmarks. The full registry contains 63 datasets
-> (31 real-world + 32 synthetic). To regenerate the full report, run:
+> publication-ready selection — 15 of the 31 real-world datasets (30 INRIA
+> + 1 HuggingFace) and 11 of the 32 synthetic datasets — focused on the
+> most informative classification-leaning benchmarks. The full registry
+> contains 63 datasets (31 real-world + 32 synthetic). To regenerate the
+> full report, run:
 >
 > ```bash
 > python -m benchmarks.simple_models.run_simple_models_benchmark --all --n-folds 5

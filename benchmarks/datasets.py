@@ -2660,7 +2660,9 @@ for _name in [
 ]:
     DATASET_SOURCE[_name] = SOURCE_SYNTHETIC
 
-# Tag HuggingFace datasets as real-world
+# Tag the only HuggingFace dataset that is genuinely real-world (``fake_news``).
+# Other HuggingFace loaders (e.g. ``spotify_tracks``) are tagged synthetic
+# above because they're synthesized/curated subsets, not raw observational data.
 DATASET_SOURCE["fake_news"] = SOURCE_REAL_WORLD
 
 
