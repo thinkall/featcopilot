@@ -658,10 +658,33 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         orig_cols_in_engineered = [c for c in X_engineered.columns if c in original_features]
 
         def _conservative_fallback() -> pd.DataFrame:
-            """Drop derived features and pin selector to original-only columns."""
+            """Drop derived features and pin selector to original-only columns.
+
+            Reconstruct the fallback frame from ``X_original_df`` so that any
+            originals dropped or renamed by the engineered frame are still
+            restored — otherwise ``orig_cols_in_engineered`` could be a
+            strict subset (or empty), producing a degenerate frame and pinning
+            the selector to too few columns. If ``X_original_df`` doesn't
+            carry the named original features (e.g. when the caller passed
+            an unnamed ndarray with synthetic ``feature_i`` column names),
+            fall back to whatever originals survived in ``X_engineered``.
+            The selector is always pinned to the columns actually emitted so
+            subsequent ``transform()`` calls stay consistent.
+            """
+            orig_cols_from_input = [c for c in X_original_df.columns if c in original_features]
+            if orig_cols_from_input:
+                fallback_df = X_original_df[orig_cols_from_input].copy()
+                # Align rows to engineered's index in case engineering changed it.
+                if len(fallback_df) == len(X_engineered):
+                    fallback_df.index = X_engineered.index
+                emitted_cols = orig_cols_from_input
+            else:
+                fallback_df = X_engineered[orig_cols_in_engineered]
+                emitted_cols = orig_cols_in_engineered
+
             if self._selector is not None:
-                self._selector.set_selected_features(orig_cols_in_engineered)
-            return X_engineered[orig_cols_in_engineered]
+                self._selector.set_selected_features(emitted_cols)
+            return fallback_df
 
         try:
             # Build numeric-encoded matrices that include ordinal-encoded categorical /

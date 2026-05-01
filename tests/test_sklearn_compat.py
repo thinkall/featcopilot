@@ -808,6 +808,74 @@ class TestDoNoHarmGate:
         afe._selector.set_selected_features.assert_called_once_with(["orig_signal"])
         assert afe._selector._selected_features == ["orig_signal"]
 
+    def test_gate_fallback_restores_originals_dropped_by_engineered(self):
+        """Conservative fallback must restore originals from X_original even when engineered dropped them.
+
+        Regression test: if the engineered frame was missing some original
+        features (e.g. dropped/renamed by an upstream pipeline step), the
+        previous fallback returned ``X_engineered[orig_cols_in_engineered]``,
+        which silently produced a degenerate frame and pinned the selector
+        to too few columns. Now the fallback restores from ``X_original``.
+        """
+        rng = np.random.default_rng(99)
+        n = 200
+        signal_a = rng.standard_normal(n)
+        signal_b = rng.standard_normal(n)
+        y = (signal_a + signal_b > 0).astype(int)
+
+        # X_original carries both originals.
+        X_original = pd.DataFrame({"a": signal_a, "b": signal_b})
+        # Engineered drops "b" and adds derived noise that won't help.
+        X_engineered = pd.DataFrame(
+            {
+                "a": signal_a,
+                "derived_noise1": rng.standard_normal(n),
+                "derived_noise2": rng.standard_normal(n),
+            }
+        )
+        original_features = {"a", "b"}
+
+        afe = self._make_fitted_engineer()
+        result = afe._do_no_harm_gate(X_engineered, X_original, y, original_features)
+
+        # Both originals must be restored from X_original; derived dropped.
+        assert set(result.columns) == {"a", "b"}
+        assert "derived_noise1" not in result.columns
+        # Selector pinned to the actually-emitted columns (both originals).
+        assert sorted(afe._selector._selected_features) == ["a", "b"]
+
+    def test_gate_fallback_handles_empty_orig_cols_in_engineered(self):
+        """Fallback must not return an empty frame when no originals survived in engineered.
+
+        Edge case: engineered frame contains zero original columns (only
+        derived). Without the fix, ``orig_cols_in_engineered`` would be
+        empty and the fallback would return an empty DataFrame; with the
+        fix, the fallback restores all originals from ``X_original``.
+        """
+        rng = np.random.default_rng(123)
+        n = 200
+        signal_a = rng.standard_normal(n)
+        signal_b = rng.standard_normal(n)
+        y = (signal_a > 0).astype(int)
+
+        X_original = pd.DataFrame({"a": signal_a, "b": signal_b})
+        # Engineered has ZERO originals — only derived noise.
+        X_engineered = pd.DataFrame(
+            {
+                "derived_noise1": rng.standard_normal(n),
+                "derived_noise2": rng.standard_normal(n),
+            }
+        )
+        original_features = {"a", "b"}
+
+        afe = self._make_fitted_engineer()
+        result = afe._do_no_harm_gate(X_engineered, X_original, y, original_features)
+
+        # Fallback must produce a non-empty frame restored from X_original.
+        assert not result.empty
+        assert set(result.columns) == {"a", "b"}
+        assert sorted(afe._selector._selected_features) == ["a", "b"]
+
     def test_gate_uses_x_original_for_baseline(self):
         """The baseline is built from X_original, not from a slice of X_engineered."""
         rng = np.random.default_rng(7)
