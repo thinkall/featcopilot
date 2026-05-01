@@ -211,7 +211,7 @@ def preprocess_target(y, task: str) -> np.ndarray:
 
 def sanitize_columns(X: pd.DataFrame) -> pd.DataFrame:
     """Rename columns via :func:`sanitize_feature_names`. Leakage-free (names only)."""
-    column_map = dict(zip(X.columns, sanitize_feature_names(list(X.columns)), strict=False))
+    column_map = dict(zip(X.columns, sanitize_feature_names(list(X.columns)), strict=True))
     return X.rename(columns=column_map)
 
 
@@ -561,8 +561,12 @@ def run_single_benchmark(
                     n_features_generated.append(X_train_fe.shape[1])
                     # Record the engine list once (it's identical across folds
                     # because we configure engines from ``task`` only).
+                    # ``apply_featcopilot`` returns the engine identifiers
+                    # already as strings (see ``get_featcopilot_engines``), so
+                    # we record them directly — applying ``__class__.__name__``
+                    # would just produce ``["str", "str", ...]``.
                     if not engines_used:
-                        engines_used = [getattr(e, "__class__", type(e)).__name__ for e in fold_engines]
+                        engines_used = list(fold_engines)
                 except Exception as e:
                     print(f"   FeatCopilot error on fold {fold_idx}: {e}")
                     tabular_fold_scores.append(best_baseline[primary_metric])

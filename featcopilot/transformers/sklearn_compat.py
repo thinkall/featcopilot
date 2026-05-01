@@ -786,11 +786,12 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             # features on validation failure isn't doing its job. Always log,
             # not just when verbose, and conservatively fall back to original
             # columns + pin the selector to that set.
+            fallback_result = _conservative_fallback()
             logger.warning(
                 f"Do-no-harm gate failed ({type(e).__name__}: {e}); "
-                f"conservatively falling back to {len(orig_cols_in_engineered)} original features."
+                f"conservatively falling back to {fallback_result.shape[1]} original features."
             )
-            return _conservative_fallback()
+            return fallback_result
 
         return X_engineered
 

@@ -83,7 +83,7 @@ class StatisticalSelector(BaseSelector):
         else:
             raise ValueError(f"Unknown method: {self.method}")
 
-        self._feature_scores = dict(zip(X.columns, scores, strict=False))
+        self._feature_scores = dict(zip(X.columns, scores, strict=True))
 
         # Select features
         self._select_features()

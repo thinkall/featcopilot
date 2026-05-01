@@ -199,7 +199,7 @@ class FeatureSelector(BaseSelector):
 
             # Keep features with importance above mean importance (stricter threshold)
             mean_imp = np.mean(importances)
-            selected = [c for c, imp in zip(candidates, importances, strict=False) if imp >= mean_imp]
+            selected = [c for c, imp in zip(candidates, importances, strict=True) if imp >= mean_imp]
 
             if len(selected) == 0:
                 # Fallback: keep only top 3 by importance
