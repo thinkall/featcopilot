@@ -337,7 +337,7 @@ def preprocess_data(X: pd.DataFrame, y, task: str) -> tuple[pd.DataFrame, np.nda
     for col in X_processed.select_dtypes(include=[np.number]).columns:
         X_processed[col] = X_processed[col].fillna(X_processed[col].median())
 
-    column_map = dict(zip(X_processed.columns, sanitize_feature_names(list(X_processed.columns)), strict=False))
+    column_map = dict(zip(X_processed.columns, sanitize_feature_names(list(X_processed.columns)), strict=True))
     X_processed = X_processed.rename(columns=column_map)
 
     # Process target
