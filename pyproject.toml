@@ -75,8 +75,8 @@ dev = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.0.0",
-    "black>=23.0.0",
-    "ruff>=0.1.0",
+    "black>=24.0.0",
+    "ruff>=0.6.0",
     "mypy>=1.0.0",
     "pre-commit>=3.6.0",
 ]
@@ -97,13 +97,16 @@ target-version = ["py310", "py311", "py312"]
 [tool.ruff]
 line-length = 120
 target-version = "py310"
+extend-exclude = ["examples"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "C4"]
-# UP038: keep `isinstance(x, (A, B))` rather than PEP 604 `isinstance(x, A | B)`.
-# Both are valid on Python 3.10+, but the tuple form is universally understood
-# and avoids confusing readers (and review tools) familiar with the older idiom.
-ignore = ["E501", "UP038"]
+# Historical note: we previously also ignored UP038 (PEP 604 isinstance form)
+# to keep `isinstance(x, (A, B))` over `isinstance(x, A | B)`. UP038 was
+# removed from Ruff in 0.4.4+, so explicitly listing it here triggers a
+# deprecation warning. Both forms are valid on Python 3.10+; the tuple form
+# remains preferred for readability but is no longer lint-enforced.
+ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["F841"]  # Allow unused variables in tests
