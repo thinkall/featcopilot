@@ -23,9 +23,8 @@ class RedundancyEliminator(BaseSelector):
     method : str, default='pearson'
         Correlation method ('pearson', 'spearman', 'kendall')
     original_features : set[str], optional
-        Set of original feature names to prefer over derived features
-    original_preference : float, default=0.1
-        Bonus added to importance scores of original features to prefer them
+        Set of original feature names. Originals are categorically
+        protected from removal when correlated with any derived feature.
 
     Examples
     --------
@@ -39,7 +38,6 @@ class RedundancyEliminator(BaseSelector):
         method: str = "pearson",
         importance_scores: dict[str, float] | None = None,
         original_features: set[str] | None = None,
-        original_preference: float = 0.1,
         verbose: bool = False,
         **kwargs,
     ):
@@ -48,7 +46,6 @@ class RedundancyEliminator(BaseSelector):
         self.method = method
         self.importance_scores = importance_scores or {}
         self.original_features = original_features or set()
-        self.original_preference = original_preference
         self.verbose = verbose
         self._correlation_matrix: pd.DataFrame | None = None
 

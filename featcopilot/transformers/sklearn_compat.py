@@ -679,7 +679,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
                     fallback_df.index = X_engineered.index
                 emitted_cols = orig_cols_from_input
             else:
-                fallback_df = X_engineered[orig_cols_in_engineered]
+                fallback_df = X_engineered[orig_cols_in_engineered].copy()
                 emitted_cols = orig_cols_in_engineered
 
             if self._selector is not None:

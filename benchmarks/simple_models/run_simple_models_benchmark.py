@@ -80,8 +80,6 @@ from benchmarks.feature_cache import (
     sanitize_feature_names,
 )
 
-warnings.filterwarnings("ignore")
-
 # Default configuration
 DEFAULT_MAX_FEATURES = 100
 QUICK_DATASETS = ["titanic", "house_prices", "credit_risk", "bike_sharing", "customer_churn", "insurance_claims"]
@@ -790,6 +788,10 @@ def load_cache(output_path: Path, with_llm: bool) -> list[dict] | None:
 
 
 def main():
+    # Suppress benchmark-noise warnings here (CLI entrypoint only) so
+    # importing this module from tests / other code stays side-effect free.
+    warnings.filterwarnings("ignore")
+
     parser = argparse.ArgumentParser(description="Simple Models Benchmark for FeatCopilot")
     parser.add_argument("--datasets", type=str, help="Comma-separated dataset names")
     parser.add_argument("--category", type=str, choices=["classification", "regression", "forecasting", "text"])
