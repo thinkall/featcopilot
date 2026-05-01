@@ -248,3 +248,105 @@ def test_sanitize_columns_is_pure_rename():
     # Values are untouched.
     assert (renamed.iloc[:, 0].values == X.iloc[:, 0].values).all()
     assert (renamed.iloc[:, 1].values == X.iloc[:, 1].values).all()
+
+
+def test_generate_report_header_collapses_uniform_seeds(tmp_path):
+    """Single-value n_folds/n_seeds across results render as a single number, no note."""
+    from benchmarks.simple_models.run_simple_models_benchmark import generate_report
+
+    results = [
+        {
+            "dataset": "d1",
+            "task": "classification",
+            "source": "real_world",
+            "n_samples": 100,
+            "n_features_original": 5,
+            "n_folds": 5,
+            "n_seeds": 3,
+            "with_llm": False,
+            "baseline_best_score": 0.9,
+            "baseline_std": 0.01,
+            "tabular_best_score": 0.91,
+            "tabular_std": 0.01,
+            "tabular_improvement_pct": 1.1,
+            "p_value": 0.04,
+            "significant": True,
+            "n_features_tabular": 6,
+            "fe_time_tabular": 0.5,
+            "engines_used": ["tabular"],
+            "baseline_fold_scores": [0.9] * 5,
+            "tabular_fold_scores": [0.91] * 5,
+        },
+        {
+            "dataset": "d2",
+            "task": "classification",
+            "source": "real_world",
+            "n_samples": 200,
+            "n_features_original": 8,
+            "n_folds": 5,
+            "n_seeds": 3,
+            "with_llm": False,
+            "baseline_best_score": 0.7,
+            "baseline_std": 0.02,
+            "tabular_best_score": 0.7,
+            "tabular_std": 0.02,
+            "tabular_improvement_pct": 0.0,
+            "p_value": 1.0,
+            "significant": False,
+            "n_features_tabular": 8,
+            "fe_time_tabular": 0.4,
+            "engines_used": ["tabular"],
+            "baseline_fold_scores": [0.7] * 5,
+            "tabular_fold_scores": [0.7] * 5,
+        },
+    ]
+
+    out_dir = tmp_path
+    out_dir.mkdir(exist_ok=True)
+    generate_report(results, with_llm=False, output_path=out_dir)
+    text = (out_dir / "SIMPLE_MODELS_BENCHMARK.md").read_text(encoding="utf-8")
+
+    assert "**Cross-Validation:** 5-fold CV × 3 seed(s)" in text
+    # No note when all values agree.
+    assert "n_seeds`` varies across datasets" not in text
+
+
+def test_generate_report_header_surfaces_mixed_seeds(tmp_path):
+    """Mixed n_seeds across results render as a range and emit the time-series note."""
+    from benchmarks.simple_models.run_simple_models_benchmark import generate_report
+
+    base = {
+        "dataset": "d1",
+        "task": "classification",
+        "source": "real_world",
+        "n_samples": 100,
+        "n_features_original": 5,
+        "n_folds": 5,
+        "n_seeds": 3,
+        "with_llm": False,
+        "baseline_best_score": 0.9,
+        "baseline_std": 0.01,
+        "tabular_best_score": 0.91,
+        "tabular_std": 0.01,
+        "tabular_improvement_pct": 1.1,
+        "p_value": 0.04,
+        "significant": True,
+        "n_features_tabular": 6,
+        "fe_time_tabular": 0.5,
+        "engines_used": ["tabular"],
+        "baseline_fold_scores": [0.9] * 5,
+        "tabular_fold_scores": [0.91] * 5,
+    }
+    ts = dict(base)
+    ts["dataset"] = "d_ts"
+    ts["task"] = "timeseries_regression"
+    ts["source"] = "real_world"
+    ts["n_seeds"] = 1  # collapsed by TimeSeriesSplit
+
+    out_dir = tmp_path
+    out_dir.mkdir(exist_ok=True)
+    generate_report([base, ts], with_llm=False, output_path=out_dir)
+    text = (out_dir / "SIMPLE_MODELS_BENCHMARK.md").read_text(encoding="utf-8")
+
+    assert "**Cross-Validation:** 5-fold CV × 1–3 seed(s)" in text
+    assert "n_seeds`` varies across datasets" in text

@@ -681,14 +681,35 @@ def generate_report(results: list[dict], with_llm: bool, output_path: Path) -> N
     synth_summary = compute_summary(synthetic)
     all_summary = compute_summary(results)
 
-    n_folds = results[0].get("n_folds", 5) if results else 5
-    n_seeds = results[0].get("n_seeds", 1) if results else 1
+    # Compute n_folds / n_seeds across results. Most runs share a single
+    # value, but ``run_single_benchmark`` collapses ``effective_n_seeds`` to
+    # 1 for time-series tasks (TimeSeriesSplit ignores ``random_state``), so
+    # the per-dataset values can differ. Surface a min–max range when they
+    # do, with an explanatory note for time-series collapse.
+    def _format_range(values: list[int], default: int) -> str:
+        if not values:
+            return str(default)
+        unique = sorted({int(v) for v in values})
+        if len(unique) == 1:
+            return str(unique[0])
+        return f"{unique[0]}–{unique[-1]}"
+
+    n_folds_str = _format_range([r.get("n_folds", 5) for r in results], 5)
+    n_seeds_values = [r.get("n_seeds", 1) for r in results]
+    n_seeds_str = _format_range(n_seeds_values, 1)
+    seeds_note = ""
+    if results and len({int(v) for v in n_seeds_values}) > 1:
+        seeds_note = (
+            "  \n_Note: ``n_seeds`` varies across datasets — time-series tasks "
+            "collapse to 1 seed because ``TimeSeriesSplit`` ignores "
+            "``random_state``._"
+        )
 
     report = f"""# Simple Models Benchmark Report
 
 **Generated:** {timestamp}
 **Models:** RandomForest, LogisticRegression/Ridge
-**Cross-Validation:** {n_folds}-fold CV × {n_seeds} seed(s)
+**Cross-Validation:** {n_folds_str}-fold CV × {n_seeds_str} seed(s){seeds_note}
 **LLM Enabled:** {with_llm}
 **Datasets:** {len(results)} ({len(real_world)} real-world, {len(synthetic)} synthetic)
 

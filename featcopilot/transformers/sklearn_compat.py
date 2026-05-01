@@ -770,16 +770,21 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
 
             # Require clear positive benefit to keep derived features
             if improvement < threshold:
+                # Build the fallback first so we can log the actual emitted
+                # feature count (which may be larger than
+                # ``orig_cols_in_engineered`` when ``_conservative_fallback``
+                # restores originals dropped by the engineered output).
+                fallback_result = _conservative_fallback()
                 if self.verbose:
                     logger.warning(
                         f"Do-no-harm: Derived features not beneficial ({improvement:+.4f}). "
-                        f"Falling back to {len(orig_cols_in_engineered)} original features."
+                        f"Falling back to {fallback_result.shape[1]} original features."
                     )
                 # Keep the selector but constrain it to original-only columns so
                 # subsequent transform() calls (e.g. inside a sklearn Pipeline)
                 # emit the same feature set as fit_transform. Use the public
                 # setter on BaseSelector instead of mutating private state.
-                return _conservative_fallback()
+                return fallback_result
 
         except Exception as e:
             # Fail-closed: a "do-no-harm" gate that silently keeps engineered
