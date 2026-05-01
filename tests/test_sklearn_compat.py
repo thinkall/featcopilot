@@ -1334,6 +1334,51 @@ class TestEncodeForGate:
         assert (finite > 1e14).all()
         assert (finite < 1e19).all()
 
+    def test_encode_for_gate_handles_nullable_boolean(self):
+        """``_encode_for_gate`` must encode pandas nullable BooleanDtype, not silently drop.
+
+        ``select_dtypes(include=[np.number, "bool"])`` only catches numpy bool;
+        pandas' nullable BooleanDtype (``dtype="boolean"``) was previously
+        treated as non-numeric and dropped, weakening the gate baseline. Now
+        it should be routed through Float64 -> float64 so pandas NA becomes
+        NaN that the gate's downstream ``.fillna(0)`` can neutralise.
+        """
+        df = pd.DataFrame(
+            {
+                "num": [1.0, 2.0, 3.0, 4.0],
+                "nflag": pd.array([True, False, pd.NA, True], dtype="boolean"),
+            }
+        )
+        encoded = AutoFeatureEngineer._encode_for_gate(df)
+        assert "nflag" in encoded.columns
+        col = encoded["nflag"]
+        assert pd.api.types.is_float_dtype(col)
+        # First/second/fourth rows decode as 1.0/0.0/1.0; third (NA) becomes NaN.
+        assert col.iloc[0] == 1.0
+        assert col.iloc[1] == 0.0
+        assert np.isnan(col.iloc[2])
+        assert col.iloc[3] == 1.0
+
+    def test_encode_for_gate_handles_tz_aware_datetime(self):
+        """``_encode_for_gate`` must accept tz-aware datetime without raising.
+
+        ``series.astype("int64")`` raises on ``DatetimeTZDtype``; without
+        explicit handling the gate would always hit its exception path and
+        fall back, even when derived features clearly help. The encoder
+        strips tz (UTC then drop tz) before the int64 conversion.
+        """
+        ts = pd.to_datetime(["2024-01-01T00:00:00", "2024-02-01T12:00:00", None, "2024-04-01T06:00:00"]).tz_localize(
+            "US/Eastern"
+        )
+        df = pd.DataFrame({"ts": ts})
+        encoded = AutoFeatureEngineer._encode_for_gate(df)
+        assert "ts" in encoded.columns
+        col = encoded["ts"]
+        assert pd.api.types.is_float_dtype(col)
+        # NaT -> NaN, not the int64-min sentinel.
+        assert col.isna().tolist() == [False, False, True, False]
+        assert not (col == np.iinfo(np.int64).min).any()
+
 
 class TestGetParamsRoundTrip:
     """Tests for AutoFeatureEngineer.get_params/set_params plumbing."""

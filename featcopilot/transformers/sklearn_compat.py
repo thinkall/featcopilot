@@ -520,10 +520,18 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             Numeric matrix with the original index. Empty if no usable columns
             remain.
         """
-        numeric_part = df.select_dtypes(include=[np.number, "bool"]).copy()
-        # bool dtype already encodes cleanly; cast for downstream consistency.
-        for col in numeric_part.select_dtypes(include=["bool"]).columns:
-            numeric_part[col] = numeric_part[col].astype(np.int8)
+        numeric_part = df.select_dtypes(include=[np.number, "bool", "boolean"]).copy()
+        # Bool dtypes carry signal but may contain pandas NA (nullable BooleanDtype).
+        # Cast accordingly so missing values become NaN downstream where the gate's
+        # ``.fillna(0)`` can neutralise them, instead of raising or silently dropping.
+        for col in numeric_part.columns:
+            series = numeric_part[col]
+            if isinstance(series.dtype, pd.BooleanDtype):
+                # Nullable boolean -> Float64 -> float64 so NA -> NaN.
+                numeric_part[col] = series.astype("Float64").astype("float64")
+            elif pd.api.types.is_bool_dtype(series):
+                # Plain numpy bool: cast to int8 for downstream consistency.
+                numeric_part[col] = series.astype(np.int8)
 
         def _is_scalar_like(value: Any) -> bool:
             """Treat strings/bytes/numbers/booleans/None as scalar-like for encoding."""
@@ -544,7 +552,15 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
                 # of letting numpy's int64 NaT sentinel (-9223372036854775808)
                 # leak through as a giant artificial signal.
                 nan_mask = series.isna()
-                encoded_cols[col] = series.astype("int64").astype("float64").mask(nan_mask, np.nan)
+                # tz-aware datetimes (DatetimeTZDtype) cannot be cast directly to
+                # int64; drop the timezone first (convert to UTC, then strip tz)
+                # so the gate doesn't always hit the exception path on tz-aware
+                # datasets.
+                if isinstance(dtype, pd.DatetimeTZDtype):
+                    series_naive = series.dt.tz_convert("UTC").dt.tz_localize(None)
+                else:
+                    series_naive = series
+                encoded_cols[col] = series_naive.astype("int64").astype("float64").mask(nan_mask, np.nan)
                 continue
 
             if isinstance(dtype, pd.CategoricalDtype):
@@ -713,16 +729,20 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             full_mean = np.mean(full_scores)
             improvement = full_mean - orig_mean
 
-            # Scale threshold by feature ratio — more added features = higher bar
+            # Scale threshold by feature ratio — more added features = higher bar.
+            # Use post-encoding column counts so derived columns dropped by
+            # ``_encode_for_gate`` (e.g. non-scalar object columns) don't inflate
+            # the ratio and make the gate stricter than intended.
             n_orig = max(X_orig_for_gate.shape[1], 1)
-            feature_ratio = len(derived_cols) / n_orig
+            encoded_derived_cols = [c for c in X_full_for_gate.columns if c not in X_orig_for_gate.columns]
+            feature_ratio = len(encoded_derived_cols) / n_orig
             threshold = 0.001 + 0.001 * feature_ratio
 
             if self.verbose:
                 logger.info(
                     f"Do-no-harm gate: orig={orig_mean:.4f}, full={full_mean:.4f}, "
                     f"delta={improvement:+.4f}, threshold={threshold:.4f} "
-                    f"({len(derived_cols)} derived features)"
+                    f"({len(encoded_derived_cols)} derived features)"
                 )
 
             # Require clear positive benefit to keep derived features
