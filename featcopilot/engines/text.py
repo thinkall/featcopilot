@@ -4,7 +4,7 @@ Generates features from text data using embeddings and NLP techniques.
 Supports local offline processing with transformers and spacy.
 """
 
-from typing import Any, Optional, Union
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -84,14 +84,14 @@ class TextEngine(BaseEngine):
 
     def __init__(
         self,
-        features: Optional[list[str]] = None,
+        features: list[str] | None = None,
         max_vocab_size: int = 5000,
         n_components: int = 50,
         embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2",
         embedding_dim: int = 32,
         spacy_model: str = "en_core_web_sm",
         sentiment_model: str = "cardiffnlp/twitter-roberta-base-sentiment-latest",
-        max_features: Optional[int] = None,
+        max_features: int | None = None,
         verbose: bool = False,
         **kwargs,
     ):
@@ -121,9 +121,9 @@ class TextEngine(BaseEngine):
 
     def fit(
         self,
-        X: Union[pd.DataFrame, np.ndarray],
-        y: Optional[Union[pd.Series, np.ndarray]] = None,
-        text_columns: Optional[list[str]] = None,
+        X: pd.DataFrame | np.ndarray,
+        y: pd.Series | np.ndarray | None = None,
+        text_columns: list[str] | None = None,
         **kwargs,
     ) -> "TextEngine":
         """
@@ -300,7 +300,7 @@ class TextEngine(BaseEngine):
         except Exception as e:
             logger.warning(f"TextEngine: Could not fit embeddings: {e}")
 
-    def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
+    def transform(self, X: pd.DataFrame | np.ndarray, **kwargs) -> pd.DataFrame:
         """
         Extract text features.
 
@@ -478,7 +478,7 @@ class TextEngine(BaseEngine):
         for text in texts:
             try:
                 doc = self._nlp(text[:10000])  # Limit text length
-                ent_counts = {ent: 0 for ent in entity_types}
+                ent_counts = dict.fromkeys(entity_types, 0)
 
                 for ent in doc.ents:
                     if ent.label_ in ent_counts:
@@ -518,7 +518,7 @@ class TextEngine(BaseEngine):
                     features[f"{col}_pos_content_ratio"].append(0)
                     continue
 
-                pos_counts = {tag: 0 for tag in pos_tags}
+                pos_counts = dict.fromkeys(pos_tags, 0)
                 for token in doc:
                     if token.pos_ in pos_counts:
                         pos_counts[token.pos_] += 1
@@ -543,7 +543,7 @@ class TextEngine(BaseEngine):
 
         return features
 
-    def _extract_embeddings(self, texts: pd.Series, col: str) -> Optional[pd.DataFrame]:
+    def _extract_embeddings(self, texts: pd.Series, col: str) -> pd.DataFrame | None:
         """Extract sentence embeddings using sentence-transformers."""
         if self._embedding_model is None:
             self._load_embedding_model()

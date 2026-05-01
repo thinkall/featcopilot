@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Python 3.9 or higher
+- Python 3.10 or higher
 - pip or conda package manager
 
 ## Basic Installation

@@ -4,7 +4,7 @@ Provides drop-in sklearn transformers for feature engineering pipelines.
 """
 
 import warnings
-from typing import Any, Optional, Union
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -137,11 +137,11 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
 
     def __init__(
         self,
-        engines: Optional[list[str]] = None,
-        max_features: Optional[int] = None,
-        selection_methods: Optional[list[str]] = None,
+        engines: list[str] | None = None,
+        max_features: int | None = None,
+        selection_methods: list[str] | None = None,
         correlation_threshold: float = 0.85,
-        llm_config: Optional[dict[str, Any]] = None,
+        llm_config: dict[str, Any] | None = None,
         verbose: bool = False,
         leakage_guard: str = "warn",
         gate_n_jobs: int = 1,
@@ -162,7 +162,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         self._validate_configuration()
 
         self._engine_instances: dict[str, Any] = {}
-        self._selector: Optional[FeatureSelector] = None
+        self._selector: FeatureSelector | None = None
         self._feature_set = FeatureSet()
         self._is_fitted = False
         self._column_descriptions: dict[str, str] = {}
@@ -178,14 +178,14 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         # individual characters and produce a confusing "Unknown engines"
         # error, and ``engines=5`` would raise an unrelated ``TypeError``
         # from ``set(self.engines)``.
-        if not isinstance(self.engines, (list, tuple)):
+        if not isinstance(self.engines, list | tuple):
             raise ValueError(
                 "engines must be a list or tuple of strings; got "
                 f"{type(self.engines).__name__}={self.engines!r}. "
                 f"Supported engines: {sorted(self.SUPPORTED_ENGINES)}"
             )
 
-        if not isinstance(self.selection_methods, (list, tuple)):
+        if not isinstance(self.selection_methods, list | tuple):
             raise ValueError(
                 "selection_methods must be a list or tuple of strings; got "
                 f"{type(self.selection_methods).__name__}={self.selection_methods!r}. "
@@ -247,7 +247,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         if self.max_features is not None and self.max_features <= 0:
             raise ValueError("max_features must be positive when provided")
 
-        if not isinstance(self.gate_n_jobs, (int, np.integer)) or isinstance(self.gate_n_jobs, bool):
+        if not isinstance(self.gate_n_jobs, int | np.integer) or isinstance(self.gate_n_jobs, bool):
             raise ValueError(f"gate_n_jobs must be an int, got {type(self.gate_n_jobs).__name__}")
         if self.gate_n_jobs == 0 or self.gate_n_jobs < -1:
             raise ValueError(f"gate_n_jobs must be -1 or a positive int, got {self.gate_n_jobs}")
@@ -269,11 +269,11 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
 
     def fit(
         self,
-        X: Union[pd.DataFrame, np.ndarray],
-        y: Optional[Union[pd.Series, np.ndarray]] = None,
-        column_descriptions: Optional[dict[str, str]] = None,
+        X: pd.DataFrame | np.ndarray,
+        y: pd.Series | np.ndarray | None = None,
+        column_descriptions: dict[str, str] | None = None,
         task_description: str = "prediction task",
-        target_name: Optional[Any] = None,
+        target_name: Any | None = None,
         **fit_params,
     ) -> "AutoFeatureEngineer":
         """
@@ -376,7 +376,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         else:
             raise ValueError(f"Unknown engine: {engine_name}")
 
-    def transform(self, X: Union[pd.DataFrame, np.ndarray], **transform_params) -> pd.DataFrame:
+    def transform(self, X: pd.DataFrame | np.ndarray, **transform_params) -> pd.DataFrame:
         """
         Transform data using fitted engines.
 
@@ -426,11 +426,11 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
 
     def fit_transform(
         self,
-        X: Union[pd.DataFrame, np.ndarray],
-        y: Optional[Union[pd.Series, np.ndarray]] = None,
-        column_descriptions: Optional[dict[str, str]] = None,
+        X: pd.DataFrame | np.ndarray,
+        y: pd.Series | np.ndarray | None = None,
+        column_descriptions: dict[str, str] | None = None,
         task_description: str = "prediction task",
-        target_name: Optional[Any] = None,
+        target_name: Any | None = None,
         apply_selection: bool = True,
         **fit_params,
     ) -> pd.DataFrame:
@@ -529,7 +529,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             """Treat strings/bytes/numbers/booleans/None as scalar-like for encoding."""
             if value is None:
                 return True
-            return np.isscalar(value) or isinstance(value, (str, bytes))
+            return np.isscalar(value) or isinstance(value, str | bytes)
 
         encoded_cols: dict[str, pd.Series] = {}
         for col in df.columns:
@@ -576,8 +576,8 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
     def _do_no_harm_gate(
         self,
         X_engineered: pd.DataFrame,
-        X_original: Union[pd.DataFrame, np.ndarray],
-        y: Union[pd.Series, np.ndarray],
+        X_original: pd.DataFrame | np.ndarray,
+        y: pd.Series | np.ndarray,
         original_features: set[str],
     ) -> pd.DataFrame:
         """
@@ -817,7 +817,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         return llm_engine.suggest_more_features(prompt, n_features)
 
     @property
-    def feature_importances_(self) -> Optional[dict[str, float]]:
+    def feature_importances_(self) -> dict[str, float] | None:
         """Get feature importance scores if selection was applied."""
         if self._selector is not None:
             return self._selector.get_feature_scores()

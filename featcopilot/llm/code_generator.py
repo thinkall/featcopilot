@@ -4,7 +4,7 @@ Generates Python code for custom features based on natural language descriptions
 """
 
 import re
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 import pandas as pd
 
@@ -49,8 +49,8 @@ class FeatureCodeGenerator:
         validate: bool = True,
         verbose: bool = False,
         backend: Literal["copilot", "litellm", "openai"] = "copilot",
-        api_key: Optional[str] = None,
-        api_base: Optional[str] = None,
+        api_key: str | None = None,
+        api_base: str | None = None,
     ):
         self.model = model
         self.validate = validate
@@ -58,7 +58,7 @@ class FeatureCodeGenerator:
         self.backend = backend
         self.api_key = api_key
         self.api_base = api_base
-        self._client: Optional[Any] = None
+        self._client: Any | None = None
 
     def _ensure_client(self) -> None:
         """Ensure client is initialized."""
@@ -81,8 +81,8 @@ class FeatureCodeGenerator:
         self,
         description: str,
         columns: dict[str, str],
-        constraints: Optional[list[str]] = None,
-        sample_data: Optional[pd.DataFrame] = None,
+        constraints: list[str] | None = None,
+        sample_data: pd.DataFrame | None = None,
     ) -> Feature:
         """
         Generate a feature from natural language description.
@@ -148,7 +148,7 @@ class FeatureCodeGenerator:
         self,
         descriptions: list[str],
         columns: dict[str, str],
-        sample_data: Optional[pd.DataFrame] = None,
+        sample_data: pd.DataFrame | None = None,
     ) -> list[Feature]:
         """
         Generate multiple features from descriptions.

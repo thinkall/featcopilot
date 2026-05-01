@@ -1,7 +1,7 @@
 """Base classes for feature store integrations."""
 
 from abc import ABC, abstractmethod
-from typing import Any, Optional
+from typing import Any
 
 import pandas as pd
 from pydantic import BaseModel, Field
@@ -14,7 +14,7 @@ class FeatureStoreConfig(BaseModel):
 
     name: str = Field(description="Feature store name")
     entity_columns: list[str] = Field(default_factory=list, description="Entity/key columns")
-    timestamp_column: Optional[str] = Field(default=None, description="Event timestamp column")
+    timestamp_column: str | None = Field(default=None, description="Event timestamp column")
     feature_prefix: str = Field(default="", description="Prefix for feature names")
     tags: dict[str, str] = Field(default_factory=dict, description="Tags/labels for features")
 
@@ -55,9 +55,9 @@ class BaseFeatureStore(ABC):
     def save_features(
         self,
         df: pd.DataFrame,
-        feature_set: Optional[FeatureSet] = None,
+        feature_set: FeatureSet | None = None,
         feature_view_name: str = "featcopilot_features",
-        description: Optional[str] = None,
+        description: str | None = None,
         **kwargs,
     ) -> None:
         """

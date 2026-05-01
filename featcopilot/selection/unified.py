@@ -1,7 +1,5 @@
 """Unified feature selector combining multiple methods."""
 
-from typing import Optional, Union
-
 import numpy as np
 import pandas as pd
 
@@ -42,11 +40,11 @@ class FeatureSelector(BaseSelector):
 
     def __init__(
         self,
-        methods: Optional[list[str]] = None,
-        max_features: Optional[int] = None,
+        methods: list[str] | None = None,
+        max_features: int | None = None,
         correlation_threshold: float = 0.95,
         combination: str = "union",
-        original_features: Optional[set[str]] = None,
+        original_features: set[str] | None = None,
         verbose: bool = False,
         **kwargs,
     ):
@@ -60,7 +58,7 @@ class FeatureSelector(BaseSelector):
         self._selectors: dict[str, BaseSelector] = {}
         self._method_scores: dict[str, dict[str, float]] = {}
 
-    def fit(self, X: Union[pd.DataFrame, np.ndarray], y: Union[pd.Series, np.ndarray], **kwargs) -> "FeatureSelector":
+    def fit(self, X: pd.DataFrame | np.ndarray, y: pd.Series | np.ndarray, **kwargs) -> "FeatureSelector":
         """
         Fit all selection methods.
 
@@ -201,7 +199,7 @@ class FeatureSelector(BaseSelector):
 
             # Keep features with importance above mean importance (stricter threshold)
             mean_imp = np.mean(importances)
-            selected = [c for c, imp in zip(candidates, importances) if imp >= mean_imp]
+            selected = [c for c, imp in zip(candidates, importances, strict=False) if imp >= mean_imp]
 
             if len(selected) == 0:
                 # Fallback: keep only top 3 by importance
@@ -265,7 +263,7 @@ class FeatureSelector(BaseSelector):
                 f"({len(original_selected)} original + {len(derived_selected)} derived)"
             )
 
-    def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
+    def transform(self, X: pd.DataFrame | np.ndarray, **kwargs) -> pd.DataFrame:
         """Select features from data."""
         if not self._is_fitted:
             raise RuntimeError("Selector must be fitted before transform")

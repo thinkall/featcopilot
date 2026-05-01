@@ -38,10 +38,10 @@
 This project uses **Black** and **Ruff** for code formatting and linting.
 
 - **Line length:** 120 characters max
-- **Python version:** 3.9+ (use modern type hints)
+- **Python version:** 3.10+ (use modern type hints)
 - **Quotes:** Double quotes for strings
 - **Imports:** Organized in order: stdlib, third-party, local (enforced by ruff)
-- **Type hints:** Use Python 3.9+ style (`list[str]` not `List[str]`, `dict[str, Any]` not `Dict[str, Any]`)
+- **Type hints:** Use Python 3.10+ style (`list[str]` not `List[str]`, `dict[str, Any]` not `Dict[str, Any]`)
 - **Optional types:** Use `Optional[X]` or `X | None` for nullable types
 
 #### Import Organization

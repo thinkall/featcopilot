@@ -1,6 +1,7 @@
 """Parallel processing utilities."""
 
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 
 import pandas as pd
 
@@ -13,7 +14,7 @@ def parallel_apply(
     func: Callable,
     data: pd.DataFrame,
     n_jobs: int = -1,
-    batch_size: Optional[int] = None,
+    batch_size: int | None = None,
     verbose: bool = False,
 ) -> list[Any]:
     """

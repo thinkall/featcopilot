@@ -1,7 +1,5 @@
 """Redundancy elimination through correlation analysis."""
 
-from typing import Optional, Union
-
 import numpy as np
 import pandas as pd
 
@@ -39,8 +37,8 @@ class RedundancyEliminator(BaseSelector):
         self,
         correlation_threshold: float = 0.95,
         method: str = "pearson",
-        importance_scores: Optional[dict[str, float]] = None,
-        original_features: Optional[set[str]] = None,
+        importance_scores: dict[str, float] | None = None,
+        original_features: set[str] | None = None,
         original_preference: float = 0.1,
         verbose: bool = False,
         **kwargs,
@@ -52,12 +50,12 @@ class RedundancyEliminator(BaseSelector):
         self.original_features = original_features or set()
         self.original_preference = original_preference
         self.verbose = verbose
-        self._correlation_matrix: Optional[pd.DataFrame] = None
+        self._correlation_matrix: pd.DataFrame | None = None
 
     def fit_transform(
         self,
-        X: Union[pd.DataFrame, np.ndarray],
-        y: Optional[Union[pd.Series, np.ndarray]] = None,
+        X: pd.DataFrame | np.ndarray,
+        y: pd.Series | np.ndarray | None = None,
         **kwargs,
     ) -> pd.DataFrame:
         """Fit and transform in one step (y is optional for this selector)."""
@@ -65,9 +63,9 @@ class RedundancyEliminator(BaseSelector):
 
     def fit(
         self,
-        X: Union[pd.DataFrame, np.ndarray],
-        y: Optional[Union[pd.Series, np.ndarray]] = None,
-        importance_scores: Optional[dict[str, float]] = None,
+        X: pd.DataFrame | np.ndarray,
+        y: pd.Series | np.ndarray | None = None,
+        importance_scores: dict[str, float] | None = None,
         **kwargs,
     ) -> "RedundancyEliminator":
         """
@@ -167,7 +165,7 @@ class RedundancyEliminator(BaseSelector):
         if self.verbose:
             logger.info(f"RedundancyEliminator: Removed {len(to_remove)} redundant features")
 
-    def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
+    def transform(self, X: pd.DataFrame | np.ndarray, **kwargs) -> pd.DataFrame:
         """Remove redundant features."""
         if not self._is_fitted:
             raise RuntimeError("Eliminator must be fitted before transform")
@@ -185,6 +183,6 @@ class RedundancyEliminator(BaseSelector):
         """Get list of removed redundant features."""
         return getattr(self, "_removed_features", [])
 
-    def get_correlation_matrix(self) -> Optional[pd.DataFrame]:
+    def get_correlation_matrix(self) -> pd.DataFrame | None:
         """Get the computed correlation matrix."""
         return self._correlation_matrix

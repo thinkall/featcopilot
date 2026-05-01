@@ -190,7 +190,7 @@ X_selected = selector.fit_transform(X, y)
 
 ## Requirements
 
-- Python 3.9+
+- Python 3.10+
 - NumPy, Pandas, Scikit-learn
 - GitHub Copilot SDK (default) or LiteLLM (for 100+ LLM providers)
 

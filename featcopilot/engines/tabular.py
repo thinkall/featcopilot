@@ -4,7 +4,6 @@ Generates polynomial features, interaction terms, and mathematical transformatio
 """
 
 from itertools import combinations
-from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -88,8 +87,8 @@ class TabularEngine(BaseEngine):
         self,
         polynomial_degree: int = 2,
         interaction_only: bool = False,
-        include_transforms: Optional[list[str]] = None,
-        max_features: Optional[int] = None,
+        include_transforms: list[str] | None = None,
+        max_features: int | None = None,
         verbose: bool = False,
         encode_categorical: bool = True,
         onehot_ratio_threshold: float = 0.05,
@@ -122,8 +121,8 @@ class TabularEngine(BaseEngine):
 
     def fit(
         self,
-        X: Union[pd.DataFrame, np.ndarray],
-        y: Optional[Union[pd.Series, np.ndarray]] = None,
+        X: pd.DataFrame | np.ndarray,
+        y: pd.Series | np.ndarray | None = None,
         **kwargs,
     ) -> "TabularEngine":
         """
@@ -163,7 +162,7 @@ class TabularEngine(BaseEngine):
 
         return self
 
-    def _fit_categorical_encoding(self, X: pd.DataFrame, y: Optional[Union[pd.Series, np.ndarray]] = None) -> None:
+    def _fit_categorical_encoding(self, X: pd.DataFrame, y: pd.Series | np.ndarray | None = None) -> None:
         """Fit categorical encoding based on cardinality ratio."""
         self._onehot_columns = []
         self._target_encode_columns = []
@@ -315,7 +314,7 @@ class TabularEngine(BaseEngine):
         if self.config.verbose:
             logger.info(f"TabularEngine: Planned {len(self._feature_set)} features")
 
-    def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
+    def transform(self, X: pd.DataFrame | np.ndarray, **kwargs) -> pd.DataFrame:
         """
         Generate new features from input data.
 

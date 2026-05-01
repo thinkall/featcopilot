@@ -4,8 +4,6 @@ Extracts statistical, frequency, and temporal features from time series data.
 Inspired by TSFresh but with better integration and LLM capabilities.
 """
 
-from typing import Optional, Union
-
 import numpy as np
 import pandas as pd
 from pydantic import Field
@@ -89,9 +87,9 @@ class TimeSeriesEngine(BaseEngine):
 
     def __init__(
         self,
-        features: Optional[list[str]] = None,
-        window_sizes: Optional[list[int]] = None,
-        max_features: Optional[int] = None,
+        features: list[str] | None = None,
+        window_sizes: list[int] | None = None,
+        max_features: int | None = None,
         verbose: bool = False,
         series_in_rows: bool = False,
         **kwargs,
@@ -111,9 +109,9 @@ class TimeSeriesEngine(BaseEngine):
 
     def fit(
         self,
-        X: Union[pd.DataFrame, np.ndarray],
-        y: Optional[Union[pd.Series, np.ndarray]] = None,
-        time_column: Optional[str] = None,
+        X: pd.DataFrame | np.ndarray,
+        y: pd.Series | np.ndarray | None = None,
+        time_column: str | None = None,
         **kwargs,
     ) -> "TimeSeriesEngine":
         """
@@ -156,7 +154,7 @@ class TimeSeriesEngine(BaseEngine):
         self._is_fitted = True
         return self
 
-    def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
+    def transform(self, X: pd.DataFrame | np.ndarray, **kwargs) -> pd.DataFrame:
         """
         Extract time series features from input data.
 
@@ -206,7 +204,7 @@ class TimeSeriesEngine(BaseEngine):
             row_features = {}
             for col in self._time_columns:
                 value = X[col].iloc[idx]
-                if isinstance(value, (list, np.ndarray)):
+                if isinstance(value, list | np.ndarray):
                     series = np.array(value)
                 else:
                     # Single value - create minimal features

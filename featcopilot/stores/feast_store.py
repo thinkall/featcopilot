@@ -7,7 +7,7 @@ and retrieving engineered features.
 import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 import pandas as pd
 from pydantic import Field
@@ -23,7 +23,7 @@ class FeastConfig(FeatureStoreConfig):
     """Configuration for Feast feature store."""
 
     name: str = "feast"
-    repo_path: Optional[str] = Field(default=None, description="Path to Feast repo directory")
+    repo_path: str | None = Field(default=None, description="Path to Feast repo directory")
     project_name: str = Field(default="featcopilot", description="Feast project name")
     provider: str = Field(default="local", description="Feast provider (local, gcp, aws)")
     online_store_type: str = Field(default="sqlite", description="Online store type")
@@ -95,10 +95,10 @@ class FeastFeatureStore(BaseFeatureStore):
 
     def __init__(
         self,
-        repo_path: Optional[str] = None,
+        repo_path: str | None = None,
         project_name: str = "featcopilot",
-        entity_columns: Optional[list[str]] = None,
-        timestamp_column: Optional[str] = None,
+        entity_columns: list[str] | None = None,
+        timestamp_column: str | None = None,
         provider: str = "local",
         online_store_type: str = "sqlite",
         offline_store_type: str = "file",
@@ -121,8 +121,8 @@ class FeastFeatureStore(BaseFeatureStore):
         super().__init__(config)
         self.config: FeastConfig = config
         self._feast_store = None
-        self._repo_path: Optional[Path] = None
-        self._temp_dir: Optional[tempfile.TemporaryDirectory] = None
+        self._repo_path: Path | None = None
+        self._temp_dir: tempfile.TemporaryDirectory | None = None
         self._feature_views: dict[str, Any] = {}
         self._entities: dict[str, Any] = {}
 
@@ -199,7 +199,7 @@ entity_key_serialization_version: 2
         else:
             return f"  type: {self.config.offline_store_type}"
 
-    def _infer_feast_dtype(self, pandas_dtype: str, feat_type: Optional[FeatureType] = None) -> str:
+    def _infer_feast_dtype(self, pandas_dtype: str, feat_type: FeatureType | None = None) -> str:
         """Infer Feast data type from pandas dtype."""
         from feast import ValueType
 
@@ -221,11 +221,11 @@ entity_key_serialization_version: 2
     def save_features(
         self,
         df: pd.DataFrame,
-        feature_set: Optional[FeatureSet] = None,
+        feature_set: FeatureSet | None = None,
         feature_view_name: str = "featcopilot_features",
-        description: Optional[str] = None,
-        entity_columns: Optional[list[str]] = None,
-        timestamp_column: Optional[str] = None,
+        description: str | None = None,
+        entity_columns: list[str] | None = None,
+        timestamp_column: str | None = None,
         **kwargs,
     ) -> None:
         """
@@ -419,7 +419,7 @@ entity_key_serialization_version: 2
 
     def get_online_features(
         self,
-        entity_dict: Union[dict[str, list], pd.DataFrame],
+        entity_dict: dict[str, list] | pd.DataFrame,
         feature_names: list[str],
         feature_view_name: str = "featcopilot_features",
     ) -> dict[str, Any]:

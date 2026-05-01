@@ -47,7 +47,7 @@ import time
 import warnings
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -173,8 +173,90 @@ def _safe_fillna_string(series: pd.Series, sentinel: str = "missing") -> pd.Seri
     return series.fillna(sentinel).astype(str)
 
 
+def preprocess_target(y, task: str) -> np.ndarray:
+    """
+    Preprocess the target column.
+
+    Target preprocessing is fold-independent — for classification we just
+    label-encode the global vocabulary (which is by definition known at
+    the dataset level, not learned from features), and for regression we
+    cast to float. Doing this once outside the CV loop is leakage-free.
+
+    Parameters
+    ----------
+    y : array-like
+        Target values.
+    task : str
+        Task name. Substring "classification" triggers label encoding for
+        non-numeric targets; otherwise the target is float-cast.
+
+    Returns
+    -------
+    ndarray
+        Numeric target array.
+    """
+    if "classification" in task:
+        if hasattr(y, "dtype") and (y.dtype == "object" or y.dtype.name == "category"):
+            le = LabelEncoder()
+            return le.fit_transform(y.astype(str))
+        return np.array(y)
+    return np.array(y).astype(float)
+
+
+def sanitize_columns(X: pd.DataFrame) -> pd.DataFrame:
+    """Rename columns via :func:`sanitize_feature_names`. Leakage-free (names only)."""
+    column_map = dict(zip(X.columns, sanitize_feature_names(list(X.columns)), strict=False))
+    return X.rename(columns=column_map)
+
+
+def preprocess_X_train_test(X_train: pd.DataFrame, X_test: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Fold-local baseline preprocessing.
+
+    Fits LabelEncoders (for non-numeric columns) and median-imputation values
+    on **train only**, then applies the same transforms to test. This is the
+    leakage-free analogue of the legacy ``preprocess_data`` (which fit on the
+    full dataset before the CV split, leaking validation-fold information into
+    training and biasing the paired Wilcoxon p-values).
+
+    Numeric NaNs in the test fold use the **train** median; never compute
+    medians from the test fold itself. Non-numeric encoding reuses
+    :func:`_label_encode_non_numeric` (train-only fit + unknown-bucket).
+
+    Parameters
+    ----------
+    X_train, X_test : DataFrame
+        Train/test frames for one CV fold.
+
+    Returns
+    -------
+    tuple of DataFrame
+        (X_train_processed, X_test_processed) — all numeric, no NaN.
+    """
+    # Encode non-numeric columns first (mirrors legacy ordering).
+    X_train_proc, X_test_proc = _label_encode_non_numeric(X_train, X_test)
+
+    # Median-impute numeric NaN using TRAIN medians only.
+    for col in X_train_proc.select_dtypes(include=[np.number]).columns:
+        train_median = X_train_proc[col].median()
+        X_train_proc[col] = X_train_proc[col].fillna(train_median)
+        if col in X_test_proc.columns:
+            X_test_proc[col] = X_test_proc[col].fillna(train_median)
+
+    return X_train_proc, X_test_proc
+
+
 def preprocess_data(X: pd.DataFrame, y, task: str) -> tuple[pd.DataFrame, np.ndarray]:
-    """Preprocess data for modeling."""
+    """
+    Legacy single-shot preprocessor (kept for backwards-compat / smoke tests).
+
+    .. warning::
+        Fits LabelEncoders and numeric medians on the full dataset, which
+        leaks validation-fold information into training when used inside
+        a CV loop. Production benchmark code should call
+        :func:`preprocess_target` + :func:`sanitize_columns` outside the
+        fold loop and :func:`preprocess_X_train_test` inside it instead.
+    """
     X_processed = X.copy()
 
     # Encode categorical columns. ``_safe_fillna_string`` handles pandas
@@ -188,23 +270,12 @@ def preprocess_data(X: pd.DataFrame, y, task: str) -> tuple[pd.DataFrame, np.nda
     for col in X_processed.select_dtypes(include=[np.number]).columns:
         X_processed[col] = X_processed[col].fillna(X_processed[col].median())
 
-    column_map = dict(zip(X_processed.columns, sanitize_feature_names(list(X_processed.columns))))
-    X_processed = X_processed.rename(columns=column_map)
+    X_processed = sanitize_columns(X_processed)
 
-    # Process target
-    if "classification" in task:
-        if hasattr(y, "dtype") and (y.dtype == "object" or y.dtype.name == "category"):
-            le = LabelEncoder()
-            y_processed = le.fit_transform(y.astype(str))
-        else:
-            y_processed = np.array(y)
-    else:
-        y_processed = np.array(y).astype(float)
-
-    return X_processed, y_processed
+    return X_processed, preprocess_target(y, task)
 
 
-def get_featcopilot_engines(task: str, with_llm: bool) -> tuple[list[str], Optional[dict[str, Any]]]:
+def get_featcopilot_engines(task: str, with_llm: bool) -> tuple[list[str], dict[str, Any] | None]:
     """Select FeatCopilot engines based on task type."""
     engines = ["tabular", "relational"]
     if "timeseries" in task:
@@ -330,7 +401,7 @@ def run_models(
 
     # Pre-compute encoded variants once. Lazily evaluated only if any model in
     # this batch requires numeric input (i.e. doesn't support non-numeric).
-    encoded_cache: Optional[tuple[pd.DataFrame, pd.DataFrame]] = None
+    encoded_cache: tuple[pd.DataFrame, pd.DataFrame] | None = None
 
     for name, model in models.items():
         non_numeric_cols = X_train.select_dtypes(exclude=[np.number]).columns
@@ -371,7 +442,7 @@ def run_single_benchmark(
     with_llm: bool = False,
     n_folds: int = 5,
     n_seeds: int = 1,
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """
     Run benchmark on a single dataset using k-fold cross-validation.
 
@@ -401,7 +472,13 @@ def run_single_benchmark(
         X, y, task, name = load_dataset(dataset_name)
         print(f"Task: {task}, Shape: {X.shape}, Source: {'real-world' if is_real_world(dataset_name) else 'synthetic'}")
 
-        X_processed, y_processed = preprocess_data(X, y, task)
+        # Process target once (fold-independent — labels don't change between folds).
+        # X is left raw at the dataset level; baseline preprocessing is performed
+        # **inside** the fold loop on per-fold train/test splits to avoid leaking
+        # validation-fold statistics (LabelEncoder vocab, numeric medians) into
+        # training, which would bias the paired Wilcoxon p-values.
+        y_processed = preprocess_target(y, task)
+        X_renamed = sanitize_columns(X)
 
         primary_metric = get_primary_metric(task)
         baseline_fold_scores = []
@@ -437,17 +514,19 @@ def run_single_benchmark(
         for seed in effective_seeds:
             if is_time_series:
                 kf = TimeSeriesSplit(n_splits=n_folds)
-                split_iter = kf.split(X_processed)
+                split_iter = kf.split(X_renamed)
             elif "classification" in task and len(np.unique(y_processed)) < 50:
                 kf = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=seed)
-                split_iter = kf.split(X_processed, y_processed)
+                split_iter = kf.split(X_renamed, y_processed)
             else:
                 kf = KFold(n_splits=n_folds, shuffle=True, random_state=seed)
-                split_iter = kf.split(X_processed)
+                split_iter = kf.split(X_renamed)
 
             for fold_idx, (train_idx, test_idx) in enumerate(split_iter):
-                X_train = X_processed.iloc[train_idx]
-                X_test = X_processed.iloc[test_idx]
+                # Fit baseline preprocessing on TRAIN ONLY, transform both halves.
+                # Without this, LabelEncoder vocab and median imputation values
+                # would leak from the validation fold into training.
+                X_train, X_test = preprocess_X_train_test(X_renamed.iloc[train_idx], X_renamed.iloc[test_idx])
                 y_train = y_processed[train_idx]
                 y_test = y_processed[test_idx]
                 X_train_raw = X.iloc[train_idx]
@@ -472,7 +551,9 @@ def run_single_benchmark(
                     print(f"   FeatCopilot error on fold {fold_idx}: {e}")
                     tabular_fold_scores.append(best_baseline[primary_metric])
                     fe_times.append(0.0)
-                    n_features_generated.append(X_processed.shape[1])
+                    # Fall back to the (per-fold) baseline feature width since
+                    # FeatCopilot didn't produce engineered features this fold.
+                    n_features_generated.append(X_train.shape[1])
 
         baseline_scores = np.array(baseline_fold_scores)
         tabular_scores = np.array(tabular_fold_scores)
@@ -681,12 +762,12 @@ def save_cache(results: list[dict], output_path: Path, with_llm: bool) -> None:
     for r in results:
         sr = {}
         for k, v in r.items():
-            if isinstance(v, (np.floating, np.integer)):
+            if isinstance(v, np.floating | np.integer):
                 sr[k] = float(v)
             elif isinstance(v, np.ndarray):
                 sr[k] = v.tolist()
             elif isinstance(v, dict):
-                sr[k] = {kk: float(vv) if isinstance(vv, (np.floating, np.integer)) else vv for kk, vv in v.items()}
+                sr[k] = {kk: float(vv) if isinstance(vv, np.floating | np.integer) else vv for kk, vv in v.items()}
             else:
                 sr[k] = v
         serializable_results.append(sr)
@@ -696,7 +777,7 @@ def save_cache(results: list[dict], output_path: Path, with_llm: bool) -> None:
     print(f"Cache saved: {cache_file}")
 
 
-def load_cache(output_path: Path, with_llm: bool) -> Optional[list[dict]]:
+def load_cache(output_path: Path, with_llm: bool) -> list[dict] | None:
     """Load benchmark results from cache file."""
     cache_file = get_cache_file(output_path, with_llm)
     if not cache_file.exists():

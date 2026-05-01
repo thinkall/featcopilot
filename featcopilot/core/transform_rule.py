@@ -7,7 +7,7 @@ natural language descriptions and applied across different datasets.
 import re
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -69,7 +69,7 @@ class TransformRule(BaseModel):
     description: str = Field(description="Natural language description of the transformation")
     code: str = Field(description="Python code implementing the transformation")
     input_columns: list[str] = Field(default_factory=list, description="Expected input column names or placeholders")
-    output_name: Optional[str] = Field(default=None, description="Output feature name")
+    output_name: str | None = Field(default=None, description="Output feature name")
     output_type: str = Field(default="numeric", description="Output data type")
     tags: list[str] = Field(default_factory=list, description="Tags for categorization")
     column_patterns: list[str] = Field(default_factory=list, description="Regex patterns for column matching")
@@ -79,7 +79,7 @@ class TransformRule(BaseModel):
     )
     metadata: dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
 
-    def get_output_name(self, column_mapping: Optional[dict[str, str]] = None) -> str:
+    def get_output_name(self, column_mapping: dict[str, str] | None = None) -> str:
         """
         Get the output feature name.
 
@@ -158,7 +158,7 @@ class TransformRule(BaseModel):
     def apply(
         self,
         df: pd.DataFrame,
-        column_mapping: Optional[dict[str, str]] = None,
+        column_mapping: dict[str, str] | None = None,
         validate: bool = True,
     ) -> pd.Series:
         """

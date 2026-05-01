@@ -8,6 +8,9 @@ import pandas as pd
 from benchmarks.simple_models.run_simple_models_benchmark import (
     _label_encode_non_numeric,
     preprocess_data,
+    preprocess_target,
+    preprocess_X_train_test,
+    sanitize_columns,
 )
 
 
@@ -144,3 +147,72 @@ def test_preprocess_data_handles_categorical_dtype():
     assert X_processed["num"].notna().all()  # NaN filled with median
     assert X_processed["cat"].dtype.kind in "iu"  # categorical → integer codes
     assert len(y_processed) == 3
+
+
+# ---------------------------------------------------------------------------
+# Fold-local preprocessing leakage regression tests
+# ---------------------------------------------------------------------------
+
+
+def test_preprocess_X_train_test_uses_train_only_medians():
+    """Numeric NaN imputation must use the TRAIN median, not the global one.
+
+    Prior to the fix, ``preprocess_data`` was applied once to the full dataset
+    before the CV split, so train rows were imputed using statistics computed
+    over both train AND test — biasing the paired Wilcoxon p-values used in
+    the published benchmark methodology.
+    """
+    # Train = [1, 2, 3, 4, 5] -> median = 3.0; Test = [None, None, 100] would
+    # shift the global median to 4.0 if the (bug-prone) full-dataset
+    # imputation were used. We assert imputed values come from the train
+    # median (3.0) not the global one.
+    X_train = pd.DataFrame({"num": [1.0, 2.0, 3.0, 4.0, 5.0]})
+    X_test = pd.DataFrame({"num": [np.nan, np.nan, 100.0]})
+
+    X_train_proc, X_test_proc = preprocess_X_train_test(X_train, X_test)
+
+    assert X_train_proc["num"].notna().all()
+    assert X_test_proc["num"].iloc[0] == 3.0
+    assert X_test_proc["num"].iloc[1] == 3.0
+    # Global median (with the imbalanced [1..5,nan,nan,100]) would be 3.5; the
+    # difference is the leak signal we're guarding against.
+
+
+def test_preprocess_X_train_test_uses_train_only_categories():
+    """Non-numeric encoder vocab must be fit on TRAIN ONLY (no leakage)."""
+    # "z" only ever appears in test; train vocab = {"a","b"}. With a leakage-prone
+    # implementation, "z" would receive a known code. We assert it lands in the
+    # unknown bucket = len(train_classes) instead.
+    X_train = pd.DataFrame({"cat": ["a", "b", "a", "b"]})
+    X_test = pd.DataFrame({"cat": ["a", "z", "b"]})
+
+    X_train_proc, X_test_proc = preprocess_X_train_test(X_train, X_test)
+
+    train_unique = set(X_train_proc["cat"].unique())
+    # Vocab = {"a","b"} → codes {0,1}; unknown bucket = 2.
+    assert train_unique <= {0, 1}
+    assert X_test_proc["cat"].iloc[1] == 2
+
+
+def test_preprocess_target_independence_from_X():
+    """``preprocess_target`` must not depend on X (target alone is fold-safe)."""
+    y = pd.Series(["a", "b", "a", "c"])
+    encoded = preprocess_target(y, "classification")
+    assert encoded.shape == (4,)
+    assert set(encoded.tolist()) == {0, 1, 2}
+
+    # Regression should pass through as float.
+    y_reg = pd.Series([1, 2, 3])
+    out = preprocess_target(y_reg, "regression")
+    assert out.dtype == np.float64
+
+
+def test_sanitize_columns_is_pure_rename():
+    """``sanitize_columns`` is a pure rename — values must pass through unchanged."""
+    X = pd.DataFrame({"col with space": [1.0, 2.0], "col/with/slash": ["a", "b"]})
+    renamed = sanitize_columns(X)
+    # Sanitized column names must not contain whitespace or slashes.
+    assert all(" " not in c and "/" not in c for c in renamed.columns)
+    # Values are untouched.
+    assert (renamed.iloc[:, 0].values == X.iloc[:, 0].values).all()
+    assert (renamed.iloc[:, 1].values == X.iloc[:, 1].values).all()

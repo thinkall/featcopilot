@@ -1,7 +1,5 @@
 """Statistical feature selection methods."""
 
-from typing import Optional, Union
-
 import numpy as np
 import pandas as pd
 
@@ -41,8 +39,8 @@ class StatisticalSelector(BaseSelector):
     def __init__(
         self,
         method: str = "mutual_info",
-        max_features: Optional[int] = None,
-        threshold: Optional[float] = None,
+        max_features: int | None = None,
+        threshold: float | None = None,
         verbose: bool = False,
         **kwargs,
     ):
@@ -55,9 +53,7 @@ class StatisticalSelector(BaseSelector):
         self.threshold = threshold
         self.verbose = verbose
 
-    def fit(
-        self, X: Union[pd.DataFrame, np.ndarray], y: Union[pd.Series, np.ndarray], **kwargs
-    ) -> "StatisticalSelector":
+    def fit(self, X: pd.DataFrame | np.ndarray, y: pd.Series | np.ndarray, **kwargs) -> "StatisticalSelector":
         """
         Fit selector to compute feature scores.
 
@@ -87,7 +83,7 @@ class StatisticalSelector(BaseSelector):
         else:
             raise ValueError(f"Unknown method: {self.method}")
 
-        self._feature_scores = dict(zip(X.columns, scores))
+        self._feature_scores = dict(zip(X.columns, scores, strict=False))
 
         # Select features
         self._select_features()
@@ -248,7 +244,7 @@ class StatisticalSelector(BaseSelector):
         if self.verbose:
             logger.info(f"StatisticalSelector: Selected {len(self._selected_features)} features")
 
-    def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
+    def transform(self, X: pd.DataFrame | np.ndarray, **kwargs) -> pd.DataFrame:
         """
         Select features from data.
 

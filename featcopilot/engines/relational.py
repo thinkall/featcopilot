@@ -3,8 +3,6 @@
 Generates aggregation features from related tables (inspired by Featuretools).
 """
 
-from typing import Optional, Union
-
 import numpy as np
 import pandas as pd
 from pydantic import Field
@@ -67,9 +65,9 @@ class RelationalEngine(BaseEngine):
 
     def __init__(
         self,
-        aggregation_functions: Optional[list[str]] = None,
+        aggregation_functions: list[str] | None = None,
         max_depth: int = 2,
-        max_features: Optional[int] = None,
+        max_features: int | None = None,
         verbose: bool = False,
         **kwargs,
     ):
@@ -86,7 +84,7 @@ class RelationalEngine(BaseEngine):
         self._feature_set = FeatureSet()
 
     def add_relationship(
-        self, child_table: str, parent_table: str, key_column: str, parent_key: Optional[str] = None
+        self, child_table: str, parent_table: str, key_column: str, parent_key: str | None = None
     ) -> "RelationalEngine":
         """
         Define a relationship between tables.
@@ -118,9 +116,9 @@ class RelationalEngine(BaseEngine):
 
     def fit(
         self,
-        X: Union[pd.DataFrame, np.ndarray],
-        y: Optional[Union[pd.Series, np.ndarray]] = None,
-        related_tables: Optional[dict[str, pd.DataFrame]] = None,
+        X: pd.DataFrame | np.ndarray,
+        y: pd.Series | np.ndarray | None = None,
+        related_tables: dict[str, pd.DataFrame] | None = None,
         **kwargs,
     ) -> "RelationalEngine":
         """
@@ -153,8 +151,8 @@ class RelationalEngine(BaseEngine):
 
     def transform(
         self,
-        X: Union[pd.DataFrame, np.ndarray],
-        related_tables: Optional[dict[str, pd.DataFrame]] = None,
+        X: pd.DataFrame | np.ndarray,
+        related_tables: dict[str, pd.DataFrame] | None = None,
         **kwargs,
     ) -> pd.DataFrame:
         """

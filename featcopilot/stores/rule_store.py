@@ -7,7 +7,6 @@ reusable transform rules.
 import json
 import os
 from pathlib import Path
-from typing import Optional
 
 from featcopilot.core.transform_rule import TransformRule
 from featcopilot.utils.logger import get_logger
@@ -37,7 +36,7 @@ class TransformRuleStore:
 
     DEFAULT_PATH = "~/.featcopilot/rules.json"
 
-    def __init__(self, path: Optional[str] = None):
+    def __init__(self, path: str | None = None):
         self.path = Path(os.path.expanduser(path or self.DEFAULT_PATH))
         self._rules: dict[str, TransformRule] = {}
         self._ensure_directory()
@@ -91,7 +90,7 @@ class TransformRuleStore:
         logger.info(f"Saved rule '{rule.name}' with ID {rule.id}")
         return rule.id
 
-    def get_rule(self, rule_id: str) -> Optional[TransformRule]:
+    def get_rule(self, rule_id: str) -> TransformRule | None:
         """
         Get a rule by ID.
 
@@ -107,7 +106,7 @@ class TransformRuleStore:
         """
         return self._rules.get(rule_id)
 
-    def get_rule_by_name(self, name: str) -> Optional[TransformRule]:
+    def get_rule_by_name(self, name: str) -> TransformRule | None:
         """
         Get a rule by name.
 
@@ -147,7 +146,7 @@ class TransformRuleStore:
             return True
         return False
 
-    def list_rules(self, tags: Optional[list[str]] = None) -> list[TransformRule]:
+    def list_rules(self, tags: list[str] | None = None) -> list[TransformRule]:
         """
         List all rules, optionally filtered by tags.
 
@@ -170,9 +169,9 @@ class TransformRuleStore:
 
     def find_matching_rules(
         self,
-        columns: Optional[list[str]] = None,
-        description: Optional[str] = None,
-        tags: Optional[list[str]] = None,
+        columns: list[str] | None = None,
+        description: str | None = None,
+        tags: list[str] | None = None,
         min_usage: int = 0,
     ) -> list[tuple[TransformRule, dict[str, str]]]:
         """
@@ -298,7 +297,7 @@ class TransformRuleStore:
 
         return count
 
-    def export_rules(self, path: str, tags: Optional[list[str]] = None) -> int:
+    def export_rules(self, path: str, tags: list[str] | None = None) -> int:
         """
         Export rules to a JSON file.
 

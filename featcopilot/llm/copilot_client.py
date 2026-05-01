@@ -6,7 +6,7 @@ designed for feature engineering tasks.
 
 import asyncio
 import json
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -53,7 +53,7 @@ class CopilotFeatureClient:
     >>> await client.stop()
     """
 
-    def __init__(self, config: Optional[CopilotConfig] = None, model: str = "gpt-5.2", **kwargs):
+    def __init__(self, config: CopilotConfig | None = None, model: str = "gpt-5.2", **kwargs):
         self.config = config or CopilotConfig(model=model, **kwargs)
         self._client = None
         self._session = None
@@ -216,8 +216,8 @@ class CopilotFeatureClient:
         self,
         column_info: dict[str, str],
         task_description: str,
-        column_descriptions: Optional[dict[str, str]] = None,
-        domain: Optional[str] = None,
+        column_descriptions: dict[str, str] | None = None,
+        domain: str | None = None,
         max_suggestions: int = 10,
     ) -> list[dict[str, Any]]:
         """
@@ -252,8 +252,8 @@ class CopilotFeatureClient:
         self,
         column_info: dict[str, str],
         task_description: str,
-        column_descriptions: Optional[dict[str, str]] = None,
-        domain: Optional[str] = None,
+        column_descriptions: dict[str, str] | None = None,
+        domain: str | None = None,
         max_suggestions: int = 10,
     ) -> str:
         """Build the prompt for feature suggestions."""
@@ -334,8 +334,8 @@ Return ONLY the JSON object, no other text.
         self,
         feature_name: str,
         feature_code: str,
-        column_descriptions: Optional[dict[str, str]] = None,
-        task_description: Optional[str] = None,
+        column_descriptions: dict[str, str] | None = None,
+        task_description: str | None = None,
     ) -> str:
         """
         Get a human-readable explanation of a feature.
@@ -377,7 +377,7 @@ Provide a 2-3 sentence explanation of:
         return await self.send_prompt(prompt)
 
     async def generate_feature_code(
-        self, description: str, column_info: dict[str, str], constraints: Optional[list[str]] = None
+        self, description: str, column_info: dict[str, str], constraints: list[str] | None = None
     ) -> str:
         """
         Generate Python code for a described feature.
@@ -437,7 +437,7 @@ result = df['col1'] / (df['col2'] + 1e-8)
 
         return code
 
-    async def validate_feature_code(self, code: str, sample_data: Optional[dict[str, list]] = None) -> dict[str, Any]:
+    async def validate_feature_code(self, code: str, sample_data: dict[str, list] | None = None) -> dict[str, Any]:
         """
         Validate generated feature code.
 

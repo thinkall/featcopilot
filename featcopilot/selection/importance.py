@@ -1,7 +1,5 @@
 """Model-based feature importance selection."""
 
-from typing import Optional, Union
-
 import numpy as np
 import pandas as pd
 
@@ -35,8 +33,8 @@ class ImportanceSelector(BaseSelector):
     def __init__(
         self,
         model: str = "random_forest",
-        max_features: Optional[int] = None,
-        threshold: Optional[float] = None,
+        max_features: int | None = None,
+        threshold: float | None = None,
         n_estimators: int = 100,
         verbose: bool = False,
         **kwargs,
@@ -49,9 +47,7 @@ class ImportanceSelector(BaseSelector):
         self.verbose = verbose
         self._model = None
 
-    def fit(
-        self, X: Union[pd.DataFrame, np.ndarray], y: Union[pd.Series, np.ndarray], **kwargs
-    ) -> "ImportanceSelector":
+    def fit(self, X: pd.DataFrame | np.ndarray, y: pd.Series | np.ndarray, **kwargs) -> "ImportanceSelector":
         """
         Fit selector using a tree model.
 
@@ -94,7 +90,7 @@ class ImportanceSelector(BaseSelector):
 
         if not numeric_cols:
             # No numeric columns, return empty selection
-            self._feature_scores = {col: 0.0 for col in X.columns}
+            self._feature_scores = dict.fromkeys(X.columns, 0.0)
             self._select_features()
             self._is_fitted = True
             return self
@@ -182,7 +178,7 @@ class ImportanceSelector(BaseSelector):
         if self.verbose:
             logger.info(f"ImportanceSelector: Selected {len(self._selected_features)} features")
 
-    def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
+    def transform(self, X: pd.DataFrame | np.ndarray, **kwargs) -> pd.DataFrame:
         """Select features from data."""
         if not self._is_fitted:
             raise RuntimeError("Selector must be fitted before transform")
