@@ -833,9 +833,14 @@ class TestRedundancyEliminatorCoverage:
         removed = eliminator.get_removed_features()
         assert "derived_low" in removed
 
-    def test_original_preference_kwarg_emits_deprecation_warning(self):
+    def test_original_preference_kwarg_emits_future_warning(self):
         """Passing the removed `original_preference` kwarg must warn loudly,
-        not be silently swallowed by the BaseSelector ``**kwargs`` forward."""
+        not be silently swallowed by the BaseSelector ``**kwargs`` forward.
+
+        Uses ``FutureWarning`` (visible to end users by default) rather
+        than ``DeprecationWarning`` (which Python filters by default for
+        non-developer code), so API consumers actually see the change.
+        """
         import warnings as warnings_mod
 
         with warnings_mod.catch_warnings(record=True) as caught:
@@ -844,21 +849,21 @@ class TestRedundancyEliminatorCoverage:
                 correlation_threshold=0.95,
                 original_preference=0.5,
             )
-        deprecations = [w for w in caught if issubclass(w.category, DeprecationWarning)]
-        assert len(deprecations) == 1
-        assert "original_preference" in str(deprecations[0].message)
+        future_warnings = [w for w in caught if issubclass(w.category, FutureWarning)]
+        assert len(future_warnings) == 1
+        assert "original_preference" in str(future_warnings[0].message)
         # Construction still succeeds — the value is documented as ignored.
         assert elim.correlation_threshold == 0.95
 
-    def test_no_kwarg_no_deprecation_warning(self):
-        """Default construction must NOT raise the deprecation warning
+    def test_no_kwarg_no_future_warning(self):
+        """Default construction must NOT raise the FutureWarning
         (regression guard against false positives)."""
         import warnings as warnings_mod
 
         with warnings_mod.catch_warnings(record=True) as caught:
             warnings_mod.simplefilter("always")
             RedundancyEliminator(correlation_threshold=0.95)
-        deprecations = [
-            w for w in caught if issubclass(w.category, DeprecationWarning) and "original_preference" in str(w.message)
+        future_warnings = [
+            w for w in caught if issubclass(w.category, FutureWarning) and "original_preference" in str(w.message)
         ]
-        assert deprecations == []
+        assert future_warnings == []

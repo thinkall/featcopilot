@@ -64,7 +64,7 @@ class RedundancyEliminator(BaseSelector):
                 "Original input columns are now categorically protected "
                 "from removal regardless of importance — there is no "
                 "tunable trade-off to express.",
-                DeprecationWarning,
+                FutureWarning,
                 stacklevel=2,
             )
         super().__init__(**kwargs)
