@@ -105,6 +105,12 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         Verbose output
     leakage_guard : {'off', 'warn', 'raise'}, default='warn'
         How to handle columns whose names suggest target, label, or future-information leakage
+    gate_n_jobs : int, default=1
+        Number of parallel jobs for the do-no-harm gate's internal validation
+        models (RandomForest). Defaults to ``1`` (sequential) to avoid CPU
+        oversubscription when ``AutoFeatureEngineer`` is wrapped in an outer
+        parallel CV / grid-search. Set to ``-1`` to use all cores when running
+        standalone.
 
     Other Parameters
     ----------------
@@ -138,6 +144,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         llm_config: Optional[dict[str, Any]] = None,
         verbose: bool = False,
         leakage_guard: str = "warn",
+        gate_n_jobs: int = 1,
     ):
         # Use ``is not None`` defaulting (rather than ``or``) so that explicit
         # empty containers and identity-bearing arguments are preserved. This
@@ -150,6 +157,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         self.llm_config = llm_config if llm_config is not None else {}
         self.verbose = verbose
         self.leakage_guard = leakage_guard
+        self.gate_n_jobs = gate_n_jobs
 
         self._validate_configuration()
 
@@ -646,7 +654,16 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
                 splitter = ShuffleSplit(n_splits=5, test_size=0.2, random_state=42)
                 split_target = y_arr
 
-            model_params = {"n_estimators": 50, "max_depth": 10, "random_state": 42, "n_jobs": -1}
+            model_params = {
+                "n_estimators": 50,
+                "max_depth": 10,
+                "random_state": 42,
+                # Default to single-threaded to avoid nested-parallelism /
+                # CPU oversubscription when AutoFeatureEngineer is wrapped in
+                # an outer parallel CV / grid-search. Configurable via
+                # ``gate_n_jobs`` on the constructor.
+                "n_jobs": self.gate_n_jobs,
+            }
 
             orig_scores = []
             full_scores = []

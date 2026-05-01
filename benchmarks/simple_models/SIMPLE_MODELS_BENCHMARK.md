@@ -10,10 +10,12 @@
 > python -m benchmarks.simple_models.run_simple_models_benchmark --all --n-folds 5
 > ```
 >
-> Or to reproduce just this curated subset:
+> Or to reproduce just this curated subset (15 real-world + 11 synthetic
+> datasets, in the order they appear below):
 >
 > ```bash
-> python -m benchmarks.simple_models.run_simple_models_benchmark --real-world --n-folds 5
+> python -m benchmarks.simple_models.run_simple_models_benchmark --n-folds 5 \
+>   --datasets eye_movements,higgs,california,jannis,road_safety,covertype,bioresponse,bank_marketing,diabetes,miniboone,magic_telescope,albert,credit,electricity,covertype_cat,xor_classification,polynomial_classification,complex_classification,interaction_classification,credit_risk,customer_churn,customer_support,titanic,credit_card_fraud,employee_attrition,medical_diagnosis
 > ```
 
 **Generated:** 2026-04-16 19:14:39

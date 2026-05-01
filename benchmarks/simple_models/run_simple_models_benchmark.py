@@ -148,10 +148,12 @@ def preprocess_data(X: pd.DataFrame, y, task: str) -> tuple[pd.DataFrame, np.nda
     """Preprocess data for modeling."""
     X_processed = X.copy()
 
-    # Encode categorical columns
+    # Encode categorical columns. NaN -> "missing" BEFORE astype(str) so NaN
+    # doesn't become the literal string "nan" first (which would map all NaNs
+    # to a distinct class from the intended "missing" sentinel).
     for col in X_processed.select_dtypes(include=["object", "category"]).columns:
         le = LabelEncoder()
-        X_processed[col] = le.fit_transform(X_processed[col].astype(str).fillna("missing"))
+        X_processed[col] = le.fit_transform(X_processed[col].fillna("missing").astype(str))
 
     # Fill numeric NaN
     for col in X_processed.select_dtypes(include=[np.number]).columns:
@@ -249,6 +251,44 @@ def model_supports_non_numeric(model) -> bool:
     return model.__class__.__name__ in NON_NUMERIC_MODEL_NAMES
 
 
+def _label_encode_non_numeric(X_train: pd.DataFrame, X_test: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Label-encode non-numeric columns for models that require numeric input.
+
+    Encoder is fit on **train only** to avoid information leaking from the
+    held-out fold. Unseen test categories are mapped to a sentinel code
+    ``len(classes_)`` (treated as a single "unknown" bucket). This keeps the
+    baseline-vs-FeatCopilot comparison apples-to-apples — without this helper,
+    ``run_models`` would silently drop non-numeric columns and FeatCopilot would
+    lose categorical signal that the label-encoded baseline keeps.
+
+    Parameters
+    ----------
+    X_train, X_test : DataFrame
+        Train/test frames. Numeric columns pass through unchanged.
+
+    Returns
+    -------
+    tuple of DataFrame
+        (X_train_encoded, X_test_encoded) with all columns numeric.
+    """
+    X_train_enc = X_train.copy()
+    X_test_enc = X_test.copy()
+    for col in X_train.select_dtypes(exclude=[np.number]).columns:
+        # NaN -> "missing" BEFORE str-cast so NaN doesn't end up as literal "nan".
+        train_str = X_train[col].fillna("missing").astype(str)
+        test_str = X_test[col].fillna("missing").astype(str)
+
+        le = LabelEncoder()
+        le.fit(train_str)
+        mapping = {cls: i for i, cls in enumerate(le.classes_)}
+        unknown_code = len(le.classes_)
+
+        X_train_enc[col] = train_str.map(mapping).astype(int)
+        X_test_enc[col] = test_str.map(mapping).fillna(unknown_code).astype(int)
+    return X_train_enc, X_test_enc
+
+
 def run_models(
     X_train: pd.DataFrame, X_test: pd.DataFrame, y_train, y_test, task: str, label: str, quiet: bool = False
 ) -> dict[str, dict]:
@@ -257,13 +297,22 @@ def run_models(
     results = {}
     primary_metric = get_primary_metric(task)
 
+    # Pre-compute encoded variants once. Lazily evaluated only if any model in
+    # this batch requires numeric input (i.e. doesn't support non-numeric).
+    encoded_cache: Optional[tuple[pd.DataFrame, pd.DataFrame]] = None
+
     for name, model in models.items():
         non_numeric_cols = X_train.select_dtypes(exclude=[np.number]).columns
         if len(non_numeric_cols) > 0 and not model_supports_non_numeric(model):
-            X_train_model = X_train.select_dtypes(include=[np.number])
-            X_test_model = X_test.select_dtypes(include=[np.number])
+            # Encode non-numeric columns instead of silently dropping them so the
+            # comparison stays apples-to-apples with the baseline (which already
+            # label-encodes during preprocess_data). Train-only fit + unknown
+            # bucket avoids fold leakage.
+            if encoded_cache is None:
+                encoded_cache = _label_encode_non_numeric(X_train, X_test)
+            X_train_model, X_test_model = encoded_cache
             if X_train_model.shape[1] == 0:
-                raise ValueError(f"No numeric features available for model '{name}' in {label}")
+                raise ValueError(f"No features available for model '{name}' in {label}")
         else:
             X_train_model = X_train
             X_test_model = X_test
@@ -457,11 +506,23 @@ def generate_report(results: list[dict], with_llm: bool, output_path: Path) -> N
     real_world = [r for r in results if r.get("source") == "real_world"]
     synthetic = [r for r in results if r.get("source") != "real_world"]
 
-    real_clf = [r for r in real_world if r["task"] == "classification"]
-    real_reg = [r for r in real_world if r["task"] == "regression"]
+    # Use substring matching for real-world (mirrors synthetic) so datasets with
+    # tasks like "text_classification" or "timeseries_regression" land in the
+    # right bucket instead of being counted in the summary but omitted from tables.
+    real_clf = [r for r in real_world if "classification" in r["task"]]
+    real_reg = [r for r in real_world if r["task"] in ("regression", "timeseries_regression")]
+    real_other = [
+        r
+        for r in real_world
+        if "classification" not in r["task"] and r["task"] not in ("regression", "timeseries_regression")
+    ]
     synth_clf = [r for r in synthetic if "classification" in r["task"]]
     synth_reg = [r for r in synthetic if r["task"] in ("regression", "timeseries_regression")]
-    synth_other = [r for r in synthetic if r["task"] not in ("classification", "regression", "timeseries_regression")]
+    synth_other = [
+        r
+        for r in synthetic
+        if "classification" not in r["task"] and r["task"] not in ("regression", "timeseries_regression")
+    ]
 
     # Compute summary stats
     def compute_summary(result_list: list[dict]) -> dict:
@@ -560,6 +621,8 @@ def generate_report(results: list[dict], with_llm: bool, output_path: Path) -> N
 
     report += add_results_table(real_clf, "Real-World Classification", is_regression=False)
     report += add_results_table(real_reg, "Real-World Regression", is_regression=True)
+    if real_other:
+        report += add_results_table(real_other, "Real-World Other", is_regression=False)
     report += add_results_table(synth_clf, "Synthetic Classification (Supplementary)", is_regression=False)
     report += add_results_table(synth_reg, "Synthetic Regression (Supplementary)", is_regression=True)
     if synth_other:

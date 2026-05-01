@@ -1161,3 +1161,42 @@ class TestDoNoHarmGate:
         assert mock_logger.info.called
         warning_messages = [c.args[0] for c in mock_logger.warning.call_args_list]
         assert any("Derived features not beneficial" in m for m in warning_messages)
+
+    def test_gate_n_jobs_defaults_to_one(self):
+        """``gate_n_jobs`` should default to 1 (avoids nested-parallelism oversubscription)."""
+        afe = AutoFeatureEngineer(engines=["tabular"], max_features=5)
+        assert afe.gate_n_jobs == 1
+
+    def test_gate_n_jobs_propagates_to_validation_model(self):
+        """Constructor ``gate_n_jobs`` must be forwarded to the gate's RandomForest."""
+        rng = np.random.default_rng(0)
+        n = 120
+        signal = rng.standard_normal(n)
+        y = (signal > 0).astype(int)
+        X_engineered = pd.DataFrame(
+            {
+                "orig1": signal,
+                "orig2": rng.standard_normal(n),
+                "derived1": rng.standard_normal(n),
+            }
+        )
+        original_features = {"orig1", "orig2"}
+
+        afe = self._make_fitted_engineer()
+        afe.gate_n_jobs = 3
+
+        # The gate imports RandomForestClassifier locally inside the function
+        # (``from sklearn.ensemble import RandomForestClassifier``), so the
+        # name must be patched on its source module rather than on
+        # ``featcopilot.transformers.sklearn_compat``.
+        with patch("sklearn.ensemble.RandomForestClassifier") as mock_rf_cls:
+            mock_instance = MagicMock()
+            mock_instance.score.return_value = 0.8
+            mock_rf_cls.return_value = mock_instance
+            afe._do_no_harm_gate(X_engineered, X_engineered[["orig1", "orig2"]], y, original_features)
+
+        # 5-fold splitter × 2 sides (orig + full) = 10 RF instantiations; every
+        # one must use the configured n_jobs.
+        assert mock_rf_cls.call_count >= 1
+        for call in mock_rf_cls.call_args_list:
+            assert call.kwargs.get("n_jobs") == 3
