@@ -857,6 +857,11 @@ def main():
     n_folds = 3 if args.fast else args.n_folds
     n_seeds = 1 if args.fast else args.n_seeds
 
+    if n_folds < 2:
+        parser.error(f"--n-folds must be >= 2 (got {n_folds}); cross-validation requires at least 2 folds.")
+    if n_seeds < 1:
+        parser.error(f"--n-seeds must be >= 1 (got {n_seeds}); at least one seed is required.")
+
     # Report-only mode: load from cache and regenerate report
     if args.report_only:
         results = load_cache(output_path, args.with_llm)

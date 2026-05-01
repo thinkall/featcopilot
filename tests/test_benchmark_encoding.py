@@ -350,3 +350,43 @@ def test_generate_report_header_surfaces_mixed_seeds(tmp_path):
 
     assert "**Cross-Validation:** 5-fold CV × 1–3 seed(s)" in text
     assert "n_seeds`` varies across datasets" in text
+
+
+# ---------------------------------------------------------------------------
+# CLI argument validation
+# ---------------------------------------------------------------------------
+
+
+def test_main_rejects_invalid_n_folds(monkeypatch, capsys):
+    """``main`` must fail fast when --n-folds < 2 (CV requires 2+ folds)."""
+    import pytest
+
+    from benchmarks.simple_models import run_simple_models_benchmark as bench
+
+    monkeypatch.setattr(
+        "sys.argv",
+        ["run_simple_models_benchmark.py", "--datasets", "d1", "--n-folds", "1"],
+    )
+    with pytest.raises(SystemExit) as exc_info:
+        bench.main()
+    # argparse parser.error exits with code 2.
+    assert exc_info.value.code == 2
+    err = capsys.readouterr().err
+    assert "--n-folds" in err and ">= 2" in err
+
+
+def test_main_rejects_invalid_n_seeds(monkeypatch, capsys):
+    """``main`` must fail fast when --n-seeds < 1 (would silently skip every dataset)."""
+    import pytest
+
+    from benchmarks.simple_models import run_simple_models_benchmark as bench
+
+    monkeypatch.setattr(
+        "sys.argv",
+        ["run_simple_models_benchmark.py", "--datasets", "d1", "--n-seeds", "0"],
+    )
+    with pytest.raises(SystemExit) as exc_info:
+        bench.main()
+    assert exc_info.value.code == 2
+    err = capsys.readouterr().err
+    assert "--n-seeds" in err and ">= 1" in err
