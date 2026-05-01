@@ -617,6 +617,51 @@ class TestFeatureSelectorCoverage:
         scores = [score for _, score in ranking]
         assert scores == sorted(scores, reverse=True)
 
+    def test_default_baseline_score_when_no_numeric_scores(self):
+        """When no numeric features have positive scores, categorical baseline falls back to 0.5."""
+        n = 100
+        # All-zero numeric columns have score 0; categorical column then takes the
+        # default baseline (0.5) rather than median(numeric_scores).
+        X = pd.DataFrame(
+            {
+                "num_zero1": np.zeros(n),
+                "num_zero2": np.zeros(n),
+                "cat1": pd.array(np.tile(["a", "b"], n // 2), dtype="object"),
+            }
+        )
+        y = np.array([0, 1] * (n // 2))
+        selector = FeatureSelector(
+            methods=["correlation"],
+            original_features={"num_zero1", "num_zero2", "cat1"},
+        )
+        selector.fit(X, y)
+        scores = selector.get_feature_scores()
+        # cat1 should receive the 0.5 default baseline (since all numeric scores are 0).
+        assert scores.get("cat1", 0) == pytest.approx(0.5)
+
+    def test_safety_adds_original_not_in_X(self):
+        """Original features set may include names not present in X — safety branch must add them back."""
+        np.random.seed(42)
+        n = 100
+        X = pd.DataFrame(
+            {
+                "a": np.random.randn(n),
+                "b": np.random.randn(n),
+                "c": np.random.randn(n),
+            }
+        )
+        y = np.array([0, 1] * (n // 2))
+        # "missing" is in original_features but not in X.columns. After _final_selection,
+        # _selected_features will only contain a/b/c (3 < 4 = len(original_features)),
+        # so the safety branch must append "missing".
+        selector = FeatureSelector(
+            methods=["mutual_info"],
+            original_features={"a", "b", "c", "missing"},
+        )
+        selector.fit(X, y)
+        selected = selector.get_selected_features()
+        assert "missing" in selected
+
 
 class TestRedundancyEliminatorCoverage:
     """Additional coverage tests for RedundancyEliminator."""
@@ -737,3 +782,53 @@ class TestRedundancyEliminatorCoverage:
         corr_matrix = eliminator.get_correlation_matrix()
         assert isinstance(corr_matrix, pd.DataFrame)
         assert corr_matrix.shape == (2, 2)
+
+    def test_two_derived_correlated_lower_imp_first_removed(self):
+        """Both derived correlated, imp(col1) < imp(col2) -> col1 removed via break, verbose log."""
+        np.random.seed(0)
+        n = 100
+        base = np.random.randn(n)
+        # Three derived features all correlated with `base`. importance ordering:
+        # derived_low < derived_mid < derived_high. The pair-by-pair loop will hit
+        # the imp1 < imp2 branch (which breaks the inner loop) when col1 has the
+        # lowest importance.
+        X = pd.DataFrame(
+            {
+                "derived_low": base + np.random.randn(n) * 0.001,
+                "derived_mid": base + np.random.randn(n) * 0.001,
+                "derived_high": base + np.random.randn(n) * 0.001,
+            }
+        )
+        eliminator = RedundancyEliminator(
+            correlation_threshold=0.95,
+            importance_scores={"derived_low": 0.1, "derived_mid": 0.5, "derived_high": 0.9},
+            original_features=set(),  # all derived -> falls into the "both derived" branch
+            verbose=True,
+        )
+        eliminator.fit(X)
+        removed = eliminator.get_removed_features()
+        # The lowest-importance derived feature must be among the removed set.
+        assert "derived_low" in removed
+
+    def test_two_derived_correlated_higher_imp_first_keeps(self):
+        """Both derived correlated, imp(col1) >= imp(col2) -> col2 removed (verbose log)."""
+        np.random.seed(1)
+        n = 100
+        base = np.random.randn(n)
+        # First column has the higher importance score, so the "both derived"
+        # branch will take the imp1 >= imp2 path and remove col2 (with verbose log).
+        X = pd.DataFrame(
+            {
+                "derived_high": base + np.random.randn(n) * 0.001,
+                "derived_low": base + np.random.randn(n) * 0.001,
+            }
+        )
+        eliminator = RedundancyEliminator(
+            correlation_threshold=0.95,
+            importance_scores={"derived_high": 0.9, "derived_low": 0.1},
+            original_features=set(),
+            verbose=True,
+        )
+        eliminator.fit(X)
+        removed = eliminator.get_removed_features()
+        assert "derived_low" in removed

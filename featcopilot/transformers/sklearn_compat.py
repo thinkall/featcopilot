@@ -481,6 +481,67 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
 
         return result
 
+    @staticmethod
+    def _encode_for_gate(df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Build a numeric matrix for the do-no-harm gate.
+
+        Numeric columns pass through unchanged. Scalar non-numeric columns
+        (``bool``, ``category``, scalar ``object``) are ordinal-encoded via
+        ``pd.Categorical(...).codes``. Datetime columns are converted to int64
+        nanoseconds. Object columns whose values are not scalar (e.g., embeddings
+        stored as numpy arrays / lists / dicts) are skipped — encoding them
+        would create row-id-like codes that fool the model rather than
+        carrying real signal.
+
+        Parameters
+        ----------
+        df : DataFrame
+            Input frame, possibly mixing numeric and non-numeric columns.
+
+        Returns
+        -------
+        DataFrame
+            Numeric matrix with the original index. Empty if no usable columns
+            remain.
+        """
+        numeric_part = df.select_dtypes(include=[np.number, "bool"]).copy()
+        # bool dtype already encodes cleanly; cast for downstream consistency.
+        for col in numeric_part.select_dtypes(include=["bool"]).columns:
+            numeric_part[col] = numeric_part[col].astype(np.int8)
+
+        encoded_cols: dict[str, pd.Series] = {}
+        for col in df.columns:
+            if col in numeric_part.columns:
+                continue
+            series = df[col]
+            dtype = series.dtype
+
+            if pd.api.types.is_datetime64_any_dtype(dtype):
+                encoded_cols[col] = series.astype("int64")
+                continue
+
+            if isinstance(dtype, pd.CategoricalDtype):
+                encoded_cols[col] = pd.Series(pd.Categorical(series.astype(str)).codes, index=series.index, name=col)
+                continue
+
+            if pd.api.types.is_object_dtype(dtype) or pd.api.types.is_string_dtype(dtype):
+                # Skip object columns containing non-scalar values (arrays, lists,
+                # dicts, ...) — ordinal-encoding by str() would produce row-id-like
+                # codes that fool the gate model rather than reflecting real signal.
+                non_null = series.dropna()
+                if len(non_null) == 0:
+                    continue
+                sample = non_null.iloc[0]
+                if not np.isscalar(sample) and not isinstance(sample, (str, bytes)):
+                    continue
+                encoded_cols[col] = pd.Series(pd.Categorical(series.astype(str)).codes, index=series.index, name=col)
+
+        if encoded_cols:
+            extra = pd.DataFrame(encoded_cols, index=df.index)
+            return pd.concat([numeric_part, extra], axis=1)
+        return numeric_part
+
     def _do_no_harm_gate(
         self,
         X_engineered: pd.DataFrame,
@@ -498,10 +559,14 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         The original-only baseline is built from ``X_original`` (the truly
         original input), not from a column-subset of ``X_engineered``, so the
         comparison stays meaningful even if selection or downstream steps drop
-        or rename original columns in the engineered frame.
+        or rename original columns in the engineered frame. Non-numeric original
+        columns (categorical / string / datetime / bool) are ordinal-encoded so
+        signal carried by them is reflected in the baseline (see
+        :meth:`_encode_for_gate`).
 
         Falls back to original features if derived features don't show
-        clear benefit on the held-out set.
+        clear benefit on the held-out set, or — fail-closed — if validation
+        raises an exception.
 
         Parameters
         ----------
@@ -538,20 +603,31 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         if len(derived_cols) == 0:
             return X_engineered
 
-        # Use only numeric columns for the gate check
-        X_orig_numeric = X_original_df.select_dtypes(include=[np.number])
-        X_full_numeric = X_engineered.select_dtypes(include=[np.number])
+        orig_cols_in_engineered = [c for c in X_engineered.columns if c in original_features]
 
-        if X_orig_numeric.shape[1] == 0 or X_full_numeric.shape[1] == 0:
+        def _conservative_fallback() -> pd.DataFrame:
+            """Drop derived features and pin selector to original-only columns."""
+            if self._selector is not None:
+                self._selector.set_selected_features(orig_cols_in_engineered)
+            return X_engineered[orig_cols_in_engineered]
+
+        # Build numeric-encoded matrices that include ordinal-encoded categorical /
+        # string / datetime / bool columns so the baseline isn't artificially weak
+        # when signal lives in non-numeric original columns.
+        X_orig_for_gate = self._encode_for_gate(X_original_df)
+        X_full_for_gate = self._encode_for_gate(X_engineered)
+
+        if X_orig_for_gate.shape[1] == 0 or X_full_for_gate.shape[1] == 0:
+            # Nothing to compare — leave engineered frame untouched.
             return X_engineered
 
         # Align indices so positional iloc() lines up between the two matrices.
-        if not X_orig_numeric.index.equals(X_full_numeric.index):
-            X_orig_numeric = X_orig_numeric.reset_index(drop=True)
-            X_full_numeric = X_full_numeric.reset_index(drop=True)
+        if not X_orig_for_gate.index.equals(X_full_for_gate.index):
+            X_orig_for_gate = X_orig_for_gate.reset_index(drop=True)
+            X_full_for_gate = X_full_for_gate.reset_index(drop=True)
 
-        X_orig_numeric = X_orig_numeric.replace([np.inf, -np.inf], np.nan).fillna(0)
-        X_full_numeric = X_full_numeric.replace([np.inf, -np.inf], np.nan).fillna(0)
+        X_orig_for_gate = X_orig_for_gate.replace([np.inf, -np.inf], np.nan).fillna(0)
+        X_full_for_gate = X_full_for_gate.replace([np.inf, -np.inf], np.nan).fillna(0)
 
         try:
             # Use sklearn's task inference so bool / nullable Int64 / float-encoded
@@ -575,22 +651,22 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             orig_scores = []
             full_scores = []
 
-            for train_idx, val_idx in splitter.split(X_orig_numeric, split_target):
+            for train_idx, val_idx in splitter.split(X_orig_for_gate, split_target):
                 # Fit and score on held-out data
                 m_orig = model_cls(**model_params)
-                m_orig.fit(X_orig_numeric.iloc[train_idx], y_arr[train_idx])
-                orig_scores.append(m_orig.score(X_orig_numeric.iloc[val_idx], y_arr[val_idx]))
+                m_orig.fit(X_orig_for_gate.iloc[train_idx], y_arr[train_idx])
+                orig_scores.append(m_orig.score(X_orig_for_gate.iloc[val_idx], y_arr[val_idx]))
 
                 m_full = model_cls(**model_params)
-                m_full.fit(X_full_numeric.iloc[train_idx], y_arr[train_idx])
-                full_scores.append(m_full.score(X_full_numeric.iloc[val_idx], y_arr[val_idx]))
+                m_full.fit(X_full_for_gate.iloc[train_idx], y_arr[train_idx])
+                full_scores.append(m_full.score(X_full_for_gate.iloc[val_idx], y_arr[val_idx]))
 
             orig_mean = np.mean(orig_scores)
             full_mean = np.mean(full_scores)
             improvement = full_mean - orig_mean
 
             # Scale threshold by feature ratio — more added features = higher bar
-            n_orig = max(X_orig_numeric.shape[1], 1)
+            n_orig = max(X_orig_for_gate.shape[1], 1)
             feature_ratio = len(derived_cols) / n_orig
             threshold = 0.001 + 0.001 * feature_ratio
 
@@ -603,9 +679,6 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
 
             # Require clear positive benefit to keep derived features
             if improvement < threshold:
-                # Names of original features that survived selection / are present
-                # in the engineered frame — these are what we keep on fall-back.
-                orig_cols_in_engineered = [c for c in X_engineered.columns if c in original_features]
                 if self.verbose:
                     logger.warning(
                         f"Do-no-harm: Derived features not beneficial ({improvement:+.4f}). "
@@ -615,13 +688,18 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
                 # subsequent transform() calls (e.g. inside a sklearn Pipeline)
                 # emit the same feature set as fit_transform. Use the public
                 # setter on BaseSelector instead of mutating private state.
-                if self._selector is not None:
-                    self._selector.set_selected_features(orig_cols_in_engineered)
-                return X_engineered[orig_cols_in_engineered]
+                return _conservative_fallback()
 
         except Exception as e:
-            if self.verbose:
-                logger.warning(f"Do-no-harm gate skipped due to error: {e}")
+            # Fail-closed: a "do-no-harm" gate that silently keeps engineered
+            # features on validation failure isn't doing its job. Always log,
+            # not just when verbose, and conservatively fall back to original
+            # columns + pin the selector to that set.
+            logger.warning(
+                f"Do-no-harm gate failed ({type(e).__name__}: {e}); "
+                f"conservatively falling back to {len(orig_cols_in_engineered)} original features."
+            )
+            return _conservative_fallback()
 
         return X_engineered
 

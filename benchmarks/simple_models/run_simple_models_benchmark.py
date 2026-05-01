@@ -330,6 +330,9 @@ def run_single_benchmark(
         n_features_generated = []
 
         seeds = [42 + i * 7 for i in range(n_seeds)]
+        if not seeds:
+            print("  Skipping: n_seeds must be >= 1")
+            return None
 
         # Time-series / forecasting tasks need chronological folds — using
         # KFold(shuffle=True) here would leak future information into training
@@ -337,13 +340,22 @@ def run_single_benchmark(
         # in benchmarks/splits.split_benchmark_data.
         is_time_series = "forecast" in task or "timeseries" in task
 
-        for seed in seeds:
+        # TimeSeriesSplit ignores random_state by design, so averaging across
+        # multiple seeds would not vary the CV folds at all. Surface this once
+        # and run a single pass instead of silently dropping seeds inside the
+        # loop (which previously made results['n_seeds'] misleading).
+        if is_time_series and n_seeds > 1:
+            print(
+                f"  Note: TimeSeriesSplit ignores random_state; --n-seeds={n_seeds} "
+                f"has no effect for {task} task. Running 1 pass instead."
+            )
+            effective_seeds = [seeds[0]]
+        else:
+            effective_seeds = seeds
+        effective_n_seeds = len(effective_seeds)
+
+        for seed in effective_seeds:
             if is_time_series:
-                # TimeSeriesSplit ignores random_state by design; emit one warning
-                # the first time we'd otherwise vary the seed so users aren't
-                # surprised that --n-seeds has no effect on time-series datasets.
-                if seed != seeds[0]:
-                    continue
                 kf = TimeSeriesSplit(n_splits=n_folds)
                 split_iter = kf.split(X_processed)
             elif "classification" in task and len(np.unique(y_processed)) < 50:
@@ -412,7 +424,7 @@ def run_single_benchmark(
             "n_samples": len(X),
             "n_features_original": X.shape[1],
             "n_folds": n_folds,
-            "n_seeds": n_seeds,
+            "n_seeds": effective_n_seeds,
             "with_llm": with_llm,
             "baseline_best_score": baseline_mean,
             "baseline_std": baseline_std,

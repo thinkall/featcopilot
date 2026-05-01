@@ -733,12 +733,6 @@ class TestPackageImport:
 class TestDoNoHarmGate:
     """Tests for AutoFeatureEngineer._do_no_harm_gate."""
 
-    def _make_engineered_frame(self, original_cols, derived_cols, n_rows=200, seed=0):
-        """Build a (X_engineered, original_features) pair with the given columns."""
-        rng = np.random.default_rng(seed)
-        data = {col: rng.standard_normal(n_rows) for col in original_cols + derived_cols}
-        return pd.DataFrame(data), set(original_cols)
-
     def _make_fitted_engineer(self):
         """Create an AutoFeatureEngineer with a stub selector so the gate gating allows entry."""
         afe = AutoFeatureEngineer(engines=["tabular"], max_features=5, verbose=False)
@@ -916,3 +910,254 @@ class TestDoNoHarmGate:
         # and transform() should produce a column set consistent with fit_transform.
         result_transform = afe.transform(df)
         assert list(result_transform.columns) == list(result_fit.columns)
+
+    def test_gate_falls_back_on_exception(self):
+        """When validation raises, the gate must fail-closed: drop derived + warn unconditionally."""
+        rng = np.random.default_rng(11)
+        n = 100
+        y = rng.integers(0, 2, size=n)
+        X_engineered = pd.DataFrame(
+            {
+                "orig_num": rng.standard_normal(n),
+                "derived_a": rng.standard_normal(n),
+                "derived_b": rng.standard_normal(n),
+            }
+        )
+        original_features = {"orig_num"}
+        X_original = X_engineered[["orig_num"]]
+
+        afe = self._make_fitted_engineer()
+        # verbose=False explicitly — warning must be logged regardless of verbose.
+        afe.verbose = False
+
+        # Force the validation try-block to raise by making RandomForestClassifier fit fail.
+        # The featcopilot logger has propagate=False, so caplog can't see records
+        # via root propagation — patch the module logger directly to capture the call.
+        with (
+            patch("sklearn.ensemble.RandomForestClassifier") as mock_clf,
+            patch("featcopilot.transformers.sklearn_compat.logger") as mock_logger,
+        ):
+            mock_clf.return_value.fit.side_effect = RuntimeError("synthetic gate failure")
+            result = afe._do_no_harm_gate(X_engineered, X_original, y, original_features)
+
+        # Conservative fall-back: only original column survives.
+        assert list(result.columns) == ["orig_num"]
+        # Selector pinned to original-only via public setter.
+        afe._selector.set_selected_features.assert_called_once_with(["orig_num"])
+        assert afe._selector._selected_features == ["orig_num"]
+        # Warning emitted unconditionally (verbose=False).
+        assert mock_logger.warning.called
+        warn_msg = mock_logger.warning.call_args[0][0]
+        assert "Do-no-harm gate failed" in warn_msg
+        assert "synthetic gate failure" in warn_msg
+
+    def test_gate_uses_categorical_baseline(self):
+        """Categorical original columns must contribute to the baseline (not be silently dropped)."""
+        rng = np.random.default_rng(13)
+        n = 300
+        # The categorical "cat_signal" perfectly determines y. The numeric original
+        # column is pure noise. Without ordinal-encoding, the baseline would be
+        # noise-only and the gate would be fooled into keeping derived noise.
+        cats = rng.choice(["a", "b", "c", "d"], size=n)
+        cat_to_label = {"a": 0, "b": 1, "c": 0, "d": 1}
+        y = np.array([cat_to_label[c] for c in cats])
+
+        X_original = pd.DataFrame(
+            {
+                "num_noise": rng.standard_normal(n),
+                "cat_signal": pd.array(cats, dtype="object"),
+            }
+        )
+        X_engineered = pd.DataFrame(
+            {
+                "num_noise": X_original["num_noise"],
+                "cat_signal": X_original["cat_signal"],
+                "derived_noise1": rng.standard_normal(n),
+                "derived_noise2": rng.standard_normal(n),
+                "derived_noise3": rng.standard_normal(n),
+            }
+        )
+        original_features = {"num_noise", "cat_signal"}
+
+        afe = self._make_fitted_engineer()
+        result = afe._do_no_harm_gate(X_engineered, X_original, y, original_features)
+
+        # Encoded categorical baseline beats noise-only derived -> conservative fall-back.
+        assert set(result.columns) == {"num_noise", "cat_signal"}
+        afe._selector.set_selected_features.assert_called_once()
+        called_with = afe._selector.set_selected_features.call_args[0][0]
+        assert set(called_with) == {"num_noise", "cat_signal"}
+
+    def test_gate_skips_unsupported_object_columns(self):
+        """Object columns containing non-scalar values (arrays/lists) must not be ordinal-encoded."""
+        rng = np.random.default_rng(17)
+        n = 60
+        df = pd.DataFrame(
+            {
+                "num": rng.standard_normal(n),
+                "embedding": [list(rng.standard_normal(4)) for _ in range(n)],
+                "cat": pd.array(rng.choice(["x", "y"], size=n), dtype="object"),
+            }
+        )
+
+        encoded = AutoFeatureEngineer._encode_for_gate(df)
+
+        # Numeric and scalar-categorical columns survive; the embedding column is dropped
+        # (encoding it as str-of-list would create row-id-like codes that fool the model).
+        assert "num" in encoded.columns
+        assert "cat" in encoded.columns
+        assert "embedding" not in encoded.columns
+        # Encoded categorical column is integer-coded.
+        assert pd.api.types.is_integer_dtype(encoded["cat"])
+
+    def test_gate_returns_engineered_when_no_usable_columns(self):
+        """If neither frame yields usable columns after encoding, gate must no-op."""
+        rng = np.random.default_rng(19)
+        n = 40
+        # Both frames contain only embedding-like object columns -> _encode_for_gate
+        # returns an empty matrix and the gate must leave X_engineered untouched.
+        X_original = pd.DataFrame({"emb": [list(rng.standard_normal(3)) for _ in range(n)]})
+        X_engineered = pd.DataFrame(
+            {
+                "emb": [list(rng.standard_normal(3)) for _ in range(n)],
+                "derived_emb": [list(rng.standard_normal(3)) for _ in range(n)],
+            }
+        )
+        y = rng.integers(0, 2, size=n)
+
+        afe = self._make_fitted_engineer()
+        result = afe._do_no_harm_gate(X_engineered, X_original, y, {"emb"})
+
+        # Untouched: gate had no usable columns to compare.
+        assert list(result.columns) == ["emb", "derived_emb"]
+        afe._selector.set_selected_features.assert_not_called()
+
+    def test_encode_for_gate_handles_bool_datetime_category(self):
+        """_encode_for_gate must encode bool, datetime, and pd.Categorical dtypes."""
+        n = 20
+        df = pd.DataFrame(
+            {
+                "num": np.arange(n, dtype=float),
+                "flag": np.array([True, False] * (n // 2)),
+                "ts": pd.date_range("2024-01-01", periods=n, freq="D"),
+                "cat": pd.Categorical(np.tile(["x", "y"], n // 2)),
+                "empty_obj": pd.array([None] * n, dtype="object"),
+            }
+        )
+        encoded = AutoFeatureEngineer._encode_for_gate(df)
+
+        # Bool column was cast to int8 within the numeric block.
+        assert "flag" in encoded.columns
+        assert encoded["flag"].dtype == np.int8
+        # Datetime column converted to int64 nanoseconds.
+        assert "ts" in encoded.columns
+        assert pd.api.types.is_integer_dtype(encoded["ts"])
+        # Categorical column ordinal-encoded.
+        assert "cat" in encoded.columns
+        assert pd.api.types.is_integer_dtype(encoded["cat"])
+        # All-null object column is skipped.
+        assert "empty_obj" not in encoded.columns
+
+    def test_gate_handles_ndarray_x_original(self):
+        """X_original passed as np.ndarray must be wrapped into a DataFrame internally."""
+        rng = np.random.default_rng(23)
+        n = 100
+        X_orig_arr = rng.standard_normal((n, 2))
+        # Engineered frame uses the auto-generated feature names so the original
+        # set matches once X_original is wrapped via feature_{i} naming.
+        X_engineered = pd.DataFrame(
+            {
+                "feature_0": X_orig_arr[:, 0],
+                "feature_1": X_orig_arr[:, 1],
+                "derived_noise": rng.standard_normal(n),
+            }
+        )
+        y = (X_orig_arr[:, 0] > 0).astype(int)
+        original_features = {"feature_0", "feature_1"}
+
+        afe = self._make_fitted_engineer()
+        result = afe._do_no_harm_gate(X_engineered, X_orig_arr, y, original_features)
+
+        # Either keep-all or fall-back to original-only — both are valid for noise derived,
+        # but the call must not raise and must return a DataFrame.
+        assert isinstance(result, pd.DataFrame)
+        assert {"feature_0", "feature_1"}.issubset(set(result.columns))
+
+    def test_gate_handles_regression_target(self):
+        """Continuous target must route through the regressor branch (not classifier)."""
+        rng = np.random.default_rng(29)
+        n = 200
+        signal = rng.standard_normal(n)
+        y = signal * 3.0 + rng.standard_normal(n) * 0.1  # continuous regression target
+        X_engineered = pd.DataFrame(
+            {
+                "orig": signal,
+                "derived_noise1": rng.standard_normal(n),
+                "derived_noise2": rng.standard_normal(n),
+            }
+        )
+        original_features = {"orig"}
+
+        afe = self._make_fitted_engineer()
+        with (
+            patch("sklearn.ensemble.RandomForestRegressor") as mock_reg,
+            patch("sklearn.ensemble.RandomForestClassifier") as mock_clf,
+        ):
+            inst = MagicMock()
+            inst.score.return_value = 0.5
+            mock_reg.return_value = inst
+            mock_clf.return_value = inst
+            afe._do_no_harm_gate(X_engineered, X_engineered[["orig"]], y, original_features)
+
+        # type_of_target() on continuous floats -> "continuous" -> regressor path.
+        assert mock_reg.called
+        assert not mock_clf.called
+
+    def test_gate_aligns_misaligned_indices(self):
+        """X_original and X_engineered with mismatched indices must be re-aligned positionally."""
+        rng = np.random.default_rng(31)
+        n = 100
+        signal = rng.standard_normal(n)
+        y = (signal > 0).astype(int)
+        # X_original has a non-default index; X_engineered uses a different index.
+        X_original = pd.DataFrame({"orig": signal}, index=range(100, 100 + n))
+        X_engineered = pd.DataFrame(
+            {
+                "orig": signal,
+                "derived_noise": rng.standard_normal(n),
+            },
+            index=range(n),
+        )
+        original_features = {"orig"}
+
+        afe = self._make_fitted_engineer()
+        # Should not raise despite mismatched indices.
+        result = afe._do_no_harm_gate(X_engineered, X_original, y, original_features)
+        assert isinstance(result, pd.DataFrame)
+
+    def test_gate_verbose_emits_fallback_warning(self):
+        """verbose=True must surface the fall-back warning when derived features don't help."""
+        rng = np.random.default_rng(37)
+        n = 200
+        signal = rng.standard_normal(n)
+        y = (signal > 0).astype(int)
+        X_engineered = pd.DataFrame(
+            {
+                "orig": signal,
+                "derived_noise1": rng.standard_normal(n),
+                "derived_noise2": rng.standard_normal(n),
+                "derived_noise3": rng.standard_normal(n),
+            }
+        )
+        original_features = {"orig"}
+
+        afe = self._make_fitted_engineer()
+        afe.verbose = True
+
+        with patch("featcopilot.transformers.sklearn_compat.logger") as mock_logger:
+            afe._do_no_harm_gate(X_engineered, X_engineered[["orig"]], y, original_features)
+
+        # info() reports gate scores; warning() reports the fall-back.
+        assert mock_logger.info.called
+        warning_messages = [c.args[0] for c in mock_logger.warning.call_args_list]
+        assert any("Derived features not beneficial" in m for m in warning_messages)
