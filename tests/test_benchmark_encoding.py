@@ -666,3 +666,108 @@ def test_generate_report_buckets_legacy_results_via_registry(tmp_path):
     # be empty / show 0 datasets.
     assert "fake_news" in body, "legacy real_world dataset must surface in report"
     assert "titanic" in body, "legacy synthetic dataset must surface in report"
+
+
+# =============================================================================
+# save_cache: numpy.bool_ JSON serialization (regression for full-benchmark
+# crash where ``significant = p_value < 0.05`` is np.bool_ and json.dump fails)
+# =============================================================================
+
+
+def test_save_cache_handles_numpy_bool_in_significant_field(tmp_path):
+    """``significant`` is ``p_value < 0.05`` where ``p_value`` is a numpy
+    float, so the comparison yields ``numpy.bool_``. The default ``json``
+    encoder treats ``numpy.bool_`` as non-serializable on NumPy <2 because
+    it isn't a Python ``bool`` subclass for ``json``'s purposes.
+
+    Regression test for a real crash observed during a full ``--all`` run:
+    after benchmarking 63 datasets for 3+ hours, ``save_cache`` raised
+    ``TypeError: Object of type bool is not JSON serializable`` and the
+    in-memory results were lost. Cast to native ``bool`` explicitly.
+    """
+    import json as json_mod
+
+    import numpy as np
+
+    from benchmarks.simple_models.run_simple_models_benchmark import save_cache
+
+    results = [
+        {
+            "dataset": "synth",
+            "task": "classification",
+            "source": "synthetic",
+            "p_value": np.float64(0.03),
+            "significant": np.bool_(True),
+            "tabular_improvement_pct": np.float64(2.5),
+            # Nested dict with numpy.bool_ should also work.
+            "metadata": {"converged": np.bool_(False), "lr": np.float64(0.01)},
+        }
+    ]
+    save_cache(results, tmp_path, with_llm=False)
+    cache_file = tmp_path / "SIMPLE_MODELS_CACHE.json"
+    loaded = json_mod.loads(cache_file.read_text(encoding="utf-8"))
+    assert loaded[0]["significant"] is True
+    assert isinstance(loaded[0]["significant"], bool)
+    assert loaded[0]["metadata"]["converged"] is False
+    assert isinstance(loaded[0]["metadata"]["converged"], bool)
+
+
+def test_main_generates_report_even_when_save_cache_would_fail(monkeypatch, tmp_path):
+    """If ``save_cache`` raises (e.g. a future numpy dtype the converter
+    doesn't yet handle), the in-memory results should still produce a
+    written report so the 3-hour run isn't wasted. Verify by patching
+    ``save_cache`` to always raise."""
+    import sys
+
+    from benchmarks.simple_models import run_simple_models_benchmark as bench
+
+    sample = {
+        "dataset": "titanic",
+        "task": "classification",
+        "source": "synthetic",
+        "loader_name": "Titanic (Kaggle-style)",
+        "n_samples": 100,
+        "n_features_original": 5,
+        "n_folds": 5,
+        "n_seeds": 1,
+        "with_llm": False,
+        "baseline_best_score": 0.8,
+        "baseline_std": 0.01,
+        "tabular_best_score": 0.81,
+        "tabular_std": 0.01,
+        "tabular_improvement_pct": 1.25,
+        "p_value": 0.04,
+        "significant": True,
+        "n_features_tabular": 6,
+        "fe_time_tabular": 0.1,
+        "engines_used": ["tabular"],
+        "baseline_fold_scores": [0.8] * 5,
+        "tabular_fold_scores": [0.81] * 5,
+    }
+    monkeypatch.setattr(bench, "run_single_benchmark", lambda *a, **kw: sample)
+
+    def boom(*a, **kw):
+        raise TypeError("simulated serialization failure")
+
+    monkeypatch.setattr(bench, "save_cache", boom)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["bench", "--datasets", "titanic", "--output", str(tmp_path)],
+    )
+
+    # main() should propagate the save_cache exception, but only AFTER
+    # generate_report has already written the markdown.
+    try:
+        bench.main()
+    except TypeError as e:
+        assert "simulated serialization failure" in str(e)
+    else:
+        # If save_cache wasn't even called (e.g. no_cache=True path), the
+        # report should still exist; that's acceptable too.
+        pass
+
+    report = tmp_path / "SIMPLE_MODELS_BENCHMARK.md"
+    assert report.exists(), "report must be written even if save_cache raises"
+    body = report.read_text(encoding="utf-8")
+    assert "titanic" in body

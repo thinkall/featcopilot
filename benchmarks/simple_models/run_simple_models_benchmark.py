@@ -891,17 +891,32 @@ def get_cache_file(output_path: Path, with_llm: bool) -> Path:
 def save_cache(results: list[dict], output_path: Path, with_llm: bool) -> None:
     """Save benchmark results to cache file."""
     cache_file = get_cache_file(output_path, with_llm)
-    # Convert numpy types to native Python types for JSON serialization
+    # Convert numpy types to native Python types for JSON serialization.
+    # ``np.bool_`` is intentionally listed BEFORE ``np.integer`` because on
+    # NumPy < 2.0 ``np.bool_`` is registered as a subtype of ``np.generic``
+    # but is **not** a subclass of Python ``bool`` for ``json``'s purposes,
+    # so the default encoder raises ``TypeError``. (The ``significant``
+    # field returned by ``p_value < 0.05`` is a ``np.bool_`` because
+    # ``p_value`` comes from scipy as a numpy float.)
     serializable_results = []
     for r in results:
         sr = {}
         for k, v in r.items():
-            if isinstance(v, (np.floating, np.integer)):
+            if isinstance(v, np.bool_):
+                sr[k] = bool(v)
+            elif isinstance(v, (np.floating, np.integer)):
                 sr[k] = float(v)
             elif isinstance(v, np.ndarray):
                 sr[k] = v.tolist()
             elif isinstance(v, dict):
-                sr[k] = {kk: float(vv) if isinstance(vv, (np.floating, np.integer)) else vv for kk, vv in v.items()}
+                sr[k] = {
+                    kk: (
+                        bool(vv)
+                        if isinstance(vv, np.bool_)
+                        else float(vv) if isinstance(vv, (np.floating, np.integer)) else vv
+                    )
+                    for kk, vv in v.items()
+                }
             else:
                 sr[k] = v
         serializable_results.append(sr)
@@ -994,11 +1009,15 @@ def main():
         if result:
             results.append(result)
 
-    # Save cache and generate report
+    # Save cache and generate report. Generate the report FIRST so that
+    # a serialization failure in ``save_cache`` (e.g., a future numpy dtype
+    # the converter doesn't yet handle) doesn't prevent the report from
+    # being written — the in-memory results survive that path even if the
+    # JSON cache doesn't.
     if results:
+        generate_report(results, args.with_llm, output_path)
         if not args.no_cache:
             save_cache(results, output_path, args.with_llm)
-        generate_report(results, args.with_llm, output_path)
 
 
 if __name__ == "__main__":
