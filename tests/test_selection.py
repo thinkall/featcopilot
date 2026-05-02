@@ -909,3 +909,30 @@ class TestRedundancyEliminatorCoverage:
         ]
         assert future_warnings == [], "Legacy positional call must not trigger original_preference FutureWarning"
         assert elim.verbose is True
+
+    def test_original_preference_attribute_preserved_for_legacy_readers(self):
+        """``RedundancyEliminator.original_preference`` must remain a readable
+        attribute even though the value has no effect.
+
+        Regression test for Copilot review on commit d501114: a previous
+        revision dropped ``self.original_preference = original_preference``
+        from ``__init__``, which would crash legacy code that reads the
+        attribute after construction (e.g., for logging, hyperparameter
+        introspection, or sklearn's ``get_params`` / ``set_params``
+        round-trip) with ``AttributeError``.
+        """
+        import warnings as warnings_mod
+
+        # Default (None) — attribute exists with the default value.
+        with warnings_mod.catch_warnings(record=True):
+            warnings_mod.simplefilter("always")
+            elim_default = RedundancyEliminator(correlation_threshold=0.95)
+        assert hasattr(elim_default, "original_preference")
+        assert elim_default.original_preference is None
+
+        # Explicit value — attribute reflects what the caller passed in,
+        # even though the value is documented to have no effect.
+        with warnings_mod.catch_warnings(record=True):
+            warnings_mod.simplefilter("always")
+            elim_legacy = RedundancyEliminator(correlation_threshold=0.95, original_preference=0.5)
+        assert elim_legacy.original_preference == 0.5

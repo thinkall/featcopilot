@@ -81,6 +81,13 @@ class RedundancyEliminator(BaseSelector):
         self.method = method
         self.importance_scores = importance_scores or {}
         self.original_features = original_features or set()
+        # Persist the deprecated ``original_preference`` parameter so legacy
+        # callers that read ``eliminator.original_preference`` after
+        # construction don't crash with ``AttributeError``. The value has
+        # no effect on behavior — originals are categorically protected
+        # regardless — but the attribute is preserved for read-only
+        # backward compatibility.
+        self.original_preference = original_preference
         self.verbose = verbose
         self._correlation_matrix: pd.DataFrame | None = None
 
