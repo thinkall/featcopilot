@@ -70,14 +70,20 @@ class CopilotFeatureClient:
         """
         try:
             from copilot import CopilotClient
+            from copilot.session import PermissionHandler
 
             self._client = CopilotClient()
             await self._client.start()
+            # ``on_permission_request`` is required by the Copilot SDK
+            # (since v0.1.32+; mandatory in v0.3.0); pass ``approve_all``
+            # so the SDK doesn't block on interactive permission prompts
+            # (the benchmarks / feature-engineering workflow has no
+            # human-in-the-loop). We pass everything as keyword args
+            # because v0.3.0 made ``create_session`` keyword-only.
             self._session = await self._client.create_session(
-                {
-                    "model": self.config.model,
-                    "streaming": self.config.streaming,
-                }
+                on_permission_request=PermissionHandler.approve_all,
+                model=self.config.model,
+                streaming=self.config.streaming,
             )
             self._is_started = True
             self._copilot_available = True
@@ -99,7 +105,15 @@ class CopilotFeatureClient:
     async def stop(self) -> None:
         """Stop the Copilot client."""
         if self._session and self._copilot_available:
-            await self._session.destroy()
+            # ``destroy()`` was renamed to ``disconnect()`` in the
+            # Copilot SDK 0.3.x; ``destroy()`` still works but emits a
+            # ``DeprecationWarning``. Prefer the new name with a fallback
+            # for older SDKs (<0.3) that don't yet expose ``disconnect``.
+            disconnect = getattr(self._session, "disconnect", None)
+            if disconnect is not None:
+                await disconnect()
+            else:
+                await self._session.destroy()
         if self._client and self._copilot_available:
             await self._client.stop()
         self._is_started = False
@@ -124,26 +138,27 @@ class CopilotFeatureClient:
         if not self._copilot_available:
             return self._mock_response(prompt)
 
-        # Use asyncio.Event to wait for completion
-        done = asyncio.Event()
-        response_content = []
-
-        def on_event(event):
-            if event.type.value == "assistant.message":
-                response_content.append(event.data.content)
-            elif event.type.value == "session.idle":
-                done.set()
-
-        self._session.on(on_event)
-        await self._session.send({"prompt": prompt})
-
-        # Wait with timeout
+        # Use the SDK's ``send_and_wait`` helper which handles the
+        # send-prompt → wait-for-session.idle → return-assistant-message
+        # pattern internally. Returns ``SessionEvent | None`` whose
+        # ``data.content`` carries the assistant's text. Older SDKs
+        # (<0.1.32) accepted a dict; the new SDK takes a positional
+        # string and exposes a typed return type.
         try:
-            await asyncio.wait_for(done.wait(), timeout=self.config.timeout)
-        except asyncio.TimeoutError:
+            event = await self._session.send_and_wait(prompt, timeout=self.config.timeout)
+        except TimeoutError:
             return "Error: Request timed out"
 
-        return response_content[-1] if response_content else ""
+        if event is None:
+            return ""
+        # ``event.data`` is an ``AssistantMessageData`` with a ``content``
+        # attribute. Fall back to ``str(event.data)`` for unfamiliar
+        # event shapes (defensive — should never trigger in practice).
+        data = getattr(event, "data", None)
+        content = getattr(data, "content", None)
+        if content is None and data is not None:
+            content = str(data)
+        return content or ""
 
     def _mock_response(self, prompt: str) -> str:
         """Generate mock response when Copilot is unavailable."""
