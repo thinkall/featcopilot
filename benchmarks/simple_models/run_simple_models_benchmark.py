@@ -891,34 +891,36 @@ def get_cache_file(output_path: Path, with_llm: bool) -> Path:
 def save_cache(results: list[dict], output_path: Path, with_llm: bool) -> None:
     """Save benchmark results to cache file."""
     cache_file = get_cache_file(output_path, with_llm)
+
     # Convert numpy types to native Python types for JSON serialization.
-    # ``np.bool_`` is intentionally listed BEFORE ``np.integer`` because on
+    # ``np.bool_`` is intentionally checked BEFORE ``np.integer`` because on
     # NumPy < 2.0 ``np.bool_`` is registered as a subtype of ``np.generic``
     # but is **not** a subclass of Python ``bool`` for ``json``'s purposes,
     # so the default encoder raises ``TypeError``. (The ``significant``
     # field returned by ``p_value < 0.05`` is a ``np.bool_`` because
     # ``p_value`` comes from scipy as a numpy float.)
+    # ``np.integer`` MUST convert via ``int(...)`` (not ``float(...)``);
+    # otherwise count fields like ``n_samples`` / ``n_folds`` are written
+    # as ``5.0`` and large ints lose precision past 2**53.
+    def _to_native(v: Any) -> Any:
+        if isinstance(v, np.bool_):
+            return bool(v)
+        if isinstance(v, np.integer):
+            return int(v)
+        if isinstance(v, np.floating):
+            return float(v)
+        if isinstance(v, np.ndarray):
+            return v.tolist()
+        return v
+
     serializable_results = []
     for r in results:
         sr = {}
         for k, v in r.items():
-            if isinstance(v, np.bool_):
-                sr[k] = bool(v)
-            elif isinstance(v, (np.floating, np.integer)):
-                sr[k] = float(v)
-            elif isinstance(v, np.ndarray):
-                sr[k] = v.tolist()
-            elif isinstance(v, dict):
-                sr[k] = {
-                    kk: (
-                        bool(vv)
-                        if isinstance(vv, np.bool_)
-                        else float(vv) if isinstance(vv, (np.floating, np.integer)) else vv
-                    )
-                    for kk, vv in v.items()
-                }
+            if isinstance(v, dict):
+                sr[k] = {kk: _to_native(vv) for kk, vv in v.items()}
             else:
-                sr[k] = v
+                sr[k] = _to_native(v)
         serializable_results.append(sr)
 
     with open(cache_file, "w", encoding="utf-8") as f:

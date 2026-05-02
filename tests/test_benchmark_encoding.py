@@ -771,3 +771,70 @@ def test_main_generates_report_even_when_save_cache_would_fail(monkeypatch, tmp_
     assert report.exists(), "report must be written even if save_cache raises"
     body = report.read_text(encoding="utf-8")
     assert "titanic" in body
+
+
+def test_save_cache_preserves_int_fidelity_for_np_integer(tmp_path):
+    """``np.integer`` values must serialize as JSON ints, not floats.
+
+    Regression test for Copilot review on commit e9be75f: the previous
+    converter used ``float(v)`` for both ``np.floating`` and
+    ``np.integer``, turning ``n_samples=5000`` into ``5000.0`` in the
+    cache and silently losing precision past ``2**53`` for very large
+    integer counts. Splitting ``np.integer`` -> ``int`` and
+    ``np.floating`` -> ``float`` keeps types meaningful.
+    """
+    import json as json_mod
+
+    import numpy as np
+
+    from benchmarks.simple_models.run_simple_models_benchmark import save_cache
+
+    results = [
+        {
+            "dataset": "synth",
+            "task": "classification",
+            "source": "synthetic",
+            # Integer count fields — must remain ints in JSON.
+            "n_samples": np.int64(5000),
+            "n_features_original": np.int32(7),
+            "n_features_tabular": np.int64(20),
+            "n_folds": np.int32(5),
+            # Large int that would lose precision if cast to float64.
+            "huge_int_count": np.int64(2**60 + 1),
+            # Float fields — must remain floats.
+            "p_value": np.float64(0.03),
+            "tabular_improvement_pct": np.float64(2.5),
+            # Nested dict with mixed numpy types.
+            "metadata": {
+                "iter_count": np.int64(42),
+                "lr": np.float64(0.01),
+                "converged": np.bool_(True),
+            },
+        }
+    ]
+    save_cache(results, tmp_path, with_llm=False)
+    cache_file = tmp_path / "SIMPLE_MODELS_CACHE.json"
+    raw_text = cache_file.read_text(encoding="utf-8")
+    # Sanity check the on-disk JSON: integer fields must NOT have a
+    # decimal point (e.g. ``"n_samples": 5000`` not ``"n_samples": 5000.0``).
+    assert '"n_samples": 5000,' in raw_text or '"n_samples": 5000\n' in raw_text
+    assert '"n_folds": 5,' in raw_text or '"n_folds": 5\n' in raw_text
+    # Float fields should still serialize with a decimal point.
+    assert '"p_value": 0.03' in raw_text
+
+    loaded = json_mod.loads(raw_text)
+    row = loaded[0]
+    assert row["n_samples"] == 5000 and isinstance(row["n_samples"], int)
+    assert row["n_features_original"] == 7 and isinstance(row["n_features_original"], int)
+    assert row["n_features_tabular"] == 20 and isinstance(row["n_features_tabular"], int)
+    assert row["n_folds"] == 5 and isinstance(row["n_folds"], int)
+    # Large int precision preserved (would lose precision through float64).
+    assert row["huge_int_count"] == 2**60 + 1 and isinstance(row["huge_int_count"], int)
+    # Floats stay floats.
+    assert isinstance(row["p_value"], float) and row["p_value"] == 0.03
+    assert isinstance(row["tabular_improvement_pct"], float) and row["tabular_improvement_pct"] == 2.5
+    # Nested dict preserves int/float/bool distinctions.
+    md = row["metadata"]
+    assert md["iter_count"] == 42 and isinstance(md["iter_count"], int)
+    assert isinstance(md["lr"], float) and md["lr"] == 0.01
+    assert md["converged"] is True and isinstance(md["converged"], bool)
