@@ -45,7 +45,11 @@ class RedundancyEliminator(BaseSelector):
         **Deprecated, accepted for backward compatibility only.** Has no
         effect; passing any non-``None`` value raises a ``FutureWarning``.
         Originals are now categorically protected regardless of importance,
-        so there is no tunable trade-off to express.
+        so there is no tunable trade-off to express. Kept in its original
+        positional slot (between ``original_features`` and ``verbose``) so
+        existing positional callers don't silently rebind values.
+    verbose : bool, default=False
+        Emit per-pair logging while pruning correlated pairs.
 
     Examples
     --------
@@ -59,8 +63,8 @@ class RedundancyEliminator(BaseSelector):
         method: str = "pearson",
         importance_scores: dict[str, float] | None = None,
         original_features: set[str] | None = None,
-        verbose: bool = False,
         original_preference: float | None = None,
+        verbose: bool = False,
         **kwargs,
     ):
         if original_preference is not None:

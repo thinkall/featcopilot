@@ -867,3 +867,45 @@ class TestRedundancyEliminatorCoverage:
             w for w in caught if issubclass(w.category, FutureWarning) and "original_preference" in str(w.message)
         ]
         assert future_warnings == []
+
+    def test_positional_argument_order_matches_legacy(self):
+        """``original_preference`` must remain in its legacy positional slot
+        (between ``original_features`` and ``verbose``) so existing positional
+        callers don't silently rebind values to the wrong parameters.
+
+        Regression test for Copilot review on commit d6db161: a previous
+        round had appended ``original_preference`` after ``verbose`` in the
+        signature, which would silently bind a positional ``verbose`` value
+        to ``original_preference`` (triggering an unexpected
+        ``FutureWarning``) and vice versa. The positional contract from the
+        original signature must be preserved.
+        """
+        import inspect
+        import warnings as warnings_mod
+
+        sig = inspect.signature(RedundancyEliminator.__init__)
+        params = [
+            name
+            for name, p in sig.parameters.items()
+            if p.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD) and name != "self"
+        ]
+        # Expected legacy order — original_preference between original_features and verbose.
+        assert params == [
+            "correlation_threshold",
+            "method",
+            "importance_scores",
+            "original_features",
+            "original_preference",
+            "verbose",
+        ], f"Positional order changed; legacy callers will silently rebind values. Got: {params}"
+
+        # End-to-end smoke: passing all-positional in the legacy order must
+        # bind verbose to True without triggering the FutureWarning.
+        with warnings_mod.catch_warnings(record=True) as caught:
+            warnings_mod.simplefilter("always")
+            elim = RedundancyEliminator(0.95, "pearson", None, None, None, True)
+        future_warnings = [
+            w for w in caught if issubclass(w.category, FutureWarning) and "original_preference" in str(w.message)
+        ]
+        assert future_warnings == [], "Legacy positional call must not trigger original_preference FutureWarning"
+        assert elim.verbose is True
