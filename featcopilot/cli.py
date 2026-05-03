@@ -41,8 +41,11 @@ reports the runtime availability via ``parquet_available``.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
+import logging
 import sys
+import warnings
 from pathlib import Path
 from typing import Any
 
@@ -427,44 +430,84 @@ def _cmd_info(args: argparse.Namespace) -> int:
 
 
 def _fit_transform_capturing_warnings(engineer, X, y, **kwargs):
-    """Run ``engineer.fit_transform(X, y, **kwargs)`` while capturing any
-    Python ``UserWarning`` (or other warning) it emits.
+    """Run ``engineer.fit_transform(X, y, **kwargs)`` while capturing both
+    Python ``warnings.warn(...)`` and FeatCopilot logger records.
 
     The CLI contract is that stdout carries the JSON payload and stderr is
-    reserved for failures. ``AutoFeatureEngineer.fit`` calls
-    ``warnings.warn(...)`` for leakage-prone column names under the default
-    ``leakage_guard='warn'``, which would otherwise bleed onto stderr on a
-    successful run and break agent / tool-use error parsing. This helper
-    intercepts those warnings, collects them as JSON-serializable strings,
-    and lets the caller surface them inside the ``warnings`` field of the
-    success payload — keeping stderr deterministic.
+    reserved for failures. Two sources can otherwise bleed onto stderr on
+    a successful run:
+
+    * ``warnings.warn(...)`` — emitted by ``AutoFeatureEngineer.fit`` for
+      leakage-prone column names under the default ``leakage_guard='warn'``.
+    * ``logger.warning(...)`` / ``logger.info(...)`` — emitted by e.g.
+      ``_do_no_harm_gate`` on validation-failure fallback, and by every
+      engine when ``--verbose`` is set.
+
+    The single ``featcopilot`` root logger (``propagate=False``) receives
+    every child logger's records by ordinary Python logging propagation;
+    we swap in a capture handler for the duration of the call so the JSON
+    payload can surface those messages instead of stderr.
 
     Returns
     -------
-    (warnings_list, result)
-        ``warnings_list`` is a list of ``str`` (one entry per warning, in
+    (messages, result)
+        ``messages`` is a list of ``str`` (warnings then logs, in
         emission order). ``result`` is whatever ``fit_transform`` returned.
     """
-    import warnings as _warnings
-
-    captured: list[str] = []
-    with _warnings.catch_warnings(record=True) as caught:
-        _warnings.simplefilter("always")
+    with _capture_featcopilot_messages() as captured:
         result = engineer.fit_transform(X, y, **kwargs)
-        captured.extend(str(w.message) for w in caught)
     return captured, result
 
 
 def _fit_capturing_warnings(engineer, X, y, **kwargs):
     """Sibling of :func:`_fit_transform_capturing_warnings` for explain."""
-    import warnings as _warnings
-
-    captured: list[str] = []
-    with _warnings.catch_warnings(record=True) as caught:
-        _warnings.simplefilter("always")
+    with _capture_featcopilot_messages() as captured:
         engineer.fit_transform(X, y, **kwargs)
-        captured.extend(str(w.message) for w in caught)
     return captured
+
+
+@contextlib.contextmanager
+def _capture_featcopilot_messages():
+    """Capture all FeatCopilot ``warnings.warn`` calls and logger records.
+
+    Yields a list that the caller can read after the with-block exits. The
+    list contains formatted log records (in emission order) followed by any
+    Python warning messages emitted during the with-block. The featcopilot
+    root logger's handlers are temporarily replaced with a list-appending
+    handler; child loggers propagate up to the root by default (the only
+    ``propagate=False`` in the project is on the root itself, which
+    prevents bleeding to Python's root logger).
+    """
+    captured: list[str] = []
+
+    class _ListHandler(logging.Handler):
+        def emit(self, record):
+            try:
+                captured.append(self.format(record))
+            except Exception:  # pragma: no cover - never let logging crash the CLI
+                captured.append(record.getMessage())
+
+    list_handler = _ListHandler()
+    list_handler.setLevel(logging.DEBUG)
+    list_handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
+
+    fc_root = logging.getLogger("featcopilot")
+    saved_handlers = list(fc_root.handlers)
+    saved_level = fc_root.level
+    fc_root.handlers = [list_handler]
+    fc_root.setLevel(logging.DEBUG)
+
+    try:
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            yield captured
+            # Append warnings *after* the body returns so the order in the
+            # captured list mirrors emission order: log records first
+            # (appended live by the handler), warnings last.
+            captured.extend(str(w.message) for w in caught)
+    finally:
+        fc_root.handlers = saved_handlers
+        fc_root.setLevel(saved_level)
 
 
 def _cmd_transform(args: argparse.Namespace) -> int:
@@ -684,8 +727,10 @@ def _add_io_args(p: argparse.ArgumentParser) -> None:
     p.add_argument(
         "--target",
         "-t",
-        help="Target column name. Required when selection is applied (the default; "
-        "use --no-selection to skip selection entirely).",
+        help="Target column name. Required when feature selection is applied "
+        "(i.e. when --max-features / config max_features is set so the "
+        "selector actually fits). With no max_features, raw feature "
+        "generation runs without a target.",
     )
     p.add_argument(
         "--task-description",

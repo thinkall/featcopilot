@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import argparse
 import io
 import json
+import logging
 import sys
+import warnings
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
@@ -665,12 +668,10 @@ def test_explain_target_help_no_longer_says_required_for_selection():
     """The ``--target`` help on ``explain`` must not claim it gates selection
     (selection is intentionally disabled in ``explain``).
     """
-    import argparse as _argparse
-
     parser = fc_cli._build_parser()
     # argparse stores subparsers under a special action attribute
     explain_parser = next(
-        action.choices["explain"] for action in parser._actions if isinstance(action, _argparse._SubParsersAction)
+        action.choices["explain"] for action in parser._actions if isinstance(action, argparse._SubParsersAction)
     )
     target_help = next(a.help for a in explain_parser._actions if "--target" in a.option_strings)
     assert "required for selection" not in target_help
@@ -1037,8 +1038,120 @@ def test_explain_leakage_warning_does_not_pollute_stderr(tmp_path: Path):
     assert rc == 0, err
     assert err == "", f"stderr should be empty on success but got: {err!r}"
     payload = json.loads(out)
-    assert "warnings" in payload
+    assert payload["status"] == "ok"
+    # The ``warnings`` field is always present and is a list. Whether or
+    # not the leakage heuristic fires is not guaranteed (it evolves); the
+    # contract under test is that stderr stays clean.
     assert isinstance(payload["warnings"], list)
+
+
+def test_transform_logger_warning_does_not_pollute_stderr(tmp_path: Path, tabular_csv: Path):
+    """The CLI captures ``logger.warning(...)`` records (in addition to
+    ``warnings.warn``), so any successful run that exercises a code path
+    emitting a logger message — for example the do-no-harm gate's
+    fallback — keeps stderr empty. The captured records appear in the
+    JSON payload's ``warnings`` field.
+    """
+    out_path = tmp_path / "out.csv"
+    rc, out, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(out_path),
+            "--target",
+            "y",
+            "--max-features",
+            "5",
+            "--verbose",  # exercises ``logger.info(...)`` paths in engines
+            "--json",
+        ]
+    )
+    assert rc == 0, err
+    assert err == "", f"stderr should be empty on success but got: {err!r}"
+    payload = json.loads(out)
+    assert payload["status"] == "ok"
+    assert isinstance(payload["warnings"], list)
+
+
+def test_transform_verbose_logger_info_captured_not_on_stderr(tmp_path: Path, tabular_csv: Path):
+    """``--verbose`` enables ``logger.info(...)`` calls in
+    ``AutoFeatureEngineer`` and the engines. Those records must end up
+    in the JSON payload's ``warnings`` field, not on stderr.
+    """
+    out_path = tmp_path / "out.csv"
+    rc, out, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(out_path),
+            "--target",
+            "y",
+            "--max-features",
+            "5",
+            "--verbose",
+            "--json",
+        ]
+    )
+    assert rc == 0, err
+    assert err == "", f"stderr should be empty on success but got: {err!r}"
+    payload = json.loads(out)
+    # ``--verbose`` reliably emits "Fitted tabular engine" via logger.info,
+    # and selection / engineer calls also log. We don't pin the exact
+    # messages (they evolve) — just check at least one log record is
+    # present in the captured payload.
+    assert isinstance(payload["warnings"], list)
+    assert len(payload["warnings"]) >= 1
+
+
+def test_capture_featcopilot_messages_intercepts_logger_warning():
+    """Direct unit test for the contextmanager so the docstring contract is
+    not just covered transitively via the CLI subcommands.
+    """
+    fc_logger = logging.getLogger("featcopilot.test_cli")
+    with fc_cli._capture_featcopilot_messages() as captured:
+        fc_logger.warning("captured-warning-message")
+        warnings.warn("captured-runtime-warning", UserWarning, stacklevel=2)
+    assert any("captured-warning-message" in m for m in captured)
+    assert any("captured-runtime-warning" in m for m in captured)
+
+
+def test_capture_featcopilot_messages_restores_handlers():
+    """The contextmanager must restore the original featcopilot root logger
+    state after the with-block, even if an exception propagates.
+    """
+    fc_root = logging.getLogger("featcopilot")
+    saved_handlers = list(fc_root.handlers)
+    saved_level = fc_root.level
+
+    with pytest.raises(RuntimeError):
+        with fc_cli._capture_featcopilot_messages():
+            raise RuntimeError("boom")
+
+    assert fc_root.handlers == saved_handlers
+    assert fc_root.level == saved_level
+
+
+# ----------------------- --target help text accuracy
+
+
+def test_transform_target_help_reflects_actual_contract():
+    """The ``--target`` help on ``transform`` must say the flag is required
+    only when ``--max-features`` is set (which is when the selector
+    actually fits), not whenever selection is enabled by default.
+    """
+    parser = fc_cli._build_parser()
+    transform_parser = next(
+        action.choices["transform"] for action in parser._actions if isinstance(action, argparse._SubParsersAction)
+    )
+    target_help = next(a.help for a in transform_parser._actions if "--target" in a.option_strings)
+    assert "max_features" in target_help.lower() or "max-features" in target_help.lower()
+    # The old ("required when selection is applied (the default ...)")
+    # phrasing was misleading — guard against regressions.
+    assert "the default" not in target_help.lower()
 
 
 # ----------------------- target check runs after type validation
