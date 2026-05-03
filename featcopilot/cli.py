@@ -25,13 +25,17 @@ Agentic usage (machine-readable result on stdout, errors on stderr)::
 
     featcopilot info --json
     featcopilot transform \\
-        --input data.csv --target label --output features.parquet \\
+        --input data.csv --target label --output features.csv \\
         --engines tabular --max-features 50 --json
     featcopilot explain --input data.csv --target label --json
 
 Equivalent module invocation::
 
     python -m featcopilot info --json
+
+Parquet I/O is supported only when ``pyarrow`` or ``fastparquet`` is
+installed (FeatCopilot's base distribution does not pin either); ``info``
+reports the runtime availability via ``parquet_available``.
 """
 
 from __future__ import annotations
@@ -103,15 +107,23 @@ def _detect_format(path: Path, override: str | None) -> str:
 def _read_table(path: Path, fmt: str):
     """Read a tabular file into a pandas DataFrame.
 
-    For optional ``parquet`` engines (``pyarrow``/``fastparquet``), a missing
-    dependency is converted into a :class:`ValueError` so the CLI's top-level
-    error handler can route it to the deterministic ``exit 2`` user-error path
-    rather than the generic ``exit 1`` backstop.
+    All user-facing failure modes (missing parquet engine, ``--input``
+    pointing at a directory, permission denied, malformed JSON/CSV,
+    decoding errors) are normalized into :class:`ValueError` so the CLI's
+    top-level handler routes them to the deterministic ``exit 2``
+    user-error path. The generic ``exit 1`` backstop is reserved for
+    truly unexpected (i.e. CLI-internal) errors.
     """
     import pandas as pd
 
+    if path.is_dir():
+        raise ValueError(f"--input expects a file, but {str(path)!r} is a directory.")
+
     if fmt == "csv":
-        return pd.read_csv(path)
+        try:
+            return pd.read_csv(path)
+        except (OSError, pd.errors.ParserError, UnicodeDecodeError) as exc:
+            raise ValueError(f"Failed to read CSV from {str(path)!r}: {exc}") from exc
     if fmt == "parquet":
         try:
             return pd.read_parquet(path)
@@ -120,26 +132,45 @@ def _read_table(path: Path, fmt: str):
                 f"Reading parquet requires a parquet engine (pyarrow or fastparquet); "
                 f"install one of them, or convert the input to CSV/JSON. Original error: {exc}"
             ) from exc
+        except OSError as exc:
+            raise ValueError(f"Failed to read parquet from {str(path)!r}: {exc}") from exc
     if fmt == "json":
         # ``orient='records'`` is the agent-friendly default; fall back to
         # pandas' auto-detection when the file isn't a records list.
         try:
             return pd.read_json(path, orient="records")
         except ValueError:
-            return pd.read_json(path)
+            try:
+                return pd.read_json(path)
+            except ValueError as exc:
+                raise ValueError(f"Failed to read JSON from {str(path)!r}: {exc}") from exc
+        except OSError as exc:
+            raise ValueError(f"Failed to read JSON from {str(path)!r}: {exc}") from exc
     raise ValueError(f"Unsupported input format: {fmt}")
 
 
 def _write_table(df, path: Path, fmt: str) -> None:
     """Write a pandas DataFrame to ``path`` in ``fmt``.
 
-    Parquet ``ImportError`` is normalized to :class:`ValueError` so the CLI
-    surfaces a clean dependency message via the standard ``exit 2`` path.
+    All user-facing failure modes (missing parquet engine, ``--output``
+    pointing at a directory, permission denied, parent-directory creation
+    failures) are normalized into :class:`ValueError` so the CLI surfaces a
+    clean stderr message via the standard ``exit 2`` path instead of the
+    generic ``exit 1`` "unexpected error" backstop.
     """
-    path.parent.mkdir(parents=True, exist_ok=True)
+    if path.exists() and path.is_dir():
+        raise ValueError(f"--output expects a file, but {str(path)!r} is an existing directory.")
+
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        raise ValueError(f"Cannot create parent directory for {str(path)!r}: {exc}") from exc
 
     if fmt == "csv":
-        df.to_csv(path, index=False)
+        try:
+            df.to_csv(path, index=False)
+        except OSError as exc:
+            raise ValueError(f"Failed to write CSV to {str(path)!r}: {exc}") from exc
     elif fmt == "parquet":
         try:
             df.to_parquet(path, index=False)
@@ -148,8 +179,13 @@ def _write_table(df, path: Path, fmt: str) -> None:
                 f"Writing parquet requires a parquet engine (pyarrow or fastparquet); "
                 f"install one of them, or pick CSV/JSON via --output-format. Original error: {exc}"
             ) from exc
+        except OSError as exc:
+            raise ValueError(f"Failed to write parquet to {str(path)!r}: {exc}") from exc
     elif fmt == "json":
-        df.to_json(path, orient="records", indent=2)
+        try:
+            df.to_json(path, orient="records", indent=2)
+        except OSError as exc:
+            raise ValueError(f"Failed to write JSON to {str(path)!r}: {exc}") from exc
     else:
         raise ValueError(f"Unsupported output format: {fmt}")
 
@@ -198,6 +234,36 @@ def _emit(payload: dict[str, Any], *, as_json: bool, stream=None) -> None:
     stream.flush()
 
 
+def _check_scalar_type(
+    name: str,
+    value: Any,
+    expected: tuple[type, ...],
+    *,
+    allow_none: bool = False,
+    allow_bool: bool = True,
+) -> None:
+    """Validate a scalar value's type for ``--config``-supplied keys.
+
+    Raises :class:`ValueError` (caught by ``main()`` -> exit 2) when the
+    value's type does not match. ``bool`` is a subclass of ``int`` in
+    Python; pass ``allow_bool=False`` to reject ``True``/``False`` for
+    numeric-only fields like ``max_features`` / ``correlation_threshold``.
+    """
+    if value is None:
+        if allow_none:
+            return
+        raise ValueError(f"`{name}` must not be null in --config")
+    if not allow_bool and isinstance(value, bool):
+        raise ValueError(
+            f"`{name}` in --config must be a {' or '.join(t.__name__ for t in expected)}; " f"got bool={value!r}."
+        )
+    if not isinstance(value, expected):
+        raise ValueError(
+            f"`{name}` in --config must be a {' or '.join(t.__name__ for t in expected)}; "
+            f"got {type(value).__name__}={value!r}."
+        )
+
+
 def _build_engineer(args: argparse.Namespace) -> AutoFeatureEngineer:
     """Construct an :class:`AutoFeatureEngineer` from parsed CLI args.
 
@@ -224,11 +290,28 @@ def _build_engineer(args: argparse.Namespace) -> AutoFeatureEngineer:
         return default
 
     engines = pick(args.engines, "engines", ["tabular"])
-    selection_methods = pick(args.selection_methods, "selection_methods", ["mutual_info", "importance"])
-    max_features = pick(args.max_features, "max_features", None)
-    correlation_threshold = pick(args.correlation_threshold, "correlation_threshold", 0.85)
+    # ``explain`` does not expose selection-only flags on argparse, so use
+    # ``getattr(..., None)`` to safely fall through to config / defaults
+    # without requiring the attribute to exist on the namespace.
+    selection_methods = pick(
+        getattr(args, "selection_methods", None),
+        "selection_methods",
+        ["mutual_info", "importance"],
+    )
+    max_features = pick(getattr(args, "max_features", None), "max_features", None)
+    correlation_threshold = pick(getattr(args, "correlation_threshold", None), "correlation_threshold", 0.85)
     leakage_guard = pick(args.leakage_guard, "leakage_guard", "warn")
     gate_n_jobs = pick(args.gate_n_jobs, "gate_n_jobs", 1)
+
+    # Type-check scalar config fields here so the CLI surfaces a clean
+    # exit-2 error instead of a downstream ``TypeError`` (e.g. from
+    # ``self.max_features <= 0`` when the JSON config supplied a string).
+    # ``argparse`` already enforces types for the flag side; this only
+    # guards against malformed ``--config`` JSON.
+    _check_scalar_type("max_features", max_features, (int,), allow_none=True, allow_bool=False)
+    _check_scalar_type("correlation_threshold", correlation_threshold, (int, float), allow_bool=False)
+    _check_scalar_type("gate_n_jobs", gate_n_jobs, (int,), allow_bool=False)
+    _check_scalar_type("leakage_guard", leakage_guard, (str,))
 
     # Validate ``llm_config`` is a JSON object (i.e. a Python dict) before
     # forwarding it. Without this check, a misconfigured non-dict value
@@ -466,16 +549,23 @@ def _build_parser() -> argparse.ArgumentParser:
         "explain",
         help="Print JSON feature explanations and code for agent consumption.",
         description="Fit AutoFeatureEngineer on INPUT and emit a JSON document "
-        "describing each generated feature (name, explanation, code).",
+        "describing each generated feature (name, explanation, code). Selection is "
+        "intentionally disabled, so all candidate features are reported.",
     )
     p_explain.add_argument("--input", "-i", required=True, help="Path to input file (CSV / Parquet / JSON).")
     p_explain.add_argument("--input-format", choices=SUPPORTED_INPUT_FORMATS, help="Override input format detection.")
-    p_explain.add_argument("--target", "-t", help="Target column name (required for selection).")
+    p_explain.add_argument(
+        "--target",
+        "-t",
+        help="Target column name. Used by leakage-guard checks and as task context "
+        "for the LLM engine. (Selection is disabled in `explain`, so this flag "
+        "does not gate selector behavior.)",
+    )
     p_explain.add_argument(
         "--task-description",
         help="Natural-language ML task description (used by the LLM engine).",
     )
-    _add_engineer_args(p_explain)
+    _add_engineer_args(p_explain, include_selection_args=False)
     p_explain.add_argument("--json", action="store_true", help="(Always JSON — flag accepted for symmetry.)")
     p_explain.set_defaults(func=_cmd_explain)
 
@@ -487,33 +577,47 @@ def _add_io_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("--output", "-o", required=True, help="Path to output file (CSV / Parquet / JSON).")
     p.add_argument("--input-format", choices=SUPPORTED_INPUT_FORMATS, help="Override input format detection.")
     p.add_argument("--output-format", choices=SUPPORTED_OUTPUT_FORMATS, help="Override output format detection.")
-    p.add_argument("--target", "-t", help="Target column name (required for selection).")
+    p.add_argument(
+        "--target",
+        "-t",
+        help="Target column name. Required when selection is applied (the default; "
+        "use --no-selection to skip selection entirely).",
+    )
     p.add_argument(
         "--task-description",
         help="Natural-language ML task description (used by the LLM engine).",
     )
 
 
-def _add_engineer_args(p: argparse.ArgumentParser) -> None:
-    """Add ``AutoFeatureEngineer``-related flags to a subparser."""
+def _add_engineer_args(p: argparse.ArgumentParser, *, include_selection_args: bool = True) -> None:
+    """Add ``AutoFeatureEngineer``-related flags to a subparser.
+
+    ``include_selection_args=False`` omits selection-only flags
+    (``--selection-methods``, ``--correlation-threshold``,
+    ``--max-features``) — these would be silently ignored by the
+    ``explain`` subcommand, which always runs with selection disabled,
+    and surfacing them in ``--help`` would be a confusing API for
+    automation.
+    """
     p.add_argument(
         "--engines",
         nargs="+",
         choices=sorted(AutoFeatureEngineer.SUPPORTED_ENGINES),
         help="Engines to use (default: tabular).",
     )
-    p.add_argument(
-        "--selection-methods",
-        nargs="+",
-        choices=sorted(AutoFeatureEngineer.SUPPORTED_SELECTION_METHODS),
-        help="Selection methods (default: mutual_info importance).",
-    )
-    p.add_argument("--max-features", type=int, help="Maximum number of features to keep.")
-    p.add_argument(
-        "--correlation-threshold",
-        type=float,
-        help="Maximum pairwise correlation in redundancy elimination (default: 0.85).",
-    )
+    if include_selection_args:
+        p.add_argument(
+            "--selection-methods",
+            nargs="+",
+            choices=sorted(AutoFeatureEngineer.SUPPORTED_SELECTION_METHODS),
+            help="Selection methods (default: mutual_info importance).",
+        )
+        p.add_argument("--max-features", type=int, help="Maximum number of features to keep.")
+        p.add_argument(
+            "--correlation-threshold",
+            type=float,
+            help="Maximum pairwise correlation in redundancy elimination (default: 0.85).",
+        )
     p.add_argument(
         "--leakage-guard",
         choices=sorted(AutoFeatureEngineer.SUPPORTED_LEAKAGE_GUARDS),
@@ -529,7 +633,16 @@ def _add_engineer_args(p: argparse.ArgumentParser) -> None:
         help="Path to a JSON config file. CLI flags take precedence over config keys. "
         "Use this to pass nested keys such as ``llm_config``.",
     )
-    p.add_argument("--verbose", action="store_true", default=None, help="Enable verbose logging.")
+    # ``BooleanOptionalAction`` (Python 3.9+) provides both ``--verbose``
+    # and ``--no-verbose`` so a config-supplied ``"verbose": true`` can be
+    # explicitly turned off from the command line. ``default=None`` so the
+    # absence of either flag means "fall through to config / default".
+    p.add_argument(
+        "--verbose",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Enable verbose logging (or --no-verbose to override config).",
+    )
 
 
 def main(argv: list[str] | None = None) -> int:

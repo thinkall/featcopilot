@@ -362,6 +362,253 @@ def test_empty_selection_methods_list_in_config_returns_clean_exit_2(tmp_path: P
     assert "at least one method" in err.lower() or "empty sequence" in err.lower()
 
 
+# ----------------------- scalar config-type validation
+
+
+@pytest.mark.parametrize(
+    "key,value,fragment",
+    [
+        ("max_features", "10", "max_features"),
+        ("max_features", True, "max_features"),  # bool rejected for numeric field
+        ("correlation_threshold", "0.9", "correlation_threshold"),
+        ("correlation_threshold", True, "correlation_threshold"),
+        ("gate_n_jobs", "2", "gate_n_jobs"),
+        ("leakage_guard", 42, "leakage_guard"),
+    ],
+)
+def test_scalar_type_mismatch_in_config_returns_exit_2(tmp_path: Path, tabular_csv: Path, key, value, fragment):
+    """A malformed JSON config (string in a numeric field, etc.) must hit the
+    deterministic exit-2 user-error path with a precise message — not bubble
+    up as a downstream ``TypeError`` (exit 1).
+    """
+    config_path = tmp_path / "cfg.json"
+    config_path.write_text(json.dumps({key: value}))
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+            "--config",
+            str(config_path),
+        ]
+    )
+    assert rc == 2
+    assert fragment in err
+
+
+# ----------------------- --verbose / --no-verbose
+
+
+def test_no_verbose_overrides_config_verbose_true(tmp_path: Path, tabular_csv: Path):
+    """``--no-verbose`` (BooleanOptionalAction) must override a config-level
+    ``"verbose": true`` to false — the documented precedence rule.
+    """
+    config_path = tmp_path / "cfg.json"
+    config_path.write_text(json.dumps({"verbose": True}))
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+            "--config",
+            str(config_path),
+            "--no-verbose",
+            "--max-features",
+            "5",
+            "--json",
+        ]
+    )
+    assert rc == 0, err
+
+
+def test_verbose_overrides_config_verbose_false(tmp_path: Path, tabular_csv: Path):
+    config_path = tmp_path / "cfg.json"
+    config_path.write_text(json.dumps({"verbose": False}))
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+            "--config",
+            str(config_path),
+            "--verbose",
+            "--max-features",
+            "5",
+        ]
+    )
+    assert rc == 0, err
+
+
+# ----------------------- explain subparser doesn't expose selection-only flags
+
+
+def test_explain_rejects_selection_methods_flag(tmp_path: Path, tabular_csv: Path):
+    """``explain`` always disables selection, so accepting ``--selection-methods``
+    on the CLI would silently mis-configure the user. The subparser must not
+    advertise it.
+    """
+    rc, _, err = _run(
+        [
+            "explain",
+            "--input",
+            str(tabular_csv),
+            "--target",
+            "y",
+            "--selection-methods",
+            "mutual_info",
+        ]
+    )
+    assert rc == 2
+    assert "unrecognized" in err.lower() or "--selection-methods" in err.lower()
+
+
+def test_explain_rejects_max_features_flag(tmp_path: Path, tabular_csv: Path):
+    rc, _, err = _run(
+        [
+            "explain",
+            "--input",
+            str(tabular_csv),
+            "--target",
+            "y",
+            "--max-features",
+            "10",
+        ]
+    )
+    assert rc == 2
+
+
+def test_explain_rejects_correlation_threshold_flag(tmp_path: Path, tabular_csv: Path):
+    rc, _, err = _run(
+        [
+            "explain",
+            "--input",
+            str(tabular_csv),
+            "--target",
+            "y",
+            "--correlation-threshold",
+            "0.9",
+        ]
+    )
+    assert rc == 2
+
+
+def test_explain_target_help_no_longer_says_required_for_selection():
+    """The ``--target`` help on ``explain`` must not claim it gates selection
+    (selection is intentionally disabled in ``explain``).
+    """
+    import argparse as _argparse
+
+    parser = fc_cli._build_parser()
+    # argparse stores subparsers under a special action attribute
+    explain_parser = next(
+        action.choices["explain"] for action in parser._actions if isinstance(action, _argparse._SubParsersAction)
+    )
+    target_help = next(a.help for a in explain_parser._actions if "--target" in a.option_strings)
+    assert "required for selection" not in target_help
+    assert "leakage" in target_help.lower() or "task context" in target_help.lower()
+
+
+# ----------------------- I/O OSError normalization
+
+
+def test_input_directory_returns_exit_2(tmp_path: Path):
+    """Pointing ``--input`` at a directory must surface as exit 2."""
+    in_dir = tmp_path / "i_am_a_dir.csv"
+    in_dir.mkdir()
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(in_dir),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+        ]
+    )
+    assert rc == 2
+    assert "directory" in err.lower()
+
+
+def test_output_directory_returns_exit_2(tmp_path: Path, tabular_csv: Path):
+    """Pointing ``--output`` at an existing directory must surface as exit 2."""
+    out_dir = tmp_path / "i_am_a_dir.csv"
+    out_dir.mkdir()
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(out_dir),
+            "--target",
+            "y",
+        ]
+    )
+    assert rc == 2
+    assert "directory" in err.lower()
+
+
+def test_unwritable_output_returns_exit_2(tmp_path: Path, tabular_csv: Path, monkeypatch):
+    """An ``OSError`` on write (e.g. permission denied) must surface as exit 2."""
+    import pandas as pd
+
+    def _raise_oserror(self, *args, **kwargs):
+        raise PermissionError("simulated write failure")
+
+    monkeypatch.setattr(pd.DataFrame, "to_csv", _raise_oserror, raising=True)
+
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+        ]
+    )
+    assert rc == 2
+    assert "failed to write" in err.lower()
+
+
+def test_unreadable_input_csv_returns_exit_2(tmp_path: Path, tabular_csv: Path, monkeypatch):
+    """An ``OSError`` while reading the input must surface as exit 2."""
+    import pandas as pd
+
+    def _raise_oserror(*args, **kwargs):
+        raise PermissionError("simulated read failure")
+
+    monkeypatch.setattr(pd, "read_csv", _raise_oserror, raising=True)
+
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+        ]
+    )
+    assert rc == 2
+    assert "failed to read" in err.lower()
+
+
 # -------------------------------------------------------------- error paths
 
 
