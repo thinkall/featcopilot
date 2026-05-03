@@ -1,6 +1,7 @@
 """Feature registry for tracking and managing features."""
 
-from typing import Callable, Optional
+from collections.abc import Callable
+from typing import Optional
 
 from featcopilot.core.feature import Feature, FeatureOrigin
 
@@ -58,7 +59,7 @@ class FeatureRegistry:
         """
         self._transformations[name] = func
 
-    def get_transformation(self, name: str) -> Optional[Callable]:
+    def get_transformation(self, name: str) -> Callable | None:
         """Get a registered transformation by name."""
         return self._transformations.get(name)
 
@@ -79,7 +80,7 @@ class FeatureRegistry:
         """
         self._generators[name] = generator_class
 
-    def get_generator(self, name: str) -> Optional[type]:
+    def get_generator(self, name: str) -> type | None:
         """Get a registered generator by name."""
         return self._generators.get(name)
 

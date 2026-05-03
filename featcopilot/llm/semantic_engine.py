@@ -3,7 +3,7 @@
 Uses contextual understanding of data to generate meaningful features.
 """
 
-from typing import Any, Literal, Optional, Union
+from typing import Any, Literal
 
 import numpy as np
 import pandas as pd
@@ -23,12 +23,12 @@ class SemanticEngineConfig(EngineConfig):
     model: str = Field(default="gpt-5.2", description="LLM model to use")
     max_suggestions: int = Field(default=20, description="Max features to suggest")
     validate_features: bool = Field(default=True, description="Validate generated code")
-    domain: Optional[str] = Field(default=None, description="Domain context")
+    domain: str | None = Field(default=None, description="Domain context")
     temperature: float = Field(default=0.3, description="LLM temperature")
     backend: Literal["copilot", "litellm", "openai"] = Field(default="copilot", description="LLM backend to use")
-    api_key: Optional[str] = Field(default=None, description="API key for litellm/openai backend")
-    api_base: Optional[str] = Field(default=None, description="Custom API base URL for litellm/openai")
-    api_version: Optional[str] = Field(default=None, description="API version for Azure OpenAI")
+    api_key: str | None = Field(default=None, description="API key for litellm/openai backend")
+    api_base: str | None = Field(default=None, description="Custom API base URL for litellm/openai")
+    api_version: str | None = Field(default=None, description="API version for Azure OpenAI")
     enable_text_features: bool = Field(default=True, description="Generate ML features from text columns")
     keep_text_columns: bool = Field(
         default=True, description="Keep original text columns (for models that handle them natively)"
@@ -105,14 +105,14 @@ class SemanticEngine(BaseEngine):
         model: str = "gpt-5.2",
         max_suggestions: int = 20,
         validate_features: bool = True,
-        domain: Optional[str] = None,
+        domain: str | None = None,
         verbose: bool = False,
         backend: Literal["copilot", "litellm", "openai"] = "copilot",
-        api_key: Optional[str] = None,
-        api_base: Optional[str] = None,
-        api_version: Optional[str] = None,
+        api_key: str | None = None,
+        api_base: str | None = None,
+        api_version: str | None = None,
         enable_text_features: bool = True,
-        text_feature_types: Optional[list[str]] = None,
+        text_feature_types: list[str] | None = None,
         **kwargs,
     ):
         config = SemanticEngineConfig(
@@ -131,7 +131,7 @@ class SemanticEngine(BaseEngine):
         )
         super().__init__(config=config)
         self.config: SemanticEngineConfig = config
-        self._client: Optional[Any] = None
+        self._client: Any | None = None
         self._suggested_features: list[dict[str, Any]] = []
         self._text_features: list[dict[str, Any]] = []
         self._feature_set = FeatureSet()
@@ -168,9 +168,9 @@ class SemanticEngine(BaseEngine):
 
     def fit(
         self,
-        X: Union[pd.DataFrame, np.ndarray],
-        y: Optional[Union[pd.Series, np.ndarray]] = None,
-        column_descriptions: Optional[dict[str, str]] = None,
+        X: pd.DataFrame | np.ndarray,
+        y: pd.Series | np.ndarray | None = None,
+        column_descriptions: dict[str, str] | None = None,
         task_description: str = "classification/regression task",
         **kwargs,
     ) -> "SemanticEngine":
@@ -506,7 +506,7 @@ Return ONLY the JSON object, no other text. Generate 5-10 useful features."""
             )
             self._feature_set.add(feature)
 
-    def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
+    def transform(self, X: pd.DataFrame | np.ndarray, **kwargs) -> pd.DataFrame:
         """
         Generate LLM-suggested features.
 
@@ -691,7 +691,7 @@ Return ONLY the JSON object, no other text. Generate 5-10 useful features."""
 
         return new_suggestions
 
-    def generate_custom_feature(self, description: str, constraints: Optional[list[str]] = None) -> dict[str, Any]:
+    def generate_custom_feature(self, description: str, constraints: list[str] | None = None) -> dict[str, Any]:
         """
         Generate a specific feature from natural language description.
 
@@ -734,10 +734,10 @@ Return ONLY the JSON object, no other text. Generate 5-10 useful features."""
         self,
         df: pd.DataFrame,
         column: str,
-        target_categories: Optional[list[str]] = None,
+        target_categories: list[str] | None = None,
         similarity_threshold: float = 0.8,
         max_categories: int = 50,
-        context: Optional[str] = None,
+        context: str | None = None,
     ) -> dict[str, str]:
         """
         Use LLM to standardize similar category values in a column.
@@ -856,8 +856,8 @@ Return ONLY the JSON object, no other text. Generate 5-10 useful features."""
         self,
         column: str,
         unique_values: list[str],
-        target_categories: Optional[list[str]] = None,
-        context: Optional[str] = None,
+        target_categories: list[str] | None = None,
+        context: str | None = None,
         similarity_threshold: float = 0.8,
     ) -> str:
         """Build prompt for category standardization."""
@@ -1031,7 +1031,7 @@ Return ONLY the JSON object, no markdown formatting, no explanation text."""
         self,
         df: pd.DataFrame,
         columns: list[str],
-        contexts: Optional[dict[str, str]] = None,
+        contexts: dict[str, str] | None = None,
         **kwargs,
     ) -> tuple[pd.DataFrame, dict[str, dict[str, str]]]:
         """

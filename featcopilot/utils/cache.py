@@ -4,7 +4,7 @@ import hashlib
 import json
 import pickle
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -30,7 +30,7 @@ class FeatureCache:
     >>> data = cache.get('my_feature')
     """
 
-    def __init__(self, cache_dir: Optional[str] = None, max_memory_items: int = 100):
+    def __init__(self, cache_dir: str | None = None, max_memory_items: int = 100):
         self.cache_dir = Path(cache_dir) if cache_dir else None
         self.max_memory_items = max_memory_items
         self._memory_cache: dict[str, Any] = {}
@@ -39,7 +39,7 @@ class FeatureCache:
         if self.cache_dir:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
 
-    def _get_cache_key(self, key: str, data_hash: Optional[str] = None) -> str:
+    def _get_cache_key(self, key: str, data_hash: str | None = None) -> str:
         """Generate cache key."""
         if data_hash:
             return f"{key}_{data_hash}"
@@ -53,7 +53,7 @@ class FeatureCache:
         combined = f"{shape_str}_{sample}"
         return hashlib.md5(combined.encode()).hexdigest()[:16]
 
-    def get(self, key: str, data_hash: Optional[str] = None) -> Optional[Any]:
+    def get(self, key: str, data_hash: str | None = None) -> Any | None:
         """
         Get cached item.
 
@@ -94,8 +94,8 @@ class FeatureCache:
         self,
         key: str,
         value: Any,
-        data_hash: Optional[str] = None,
-        metadata: Optional[dict] = None,
+        data_hash: str | None = None,
+        metadata: dict | None = None,
         persist: bool = True,
     ) -> None:
         """
@@ -140,11 +140,11 @@ class FeatureCache:
             except Exception:
                 pass
 
-    def has(self, key: str, data_hash: Optional[str] = None) -> bool:
+    def has(self, key: str, data_hash: str | None = None) -> bool:
         """Check if key exists in cache."""
         return self.get(key, data_hash) is not None
 
-    def delete(self, key: str, data_hash: Optional[str] = None) -> bool:
+    def delete(self, key: str, data_hash: str | None = None) -> bool:
         """
         Delete cached item.
 
@@ -192,7 +192,7 @@ class FeatureCache:
             for f in self.cache_dir.glob("*.meta.json"):
                 f.unlink()
 
-    def get_metadata(self, key: str, data_hash: Optional[str] = None) -> Optional[dict]:
+    def get_metadata(self, key: str, data_hash: str | None = None) -> dict | None:
         """Get metadata for cached item."""
         cache_key = self._get_cache_key(key, data_hash)
 

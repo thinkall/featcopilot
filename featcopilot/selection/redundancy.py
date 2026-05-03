@@ -1,6 +1,6 @@
 """Redundancy elimination through correlation analysis."""
 
-from typing import Optional, Union
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -13,10 +13,22 @@ logger = get_logger(__name__)
 
 class RedundancyEliminator(BaseSelector):
     """
-    Eliminate redundant features based on correlation.
+    Eliminate redundant features based on pairwise correlation.
 
-    Removes highly correlated features, keeping the one with
-    higher importance (if provided) or the first one.
+    For every pair of numeric columns whose ``|correlation|`` reaches
+    ``correlation_threshold``, exactly one column is removed. The choice
+    follows three rules so original input columns are never silently
+    dropped:
+
+    * **original vs derived** — the **derived** column is always removed;
+      the original is kept regardless of importance.
+    * **original vs original** — neither is removed; original input
+      columns are categorically protected from this selector.
+    * **derived vs derived** — the column with **lower importance** (per
+      ``importance_scores``) is removed; ties keep the first column seen.
+
+    Non-numeric columns (categorical / string / datetime) are not part of
+    the correlation analysis and pass through unchanged.
 
     Parameters
     ----------
@@ -24,10 +36,20 @@ class RedundancyEliminator(BaseSelector):
         Correlation threshold for redundancy
     method : str, default='pearson'
         Correlation method ('pearson', 'spearman', 'kendall')
+    importance_scores : dict[str, float], optional
+        Per-column importance used to break derived-vs-derived ties.
     original_features : set[str], optional
-        Set of original feature names to prefer over derived features
-    original_preference : float, default=0.1
-        Bonus added to importance scores of original features to prefer them
+        Set of original feature names. Originals are categorically
+        protected from removal (see rules above).
+    original_preference : float, optional
+        **Deprecated, accepted for backward compatibility only.** Has no
+        effect; passing any non-``None`` value raises a ``FutureWarning``.
+        Originals are now categorically protected regardless of importance,
+        so there is no tunable trade-off to express. Kept in its original
+        positional slot (between ``original_features`` and ``verbose``) so
+        existing positional callers don't silently rebind values.
+    verbose : bool, default=False
+        Emit per-pair logging while pruning correlated pairs.
 
     Examples
     --------
@@ -39,25 +61,40 @@ class RedundancyEliminator(BaseSelector):
         self,
         correlation_threshold: float = 0.95,
         method: str = "pearson",
-        importance_scores: Optional[dict[str, float]] = None,
-        original_features: Optional[set[str]] = None,
-        original_preference: float = 0.1,
+        importance_scores: dict[str, float] | None = None,
+        original_features: set[str] | None = None,
+        original_preference: float | None = None,
         verbose: bool = False,
         **kwargs,
     ):
+        if original_preference is not None:
+            warnings.warn(
+                "`original_preference` is deprecated and has no effect. "
+                "Original input columns are now categorically protected "
+                "from removal regardless of importance — there is no "
+                "tunable trade-off to express.",
+                FutureWarning,
+                stacklevel=2,
+            )
         super().__init__(**kwargs)
         self.correlation_threshold = correlation_threshold
         self.method = method
         self.importance_scores = importance_scores or {}
         self.original_features = original_features or set()
+        # Persist the deprecated ``original_preference`` parameter so legacy
+        # callers that read ``eliminator.original_preference`` after
+        # construction don't crash with ``AttributeError``. The value has
+        # no effect on behavior — originals are categorically protected
+        # regardless — but the attribute is preserved for read-only
+        # backward compatibility.
         self.original_preference = original_preference
         self.verbose = verbose
-        self._correlation_matrix: Optional[pd.DataFrame] = None
+        self._correlation_matrix: pd.DataFrame | None = None
 
     def fit_transform(
         self,
-        X: Union[pd.DataFrame, np.ndarray],
-        y: Optional[Union[pd.Series, np.ndarray]] = None,
+        X: pd.DataFrame | np.ndarray,
+        y: pd.Series | np.ndarray | None = None,
         **kwargs,
     ) -> pd.DataFrame:
         """Fit and transform in one step (y is optional for this selector)."""
@@ -65,9 +102,9 @@ class RedundancyEliminator(BaseSelector):
 
     def fit(
         self,
-        X: Union[pd.DataFrame, np.ndarray],
-        y: Optional[Union[pd.Series, np.ndarray]] = None,
-        importance_scores: Optional[dict[str, float]] = None,
+        X: pd.DataFrame | np.ndarray,
+        y: pd.Series | np.ndarray | None = None,
+        importance_scores: dict[str, float] | None = None,
         **kwargs,
     ) -> "RedundancyEliminator":
         """
@@ -125,32 +162,37 @@ class RedundancyEliminator(BaseSelector):
                 corr = abs(self._correlation_matrix.loc[col1, col2])
 
                 if corr >= self.correlation_threshold:
-                    # Decide which to remove based on importance + original feature preference
-                    imp1 = self.importance_scores.get(col1, 0)
-                    imp2 = self.importance_scores.get(col2, 0)
-
-                    # Add preference bonus for original features
-                    # This ensures original features are preferred over derived ones
                     is_orig1 = col1 in self.original_features
                     is_orig2 = col2 in self.original_features
 
+                    # Never remove an original feature if the other is derived
                     if is_orig1 and not is_orig2:
-                        # col1 is original, col2 is derived - prefer col1
-                        imp1 += self.original_preference
+                        to_remove.add(col2)
+                        if self.verbose:
+                            logger.info(f"Removing {col2} (derived, corr={corr:.3f} with original {col1})")
+                        continue
                     elif is_orig2 and not is_orig1:
-                        # col2 is original, col1 is derived - prefer col2
-                        imp2 += self.original_preference
+                        to_remove.add(col1)
+                        if self.verbose:
+                            logger.info(f"Removing {col1} (derived, corr={corr:.3f} with original {col2})")
+                        break
+
+                    # Both are original — never remove either
+                    if is_orig1 and is_orig2:
+                        continue
+
+                    # Both are derived — remove the one with lower importance
+                    imp1 = self.importance_scores.get(col1, 0)
+                    imp2 = self.importance_scores.get(col2, 0)
 
                     if imp1 >= imp2:
                         to_remove.add(col2)
                         if self.verbose:
-                            orig_tag = " (derived)" if not is_orig2 else ""
-                            logger.info(f"Removing {col2}{orig_tag} (corr={corr:.3f} with {col1})")
+                            logger.info(f"Removing {col2} (derived, corr={corr:.3f} with {col1})")
                     else:
                         to_remove.add(col1)
                         if self.verbose:
-                            orig_tag = " (derived)" if not is_orig1 else ""
-                            logger.info(f"Removing {col1}{orig_tag} (corr={corr:.3f} with {col2})")
+                            logger.info(f"Removing {col1} (derived, corr={corr:.3f} with {col2})")
                         break  # col1 is removed, move to next
 
         # Selected features are those not removed (numeric) plus all non-numeric columns
@@ -162,7 +204,7 @@ class RedundancyEliminator(BaseSelector):
         if self.verbose:
             logger.info(f"RedundancyEliminator: Removed {len(to_remove)} redundant features")
 
-    def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
+    def transform(self, X: pd.DataFrame | np.ndarray, **kwargs) -> pd.DataFrame:
         """Remove redundant features."""
         if not self._is_fitted:
             raise RuntimeError("Eliminator must be fitted before transform")
@@ -180,6 +222,6 @@ class RedundancyEliminator(BaseSelector):
         """Get list of removed redundant features."""
         return getattr(self, "_removed_features", [])
 
-    def get_correlation_matrix(self) -> Optional[pd.DataFrame]:
+    def get_correlation_matrix(self) -> pd.DataFrame | None:
         """Get the computed correlation matrix."""
         return self._correlation_matrix

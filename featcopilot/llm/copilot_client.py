@@ -5,8 +5,9 @@ designed for feature engineering tasks.
 """
 
 import asyncio
+import concurrent.futures
 import json
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -53,7 +54,7 @@ class CopilotFeatureClient:
     >>> await client.stop()
     """
 
-    def __init__(self, config: Optional[CopilotConfig] = None, model: str = "gpt-5.2", **kwargs):
+    def __init__(self, config: CopilotConfig | None = None, model: str = "gpt-5.2", **kwargs):
         self.config = config or CopilotConfig(model=model, **kwargs)
         self._client = None
         self._session = None
@@ -70,14 +71,20 @@ class CopilotFeatureClient:
         """
         try:
             from copilot import CopilotClient
+            from copilot.session import PermissionHandler
 
             self._client = CopilotClient()
             await self._client.start()
+            # ``on_permission_request`` is required by the Copilot SDK
+            # (since v0.1.32+; mandatory in v0.3.0); pass ``approve_all``
+            # so the SDK doesn't block on interactive permission prompts
+            # (the benchmarks / feature-engineering workflow has no
+            # human-in-the-loop). We pass everything as keyword args
+            # because v0.3.0 made ``create_session`` keyword-only.
             self._session = await self._client.create_session(
-                {
-                    "model": self.config.model,
-                    "streaming": self.config.streaming,
-                }
+                on_permission_request=PermissionHandler.approve_all,
+                model=self.config.model,
+                streaming=self.config.streaming,
             )
             self._is_started = True
             self._copilot_available = True
@@ -99,7 +106,15 @@ class CopilotFeatureClient:
     async def stop(self) -> None:
         """Stop the Copilot client."""
         if self._session and self._copilot_available:
-            await self._session.destroy()
+            # ``destroy()`` was renamed to ``disconnect()`` in the
+            # Copilot SDK 0.3.x; ``destroy()`` still works but emits a
+            # ``DeprecationWarning``. Prefer the new name with a fallback
+            # for older SDKs (<0.3) that don't yet expose ``disconnect``.
+            disconnect = getattr(self._session, "disconnect", None)
+            if disconnect is not None:
+                await disconnect()
+            else:
+                await self._session.destroy()
         if self._client and self._copilot_available:
             await self._client.stop()
         self._is_started = False
@@ -124,26 +139,37 @@ class CopilotFeatureClient:
         if not self._copilot_available:
             return self._mock_response(prompt)
 
-        # Use asyncio.Event to wait for completion
-        done = asyncio.Event()
-        response_content = []
-
-        def on_event(event):
-            if event.type.value == "assistant.message":
-                response_content.append(event.data.content)
-            elif event.type.value == "session.idle":
-                done.set()
-
-        self._session.on(on_event)
-        await self._session.send({"prompt": prompt})
-
-        # Wait with timeout
+        # Use the SDK's ``send_and_wait`` helper which handles the
+        # send-prompt → wait-for-session.idle → return-assistant-message
+        # pattern internally. Returns ``SessionEvent | None`` whose
+        # ``data.content`` carries the assistant's text. Older SDKs
+        # (<0.1.32) accepted a dict; the new SDK takes a positional
+        # string and exposes a typed return type.
+        # Catch the union of timeout exception classes so timeout handling
+        # is reliable across Python versions and SDK implementations:
+        # - Built-in ``TimeoutError`` is what the github-copilot-sdk
+        #   currently raises (``raise TimeoutError(...)`` in
+        #   ``copilot/session.py``).
+        # - ``asyncio.TimeoutError`` was a separate class on Python 3.10
+        #   (only became an alias for ``TimeoutError`` in 3.11+); we
+        #   support 3.10 per ``pyproject.toml``.
+        # - ``concurrent.futures.TimeoutError`` is what some thread/process
+        #   bridges surface; cheap to include.
         try:
-            await asyncio.wait_for(done.wait(), timeout=self.config.timeout)
-        except asyncio.TimeoutError:
+            event = await self._session.send_and_wait(prompt, timeout=self.config.timeout)
+        except (TimeoutError, asyncio.TimeoutError, concurrent.futures.TimeoutError):
             return "Error: Request timed out"
 
-        return response_content[-1] if response_content else ""
+        if event is None:
+            return ""
+        # ``event.data`` is an ``AssistantMessageData`` with a ``content``
+        # attribute. Fall back to ``str(event.data)`` for unfamiliar
+        # event shapes (defensive — should never trigger in practice).
+        data = getattr(event, "data", None)
+        content = getattr(data, "content", None)
+        if content is None and data is not None:
+            content = str(data)
+        return content or ""
 
     def _mock_response(self, prompt: str) -> str:
         """Generate mock response when Copilot is unavailable."""
@@ -216,8 +242,8 @@ class CopilotFeatureClient:
         self,
         column_info: dict[str, str],
         task_description: str,
-        column_descriptions: Optional[dict[str, str]] = None,
-        domain: Optional[str] = None,
+        column_descriptions: dict[str, str] | None = None,
+        domain: str | None = None,
         max_suggestions: int = 10,
     ) -> list[dict[str, Any]]:
         """
@@ -252,8 +278,8 @@ class CopilotFeatureClient:
         self,
         column_info: dict[str, str],
         task_description: str,
-        column_descriptions: Optional[dict[str, str]] = None,
-        domain: Optional[str] = None,
+        column_descriptions: dict[str, str] | None = None,
+        domain: str | None = None,
         max_suggestions: int = 10,
     ) -> str:
         """Build the prompt for feature suggestions."""
@@ -334,8 +360,8 @@ Return ONLY the JSON object, no other text.
         self,
         feature_name: str,
         feature_code: str,
-        column_descriptions: Optional[dict[str, str]] = None,
-        task_description: Optional[str] = None,
+        column_descriptions: dict[str, str] | None = None,
+        task_description: str | None = None,
     ) -> str:
         """
         Get a human-readable explanation of a feature.
@@ -377,7 +403,7 @@ Provide a 2-3 sentence explanation of:
         return await self.send_prompt(prompt)
 
     async def generate_feature_code(
-        self, description: str, column_info: dict[str, str], constraints: Optional[list[str]] = None
+        self, description: str, column_info: dict[str, str], constraints: list[str] | None = None
     ) -> str:
         """
         Generate Python code for a described feature.
@@ -437,7 +463,7 @@ result = df['col1'] / (df['col2'] + 1e-8)
 
         return code
 
-    async def validate_feature_code(self, code: str, sample_data: Optional[dict[str, list]] = None) -> dict[str, Any]:
+    async def validate_feature_code(self, code: str, sample_data: dict[str, list] | None = None) -> dict[str, Any]:
         """
         Validate generated feature code.
 

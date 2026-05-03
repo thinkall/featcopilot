@@ -6,7 +6,7 @@ enabling flexible model selection without vendor lock-in.
 
 import asyncio
 import json
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -22,8 +22,8 @@ class LiteLLMConfig(BaseModel):
     temperature: float = Field(default=0.3, ge=0, le=2, description="Temperature for generation")
     max_tokens: int = Field(default=4096, description="Maximum tokens in response")
     timeout: float = Field(default=60.0, description="Timeout in seconds")
-    api_key: Optional[str] = Field(default=None, description="API key (uses env var if not provided)")
-    api_base: Optional[str] = Field(default=None, description="Custom API base URL")
+    api_key: str | None = Field(default=None, description="API key (uses env var if not provided)")
+    api_base: str | None = Field(default=None, description="Custom API base URL")
 
 
 class LiteLLMFeatureClient:
@@ -68,10 +68,10 @@ class LiteLLMFeatureClient:
 
     def __init__(
         self,
-        config: Optional[LiteLLMConfig] = None,
+        config: LiteLLMConfig | None = None,
         model: str = "gpt-4o",
-        api_key: Optional[str] = None,
-        api_base: Optional[str] = None,
+        api_key: str | None = None,
+        api_base: str | None = None,
         **kwargs,
     ):
         self.config = config or LiteLLMConfig(model=model, api_key=api_key, api_base=api_base, **kwargs)
@@ -125,7 +125,7 @@ class LiteLLMFeatureClient:
         """Stop the LiteLLM client."""
         self._is_started = False
 
-    async def send_prompt(self, prompt: str, system_prompt: Optional[str] = None) -> str:
+    async def send_prompt(self, prompt: str, system_prompt: str | None = None) -> str:
         """
         Send a prompt and get a response.
 
@@ -243,8 +243,8 @@ class LiteLLMFeatureClient:
         self,
         column_info: dict[str, str],
         task_description: str,
-        column_descriptions: Optional[dict[str, str]] = None,
-        domain: Optional[str] = None,
+        column_descriptions: dict[str, str] | None = None,
+        domain: str | None = None,
         max_suggestions: int = 10,
     ) -> list[dict[str, Any]]:
         """
@@ -284,8 +284,8 @@ class LiteLLMFeatureClient:
         self,
         column_info: dict[str, str],
         task_description: str,
-        column_descriptions: Optional[dict[str, str]] = None,
-        domain: Optional[str] = None,
+        column_descriptions: dict[str, str] | None = None,
+        domain: str | None = None,
         max_suggestions: int = 10,
     ) -> str:
         """Build the prompt for feature suggestions."""
@@ -361,8 +361,8 @@ Return ONLY the JSON object, no other text.
         self,
         feature_name: str,
         feature_code: str,
-        column_descriptions: Optional[dict[str, str]] = None,
-        task_description: Optional[str] = None,
+        column_descriptions: dict[str, str] | None = None,
+        task_description: str | None = None,
     ) -> str:
         """
         Get a human-readable explanation of a feature.
@@ -404,7 +404,7 @@ Provide a 2-3 sentence explanation of:
         return await self.send_prompt(prompt)
 
     async def generate_feature_code(
-        self, description: str, column_info: dict[str, str], constraints: Optional[list[str]] = None
+        self, description: str, column_info: dict[str, str], constraints: list[str] | None = None
     ) -> str:
         """
         Generate Python code for a described feature.
@@ -463,7 +463,7 @@ result = df['col1'] / (df['col2'] + 1e-8)
 
         return code
 
-    async def validate_feature_code(self, code: str, sample_data: Optional[dict[str, list]] = None) -> dict[str, Any]:
+    async def validate_feature_code(self, code: str, sample_data: dict[str, list] | None = None) -> dict[str, Any]:
         """
         Validate generated feature code.
 
@@ -546,7 +546,7 @@ class SyncLiteLLMFeatureClient:
 
     def __init__(self, **kwargs):
         self._async_client = LiteLLMFeatureClient(**kwargs)
-        self._loop: Optional[asyncio.AbstractEventLoop] = None
+        self._loop: asyncio.AbstractEventLoop | None = None
 
     def _run_async(self, coro):
         """Run an async coroutine, handling nested event loops (e.g., Jupyter)."""
@@ -590,6 +590,6 @@ class SyncLiteLLMFeatureClient:
         """Generate feature code."""
         return self._run_async(self._async_client.generate_feature_code(**kwargs))
 
-    def validate_feature_code(self, code: str, sample_data: Optional[dict[str, list]] = None) -> dict[str, Any]:
+    def validate_feature_code(self, code: str, sample_data: dict[str, list] | None = None) -> dict[str, Any]:
         """Validate feature code."""
         return self._run_async(self._async_client.validate_feature_code(code=code, sample_data=sample_data))

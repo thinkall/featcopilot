@@ -48,7 +48,7 @@ import time
 import warnings
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -125,7 +125,7 @@ class AutoMLRunner:
         """Predict on new data."""
         raise NotImplementedError
 
-    def predict_proba(self, X: pd.DataFrame) -> Optional[np.ndarray]:
+    def predict_proba(self, X: pd.DataFrame) -> np.ndarray | None:
         """Predict probabilities (classification only)."""
         return None
 
@@ -164,7 +164,7 @@ class FLAMLRunner(AutoMLRunner):
     def predict(self, X: pd.DataFrame) -> np.ndarray:
         return self.model.predict(X)
 
-    def predict_proba(self, X: pd.DataFrame) -> Optional[np.ndarray]:
+    def predict_proba(self, X: pd.DataFrame) -> np.ndarray | None:
         if self._task and "classification" in self._task and hasattr(self.model, "predict_proba"):
             return self.model.predict_proba(X)
         return None
@@ -198,7 +198,7 @@ class AutoGluonRunner(AutoMLRunner):
     def predict(self, X: pd.DataFrame) -> np.ndarray:
         return self.model.predict(X).values
 
-    def predict_proba(self, X: pd.DataFrame) -> Optional[np.ndarray]:
+    def predict_proba(self, X: pd.DataFrame) -> np.ndarray | None:
         if self._task and "classification" in self._task and hasattr(self.model, "predict_proba"):
             proba = self.model.predict_proba(X)
             return proba.values if isinstance(proba, pd.DataFrame) else proba
@@ -261,7 +261,7 @@ class H2ORunner(AutoMLRunner):
             return preds["predict"].as_data_frame().values.flatten()
         return preds["predict"].as_data_frame().values.flatten()
 
-    def predict_proba(self, X: pd.DataFrame) -> Optional[np.ndarray]:
+    def predict_proba(self, X: pd.DataFrame) -> np.ndarray | None:
         import h2o
 
         if self._task and "classification" in self._task:
@@ -337,7 +337,7 @@ def preprocess_data(X: pd.DataFrame, y, task: str) -> tuple[pd.DataFrame, np.nda
     for col in X_processed.select_dtypes(include=[np.number]).columns:
         X_processed[col] = X_processed[col].fillna(X_processed[col].median())
 
-    column_map = dict(zip(X_processed.columns, sanitize_feature_names(list(X_processed.columns))))
+    column_map = dict(zip(X_processed.columns, sanitize_feature_names(list(X_processed.columns)), strict=True))
     X_processed = X_processed.rename(columns=column_map)
 
     # Process target
@@ -353,7 +353,7 @@ def preprocess_data(X: pd.DataFrame, y, task: str) -> tuple[pd.DataFrame, np.nda
     return X_processed, y_processed
 
 
-def get_featcopilot_engines(task: str, with_llm: bool) -> tuple[list[str], Optional[dict[str, Any]]]:
+def get_featcopilot_engines(task: str, with_llm: bool) -> tuple[list[str], dict[str, Any] | None]:
     """Select FeatCopilot engines based on task type."""
     engines = ["tabular", "relational"]
     if "timeseries" in task:
@@ -421,7 +421,7 @@ def prepare_dataset_features(
     max_features: int,
     with_llm: bool,
     use_cache: bool = True,
-) -> Optional[dict]:
+) -> dict | None:
     """
     Prepare dataset with FeatCopilot feature engineering.
 
@@ -508,7 +508,7 @@ def run_single_benchmark(
     max_features: int,
     with_llm: bool = False,
     use_cache: bool = True,
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Run benchmark on a single dataset."""
     print(f"\n{'='*60}")
     print(f"Dataset: {dataset_name}, Framework: {framework}")
@@ -847,7 +847,7 @@ def save_cache(results: list[dict], output_path: Path, framework: str, with_llm:
     print(f"Cache saved: {cache_file}")
 
 
-def load_cache(output_path: Path, framework: str, with_llm: bool) -> Optional[list[dict]]:
+def load_cache(output_path: Path, framework: str, with_llm: bool) -> list[dict] | None:
     """Load benchmark results from cache file."""
     cache_file = get_cache_file(output_path, framework, with_llm)
     if not cache_file.exists():
@@ -973,7 +973,7 @@ def run_benchmark_with_cache(
     framework: str,
     time_budget: int,
     with_llm: bool,
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Run benchmark using cached feature-engineered data."""
     print(f"\n{'='*60}")
     print(f"Dataset: {dataset_name}, Framework: {framework}")

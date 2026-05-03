@@ -1,14 +1,13 @@
 """Model utilities for Copilot client."""
 
 import asyncio
-from typing import Optional
 
 from featcopilot.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
 # Cache for models fetched from Copilot
-_cached_models: Optional[list[dict]] = None
+_cached_models: list[dict] | None = None
 
 # Default model
 DEFAULT_MODEL = "gpt-5.2"
@@ -89,7 +88,7 @@ def fetch_models(force_refresh: bool = False) -> list[dict]:
 
 
 def list_models(
-    provider: Optional[str] = None,
+    provider: str | None = None,
     verbose: bool = False,
     force_refresh: bool = False,
 ) -> list[dict]:
@@ -143,7 +142,7 @@ def list_models(
     return models
 
 
-def get_model_info(model_name: str, force_refresh: bool = False) -> Optional[dict]:
+def get_model_info(model_name: str, force_refresh: bool = False) -> dict | None:
     """
     Get information about a specific model from Copilot.
 

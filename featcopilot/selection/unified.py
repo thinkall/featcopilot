@@ -1,7 +1,5 @@
 """Unified feature selector combining multiple methods."""
 
-from typing import Optional, Union
-
 import numpy as np
 import pandas as pd
 
@@ -42,11 +40,11 @@ class FeatureSelector(BaseSelector):
 
     def __init__(
         self,
-        methods: Optional[list[str]] = None,
-        max_features: Optional[int] = None,
+        methods: list[str] | None = None,
+        max_features: int | None = None,
         correlation_threshold: float = 0.95,
         combination: str = "union",
-        original_features: Optional[set[str]] = None,
+        original_features: set[str] | None = None,
         verbose: bool = False,
         **kwargs,
     ):
@@ -60,7 +58,7 @@ class FeatureSelector(BaseSelector):
         self._selectors: dict[str, BaseSelector] = {}
         self._method_scores: dict[str, dict[str, float]] = {}
 
-    def fit(self, X: Union[pd.DataFrame, np.ndarray], y: Union[pd.Series, np.ndarray], **kwargs) -> "FeatureSelector":
+    def fit(self, X: pd.DataFrame | np.ndarray, y: pd.Series | np.ndarray, **kwargs) -> "FeatureSelector":
         """
         Fit all selection methods.
 
@@ -117,7 +115,10 @@ class FeatureSelector(BaseSelector):
             )
             eliminator.fit(X)
             non_redundant = set(eliminator.get_selected_features())
-            self._feature_scores = {k: v for k, v in self._feature_scores.items() if k in non_redundant}
+            # Always preserve original features even if marked redundant
+            self._feature_scores = {
+                k: v for k, v in self._feature_scores.items() if k in non_redundant or k in self.original_features
+            }
 
         # Final selection
         self._final_selection()
@@ -196,13 +197,13 @@ class FeatureSelector(BaseSelector):
             model.fit(X_cand, y)
             importances = model.feature_importances_
 
-            # Keep features with importance above mean importance
+            # Keep features with importance above mean importance (stricter threshold)
             mean_imp = np.mean(importances)
-            selected = [c for c, imp in zip(candidates, importances) if imp >= mean_imp * 0.5]
+            selected = [c for c, imp in zip(candidates, importances, strict=True) if imp >= mean_imp]
 
             if len(selected) == 0:
-                # Fallback: keep top half by importance
-                top_k = max(3, len(candidates) // 2)
+                # Fallback: keep only top 3 by importance
+                top_k = min(3, len(candidates))
                 idx = np.argsort(importances)[::-1][:top_k]
                 selected = [candidates[i] for i in idx]
 
@@ -262,7 +263,7 @@ class FeatureSelector(BaseSelector):
                 f"({len(original_selected)} original + {len(derived_selected)} derived)"
             )
 
-    def transform(self, X: Union[pd.DataFrame, np.ndarray], **kwargs) -> pd.DataFrame:
+    def transform(self, X: pd.DataFrame | np.ndarray, **kwargs) -> pd.DataFrame:
         """Select features from data."""
         if not self._is_fitted:
             raise RuntimeError("Selector must be fitted before transform")

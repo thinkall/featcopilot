@@ -1,7 +1,7 @@
 """Validation helpers for safer feature engineering workflows."""
 
 import re
-from typing import Any, Optional
+from typing import Any
 
 DEFAULT_LEAKAGE_KEYWORDS = [
     "target",
@@ -21,8 +21,8 @@ def _normalize_column_name(name: Any) -> str:
 
 def find_potential_leakage_columns(
     columns: list[Any],
-    target_name: Optional[Any] = None,
-    keywords: Optional[list[str]] = None,
+    target_name: Any | None = None,
+    keywords: list[str] | None = None,
 ) -> list[Any]:
     """
     Find suspicious columns that may leak label or future information.
@@ -68,7 +68,7 @@ def find_potential_leakage_columns(
     # that strip to nothing) cannot match every column via the
     # ``normalized_target in normalized_column`` substring check.
     if target_name is None:
-        normalized_target: Optional[str] = None
+        normalized_target: str | None = None
     else:
         normalized = _normalize_column_name(target_name)
         normalized_target = normalized if normalized else None

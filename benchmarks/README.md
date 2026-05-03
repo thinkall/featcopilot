@@ -1,24 +1,48 @@
 # FeatCopilot Benchmarks
 
-Comprehensive benchmarks demonstrating FeatCopilot's feature engineering capabilities across 63 datasets.
+Comprehensive benchmarks demonstrating FeatCopilot's feature engineering capabilities across 63 datasets
+(31 real-world, 32 synthetic) with rigorous statistical methodology.
+
+## Statistical Methodology
+
+- **5-fold stratified cross-validation** with mean ± std reporting
+- **Wilcoxon signed-rank test** for statistical significance (p < 0.05)
+- **Separate real-world vs synthetic** reporting (primary results on real-world only)
+- **Win / Tie / Loss** counts with significance markers
 
 ## Latest Results Summary
 
 ### Simple Models Benchmark (RandomForest, LogisticRegression/Ridge)
 
-| Metric | Multi-Engine |
-|--------|--------------|
-| **Datasets** | 63 |
-| **Improved** | 31 (49%) |
-| **Avg Improvement** | **+7.52%** |
-| **Best Improvement** | +144% (triple_interaction_regression) |
+#### Real-World Datasets (Primary — 31 INRIA/HuggingFace datasets)
 
-**Key Highlights:**
-- **triple_interaction_regression**: +144% R² improvement
-- **xor_regression**: +104% R² improvement
-- **pairwise_product_regression**: +70% R² improvement
-- **complex_classification**: +16.49% accuracy boost
-- **xor_classification**: +16.67% accuracy boost
+| Metric | Value |
+|--------|-------|
+| **Datasets** | 31 |
+| **Win / Tie / Loss** | 6 / 22 / 3 |
+| **Mean Improvement** | +0.15% |
+| **Max Regression** | -1.14% (not statistically significant) |
+
+**Key Properties:**
+- **Do-no-harm guarantee**: No statistically significant regression on any real-world dataset
+- **Selective improvement**: +3.63% on eye_movements, +0.45% on higgs, +0.29% on california
+- **Safe fallback**: Automatically falls back to original features when derived features don't help
+
+#### Synthetic Datasets (Supplementary — 32 controlled experiments)
+
+| Metric | Value |
+|--------|-------|
+| **Datasets** | 32 |
+| **Win / Tie / Loss** | 18 / 12 / 2 |
+| **Mean Improvement** | +14.49% |
+| **Best Improvement** | +120% (xor_regression) |
+
+**Key Highlights (synthetic datasets demonstrate FeatCopilot's capabilities):**
+- **xor_regression**: +120% R² improvement (interaction features)
+- **triple_interaction_regression**: +114% R² improvement
+- **pairwise_product_regression**: +61% R² improvement
+- **xor_classification**: +15.3% accuracy boost
+- **polynomial_classification**: +12.8% accuracy boost
 
 ### AutoML Benchmark (FLAML + AutoGluon, 120s budget)
 
@@ -26,12 +50,6 @@ Comprehensive benchmarks demonstrating FeatCopilot's feature engineering capabil
 |-----------|----------|----------|-----------------|
 | **FLAML** | 10 | 9 (90%) | **+1.85%** |
 | **AutoGluon** | 10 | 9 (90%) | **+1.55%** |
-
-**Notable Results:**
-- **complex_classification**: +6.67% (FLAML), +7.62% (AutoGluon)
-- **xor_classification**: +5.62% (FLAML), +2.42% (AutoGluon)
-- **polynomial_regression**: +2.99% (FLAML)
-- **titanic**: +1.37% (both frameworks)
 
 ### FE Tools Comparison (FeatCopilot vs autofeat vs featuretools)
 

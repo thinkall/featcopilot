@@ -37,7 +37,7 @@ import time
 import warnings
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -85,7 +85,7 @@ QUICK_DATASETS = [
 ]
 
 
-def check_tool_availability() -> dict[str, Optional[str]]:
+def check_tool_availability() -> dict[str, str | None]:
     """Check which feature engineering tools are available."""
     available = {}
 
@@ -227,7 +227,7 @@ class FeatCopilotRunner(FeatureEngineeringRunner):
         max_features: int = 50,
         random_state: int = 42,
         with_llm: bool = False,
-        llm_config: Optional[dict[str, Any]] = None,
+        llm_config: dict[str, Any] | None = None,
     ):
         super().__init__(max_features, random_state)
         self.engineer = None
@@ -773,7 +773,7 @@ def get_runner(
     tool_name: str,
     max_features: int = 50,
     with_llm: bool = False,
-    llm_config: Optional[dict[str, Any]] = None,
+    llm_config: dict[str, Any] | None = None,
 ) -> FeatureEngineeringRunner:
     """Get feature engineering runner by tool name."""
     runners = {
@@ -796,7 +796,7 @@ def get_runner(
     return runners[tool_name](max_features=max_features)
 
 
-def evaluate_classification(y_true: np.ndarray, y_pred: np.ndarray, y_prob: Optional[np.ndarray] = None) -> dict:
+def evaluate_classification(y_true: np.ndarray, y_pred: np.ndarray, y_prob: np.ndarray | None = None) -> dict:
     """Evaluate classification metrics."""
     metrics = {
         "accuracy": accuracy_score(y_true, y_pred),
@@ -830,7 +830,7 @@ def run_single_benchmark(
     time_budget: int = 60,
     random_state: int = 42,
     with_llm: bool = False,
-    llm_config: Optional[dict[str, Any]] = None,
+    llm_config: dict[str, Any] | None = None,
     use_feature_cache: bool = True,
     fe_timeout: int = 120,
 ) -> dict[str, Any]:
@@ -991,12 +991,12 @@ def run_single_benchmark(
 
 def run_comparison_benchmark(
     dataset_names: list[str],
-    tools: Optional[list[str]] = None,
+    tools: list[str] | None = None,
     max_features: int = 50,
     time_budget: int = 60,
     random_state: int = 42,
     with_llm: bool = False,
-    llm_config: Optional[dict[str, Any]] = None,
+    llm_config: dict[str, Any] | None = None,
     use_feature_cache: bool = True,
 ) -> pd.DataFrame:
     """
@@ -1126,7 +1126,7 @@ def calculate_improvements(results: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(improvements)
 
 
-def generate_report(results: pd.DataFrame, output_path: Optional[str] = None) -> str:
+def generate_report(results: pd.DataFrame, output_path: str | None = None) -> str:
     """Generate comprehensive markdown report from benchmark results."""
     report = []
     report.append("# Feature Engineering Tools Comparison Benchmark\n")
@@ -1168,8 +1168,8 @@ def generate_report(results: pd.DataFrame, output_path: Optional[str] = None) ->
 
     # ====== METRIC 1: Win Rate ======
     report.append("\n## 1. Win Rate (Best Score Per Dataset)\n")
-    tool_wins = {tool: 0 for tool in fe_tools}
-    tool_datasets_tested = {tool: 0 for tool in fe_tools}
+    tool_wins = dict.fromkeys(fe_tools, 0)
+    tool_datasets_tested = dict.fromkeys(fe_tools, 0)
     for dataset in successful_results["dataset"].unique():
         dataset_data = successful_results[
             (successful_results["dataset"] == dataset) & (successful_results["tool"] != "baseline")
@@ -1395,7 +1395,7 @@ def save_cache(results: pd.DataFrame, output_path: Path) -> None:
     print(f"Cache saved: {cache_file}")
 
 
-def load_cache(output_path: Path) -> Optional[pd.DataFrame]:
+def load_cache(output_path: Path) -> pd.DataFrame | None:
     """Load benchmark results from cache file."""
     cache_file = get_cache_file(output_path)
     if not cache_file.exists():

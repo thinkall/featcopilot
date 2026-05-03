@@ -162,6 +162,27 @@ class TestFeatureSelector:
         assert "mutual_info" in method_scores
         assert "f_test" in method_scores
 
+    def test_set_selected_features_overrides_selection(self, mixed_data):
+        """set_selected_features replaces the active selection and is reflected in transform()."""
+        X, y = mixed_data
+        selector = FeatureSelector(methods=["mutual_info", "importance"], max_features=5)
+        selector.fit_transform(X, y)
+
+        new_selection = ["feature_0", "feature_1"]
+        selector.set_selected_features(new_selection)
+
+        # Public getter returns a copy of the new selection.
+        assert selector.get_selected_features() == new_selection
+
+        # transform() honours the override (uses the new selection only).
+        result = selector.transform(X)
+        assert list(result.columns) == new_selection
+
+        # The setter copies its input, so mutating the caller's list does not
+        # leak into the selector's internal state.
+        new_selection.append("feature_2")
+        assert selector.get_selected_features() == ["feature_0", "feature_1"]
+
 
 class TestImportanceSelectorCoverage:
     """Additional coverage tests for ImportanceSelector."""
@@ -596,6 +617,51 @@ class TestFeatureSelectorCoverage:
         scores = [score for _, score in ranking]
         assert scores == sorted(scores, reverse=True)
 
+    def test_default_baseline_score_when_no_numeric_scores(self):
+        """When no numeric features have positive scores, categorical baseline falls back to 0.5."""
+        n = 100
+        # All-zero numeric columns have score 0; categorical column then takes the
+        # default baseline (0.5) rather than median(numeric_scores).
+        X = pd.DataFrame(
+            {
+                "num_zero1": np.zeros(n),
+                "num_zero2": np.zeros(n),
+                "cat1": pd.array(np.tile(["a", "b"], n // 2), dtype="object"),
+            }
+        )
+        y = np.array([0, 1] * (n // 2))
+        selector = FeatureSelector(
+            methods=["correlation"],
+            original_features={"num_zero1", "num_zero2", "cat1"},
+        )
+        selector.fit(X, y)
+        scores = selector.get_feature_scores()
+        # cat1 should receive the 0.5 default baseline (since all numeric scores are 0).
+        assert scores.get("cat1", 0) == pytest.approx(0.5)
+
+    def test_safety_adds_original_not_in_X(self):
+        """Original features set may include names not present in X — safety branch must add them back."""
+        np.random.seed(42)
+        n = 100
+        X = pd.DataFrame(
+            {
+                "a": np.random.randn(n),
+                "b": np.random.randn(n),
+                "c": np.random.randn(n),
+            }
+        )
+        y = np.array([0, 1] * (n // 2))
+        # "missing" is in original_features but not in X.columns. After _final_selection,
+        # _selected_features will only contain a/b/c (3 < 4 = len(original_features)),
+        # so the safety branch must append "missing".
+        selector = FeatureSelector(
+            methods=["mutual_info"],
+            original_features={"a", "b", "c", "missing"},
+        )
+        selector.fit(X, y)
+        selected = selector.get_selected_features()
+        assert "missing" in selected
+
 
 class TestRedundancyEliminatorCoverage:
     """Additional coverage tests for RedundancyEliminator."""
@@ -716,3 +782,157 @@ class TestRedundancyEliminatorCoverage:
         corr_matrix = eliminator.get_correlation_matrix()
         assert isinstance(corr_matrix, pd.DataFrame)
         assert corr_matrix.shape == (2, 2)
+
+    def test_two_derived_correlated_lower_imp_first_removed(self):
+        """Both derived correlated, imp(col1) < imp(col2) -> col1 removed via break, verbose log."""
+        np.random.seed(0)
+        n = 100
+        base = np.random.randn(n)
+        # Three derived features all correlated with `base`. importance ordering:
+        # derived_low < derived_mid < derived_high. The pair-by-pair loop will hit
+        # the imp1 < imp2 branch (which breaks the inner loop) when col1 has the
+        # lowest importance.
+        X = pd.DataFrame(
+            {
+                "derived_low": base + np.random.randn(n) * 0.001,
+                "derived_mid": base + np.random.randn(n) * 0.001,
+                "derived_high": base + np.random.randn(n) * 0.001,
+            }
+        )
+        eliminator = RedundancyEliminator(
+            correlation_threshold=0.95,
+            importance_scores={"derived_low": 0.1, "derived_mid": 0.5, "derived_high": 0.9},
+            original_features=set(),  # all derived -> falls into the "both derived" branch
+            verbose=True,
+        )
+        eliminator.fit(X)
+        removed = eliminator.get_removed_features()
+        # The lowest-importance derived feature must be among the removed set.
+        assert "derived_low" in removed
+
+    def test_two_derived_correlated_higher_imp_first_keeps(self):
+        """Both derived correlated, imp(col1) >= imp(col2) -> col2 removed (verbose log)."""
+        np.random.seed(1)
+        n = 100
+        base = np.random.randn(n)
+        # First column has the higher importance score, so the "both derived"
+        # branch will take the imp1 >= imp2 path and remove col2 (with verbose log).
+        X = pd.DataFrame(
+            {
+                "derived_high": base + np.random.randn(n) * 0.001,
+                "derived_low": base + np.random.randn(n) * 0.001,
+            }
+        )
+        eliminator = RedundancyEliminator(
+            correlation_threshold=0.95,
+            importance_scores={"derived_high": 0.9, "derived_low": 0.1},
+            original_features=set(),
+            verbose=True,
+        )
+        eliminator.fit(X)
+        removed = eliminator.get_removed_features()
+        assert "derived_low" in removed
+
+    def test_original_preference_kwarg_emits_future_warning(self):
+        """Passing the removed `original_preference` kwarg must warn loudly,
+        not be silently swallowed by the BaseSelector ``**kwargs`` forward.
+
+        Uses ``FutureWarning`` (visible to end users by default) rather
+        than ``DeprecationWarning`` (which Python filters by default for
+        non-developer code), so API consumers actually see the change.
+        """
+        import warnings as warnings_mod
+
+        with warnings_mod.catch_warnings(record=True) as caught:
+            warnings_mod.simplefilter("always")
+            elim = RedundancyEliminator(
+                correlation_threshold=0.95,
+                original_preference=0.5,
+            )
+        future_warnings = [w for w in caught if issubclass(w.category, FutureWarning)]
+        assert len(future_warnings) == 1
+        assert "original_preference" in str(future_warnings[0].message)
+        # Construction still succeeds — the value is documented as ignored.
+        assert elim.correlation_threshold == 0.95
+
+    def test_no_kwarg_no_future_warning(self):
+        """Default construction must NOT raise the FutureWarning
+        (regression guard against false positives)."""
+        import warnings as warnings_mod
+
+        with warnings_mod.catch_warnings(record=True) as caught:
+            warnings_mod.simplefilter("always")
+            RedundancyEliminator(correlation_threshold=0.95)
+        future_warnings = [
+            w for w in caught if issubclass(w.category, FutureWarning) and "original_preference" in str(w.message)
+        ]
+        assert future_warnings == []
+
+    def test_positional_argument_order_matches_legacy(self):
+        """``original_preference`` must remain in its legacy positional slot
+        (between ``original_features`` and ``verbose``) so existing positional
+        callers don't silently rebind values to the wrong parameters.
+
+        Regression test for Copilot review on commit d6db161: a previous
+        round had appended ``original_preference`` after ``verbose`` in the
+        signature, which would silently bind a positional ``verbose`` value
+        to ``original_preference`` (triggering an unexpected
+        ``FutureWarning``) and vice versa. The positional contract from the
+        original signature must be preserved.
+        """
+        import inspect
+        import warnings as warnings_mod
+
+        sig = inspect.signature(RedundancyEliminator.__init__)
+        params = [
+            name
+            for name, p in sig.parameters.items()
+            if p.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD) and name != "self"
+        ]
+        # Expected legacy order — original_preference between original_features and verbose.
+        assert params == [
+            "correlation_threshold",
+            "method",
+            "importance_scores",
+            "original_features",
+            "original_preference",
+            "verbose",
+        ], f"Positional order changed; legacy callers will silently rebind values. Got: {params}"
+
+        # End-to-end smoke: passing all-positional in the legacy order must
+        # bind verbose to True without triggering the FutureWarning.
+        with warnings_mod.catch_warnings(record=True) as caught:
+            warnings_mod.simplefilter("always")
+            elim = RedundancyEliminator(0.95, "pearson", None, None, None, True)
+        future_warnings = [
+            w for w in caught if issubclass(w.category, FutureWarning) and "original_preference" in str(w.message)
+        ]
+        assert future_warnings == [], "Legacy positional call must not trigger original_preference FutureWarning"
+        assert elim.verbose is True
+
+    def test_original_preference_attribute_preserved_for_legacy_readers(self):
+        """``RedundancyEliminator.original_preference`` must remain a readable
+        attribute even though the value has no effect.
+
+        Regression test for Copilot review on commit d501114: a previous
+        revision dropped ``self.original_preference = original_preference``
+        from ``__init__``, which would crash legacy code that reads the
+        attribute after construction (e.g., for logging, hyperparameter
+        introspection, or sklearn's ``get_params`` / ``set_params``
+        round-trip) with ``AttributeError``.
+        """
+        import warnings as warnings_mod
+
+        # Default (None) — attribute exists with the default value.
+        with warnings_mod.catch_warnings(record=True):
+            warnings_mod.simplefilter("always")
+            elim_default = RedundancyEliminator(correlation_threshold=0.95)
+        assert hasattr(elim_default, "original_preference")
+        assert elim_default.original_preference is None
+
+        # Explicit value — attribute reflects what the caller passed in,
+        # even though the value is documented to have no effect.
+        with warnings_mod.catch_warnings(record=True):
+            warnings_mod.simplefilter("always")
+            elim_legacy = RedundancyEliminator(correlation_threshold=0.95, original_preference=0.5)
+        assert elim_legacy.original_preference == 0.5

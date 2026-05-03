@@ -2370,3 +2370,229 @@ class TestSemanticEngineExtended:
 
         # Should still have fallback features
         assert len(features) == 11
+
+
+# ===========================================================================
+# Real-SDK integration: ensure copilot_client.start() is compatible with
+# github-copilot-sdk >= 0.1.32 (mandatory ``on_permission_request`` kwarg)
+# AND >= 0.3.0 (kwargs-only, ``send_and_wait`` API, ``disconnect`` method).
+# These tests verify the correct API contract is exercised, even though
+# CI runs without a live Copilot connection.
+# ===========================================================================
+
+
+class TestCopilotClientSDKCompatibility:
+    """Regression tests for SDK API compatibility.
+
+    Earlier featcopilot code passed a positional dict to ``create_session``
+    and used ``destroy()`` for teardown. The Copilot SDK 0.1.32+ rejected
+    the positional dict (mandatory ``on_permission_request`` kwarg) and
+    0.3.x deprecated ``destroy()`` in favor of ``disconnect()``. Both
+    failures silently fell back to mock LLM responses, producing
+    misleading benchmark numbers. These tests pin the new API contract.
+    """
+
+    def test_start_passes_on_permission_request_to_create_session(self, monkeypatch):
+        """``create_session`` must be called with ``on_permission_request``."""
+        from unittest.mock import AsyncMock, MagicMock
+
+        from featcopilot.llm.copilot_client import CopilotFeatureClient
+
+        # Build a fake ``copilot`` package that records create_session kwargs.
+        fake_session = MagicMock()
+        fake_session.disconnect = AsyncMock()
+
+        captured = {}
+
+        async def fake_create_session(**kwargs):
+            captured.update(kwargs)
+            return fake_session
+
+        fake_client_inst = MagicMock()
+        fake_client_inst.start = AsyncMock()
+        fake_client_inst.create_session = fake_create_session
+        fake_client_inst.stop = AsyncMock()
+
+        fake_client_class = MagicMock(return_value=fake_client_inst)
+
+        sentinel_handler = object()
+        fake_permission_handler = type("PH", (), {"approve_all": staticmethod(lambda *a, **kw: sentinel_handler)})
+
+        import sys
+        import types
+
+        fake_copilot = types.ModuleType("copilot")
+        fake_copilot.CopilotClient = fake_client_class
+        fake_copilot_session = types.ModuleType("copilot.session")
+        fake_copilot_session.PermissionHandler = fake_permission_handler
+
+        monkeypatch.setitem(sys.modules, "copilot", fake_copilot)
+        monkeypatch.setitem(sys.modules, "copilot.session", fake_copilot_session)
+
+        client = CopilotFeatureClient(model="gpt-5.2")
+        import asyncio
+
+        asyncio.run(client.start())
+
+        assert client._copilot_available is True, (
+            "Client should NOT have fallen back to mock — captured kwargs: " f"{captured}"
+        )
+        # Must use the new keyword-only API:
+        assert "on_permission_request" in captured
+        assert captured["on_permission_request"] is fake_permission_handler.approve_all
+        assert captured["model"] == "gpt-5.2"
+        assert captured["streaming"] is False
+
+    def test_send_prompt_uses_send_and_wait(self, monkeypatch):
+        """``send_prompt`` must call the SDK's ``send_and_wait`` helper
+        (introduced in SDK 0.3.x) — not the older ``send({"prompt": ...})``
+        + manual idle-wait pattern, which silently produced empty
+        responses on 0.3.x."""
+        from unittest.mock import AsyncMock, MagicMock
+
+        from featcopilot.llm.copilot_client import CopilotFeatureClient
+
+        # Build a fake assistant-message event
+        fake_event = MagicMock()
+        fake_event.data = MagicMock()
+        fake_event.data.content = "hello"
+
+        fake_session = MagicMock()
+        fake_session.send_and_wait = AsyncMock(return_value=fake_event)
+        fake_session.disconnect = AsyncMock()
+
+        client = CopilotFeatureClient(model="gpt-5.2")
+        # Pretend start() succeeded
+        client._session = fake_session
+        client._is_started = True
+        client._copilot_available = True
+
+        import asyncio
+
+        result = asyncio.run(client.send_prompt("hi there"))
+
+        fake_session.send_and_wait.assert_called_once()
+        # Must pass prompt as positional str, not dict
+        args, kwargs = fake_session.send_and_wait.call_args
+        assert args == ("hi there",)
+        assert "timeout" in kwargs
+        assert result == "hello"
+
+    def test_stop_prefers_disconnect_over_destroy(self):
+        """``stop()`` must call ``disconnect()`` when available (SDK
+        0.3.x); ``destroy()`` is deprecated."""
+        from unittest.mock import AsyncMock, MagicMock
+
+        from featcopilot.llm.copilot_client import CopilotFeatureClient
+
+        fake_session = MagicMock()
+        fake_session.disconnect = AsyncMock()
+        fake_session.destroy = AsyncMock()
+
+        fake_client = MagicMock()
+        fake_client.stop = AsyncMock()
+
+        client = CopilotFeatureClient(model="gpt-5.2")
+        client._session = fake_session
+        client._client = fake_client
+        client._is_started = True
+        client._copilot_available = True
+
+        import asyncio
+
+        asyncio.run(client.stop())
+
+        fake_session.disconnect.assert_awaited_once()
+        fake_session.destroy.assert_not_called()
+        fake_client.stop.assert_awaited_once()
+
+    def test_stop_falls_back_to_destroy_for_old_sdk(self):
+        """If the session has no ``disconnect`` (older SDK), use ``destroy``."""
+        from unittest.mock import AsyncMock, MagicMock
+
+        from featcopilot.llm.copilot_client import CopilotFeatureClient
+
+        fake_session = MagicMock(spec=["destroy"])
+        fake_session.destroy = AsyncMock()
+
+        fake_client = MagicMock()
+        fake_client.stop = AsyncMock()
+
+        client = CopilotFeatureClient(model="gpt-5.2")
+        client._session = fake_session
+        client._client = fake_client
+        client._is_started = True
+        client._copilot_available = True
+
+        import asyncio
+
+        asyncio.run(client.stop())
+
+        fake_session.destroy.assert_awaited_once()
+
+    def test_send_prompt_handles_builtin_timeout_error(self):
+        """``send_prompt`` returns the timeout sentinel when ``send_and_wait``
+        raises the built-in ``TimeoutError`` (current SDK behaviour)."""
+        from unittest.mock import AsyncMock, MagicMock
+
+        from featcopilot.llm.copilot_client import CopilotFeatureClient
+
+        fake_session = MagicMock()
+        fake_session.send_and_wait = AsyncMock(side_effect=TimeoutError("boom"))
+
+        client = CopilotFeatureClient(model="gpt-5.2")
+        client._session = fake_session
+        client._is_started = True
+        client._copilot_available = True
+
+        import asyncio
+
+        result = asyncio.run(client.send_prompt("hi"))
+        assert "timed out" in result.lower()
+
+    def test_send_prompt_handles_asyncio_timeout_error(self):
+        """``send_prompt`` must also catch ``asyncio.TimeoutError`` — on
+        Python 3.10 it's a separate class from the built-in
+        ``TimeoutError`` (only became an alias in 3.11+), and the SDK or
+        an inner await may raise it. Without an explicit catch the
+        exception would propagate to the caller as an unhandled crash.
+
+        Regression test for Copilot review on commit 085371e.
+        """
+        import asyncio
+        from unittest.mock import AsyncMock, MagicMock
+
+        from featcopilot.llm.copilot_client import CopilotFeatureClient
+
+        fake_session = MagicMock()
+        fake_session.send_and_wait = AsyncMock(side_effect=asyncio.TimeoutError())
+
+        client = CopilotFeatureClient(model="gpt-5.2")
+        client._session = fake_session
+        client._is_started = True
+        client._copilot_available = True
+
+        result = asyncio.run(client.send_prompt("hi"))
+        assert "timed out" in result.lower()
+
+    def test_send_prompt_handles_concurrent_futures_timeout_error(self):
+        """``concurrent.futures.TimeoutError`` is what some thread/process
+        bridges (e.g., ``run_in_executor`` chains) surface; cheap to
+        include and prevents the timeout handler from being bypassed."""
+        import concurrent.futures
+        from unittest.mock import AsyncMock, MagicMock
+
+        from featcopilot.llm.copilot_client import CopilotFeatureClient
+
+        fake_session = MagicMock()
+        fake_session.send_and_wait = AsyncMock(side_effect=concurrent.futures.TimeoutError())
+
+        client = CopilotFeatureClient(model="gpt-5.2")
+        client._session = fake_session
+        client._is_started = True
+        client._copilot_available = True
+
+        import asyncio
+
+        result = asyncio.run(client.send_prompt("hi"))
+        assert "timed out" in result.lower()

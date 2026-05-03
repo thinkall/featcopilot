@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -67,9 +67,9 @@ class Feature:
     origin: FeatureOrigin = FeatureOrigin.ORIGINAL
     source_columns: list[str] = field(default_factory=list)
     transformation: str = ""
-    explanation: Optional[str] = None
-    code: Optional[str] = None
-    importance: Optional[float] = None
+    explanation: str | None = None
+    code: str | None = None
+    importance: float | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
@@ -135,7 +135,7 @@ class FeatureSet:
     Provides methods for adding, removing, filtering, and combining features.
     """
 
-    def __init__(self, features: Optional[list[Feature]] = None):
+    def __init__(self, features: list[Feature] | None = None):
         self._features: dict[str, Feature] = {}
         if features:
             for f in features:
@@ -157,11 +157,11 @@ class FeatureSet:
         """Add a feature to the set."""
         self._features[feature.name] = feature
 
-    def remove(self, name: str) -> Optional[Feature]:
+    def remove(self, name: str) -> Feature | None:
         """Remove and return a feature by name."""
         return self._features.pop(name, None)
 
-    def get(self, name: str) -> Optional[Feature]:
+    def get(self, name: str) -> Feature | None:
         """Get a feature by name."""
         return self._features.get(name)
 

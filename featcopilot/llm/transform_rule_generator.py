@@ -6,7 +6,7 @@ using GitHub Copilot SDK.
 
 import json
 import re
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 import pandas as pd
 
@@ -52,12 +52,12 @@ class TransformRuleGenerator:
     def __init__(
         self,
         model: str = "gpt-5.2",
-        store: Optional[TransformRuleStore] = None,
+        store: TransformRuleStore | None = None,
         validate: bool = True,
         verbose: bool = False,
         backend: Literal["copilot", "litellm", "openai"] = "copilot",
-        api_key: Optional[str] = None,
-        api_base: Optional[str] = None,
+        api_key: str | None = None,
+        api_base: str | None = None,
     ):
         self.model = model
         self.store = store
@@ -66,7 +66,7 @@ class TransformRuleGenerator:
         self.backend = backend
         self.api_key = api_key
         self.api_base = api_base
-        self._client: Optional[Any] = None
+        self._client: Any | None = None
 
     def _ensure_client(self) -> None:
         """Ensure LLM client is initialized."""
@@ -89,8 +89,8 @@ class TransformRuleGenerator:
         self,
         description: str,
         columns: dict[str, str],
-        sample_data: Optional[pd.DataFrame] = None,
-        tags: Optional[list[str]] = None,
+        sample_data: pd.DataFrame | None = None,
+        tags: list[str] | None = None,
         save: bool = False,
     ) -> TransformRule:
         """
@@ -190,7 +190,7 @@ Return ONLY the JSON object, no other text.
         response: str,
         description: str,
         columns: dict[str, str],
-        tags: Optional[list[str]] = None,
+        tags: list[str] | None = None,
     ) -> TransformRule:
         """Parse LLM response into a TransformRule."""
         try:
@@ -316,7 +316,7 @@ Return ONLY the JSON object, no other text.
     def suggest_rules(
         self,
         columns: dict[str, str],
-        task_description: Optional[str] = None,
+        task_description: str | None = None,
         limit: int = 5,
     ) -> list[tuple[TransformRule, dict[str, str]]]:
         """
@@ -349,9 +349,9 @@ Return ONLY the JSON object, no other text.
         self,
         description: str,
         columns: dict[str, str],
-        sample_data: Optional[pd.DataFrame] = None,
-        tags: Optional[list[str]] = None,
-    ) -> tuple[Optional[TransformRule], list[tuple[TransformRule, dict[str, str]]]]:
+        sample_data: pd.DataFrame | None = None,
+        tags: list[str] | None = None,
+    ) -> tuple[TransformRule | None, list[tuple[TransformRule, dict[str, str]]]]:
         """
         Find existing matching rules or generate a new one.
 

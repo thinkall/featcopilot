@@ -3,7 +3,7 @@
 Generates human-readable explanations for features.
 """
 
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 import pandas as pd
 
@@ -42,15 +42,15 @@ class FeatureExplainer:
         model: str = "gpt-5.2",
         verbose: bool = False,
         backend: Literal["copilot", "litellm", "openai"] = "copilot",
-        api_key: Optional[str] = None,
-        api_base: Optional[str] = None,
+        api_key: str | None = None,
+        api_base: str | None = None,
     ):
         self.model = model
         self.verbose = verbose
         self.backend = backend
         self.api_key = api_key
         self.api_base = api_base
-        self._client: Optional[Any] = None
+        self._client: Any | None = None
 
     def _ensure_client(self) -> None:
         """Ensure client is initialized."""
@@ -72,8 +72,8 @@ class FeatureExplainer:
     def explain_feature(
         self,
         feature: Feature,
-        column_descriptions: Optional[dict[str, str]] = None,
-        task_description: Optional[str] = None,
+        column_descriptions: dict[str, str] | None = None,
+        task_description: str | None = None,
     ) -> str:
         """
         Generate explanation for a single feature.
@@ -106,8 +106,8 @@ class FeatureExplainer:
     def explain_features(
         self,
         features: FeatureSet,
-        column_descriptions: Optional[dict[str, str]] = None,
-        task_description: Optional[str] = None,
+        column_descriptions: dict[str, str] | None = None,
+        task_description: str | None = None,
         batch_size: int = 5,
     ) -> dict[str, str]:
         """
@@ -153,8 +153,8 @@ class FeatureExplainer:
         self,
         features: FeatureSet,
         X: pd.DataFrame,
-        column_descriptions: Optional[dict[str, str]] = None,
-        task_description: Optional[str] = None,
+        column_descriptions: dict[str, str] | None = None,
+        task_description: str | None = None,
     ) -> str:
         """
         Generate a comprehensive report about features.
