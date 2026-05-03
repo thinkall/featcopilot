@@ -52,6 +52,29 @@ SUPPORTED_INPUT_FORMATS = ("csv", "parquet", "json")
 SUPPORTED_OUTPUT_FORMATS = ("csv", "parquet", "json")
 
 
+def _parquet_engine_available() -> bool:
+    """Return ``True`` if a parquet engine (pyarrow or fastparquet) can be imported.
+
+    FeatCopilot's base install pins neither ``pyarrow`` nor ``fastparquet``;
+    parquet I/O is therefore opportunistic. ``info`` uses this probe so the
+    machine-readable capability output reflects what will actually work in
+    the current environment, rather than always advertising parquet.
+    """
+    try:
+        import pyarrow  # noqa: F401
+
+        return True
+    except ImportError:
+        pass
+    try:
+        import fastparquet  # noqa: F401
+
+        return True
+    except ImportError:
+        pass
+    return False
+
+
 def _detect_format(path: Path, override: str | None) -> str:
     """Return one of ``SUPPORTED_INPUT_FORMATS`` for ``path``.
 
@@ -167,20 +190,30 @@ def _emit(payload: dict[str, Any], *, as_json: bool, stream=None) -> None:
 def _build_engineer(args: argparse.Namespace) -> AutoFeatureEngineer:
     """Construct an :class:`AutoFeatureEngineer` from parsed CLI args.
 
-    Precedence: explicit CLI flags override values from ``--config``.
+    Precedence: explicit CLI flags override values from ``--config``;
+    explicit config values (including empty lists) override the defaults.
+    Empty / non-list values are propagated unchanged so that
+    :meth:`AutoFeatureEngineer._validate_configuration` produces its
+    canonical (and deterministic) error path — the CLI's wrapper must not
+    silently rewrite a misconfigured config into something that looks
+    different from what the user wrote.
     """
     config = _load_config(args.config)
 
     def pick(flag_value, config_key, default):
+        # Explicit CLI flag wins. Otherwise honor an explicit config entry
+        # — even a falsy one such as ``[]`` — so AutoFeatureEngineer can
+        # raise its own clear "must contain at least one" error rather than
+        # the CLI silently swapping in defaults. Only fall back to the
+        # default when the key is *absent* from the config.
         if flag_value is not None:
             return flag_value
-        return config.get(config_key, default)
+        if config_key in config:
+            return config[config_key]
+        return default
 
-    engines = pick(args.engines, "engines", None) or ["tabular"]
-    selection_methods = pick(args.selection_methods, "selection_methods", None) or [
-        "mutual_info",
-        "importance",
-    ]
+    engines = pick(args.engines, "engines", ["tabular"])
+    selection_methods = pick(args.selection_methods, "selection_methods", ["mutual_info", "importance"])
     max_features = pick(args.max_features, "max_features", None)
     correlation_threshold = pick(args.correlation_threshold, "correlation_threshold", 0.85)
     leakage_guard = pick(args.leakage_guard, "leakage_guard", "warn")
@@ -188,10 +221,16 @@ def _build_engineer(args: argparse.Namespace) -> AutoFeatureEngineer:
     llm_config = config.get("llm_config", {}) or {}
     verbose = bool(pick(args.verbose, "verbose", False))
 
+    # Pass ``engines`` / ``selection_methods`` through *unchanged* (no
+    # ``list(...)`` wrapping). Coercion would convert a misconfigured
+    # JSON string like ``"tabular"`` into ``['t','a','b','u','l','a','r']``,
+    # turning a clear type error into a confusing "Unknown engines" path.
+    # AutoFeatureEngineer.__init__ rejects non-list/tuple inputs with a
+    # precise message — let it.
     return AutoFeatureEngineer(
-        engines=list(engines),
+        engines=engines,
         max_features=max_features,
-        selection_methods=list(selection_methods),
+        selection_methods=selection_methods,
         correlation_threshold=correlation_threshold,
         llm_config=llm_config,
         verbose=verbose,
@@ -215,14 +254,26 @@ def _split_xy(df, target: str | None):
 
 
 def _cmd_info(args: argparse.Namespace) -> int:
-    """Print version + supported engines/methods."""
+    """Print version + supported engines/methods.
+
+    Parquet appears in ``supported_input_formats`` / ``supported_output_formats``
+    only when an actual parquet engine (``pyarrow`` or ``fastparquet``) can
+    be imported in the current environment — otherwise the ``info`` output
+    would advertise a format that immediately fails on use, which is
+    misleading for the agentic capability-discovery the CLI is designed to
+    support.
+    """
+    parquet_ok = _parquet_engine_available()
+    input_formats = [f for f in SUPPORTED_INPUT_FORMATS if f != "parquet" or parquet_ok]
+    output_formats = [f for f in SUPPORTED_OUTPUT_FORMATS if f != "parquet" or parquet_ok]
     payload = {
         "version": __version__,
         "supported_engines": sorted(AutoFeatureEngineer.SUPPORTED_ENGINES),
         "supported_selection_methods": sorted(AutoFeatureEngineer.SUPPORTED_SELECTION_METHODS),
         "supported_leakage_guards": sorted(AutoFeatureEngineer.SUPPORTED_LEAKAGE_GUARDS),
-        "supported_input_formats": list(SUPPORTED_INPUT_FORMATS),
-        "supported_output_formats": list(SUPPORTED_OUTPUT_FORMATS),
+        "supported_input_formats": input_formats,
+        "supported_output_formats": output_formats,
+        "parquet_available": parquet_ok,
     }
     _emit(payload, as_json=args.json)
     return 0

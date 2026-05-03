@@ -121,9 +121,9 @@ non-zero exit code so agents can parse failures deterministically.
 # Discover capabilities (engines, selection methods, I/O formats)
 featcopilot info --json
 
-# Run feature engineering on a CSV / Parquet / JSON file
+# Run feature engineering on a CSV / JSON file
 featcopilot transform \
-    --input data.csv --target label --output features.parquet \
+    --input data.csv --target label --output features.csv \
     --engines tabular --max-features 50 --json
 
 # Inspect generated features (name, explanation, code) as JSON for an LLM
@@ -135,6 +135,13 @@ python -m featcopilot info --json
 
 Pass `--config config.json` to provide nested keys such as `llm_config`;
 explicit CLI flags override values from the config file.
+
+> **Parquet I/O.** FeatCopilot's base install does not pin a parquet engine.
+> To use `--input file.parquet` / `--output file.parquet` (or the
+> `parquet` value in `--input-format` / `--output-format`), install one of
+> `pyarrow` or `fastparquet`. `featcopilot info --json` reports
+> `"parquet_available": true` only when an engine is importable in the
+> current environment.
 
 ## Engines
 

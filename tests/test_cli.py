@@ -53,7 +53,37 @@ def test_info_json_emits_supported_options():
     assert "tabular" in payload["supported_engines"]
     assert "mutual_info" in payload["supported_selection_methods"]
     assert "warn" in payload["supported_leakage_guards"]
-    assert set(payload["supported_input_formats"]) == {"csv", "parquet", "json"}
+    # CSV/JSON are always supported; parquet is gated on engine availability.
+    assert {"csv", "json"} <= set(payload["supported_input_formats"])
+    assert {"csv", "json"} <= set(payload["supported_output_formats"])
+    assert isinstance(payload["parquet_available"], bool)
+    if payload["parquet_available"]:
+        assert "parquet" in payload["supported_input_formats"]
+        assert "parquet" in payload["supported_output_formats"]
+    else:
+        assert "parquet" not in payload["supported_input_formats"]
+        assert "parquet" not in payload["supported_output_formats"]
+
+
+def test_info_excludes_parquet_when_engine_missing(monkeypatch):
+    """When no parquet engine can be imported, ``info`` must not advertise it."""
+    monkeypatch.setattr(fc_cli, "_parquet_engine_available", lambda: False)
+    rc, out, _ = _run(["info", "--json"])
+    assert rc == 0
+    payload = json.loads(out)
+    assert payload["parquet_available"] is False
+    assert "parquet" not in payload["supported_input_formats"]
+    assert "parquet" not in payload["supported_output_formats"]
+
+
+def test_info_includes_parquet_when_engine_present(monkeypatch):
+    monkeypatch.setattr(fc_cli, "_parquet_engine_available", lambda: True)
+    rc, out, _ = _run(["info", "--json"])
+    assert rc == 0
+    payload = json.loads(out)
+    assert payload["parquet_available"] is True
+    assert "parquet" in payload["supported_input_formats"]
+    assert "parquet" in payload["supported_output_formats"]
 
 
 def test_info_text_mode_is_human_readable():
@@ -259,6 +289,77 @@ def test_transform_cli_flags_override_config(tmp_path: Path, tabular_csv: Path):
     )
     assert rc == 0
     assert json.loads(out)["max_features"] == 12
+
+
+# ----------------------- _build_engineer config validation
+
+
+def test_string_engines_in_config_returns_clean_exit_2(tmp_path: Path, tabular_csv: Path):
+    """A misconfigured ``"engines": "tabular"`` (string instead of list) must
+    surface ``AutoFeatureEngineer``'s precise type-validation error via the
+    standard exit-2 path — *not* be silently coerced into a per-character list.
+    """
+    config_path = tmp_path / "cfg.json"
+    config_path.write_text(json.dumps({"engines": "tabular"}))
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+            "--config",
+            str(config_path),
+        ]
+    )
+    assert rc == 2
+    assert "engines must be a list or tuple" in err
+
+
+def test_empty_engines_list_in_config_returns_clean_exit_2(tmp_path: Path, tabular_csv: Path):
+    """An explicit empty ``engines`` list in the config must propagate to the
+    transformer's validation so the user sees the documented error, instead
+    of being silently rewritten into the defaults.
+    """
+    config_path = tmp_path / "cfg.json"
+    config_path.write_text(json.dumps({"engines": []}))
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+            "--config",
+            str(config_path),
+        ]
+    )
+    assert rc == 2
+    assert "at least one engine" in err.lower() or "empty sequence" in err.lower()
+
+
+def test_empty_selection_methods_list_in_config_returns_clean_exit_2(tmp_path: Path, tabular_csv: Path):
+    config_path = tmp_path / "cfg.json"
+    config_path.write_text(json.dumps({"selection_methods": []}))
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+            "--config",
+            str(config_path),
+        ]
+    )
+    assert rc == 2
+    assert "at least one method" in err.lower() or "empty sequence" in err.lower()
 
 
 # -------------------------------------------------------------- error paths
@@ -472,6 +573,59 @@ def test_dunder_main_subprocess_version_flag():
 
     result = subprocess.run(
         [sys.executable, "-m", "featcopilot", "--version"],
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert __version__ in result.stdout
+
+
+# ------------------------------------------------------- console script
+
+
+def test_console_script_subprocess_invocation():
+    """The installed ``featcopilot`` console script must be on PATH and runnable.
+
+    Exercises the ``[project.scripts] featcopilot = "featcopilot.cli:main"``
+    entry point end-to-end so a typo or packaging regression in
+    ``pyproject.toml`` would actually break the suite. Skipped when the
+    script isn't on ``PATH`` (e.g. running tests without ``pip install``).
+    """
+    import shutil
+    import subprocess
+
+    script = shutil.which("featcopilot")
+    if script is None:
+        pytest.skip(
+            "featcopilot console script not on PATH (install the package "
+            "with `pip install -e .` to exercise the entry point)"
+        )
+
+    result = subprocess.run(
+        [script, "info", "--json"],
+        capture_output=True,
+        text=True,
+        timeout=60,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["version"] == __version__
+    assert "tabular" in payload["supported_engines"]
+
+
+def test_console_script_version_flag():
+    import shutil
+    import subprocess
+
+    script = shutil.which("featcopilot")
+    if script is None:
+        pytest.skip("featcopilot console script not on PATH")
+
+    result = subprocess.run(
+        [script, "--version"],
         capture_output=True,
         text=True,
         timeout=30,
