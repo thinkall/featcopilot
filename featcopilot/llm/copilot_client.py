@@ -5,6 +5,7 @@ designed for feature engineering tasks.
 """
 
 import asyncio
+import concurrent.futures
 import json
 from typing import Any
 
@@ -144,9 +145,19 @@ class CopilotFeatureClient:
         # ``data.content`` carries the assistant's text. Older SDKs
         # (<0.1.32) accepted a dict; the new SDK takes a positional
         # string and exposes a typed return type.
+        # Catch the union of timeout exception classes so timeout handling
+        # is reliable across Python versions and SDK implementations:
+        # - Built-in ``TimeoutError`` is what the github-copilot-sdk
+        #   currently raises (``raise TimeoutError(...)`` in
+        #   ``copilot/session.py``).
+        # - ``asyncio.TimeoutError`` was a separate class on Python 3.10
+        #   (only became an alias for ``TimeoutError`` in 3.11+); we
+        #   support 3.10 per ``pyproject.toml``.
+        # - ``concurrent.futures.TimeoutError`` is what some thread/process
+        #   bridges surface; cheap to include.
         try:
             event = await self._session.send_and_wait(prompt, timeout=self.config.timeout)
-        except TimeoutError:
+        except (TimeoutError, asyncio.TimeoutError, concurrent.futures.TimeoutError):
             return "Error: Request timed out"
 
         if event is None:

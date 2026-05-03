@@ -2529,3 +2529,70 @@ class TestCopilotClientSDKCompatibility:
         asyncio.run(client.stop())
 
         fake_session.destroy.assert_awaited_once()
+
+    def test_send_prompt_handles_builtin_timeout_error(self):
+        """``send_prompt`` returns the timeout sentinel when ``send_and_wait``
+        raises the built-in ``TimeoutError`` (current SDK behaviour)."""
+        from unittest.mock import AsyncMock, MagicMock
+
+        from featcopilot.llm.copilot_client import CopilotFeatureClient
+
+        fake_session = MagicMock()
+        fake_session.send_and_wait = AsyncMock(side_effect=TimeoutError("boom"))
+
+        client = CopilotFeatureClient(model="gpt-5.2")
+        client._session = fake_session
+        client._is_started = True
+        client._copilot_available = True
+
+        import asyncio
+
+        result = asyncio.run(client.send_prompt("hi"))
+        assert "timed out" in result.lower()
+
+    def test_send_prompt_handles_asyncio_timeout_error(self):
+        """``send_prompt`` must also catch ``asyncio.TimeoutError`` — on
+        Python 3.10 it's a separate class from the built-in
+        ``TimeoutError`` (only became an alias in 3.11+), and the SDK or
+        an inner await may raise it. Without an explicit catch the
+        exception would propagate to the caller as an unhandled crash.
+
+        Regression test for Copilot review on commit 085371e.
+        """
+        import asyncio
+        from unittest.mock import AsyncMock, MagicMock
+
+        from featcopilot.llm.copilot_client import CopilotFeatureClient
+
+        fake_session = MagicMock()
+        fake_session.send_and_wait = AsyncMock(side_effect=asyncio.TimeoutError())
+
+        client = CopilotFeatureClient(model="gpt-5.2")
+        client._session = fake_session
+        client._is_started = True
+        client._copilot_available = True
+
+        result = asyncio.run(client.send_prompt("hi"))
+        assert "timed out" in result.lower()
+
+    def test_send_prompt_handles_concurrent_futures_timeout_error(self):
+        """``concurrent.futures.TimeoutError`` is what some thread/process
+        bridges (e.g., ``run_in_executor`` chains) surface; cheap to
+        include and prevents the timeout handler from being bypassed."""
+        import concurrent.futures
+        from unittest.mock import AsyncMock, MagicMock
+
+        from featcopilot.llm.copilot_client import CopilotFeatureClient
+
+        fake_session = MagicMock()
+        fake_session.send_and_wait = AsyncMock(side_effect=concurrent.futures.TimeoutError())
+
+        client = CopilotFeatureClient(model="gpt-5.2")
+        client._session = fake_session
+        client._is_started = True
+        client._copilot_available = True
+
+        import asyncio
+
+        result = asyncio.run(client.send_prompt("hi"))
+        assert "timed out" in result.lower()
