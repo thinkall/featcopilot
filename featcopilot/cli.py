@@ -290,15 +290,17 @@ def _build_engineer(args: argparse.Namespace) -> AutoFeatureEngineer:
         return default
 
     engines = pick(args.engines, "engines", ["tabular"])
-    # ``explain`` does not expose selection-only flags on argparse, so use
-    # ``getattr(..., None)`` to safely fall through to config / defaults
-    # without requiring the attribute to exist on the namespace.
+    # ``explain`` exposes ``--engines`` and ``--max-features`` (engine-level
+    # caps) but not the selection-only flags ``--selection-methods`` and
+    # ``--correlation-threshold``. Use ``getattr(..., None)`` for the
+    # latter so we can fall through to config / defaults without requiring
+    # the attribute to exist on the namespace.
     selection_methods = pick(
         getattr(args, "selection_methods", None),
         "selection_methods",
         ["mutual_info", "importance"],
     )
-    max_features = pick(getattr(args, "max_features", None), "max_features", None)
+    max_features = pick(args.max_features, "max_features", None)
     correlation_threshold = pick(getattr(args, "correlation_threshold", None), "correlation_threshold", 0.85)
     leakage_guard = pick(args.leakage_guard, "leakage_guard", "warn")
     gate_n_jobs = pick(args.gate_n_jobs, "gate_n_jobs", 1)
@@ -331,7 +333,15 @@ def _build_engineer(args: argparse.Namespace) -> AutoFeatureEngineer:
             f"got {type(llm_config_raw).__name__}={llm_config_raw!r}."
         )
 
-    verbose = bool(pick(args.verbose, "verbose", False))
+    # ``verbose`` is type-checked before being forwarded so a malformed
+    # config like ``{"verbose": "false"}`` (truthy string) does NOT silently
+    # turn verbose mode on — instead it raises a clean exit-2 error
+    # consistent with the other scalar fields. ``args.verbose`` is already
+    # a bool / None thanks to ``BooleanOptionalAction``; only the config
+    # path can introduce a non-bool.
+    verbose_raw = pick(args.verbose, "verbose", False)
+    _check_scalar_type("verbose", verbose_raw, (bool,))
+    verbose = bool(verbose_raw)
 
     # Pass ``engines`` / ``selection_methods`` through *unchanged* (no
     # ``list(...)`` wrapping). Coercion would convert a misconfigured
@@ -403,6 +413,17 @@ def _cmd_transform(args: argparse.Namespace) -> int:
 
     df = _read_table(input_path, in_fmt)
     X, y = _split_xy(df, args.target)
+
+    # Selection requires a target column to fit against. Without ``--target``,
+    # ``AutoFeatureEngineer.fit_transform(apply_selection=True)`` silently
+    # degrades to an unselected run because the selector is only built when
+    # ``y is not None``. Surface that as a clean exit-2 user error rather than
+    # silently producing the same output as ``--no-selection``.
+    if not args.no_selection and args.target is None:
+        raise ValueError(
+            "--target is required when feature selection is applied. "
+            "Pass --target <column>, or pass --no-selection to skip selection."
+        )
 
     engineer = _build_engineer(args)
     transformed = engineer.fit_transform(
@@ -593,17 +614,27 @@ def _add_engineer_args(p: argparse.ArgumentParser, *, include_selection_args: bo
     """Add ``AutoFeatureEngineer``-related flags to a subparser.
 
     ``include_selection_args=False`` omits selection-only flags
-    (``--selection-methods``, ``--correlation-threshold``,
-    ``--max-features``) — these would be silently ignored by the
-    ``explain`` subcommand, which always runs with selection disabled,
-    and surfacing them in ``--help`` would be a confusing API for
-    automation.
+    (``--selection-methods`` and ``--correlation-threshold``) — these are
+    silently ignored by the ``explain`` subcommand, which always runs with
+    selection disabled. ``--max-features`` is *not* selection-only:
+    ``AutoFeatureEngineer`` forwards it into engine construction (e.g. the
+    tabular engine uses it to cap the number of generated features), so it
+    is exposed even when ``include_selection_args=False`` to give callers
+    a CLI-level handle on the engine output size.
     """
     p.add_argument(
         "--engines",
         nargs="+",
         choices=sorted(AutoFeatureEngineer.SUPPORTED_ENGINES),
         help="Engines to use (default: tabular).",
+    )
+    # ``--max-features`` is exposed on every engineer-using subcommand
+    # because it caps engine output, not just selection — see the
+    # ``AutoFeatureEngineer`` constructor and ``TabularEngine``.
+    p.add_argument(
+        "--max-features",
+        type=int,
+        help="Maximum number of features to generate / keep (forwarded to engines and selector).",
     )
     if include_selection_args:
         p.add_argument(
@@ -612,7 +643,6 @@ def _add_engineer_args(p: argparse.ArgumentParser, *, include_selection_args: bo
             choices=sorted(AutoFeatureEngineer.SUPPORTED_SELECTION_METHODS),
             help="Selection methods (default: mutual_info importance).",
         )
-        p.add_argument("--max-features", type=int, help="Maximum number of features to keep.")
         p.add_argument(
             "--correlation-threshold",
             type=float,

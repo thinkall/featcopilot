@@ -451,6 +451,76 @@ def test_verbose_overrides_config_verbose_false(tmp_path: Path, tabular_csv: Pat
     assert rc == 0, err
 
 
+@pytest.mark.parametrize(
+    "value",
+    ["true", "false", 1, 0],
+)
+def test_non_bool_verbose_in_config_returns_exit_2(tmp_path: Path, tabular_csv: Path, value):
+    """A malformed ``"verbose": <non-bool>`` config must hit exit 2 with a
+    precise message, not silently turn verbose mode on/off via Python's
+    truthiness rules.
+    """
+    config_path = tmp_path / "cfg.json"
+    config_path.write_text(json.dumps({"verbose": value}))
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+            "--config",
+            str(config_path),
+            "--max-features",
+            "5",
+        ]
+    )
+    assert rc == 2
+    assert "verbose" in err
+
+
+def test_transform_missing_target_with_selection_returns_exit_2(tmp_path: Path, tabular_csv: Path):
+    """Without ``--target``, selection silently degrades to a no-op. The CLI
+    must surface that as a clean exit-2 user error so automation can react.
+    """
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--max-features",
+            "5",
+        ]
+    )
+    assert rc == 2
+    assert "--target" in err
+    assert "selection" in err.lower()
+
+
+def test_transform_missing_target_with_no_selection_succeeds(tmp_path: Path, tabular_csv: Path):
+    """Once selection is opted out, the missing target is no longer an error
+    (selection requires a target; raw transform doesn't).
+    """
+    # Drop the target column so we can run without --target.
+    in_path = tmp_path / "in_notarget.csv"
+    pd.read_csv(tabular_csv).drop(columns=["y"]).to_csv(in_path, index=False)
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(in_path),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--no-selection",
+        ]
+    )
+    assert rc == 0, err
+
+
 # ----------------------- explain subparser doesn't expose selection-only flags
 
 
@@ -474,8 +544,13 @@ def test_explain_rejects_selection_methods_flag(tmp_path: Path, tabular_csv: Pat
     assert "unrecognized" in err.lower() or "--selection-methods" in err.lower()
 
 
-def test_explain_rejects_max_features_flag(tmp_path: Path, tabular_csv: Path):
-    rc, _, err = _run(
+def test_explain_accepts_max_features_flag(tmp_path: Path, tabular_csv: Path):
+    """``--max-features`` is *not* selection-only — ``AutoFeatureEngineer``
+    forwards it into engine construction (e.g. the tabular engine uses it
+    to cap how many features it generates). ``explain`` must therefore
+    expose it so callers can bound the size of the explanation payload.
+    """
+    rc, out, err = _run(
         [
             "explain",
             "--input",
@@ -483,10 +558,12 @@ def test_explain_rejects_max_features_flag(tmp_path: Path, tabular_csv: Path):
             "--target",
             "y",
             "--max-features",
-            "10",
+            "5",
         ]
     )
-    assert rc == 2
+    assert rc == 0, err
+    payload = json.loads(out)
+    assert payload["status"] == "ok"
 
 
 def test_explain_rejects_correlation_threshold_flag(tmp_path: Path, tabular_csv: Path):
