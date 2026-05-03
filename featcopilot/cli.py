@@ -67,12 +67,19 @@ def _parquet_engine_available() -> bool:
     machine-readable capability output reflects what will actually work in
     the current environment, rather than always advertising parquet.
 
-    Uses :func:`importlib.util.find_spec` so the probe is side-effect-free
-    (no actual module import) and easy to mock in tests.
+    Uses ``__import__`` (not ``importlib.util.find_spec``) so the probe is
+    *correct* even on environments with a broken native install:
+    ``find_spec`` only confirms a distribution is on ``sys.path``; it does
+    not prove the C extensions can actually load. A real import is the
+    only way to verify the engine is usable.
     """
-    import importlib.util
-
-    return importlib.util.find_spec("pyarrow") is not None or importlib.util.find_spec("fastparquet") is not None
+    for name in ("pyarrow", "fastparquet"):
+        try:
+            __import__(name)
+            return True
+        except Exception:  # noqa: BLE001  - any import-time failure means unusable
+            continue
+    return False
 
 
 def _detect_format(path: Path, override: str | None) -> str:

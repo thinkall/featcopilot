@@ -1470,38 +1470,62 @@ def test_transform_read_parquet_missing_engine_returns_exit_2(tmp_path, tabular_
 
 
 def test_parquet_engine_available_returns_false_when_neither_installed(monkeypatch):
-    """Both probes return ``None`` from ``find_spec`` -> function returns False."""
-    import importlib.util
+    """When ``__import__`` raises ``ImportError`` for both engines, the
+    function reports parquet as unavailable.
+    """
+    import builtins
 
-    real_find_spec = importlib.util.find_spec
+    real_import = builtins.__import__
 
-    def fake_find_spec(name, *args, **kwargs):
+    def fake_import(name, *args, **kwargs):
         if name in ("pyarrow", "fastparquet"):
-            return None
-        return real_find_spec(name, *args, **kwargs)
+            raise ImportError(f"No module named '{name}' (simulated)")
+        return real_import(name, *args, **kwargs)
 
-    monkeypatch.setattr(importlib.util, "find_spec", fake_find_spec)
+    monkeypatch.setattr(builtins, "__import__", fake_import)
     assert fc_cli._parquet_engine_available() is False
 
 
 def test_parquet_engine_available_returns_true_for_fastparquet_only(monkeypatch):
-    """Even without pyarrow, finding fastparquet must report parquet as available."""
-    import importlib.util
+    """Even without pyarrow, importing fastparquet must report parquet as available."""
+    import builtins
 
-    class _FakeSpec:
-        pass
+    real_import = builtins.__import__
 
-    real_find_spec = importlib.util.find_spec
-
-    def fake_find_spec(name, *args, **kwargs):
+    def fake_import(name, *args, **kwargs):
         if name == "pyarrow":
-            return None
+            raise ImportError("No module named 'pyarrow' (simulated)")
         if name == "fastparquet":
-            return _FakeSpec()
-        return real_find_spec(name, *args, **kwargs)
+            # Simulate a successful import by short-circuiting; we don't
+            # actually need a real module object, just a non-raising return.
+            class _FakeModule:
+                pass
 
-    monkeypatch.setattr(importlib.util, "find_spec", fake_find_spec)
+            return _FakeModule()
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", fake_import)
     assert fc_cli._parquet_engine_available() is True
+
+
+def test_parquet_engine_available_returns_false_for_broken_native_install(monkeypatch):
+    """A distribution that's on sys.path but raises a non-ImportError at
+    import time (e.g. broken native bindings) is reported as unavailable.
+    Using ``__import__`` (rather than ``importlib.util.find_spec``) is what
+    makes this honest: ``find_spec`` would have returned a spec and lied.
+    """
+    import builtins
+
+    real_import = builtins.__import__
+
+    def fake_import(name, *args, **kwargs):
+        if name in ("pyarrow", "fastparquet"):
+            # Simulate a broken native install (loader-level failure).
+            raise OSError("broken native install: undefined symbol (simulated)")
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", fake_import)
+    assert fc_cli._parquet_engine_available() is False
 
 
 def test_unreadable_config_returns_exit_2(tmp_path, tabular_csv, monkeypatch):
