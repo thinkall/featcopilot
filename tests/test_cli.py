@@ -960,6 +960,118 @@ def test_uncreatable_parent_directory_returns_exit_2(tmp_path: Path, tabular_csv
     assert "create parent directory" in err.lower()
 
 
+# ----------------------- stderr is reserved for failures (warnings captured)
+
+
+def test_transform_leakage_warning_does_not_pollute_stderr(tmp_path: Path):
+    """``leakage_guard='warn'`` (the default) must not bleed
+    ``warnings.warn(...)`` onto stderr on a successful run; the warnings
+    are captured and surfaced inside the JSON payload's ``warnings`` field
+    instead, so agents can keep treating non-empty stderr as failure metadata.
+    """
+    rng = np.random.default_rng(0)
+    n = 200
+    df = pd.DataFrame(
+        {
+            "x1": rng.normal(size=n),
+            "x2": rng.normal(size=n),
+            # ``label_encoded`` is detected as leakage-prone ("label" + "encoded"
+            # both appear in the stoplist).
+            "label_encoded": rng.integers(0, 2, size=n),
+            "y": rng.integers(0, 2, size=n),
+        }
+    )
+    in_path = tmp_path / "in_with_leakage.csv"
+    df.to_csv(in_path, index=False)
+    out_path = tmp_path / "out.csv"
+
+    rc, out, err = _run(
+        [
+            "transform",
+            "--input",
+            str(in_path),
+            "--output",
+            str(out_path),
+            "--target",
+            "y",
+            "--max-features",
+            "5",
+            "--json",
+        ]
+    )
+    assert rc == 0, err
+    assert err == "", f"stderr should be empty on success but got: {err!r}"
+    payload = json.loads(out)
+    assert payload["status"] == "ok"
+    # ``warnings`` field is always present; it MAY contain the leakage
+    # warning depending on the heuristic. The contract being tested is
+    # that stderr stays clean — not that any specific warning was emitted
+    # (the leakage detector heuristics evolve).
+    assert "warnings" in payload
+    assert isinstance(payload["warnings"], list)
+
+
+def test_explain_leakage_warning_does_not_pollute_stderr(tmp_path: Path):
+    """``explain`` has the same stderr-cleanliness contract as ``transform``."""
+    rng = np.random.default_rng(0)
+    n = 200
+    df = pd.DataFrame(
+        {
+            "x1": rng.normal(size=n),
+            "label_encoded": rng.integers(0, 2, size=n),
+            "y": rng.integers(0, 2, size=n),
+        }
+    )
+    in_path = tmp_path / "in.csv"
+    df.to_csv(in_path, index=False)
+
+    rc, out, err = _run(
+        [
+            "explain",
+            "--input",
+            str(in_path),
+            "--target",
+            "y",
+        ]
+    )
+    assert rc == 0, err
+    assert err == "", f"stderr should be empty on success but got: {err!r}"
+    payload = json.loads(out)
+    assert "warnings" in payload
+    assert isinstance(payload["warnings"], list)
+
+
+# ----------------------- target check runs after type validation
+
+
+def test_invalid_max_features_in_config_takes_precedence_over_target_check(tmp_path: Path, tabular_csv: Path):
+    """A malformed ``max_features`` in ``--config`` (string, negative, etc.)
+    must surface its real validation error rather than ``--target is
+    required``. The CLI now builds the engineer first (which type-validates
+    every scalar config field) and only checks ``--target`` after.
+    """
+    in_path = tmp_path / "in_notarget.csv"
+    pd.read_csv(tabular_csv).drop(columns=["y"]).to_csv(in_path, index=False)
+
+    cfg = tmp_path / "cfg.json"
+    cfg.write_text(json.dumps({"max_features": "5"}))  # string, not int
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(in_path),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--config",
+            str(cfg),
+        ]
+    )
+    assert rc == 2
+    # The real error is the type mismatch, NOT --target missing.
+    assert "max_features" in err
+    assert "--target" not in err
+
+
 def test_check_scalar_type_rejects_none_when_required():
     """Direct unit test for ``_check_scalar_type`` to exercise the
     ``allow_none=False`` + ``value is None`` branch, which the integration

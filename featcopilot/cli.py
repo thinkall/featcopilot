@@ -426,6 +426,47 @@ def _cmd_info(args: argparse.Namespace) -> int:
     return 0
 
 
+def _fit_transform_capturing_warnings(engineer, X, y, **kwargs):
+    """Run ``engineer.fit_transform(X, y, **kwargs)`` while capturing any
+    Python ``UserWarning`` (or other warning) it emits.
+
+    The CLI contract is that stdout carries the JSON payload and stderr is
+    reserved for failures. ``AutoFeatureEngineer.fit`` calls
+    ``warnings.warn(...)`` for leakage-prone column names under the default
+    ``leakage_guard='warn'``, which would otherwise bleed onto stderr on a
+    successful run and break agent / tool-use error parsing. This helper
+    intercepts those warnings, collects them as JSON-serializable strings,
+    and lets the caller surface them inside the ``warnings`` field of the
+    success payload — keeping stderr deterministic.
+
+    Returns
+    -------
+    (warnings_list, result)
+        ``warnings_list`` is a list of ``str`` (one entry per warning, in
+        emission order). ``result`` is whatever ``fit_transform`` returned.
+    """
+    import warnings as _warnings
+
+    captured: list[str] = []
+    with _warnings.catch_warnings(record=True) as caught:
+        _warnings.simplefilter("always")
+        result = engineer.fit_transform(X, y, **kwargs)
+        captured.extend(str(w.message) for w in caught)
+    return captured, result
+
+
+def _fit_capturing_warnings(engineer, X, y, **kwargs):
+    """Sibling of :func:`_fit_transform_capturing_warnings` for explain."""
+    import warnings as _warnings
+
+    captured: list[str] = []
+    with _warnings.catch_warnings(record=True) as caught:
+        _warnings.simplefilter("always")
+        engineer.fit_transform(X, y, **kwargs)
+        captured.extend(str(w.message) for w in caught)
+    return captured
+
+
 def _cmd_transform(args: argparse.Namespace) -> int:
     """Read input, fit/transform, write output."""
     input_path = Path(args.input)
@@ -439,6 +480,13 @@ def _cmd_transform(args: argparse.Namespace) -> int:
     df = _read_table(input_path, in_fmt)
     X, y = _split_xy(df, args.target)
 
+    # Build the engineer first: ``_build_engineer`` runs all scalar / list /
+    # dict type validation on the merged CLI-flag + config view, so any
+    # malformed value (e.g. ``"max_features": "5"``, ``"verbose": "false"``)
+    # surfaces a precise exit-2 error here rather than down the wrong
+    # ``--target is required`` rabbit hole.
+    engineer = _build_engineer(args)
+
     # Selection requires a target column to fit against. ``AutoFeatureEngineer``
     # only actually fits a selector when ``y is not None`` AND ``max_features``
     # is set; without ``max_features`` the call is a raw feature-generation
@@ -446,24 +494,19 @@ def _cmd_transform(args: argparse.Namespace) -> int:
     # require ``--target`` when both selection is enabled (the default) AND
     # ``max_features`` is configured (CLI flag or config), so commands like
     # ``featcopilot transform --input in.csv --output out.csv`` (no target,
-    # no cap) still work.
-    effective_max_features = args.max_features
-    if effective_max_features is None and args.config is not None:
-        try:
-            cfg_max = _load_config(args.config).get("max_features")
-        except (FileNotFoundError, ValueError):
-            cfg_max = None
-        if cfg_max is not None:
-            effective_max_features = cfg_max
-    if not args.no_selection and args.target is None and effective_max_features is not None:
+    # no cap) still work. Using ``engineer.max_features`` here means the
+    # value has already been type-validated, so we never report
+    # ``--target is required`` when the real problem is a malformed
+    # ``max_features`` config value.
+    if not args.no_selection and args.target is None and engineer.max_features is not None:
         raise ValueError(
             "--target is required when feature selection is applied "
             "(i.e. when --max-features / config max_features is set). "
             "Pass --target <column>, or pass --no-selection / drop --max-features to skip selection."
         )
 
-    engineer = _build_engineer(args)
-    transformed = engineer.fit_transform(
+    captured_warnings, transformed = _fit_transform_capturing_warnings(
+        engineer,
         X,
         y,
         task_description=args.task_description or "prediction task",
@@ -495,6 +538,7 @@ def _cmd_transform(args: argparse.Namespace) -> int:
         "max_features": engineer.max_features,
         "target": args.target,
         "selection_applied": engineer._selector is not None,
+        "warnings": captured_warnings,
     }
     _emit(payload, as_json=args.json)
     return 0
@@ -521,7 +565,8 @@ def _cmd_explain(args: argparse.Namespace) -> int:
     X, y = _split_xy(df, args.target)
 
     engineer = _build_engineer(args, include_selection_config=False)
-    engineer.fit_transform(
+    captured_warnings = _fit_capturing_warnings(
+        engineer,
         X,
         y,
         task_description=args.task_description or "prediction task",
@@ -546,6 +591,7 @@ def _cmd_explain(args: argparse.Namespace) -> int:
             }
             for name in feature_names
         ],
+        "warnings": captured_warnings,
     }
 
     # explain always emits JSON to stdout (it's the only sensible format),
