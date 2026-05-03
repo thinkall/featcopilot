@@ -59,20 +59,13 @@ def _parquet_engine_available() -> bool:
     parquet I/O is therefore opportunistic. ``info`` uses this probe so the
     machine-readable capability output reflects what will actually work in
     the current environment, rather than always advertising parquet.
+
+    Uses :func:`importlib.util.find_spec` so the probe is side-effect-free
+    (no actual module import) and easy to mock in tests.
     """
-    try:
-        import pyarrow  # noqa: F401
+    import importlib.util
 
-        return True
-    except ImportError:
-        pass
-    try:
-        import fastparquet  # noqa: F401
-
-        return True
-    except ImportError:
-        pass
-    return False
+    return importlib.util.find_spec("pyarrow") is not None or importlib.util.find_spec("fastparquet") is not None
 
 
 def _detect_format(path: Path, override: str | None) -> str:

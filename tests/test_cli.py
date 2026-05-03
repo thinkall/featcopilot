@@ -603,6 +603,107 @@ def test_transform_parquet_missing_engine_returns_exit_2(tmp_path, tabular_csv, 
     assert "parquet engine" in err.lower()
 
 
+def test_transform_read_parquet_missing_engine_returns_exit_2(tmp_path, tabular_csv, monkeypatch):
+    """Symmetric coverage for reading a .parquet input when no engine is installed.
+
+    The CLI must convert the ``ImportError`` from ``pd.read_parquet`` into
+    the deterministic exit-2 path (with a user-facing install hint),
+    just like the write path.
+    """
+    import pandas as pd
+
+    # Make sure the input path has a .parquet suffix so format detection picks parquet.
+    fake_pq = tmp_path / "fake.parquet"
+    fake_pq.write_bytes(b"")  # contents don't matter; we'll intercept read_parquet
+
+    def _raise_import_error(*args, **kwargs):
+        raise ImportError("Missing optional dependency 'pyarrow' (simulated)")
+
+    monkeypatch.setattr(pd, "read_parquet", _raise_import_error, raising=True)
+
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(fake_pq),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+        ]
+    )
+    assert rc == 2
+    assert "parquet engine" in err.lower()
+
+
+def test_parquet_engine_available_returns_false_when_neither_installed(monkeypatch):
+    """Both probes return ``None`` from ``find_spec`` -> function returns False."""
+    import importlib.util
+
+    real_find_spec = importlib.util.find_spec
+
+    def fake_find_spec(name, *args, **kwargs):
+        if name in ("pyarrow", "fastparquet"):
+            return None
+        return real_find_spec(name, *args, **kwargs)
+
+    monkeypatch.setattr(importlib.util, "find_spec", fake_find_spec)
+    assert fc_cli._parquet_engine_available() is False
+
+
+def test_parquet_engine_available_returns_true_for_fastparquet_only(monkeypatch):
+    """Even without pyarrow, finding fastparquet must report parquet as available."""
+    import importlib.util
+
+    class _FakeSpec:
+        pass
+
+    real_find_spec = importlib.util.find_spec
+
+    def fake_find_spec(name, *args, **kwargs):
+        if name == "pyarrow":
+            return None
+        if name == "fastparquet":
+            return _FakeSpec()
+        return real_find_spec(name, *args, **kwargs)
+
+    monkeypatch.setattr(importlib.util, "find_spec", fake_find_spec)
+    assert fc_cli._parquet_engine_available() is True
+
+
+def test_unreadable_config_returns_exit_2(tmp_path, tabular_csv, monkeypatch):
+    """An ``OSError`` while opening the config (permission denied, broken
+    symlink, etc.) is converted into the deterministic exit-2 path.
+    """
+    cfg = tmp_path / "cfg.json"
+    cfg.write_text("{}")
+
+    real_open = Path.open
+
+    def _raise_oserror(self, *args, **kwargs):
+        if self == cfg:
+            raise PermissionError("simulated read failure")
+        return real_open(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "open", _raise_oserror, raising=True)
+
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+            "--config",
+            str(cfg),
+        ]
+    )
+    assert rc == 2
+    assert "could not be read" in err.lower()
+
+
 # --------------------------------------------------------------- python -m
 
 
