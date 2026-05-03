@@ -521,6 +521,86 @@ def test_transform_missing_target_with_no_selection_succeeds(tmp_path: Path, tab
     assert rc == 0, err
 
 
+def test_transform_missing_target_no_max_features_succeeds(tmp_path: Path, tabular_csv: Path):
+    """Without ``--max-features`` (and the corresponding config key),
+    ``AutoFeatureEngineer`` doesn't actually fit a selector even with
+    ``apply_selection=True``, so requiring ``--target`` would be a false
+    positive. Raw feature generation without target / without cap must
+    therefore succeed.
+    """
+    in_path = tmp_path / "in_notarget.csv"
+    pd.read_csv(tabular_csv).drop(columns=["y"]).to_csv(in_path, index=False)
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(in_path),
+            "--output",
+            str(tmp_path / "out.csv"),
+        ]
+    )
+    assert rc == 0, err
+
+
+def test_transform_missing_target_max_features_in_config_returns_exit_2(tmp_path: Path, tabular_csv: Path):
+    """The ``--target`` requirement also fires when ``max_features`` comes
+    from ``--config`` (not just the CLI flag), since the selector will
+    actually run in that case.
+    """
+    config_path = tmp_path / "cfg.json"
+    config_path.write_text(json.dumps({"max_features": 5}))
+    in_path = tmp_path / "in_notarget.csv"
+    pd.read_csv(tabular_csv).drop(columns=["y"]).to_csv(in_path, index=False)
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(in_path),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--config",
+            str(config_path),
+        ]
+    )
+    assert rc == 2
+    assert "--target" in err
+
+
+def test_explain_ignores_selection_only_config_keys(tmp_path: Path, tabular_csv: Path):
+    """A shared transform/explain config with selection-only keys
+    (``selection_methods`` / ``correlation_threshold``) must not break
+    ``explain``: those keys are inert at runtime (selection is disabled
+    in ``explain``) and ``_build_engineer(include_selection_config=False)``
+    skips reading them so config-validation does not fire.
+    """
+    config_path = tmp_path / "cfg.json"
+    # Use *valid* selection_methods values; the point is they''re ignored.
+    config_path.write_text(
+        json.dumps(
+            {
+                "engines": ["tabular"],
+                "selection_methods": ["mutual_info"],
+                "correlation_threshold": 0.5,
+                "max_features": 5,
+            }
+        )
+    )
+    rc, out, err = _run(
+        [
+            "explain",
+            "--input",
+            str(tabular_csv),
+            "--target",
+            "y",
+            "--config",
+            str(config_path),
+        ]
+    )
+    assert rc == 0, err
+    payload = json.loads(out)
+    assert payload["status"] == "ok"
+
+
 # ----------------------- explain subparser doesn't expose selection-only flags
 
 

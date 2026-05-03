@@ -264,7 +264,7 @@ def _check_scalar_type(
         )
 
 
-def _build_engineer(args: argparse.Namespace) -> AutoFeatureEngineer:
+def _build_engineer(args: argparse.Namespace, *, include_selection_config: bool = True) -> AutoFeatureEngineer:
     """Construct an :class:`AutoFeatureEngineer` from parsed CLI args.
 
     Precedence: explicit CLI flags override values from ``--config``;
@@ -274,6 +274,12 @@ def _build_engineer(args: argparse.Namespace) -> AutoFeatureEngineer:
     canonical (and deterministic) error path — the CLI's wrapper must not
     silently rewrite a misconfigured config into something that looks
     different from what the user wrote.
+
+    ``include_selection_config=False`` (used by the ``explain`` subcommand)
+    skips reading selection-only config keys (``selection_methods``,
+    ``correlation_threshold``) so a shared config file with selection
+    settings does not cause ``explain`` to fail config-validation for keys
+    that are inert at runtime (selection is disabled in ``explain``).
     """
     config = _load_config(args.config)
 
@@ -292,16 +298,22 @@ def _build_engineer(args: argparse.Namespace) -> AutoFeatureEngineer:
     engines = pick(args.engines, "engines", ["tabular"])
     # ``explain`` exposes ``--engines`` and ``--max-features`` (engine-level
     # caps) but not the selection-only flags ``--selection-methods`` and
-    # ``--correlation-threshold``. Use ``getattr(..., None)`` for the
-    # latter so we can fall through to config / defaults without requiring
-    # the attribute to exist on the namespace.
-    selection_methods = pick(
-        getattr(args, "selection_methods", None),
-        "selection_methods",
-        ["mutual_info", "importance"],
-    )
+    # ``--correlation-threshold``. When ``include_selection_config`` is
+    # False (i.e. we're called from ``explain``) we also skip reading the
+    # selection-only keys from the config file, so a shared transform/explain
+    # config with selection settings won't trip ``explain`` over keys that
+    # have no effect on its runtime behavior.
+    if include_selection_config:
+        selection_methods = pick(
+            getattr(args, "selection_methods", None),
+            "selection_methods",
+            ["mutual_info", "importance"],
+        )
+        correlation_threshold = pick(getattr(args, "correlation_threshold", None), "correlation_threshold", 0.85)
+    else:
+        selection_methods = ["mutual_info", "importance"]
+        correlation_threshold = 0.85
     max_features = pick(args.max_features, "max_features", None)
-    correlation_threshold = pick(getattr(args, "correlation_threshold", None), "correlation_threshold", 0.85)
     leakage_guard = pick(args.leakage_guard, "leakage_guard", "warn")
     gate_n_jobs = pick(args.gate_n_jobs, "gate_n_jobs", 1)
 
@@ -414,15 +426,27 @@ def _cmd_transform(args: argparse.Namespace) -> int:
     df = _read_table(input_path, in_fmt)
     X, y = _split_xy(df, args.target)
 
-    # Selection requires a target column to fit against. Without ``--target``,
-    # ``AutoFeatureEngineer.fit_transform(apply_selection=True)`` silently
-    # degrades to an unselected run because the selector is only built when
-    # ``y is not None``. Surface that as a clean exit-2 user error rather than
-    # silently producing the same output as ``--no-selection``.
-    if not args.no_selection and args.target is None:
+    # Selection requires a target column to fit against. ``AutoFeatureEngineer``
+    # only actually fits a selector when ``y is not None`` AND ``max_features``
+    # is set; without ``max_features`` the call is a raw feature-generation
+    # run and does not need a target. The CLI mirrors that contract: only
+    # require ``--target`` when both selection is enabled (the default) AND
+    # ``max_features`` is configured (CLI flag or config), so commands like
+    # ``featcopilot transform --input in.csv --output out.csv`` (no target,
+    # no cap) still work.
+    effective_max_features = args.max_features
+    if effective_max_features is None and args.config is not None:
+        try:
+            cfg_max = _load_config(args.config).get("max_features")
+        except (FileNotFoundError, ValueError):
+            cfg_max = None
+        if cfg_max is not None:
+            effective_max_features = cfg_max
+    if not args.no_selection and args.target is None and effective_max_features is not None:
         raise ValueError(
-            "--target is required when feature selection is applied. "
-            "Pass --target <column>, or pass --no-selection to skip selection."
+            "--target is required when feature selection is applied "
+            "(i.e. when --max-features / config max_features is set). "
+            "Pass --target <column>, or pass --no-selection / drop --max-features to skip selection."
         )
 
     engineer = _build_engineer(args)
@@ -483,7 +507,7 @@ def _cmd_explain(args: argparse.Namespace) -> int:
     df = _read_table(input_path, in_fmt)
     X, y = _split_xy(df, args.target)
 
-    engineer = _build_engineer(args)
+    engineer = _build_engineer(args, include_selection_config=False)
     engineer.fit_transform(
         X,
         y,
