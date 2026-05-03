@@ -1135,6 +1135,93 @@ def test_capture_featcopilot_messages_restores_handlers():
     assert fc_root.level == saved_level
 
 
+def test_capture_featcopilot_messages_thread_safety():
+    """Concurrent ``_capture_featcopilot_messages`` invocations must not
+    steal each other's handlers / lose log records. Implementation uses
+    ``_capture_lock`` to serialize captures.
+    """
+    import threading
+
+    fc_logger = logging.getLogger("featcopilot.test_concurrent")
+
+    results: list[list[str]] = []
+    barrier = threading.Barrier(2)
+
+    def worker(tag: str):
+        # Force both threads to enter the with-block at roughly the same
+        # time so the lock is genuinely contended.
+        barrier.wait()
+        with fc_cli._capture_featcopilot_messages() as captured:
+            for i in range(20):
+                fc_logger.warning(f"{tag}-{i}")
+        results.append(captured)
+
+    t1 = threading.Thread(target=worker, args=("A",))
+    t2 = threading.Thread(target=worker, args=("B",))
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
+
+    assert len(results) == 2
+    # Each capture list must contain exactly its own thread's records and
+    # nothing from the other thread.
+    for res in results:
+        # Find which tag this list belongs to.
+        tag = "A" if any("A-" in m for m in res) else "B"
+        assert all(f"{tag}-" in m for m in res), f"Thread isolation violated in capture {tag!r}: got {res!r}"
+        assert len(res) == 20
+
+    # Final state on the global logger must be cleanly restored.
+    fc_root = logging.getLogger("featcopilot")
+    assert all(
+        not isinstance(h, logging.Handler) or "ListHandler" not in type(h).__name__ for h in fc_root.handlers
+    ), "ListHandler leaked onto the global featcopilot logger"
+
+
+def test_unexpected_error_writes_single_stderr_line(monkeypatch, tmp_path: Path, tabular_csv: Path):
+    """An unexpected (non-ValueError) exception must produce exactly one
+    structured stderr line — no second timestamped traceback from
+    ``logger.exception(...)`` — so agents can parse failures
+    deterministically.
+    """
+    import pandas as pd
+
+    class _UnexpectedError(Exception):
+        """A non-ValueError, non-OSError exception that escapes the helpers."""
+
+    def _raise_unexpected(*args, **kwargs):
+        raise _UnexpectedError("simulated internal failure")
+
+    # Monkey-patch ``pd.read_csv`` directly. Since ``_read_table``'s CSV
+    # branch normally catches ``OSError`` / ``ParserError`` / ``UnicodeDecodeError``,
+    # raising a different exception type forces us into the generic exit-1
+    # backstop in ``main()``.
+    monkeypatch.setattr(pd, "read_csv", _raise_unexpected, raising=True)
+
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+        ]
+    )
+    assert rc == 1, err
+    # Exactly one non-empty line on stderr.
+    err_lines = [line for line in err.splitlines() if line.strip()]
+    assert len(err_lines) == 1, f"Expected single-line stderr, got: {err!r}"
+    assert err_lines[0].startswith("featcopilot: unexpected error:")
+    assert "_UnexpectedError" in err_lines[0]
+    assert "simulated internal failure" in err_lines[0]
+    # No traceback signature.
+    assert "Traceback" not in err
+    assert 'File "' not in err
+
+
 # ----------------------- --target help text accuracy
 
 
@@ -1284,6 +1371,57 @@ def test_invalid_config_file_returns_exit_2(tmp_path: Path, tabular_csv: Path):
     )
     assert rc == 2
     assert "JSON object" in err
+
+
+def test_unknown_config_top_level_key_returns_exit_2(tmp_path: Path, tabular_csv: Path):
+    """A typo in a top-level config key (``max_feature`` instead of
+    ``max_features``, etc.) must fail fast with a precise exit-2 message
+    listing the recognized keys — not silently run with defaults.
+    """
+    cfg = tmp_path / "cfg.json"
+    cfg.write_text(json.dumps({"max_feature": 5}))  # missing 's'
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "o.csv"),
+            "--target",
+            "y",
+            "--config",
+            str(cfg),
+        ]
+    )
+    assert rc == 2
+    assert "max_feature" in err
+    assert "Recognized keys" in err or "recognized keys" in err.lower()
+
+
+def test_unknown_config_top_level_key_lists_known_keys(tmp_path: Path, tabular_csv: Path):
+    """The error message must enumerate the recognized keys so users can
+    self-correct without reading the source.
+    """
+    cfg = tmp_path / "cfg.json"
+    cfg.write_text(json.dumps({"selection_method": ["mutual_info"]}))  # missing 's'
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "o.csv"),
+            "--target",
+            "y",
+            "--config",
+            str(cfg),
+        ]
+    )
+    assert rc == 2
+    assert "selection_method" in err
+    # Recognized-keys list must include the canonical names.
+    assert "selection_methods" in err
+    assert "max_features" in err
 
 
 def test_directory_as_config_returns_exit_2(tmp_path: Path, tabular_csv: Path):

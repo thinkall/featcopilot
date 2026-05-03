@@ -45,6 +45,7 @@ import contextlib
 import json
 import logging
 import sys
+import threading
 import warnings
 from pathlib import Path
 from typing import Any
@@ -213,15 +214,34 @@ def _write_table(df, path: Path, fmt: str) -> None:
         raise ValueError(f"Unsupported output format: {fmt}")
 
 
+# Top-level keys recognized in a ``--config`` JSON file. The CLI rejects
+# any other top-level key with a precise exit-2 error so typos like
+# ``max_feature`` (no s) fail fast in automation rather than silently
+# running with defaults.
+_KNOWN_CONFIG_KEYS = frozenset(
+    {
+        "engines",
+        "selection_methods",
+        "max_features",
+        "correlation_threshold",
+        "leakage_guard",
+        "gate_n_jobs",
+        "llm_config",
+        "verbose",
+    }
+)
+
+
 def _load_config(config_path: str | None) -> dict[str, Any]:
     """Load a JSON config file (or return an empty dict).
 
     Normalizes user-input mistakes (missing path, directory passed instead
-    of a file, invalid JSON, non-object root) into :class:`ValueError` /
-    :class:`FileNotFoundError` so the CLI's top-level error handler can
-    route them all to the deterministic ``exit 2`` user-error path
-    (rather than e.g. ``IsADirectoryError`` falling into the generic
-    ``exit 1`` "unexpected error" backstop).
+    of a file, invalid JSON, non-object root, unknown top-level keys) into
+    :class:`ValueError` / :class:`FileNotFoundError` so the CLI's top-level
+    error handler can route them all to the deterministic ``exit 2``
+    user-error path (rather than e.g. ``IsADirectoryError`` falling into
+    the generic ``exit 1`` "unexpected error" backstop, or a typo silently
+    being ignored).
     """
     if config_path is None:
         return {}
@@ -242,6 +262,12 @@ def _load_config(config_path: str | None) -> dict[str, Any]:
         raise ValueError(f"Config file {config_path!r} could not be read: {exc}") from exc
     if not isinstance(data, dict):
         raise ValueError(f"Config file {config_path!r} must contain a JSON object at the top level")
+    unknown = sorted(set(data.keys()) - _KNOWN_CONFIG_KEYS)
+    if unknown:
+        raise ValueError(
+            f"Config file {config_path!r} has unknown top-level key(s): {unknown}. "
+            f"Recognized keys: {sorted(_KNOWN_CONFIG_KEYS)}."
+        )
     return data
 
 
@@ -484,6 +510,12 @@ def _capture_featcopilot_messages():
     handler; child loggers propagate up to the root by default (the only
     ``propagate=False`` in the project is on the root itself, which
     prevents bleeding to Python's root logger).
+
+    Concurrency: serialized via ``_capture_lock``. Multiple in-process CLI
+    calls that overlap (e.g. two threads calling ``cli.main(...)``
+    simultaneously) take the lock in turn so neither steals the other's
+    handlers nor restores stale state. Single-process / single-CLI usage
+    is unaffected.
     """
     captured: list[str] = []
 
@@ -499,22 +531,29 @@ def _capture_featcopilot_messages():
     list_handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
 
     fc_root = logging.getLogger("featcopilot")
-    saved_handlers = list(fc_root.handlers)
-    saved_level = fc_root.level
-    fc_root.handlers = [list_handler]
-    fc_root.setLevel(logging.DEBUG)
+    with _capture_lock:
+        saved_handlers = list(fc_root.handlers)
+        saved_level = fc_root.level
+        fc_root.handlers = [list_handler]
+        fc_root.setLevel(logging.DEBUG)
 
-    try:
-        with warnings.catch_warnings(record=True) as caught:
-            warnings.simplefilter("always")
-            yield captured
-            # Append warnings *after* the body returns so the order in the
-            # captured list mirrors emission order: log records first
-            # (appended live by the handler), warnings last.
-            captured.extend(str(w.message) for w in caught)
-    finally:
-        fc_root.handlers = saved_handlers
-        fc_root.setLevel(saved_level)
+        try:
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter("always")
+                yield captured
+                # Append warnings *after* the body returns so the order in
+                # the captured list mirrors emission order: log records
+                # first (appended live by the handler), warnings last.
+                captured.extend(str(w.message) for w in caught)
+        finally:
+            fc_root.handlers = saved_handlers
+            fc_root.setLevel(saved_level)
+
+
+# Serializes ``_capture_featcopilot_messages`` so concurrent CLI calls in
+# the same process can't steal each other's handlers / level on the
+# global ``featcopilot`` logger.
+_capture_lock = threading.Lock()
 
 
 def _cmd_transform(args: argparse.Namespace) -> int:
@@ -849,8 +888,14 @@ def main(argv: list[str] | None = None) -> int:
         sys.stderr.write("featcopilot: interrupted\n")
         return 130
     except Exception as exc:  # pragma: no cover - defensive backstop
+        # Single deterministic stderr line so agents can parse the failure.
+        # We deliberately do NOT call ``logger.exception(...)`` here:
+        # FeatCopilot loggers write to stderr, which would append a second
+        # timestamped traceback after our structured line and break the
+        # CLI's "stderr is exactly one error message" contract. Internal
+        # failure introspection is the caller's job (e.g. set
+        # ``PYTHONFAULTHANDLER=1`` or attach a debugger).
         sys.stderr.write(f"featcopilot: unexpected error: {type(exc).__name__}: {exc}\n")
-        logger.exception("Unhandled CLI exception")
         return 1
 
 
