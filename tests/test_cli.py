@@ -867,6 +867,71 @@ def test_unwritable_output_parquet_returns_exit_2(tmp_path: Path, tabular_csv: P
     assert "failed to write parquet" in err.lower()
 
 
+def test_parquet_read_engine_error_returns_exit_2(tmp_path: Path, monkeypatch):
+    """A non-OSError parquet *backend* error (e.g. ``pyarrow.lib.ArrowInvalid``
+    for a corrupt file) must surface as exit 2, not the generic exit 1
+    "unexpected error" backstop. The CLI catches ``Exception`` for parquet
+    operations because they are fully delegated to a third-party backend
+    whose failures are by definition user-facing data issues.
+    """
+    import pandas as pd
+
+    in_path = tmp_path / "fake.parquet"
+    in_path.write_bytes(b"\x00\x01\x02\x03")  # not a real parquet file
+
+    class _FakeArrowInvalid(Exception):
+        """Stand-in for ``pyarrow.lib.ArrowInvalid`` (also subclasses Exception)."""
+
+    def _raise_backend_error(*args, **kwargs):
+        raise _FakeArrowInvalid("simulated corrupt parquet")
+
+    monkeypatch.setattr(pd, "read_parquet", _raise_backend_error, raising=True)
+
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(in_path),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+        ]
+    )
+    assert rc == 2
+    assert "failed to read parquet" in err.lower()
+
+
+def test_parquet_write_engine_error_returns_exit_2(tmp_path: Path, tabular_csv: Path, monkeypatch):
+    """Same coverage on the write side: a backend-level pyarrow exception
+    that is *not* an ``OSError`` (e.g. an unsupported column-type
+    conversion error) must produce exit 2, not exit 1.
+    """
+    import pandas as pd
+
+    class _FakeArrowTypeError(Exception):
+        pass
+
+    def _raise_backend_error(self, *args, **kwargs):
+        raise _FakeArrowTypeError("simulated unsupported column dtype for parquet")
+
+    monkeypatch.setattr(pd.DataFrame, "to_parquet", _raise_backend_error, raising=True)
+
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "out.parquet"),
+            "--target",
+            "y",
+        ]
+    )
+    assert rc == 2
+    assert "failed to write parquet" in err.lower()
+
+
 def test_uncreatable_parent_directory_returns_exit_2(tmp_path: Path, tabular_csv: Path, monkeypatch):
     """If creating the output's parent directory fails, exit 2 with a clean message."""
     real_mkdir = Path.mkdir

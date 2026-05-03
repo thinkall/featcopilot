@@ -132,7 +132,14 @@ def _read_table(path: Path, fmt: str):
                 f"Reading parquet requires a parquet engine (pyarrow or fastparquet); "
                 f"install one of them, or convert the input to CSV/JSON. Original error: {exc}"
             ) from exc
-        except OSError as exc:
+        except Exception as exc:
+            # Catch *any* backend failure (``OSError`` for I/O,
+            # ``pyarrow.lib.ArrowInvalid`` for corrupt files,
+            # ``ValueError`` from ``fastparquet`` for malformed metadata,
+            # etc.) and surface it via the deterministic exit-2 path.
+            # Catching ``Exception`` is appropriate here because the entire
+            # operation is delegated to a third-party backend; any error
+            # raised is by definition an I/O or data issue, not a CLI bug.
             raise ValueError(f"Failed to read parquet from {str(path)!r}: {exc}") from exc
     if fmt == "json":
         # ``orient='records'`` is the agent-friendly default; fall back to
@@ -179,7 +186,13 @@ def _write_table(df, path: Path, fmt: str) -> None:
                 f"Writing parquet requires a parquet engine (pyarrow or fastparquet); "
                 f"install one of them, or pick CSV/JSON via --output-format. Original error: {exc}"
             ) from exc
-        except OSError as exc:
+        except Exception as exc:
+            # Same broad-catch rationale as ``_read_table``: parquet write
+            # is fully delegated to a backend (``pyarrow``/``fastparquet``)
+            # whose errors include ``OSError`` (I/O), engine-specific type
+            # / conversion exceptions for unsupported column values, etc.
+            # All of these are user-facing data issues, not CLI bugs, so
+            # they should produce a clean exit-2 failure.
             raise ValueError(f"Failed to write parquet to {str(path)!r}: {exc}") from exc
     elif fmt == "json":
         try:
