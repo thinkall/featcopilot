@@ -609,6 +609,145 @@ def test_unreadable_input_csv_returns_exit_2(tmp_path: Path, tabular_csv: Path, 
     assert "failed to read" in err.lower()
 
 
+def test_unreadable_input_json_returns_exit_2(tmp_path: Path, tabular_csv: Path, monkeypatch):
+    """``OSError`` from ``pd.read_json`` is surfaced as exit 2 too."""
+    import pandas as pd
+
+    in_path = tmp_path / "in.json"
+    in_path.write_text("[]")  # contents irrelevant; we'll intercept
+
+    def _raise_oserror(*args, **kwargs):
+        raise PermissionError("simulated read failure")
+
+    monkeypatch.setattr(pd, "read_json", _raise_oserror, raising=True)
+
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(in_path),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+        ]
+    )
+    assert rc == 2
+    assert "failed to read json" in err.lower()
+
+
+def test_unreadable_input_parquet_returns_exit_2(tmp_path: Path, monkeypatch):
+    """``OSError`` from ``pd.read_parquet`` (e.g. corrupt file) is exit 2."""
+    import pandas as pd
+
+    in_path = tmp_path / "in.parquet"
+    in_path.write_bytes(b"")
+
+    def _raise_oserror(*args, **kwargs):
+        raise OSError("simulated parquet read failure")
+
+    monkeypatch.setattr(pd, "read_parquet", _raise_oserror, raising=True)
+
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(in_path),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+        ]
+    )
+    assert rc == 2
+    assert "failed to read parquet" in err.lower()
+
+
+def test_unwritable_output_json_returns_exit_2(tmp_path: Path, tabular_csv: Path, monkeypatch):
+    import pandas as pd
+
+    def _raise_oserror(self, *args, **kwargs):
+        raise PermissionError("simulated json write failure")
+
+    monkeypatch.setattr(pd.DataFrame, "to_json", _raise_oserror, raising=True)
+
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "out.json"),
+            "--target",
+            "y",
+        ]
+    )
+    assert rc == 2
+    assert "failed to write json" in err.lower()
+
+
+def test_unwritable_output_parquet_returns_exit_2(tmp_path: Path, tabular_csv: Path, monkeypatch):
+    """``OSError`` (vs ``ImportError``) from ``DataFrame.to_parquet`` -> exit 2."""
+    import pandas as pd
+
+    def _raise_oserror(self, *args, **kwargs):
+        raise OSError("simulated parquet write failure")
+
+    monkeypatch.setattr(pd.DataFrame, "to_parquet", _raise_oserror, raising=True)
+
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "out.parquet"),
+            "--target",
+            "y",
+        ]
+    )
+    assert rc == 2
+    assert "failed to write parquet" in err.lower()
+
+
+def test_uncreatable_parent_directory_returns_exit_2(tmp_path: Path, tabular_csv: Path, monkeypatch):
+    """If creating the output's parent directory fails, exit 2 with a clean message."""
+    real_mkdir = Path.mkdir
+
+    def _raise_oserror(self, *args, **kwargs):
+        # Only fail for our test's would-be output parent so other calls (e.g.
+        # tmp_path operations under the hood) still work.
+        if "deep" in self.parts:
+            raise PermissionError("simulated mkdir failure")
+        return real_mkdir(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "mkdir", _raise_oserror, raising=True)
+
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "deep" / "nested" / "out.csv"),
+            "--target",
+            "y",
+        ]
+    )
+    assert rc == 2
+    assert "create parent directory" in err.lower()
+
+
+def test_check_scalar_type_rejects_none_when_required():
+    """Direct unit test for ``_check_scalar_type`` to exercise the
+    ``allow_none=False`` + ``value is None`` branch, which the integration
+    path doesn't naturally hit (every scalar with ``allow_none=False`` has
+    a non-None default).
+    """
+    with pytest.raises(ValueError, match="must not be null"):
+        fc_cli._check_scalar_type("foo", None, (int,), allow_none=False)
+
+
 # -------------------------------------------------------------- error paths
 
 
