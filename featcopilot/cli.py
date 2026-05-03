@@ -162,14 +162,32 @@ def _write_table(df, path: Path, fmt: str) -> None:
 
 
 def _load_config(config_path: str | None) -> dict[str, Any]:
-    """Load a JSON config file (or return an empty dict)."""
+    """Load a JSON config file (or return an empty dict).
+
+    Normalizes user-input mistakes (missing path, directory passed instead
+    of a file, invalid JSON, non-object root) into :class:`ValueError` /
+    :class:`FileNotFoundError` so the CLI's top-level error handler can
+    route them all to the deterministic ``exit 2`` user-error path
+    (rather than e.g. ``IsADirectoryError`` falling into the generic
+    ``exit 1`` "unexpected error" backstop).
+    """
     if config_path is None:
         return {}
     path = Path(config_path)
     if not path.exists():
         raise FileNotFoundError(f"Config file not found: {config_path}")
-    with path.open("r", encoding="utf-8") as fh:
-        data = json.load(fh)
+    if path.is_dir():
+        raise ValueError(f"--config expects a JSON file, but {config_path!r} is a directory.")
+    try:
+        with path.open("r", encoding="utf-8") as fh:
+            data = json.load(fh)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Config file {config_path!r} is not valid JSON: {exc}") from exc
+    except OSError as exc:
+        # Catch-all for unreadable files (permission denied, broken symlink,
+        # etc.). Surface as a user-facing error rather than the generic
+        # exit-1 backstop.
+        raise ValueError(f"Config file {config_path!r} could not be read: {exc}") from exc
     if not isinstance(data, dict):
         raise ValueError(f"Config file {config_path!r} must contain a JSON object at the top level")
     return data
@@ -218,7 +236,25 @@ def _build_engineer(args: argparse.Namespace) -> AutoFeatureEngineer:
     correlation_threshold = pick(args.correlation_threshold, "correlation_threshold", 0.85)
     leakage_guard = pick(args.leakage_guard, "leakage_guard", "warn")
     gate_n_jobs = pick(args.gate_n_jobs, "gate_n_jobs", 1)
-    llm_config = config.get("llm_config", {}) or {}
+
+    # Validate ``llm_config`` is a JSON object (i.e. a Python dict) before
+    # forwarding it. Without this check, a misconfigured non-dict value
+    # would only fail at engine-construction time inside
+    # ``AutoFeatureEngineer._create_engine`` via ``self.llm_config.get(...)``,
+    # raising an ``AttributeError`` that bypasses the structured exit-2
+    # user-error path (the CLI would surface it as exit 1 "unexpected
+    # error", which is a poor agent contract for a documented config key).
+    llm_config_raw = config.get("llm_config")
+    if llm_config_raw is None:
+        llm_config: dict[str, Any] = {}
+    elif isinstance(llm_config_raw, dict):
+        llm_config = llm_config_raw
+    else:
+        raise ValueError(
+            "`llm_config` in the --config file must be a JSON object (mapping); "
+            f"got {type(llm_config_raw).__name__}={llm_config_raw!r}."
+        )
+
     verbose = bool(pick(args.verbose, "verbose", False))
 
     # Pass ``engines`` / ``selection_methods`` through *unchanged* (no

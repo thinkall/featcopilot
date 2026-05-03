@@ -453,6 +453,74 @@ def test_invalid_config_file_returns_exit_2(tmp_path: Path, tabular_csv: Path):
     assert "JSON object" in err
 
 
+def test_directory_as_config_returns_exit_2(tmp_path: Path, tabular_csv: Path):
+    """Pointing ``--config`` at a directory must surface as exit 2, not the
+    generic ``exit 1`` backstop (``IsADirectoryError``).
+    """
+    cfg_dir = tmp_path / "not_a_file"
+    cfg_dir.mkdir()
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "o.csv"),
+            "--target",
+            "y",
+            "--config",
+            str(cfg_dir),
+        ]
+    )
+    assert rc == 2
+    assert "directory" in err.lower()
+
+
+def test_malformed_json_config_returns_exit_2(tmp_path: Path, tabular_csv: Path):
+    bad = tmp_path / "bad.json"
+    bad.write_text("{not valid json,}")
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "o.csv"),
+            "--target",
+            "y",
+            "--config",
+            str(bad),
+        ]
+    )
+    assert rc == 2
+    assert "valid json" in err.lower()
+
+
+def test_non_dict_llm_config_returns_exit_2(tmp_path: Path, tabular_csv: Path):
+    """A non-mapping ``llm_config`` (e.g. a string) must be rejected at
+    config-load time with a clean exit 2, not bubble up as an
+    ``AttributeError`` from ``.get(...)`` deep inside engine construction.
+    """
+    cfg = tmp_path / "cfg.json"
+    cfg.write_text(json.dumps({"engines": ["tabular"], "llm_config": "gpt-5"}))
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "o.csv"),
+            "--target",
+            "y",
+            "--config",
+            str(cfg),
+        ]
+    )
+    assert rc == 2
+    assert "llm_config" in err
+    assert "JSON object" in err or "mapping" in err.lower()
+
+
 def test_no_subcommand_exits_nonzero(capsys):
     # main() now returns the argparse-reported exit code (2 for usage error)
     # rather than letting SystemExit propagate, so programmatic callers get
