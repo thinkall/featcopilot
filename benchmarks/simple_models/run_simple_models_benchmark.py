@@ -352,10 +352,17 @@ def preprocess_data(X: pd.DataFrame, y, task: str) -> tuple[pd.DataFrame, np.nda
     """
     X_processed = X.copy()
 
-    # Encode categorical columns. ``_safe_fillna_string`` handles pandas
-    # ``Categorical`` dtype (which would otherwise raise on
-    # ``fillna("missing")`` if "missing" is not in ``cat.categories``).
-    for col in X_processed.select_dtypes(include=["object", "category"]).columns:
+    # Encode non-numeric columns. ``select_dtypes(exclude=[np.number, "bool",
+    # "boolean"])`` mirrors the production path's ``_label_encode_non_numeric``
+    # contract (numeric/bool stays as-is; everything else gets encoded). This
+    # explicitly catches pandas ``string``/``StringDtype`` and other non-
+    # numeric extension dtypes that an ``include=["object", "category"]``
+    # filter would silently leave unencoded — leaving the caller with a
+    # frame that breaks sklearn estimators expecting numeric input.
+    # ``_safe_fillna_string`` handles pandas ``Categorical`` dtype (which
+    # would otherwise raise on ``fillna("missing")`` if "missing" is not in
+    # ``cat.categories``).
+    for col in X_processed.select_dtypes(exclude=[np.number, "bool", "boolean"]).columns:
         le = LabelEncoder()
         X_processed[col] = le.fit_transform(_safe_fillna_string(X_processed[col]))
 
@@ -685,7 +692,13 @@ def run_single_benchmark(
             except ValueError:
                 p_value = 1.0
 
-        significant = p_value < 0.05
+        # Cast to native Python ``bool`` so the in-memory results dict is
+        # immediately JSON-/consumer-friendly. ``p_value`` is a NumPy scalar
+        # (returned by ``scipy.stats.wilcoxon``), so the bare comparison
+        # would otherwise yield a ``numpy.bool_`` and force every consumer
+        # — including ``save_cache``'s ``_to_native`` helper — to special-
+        # case it. Casting at the source avoids that fragile dependency.
+        significant = bool(p_value < 0.05)
 
         print(f"  Baseline: {baseline_mean:.4f} ± {baseline_std:.4f}")
         print(f"  Tabular:  {tabular_mean:.4f} ± {tabular_std:.4f}")

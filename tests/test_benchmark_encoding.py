@@ -838,3 +838,74 @@ def test_save_cache_preserves_int_fidelity_for_np_integer(tmp_path):
     assert md["iter_count"] == 42 and isinstance(md["iter_count"], int)
     assert isinstance(md["lr"], float) and md["lr"] == 0.01
     assert md["converged"] is True and isinstance(md["converged"], bool)
+
+
+def test_preprocess_data_encodes_pandas_string_dtype():
+    """Legacy ``preprocess_data`` must encode pandas ``StringDtype`` columns
+    (not just ``object``/``category``).
+
+    Regression test for Copilot review on commit 3fdce5e: a previous
+    ``include=["object", "category"]`` filter would silently leave
+    ``string``/``StringDtype`` columns unencoded, breaking callers that
+    rely on the helper's output being model-ready.
+    """
+    from benchmarks.simple_models.run_simple_models_benchmark import preprocess_data
+
+    X = pd.DataFrame(
+        {
+            "num": [1.0, 2.0, 3.0, 4.0],
+            "obj_cat": ["a", "b", "a", "c"],
+            # Pandas StringDtype — would slip through a ``["object", "category"]`` filter.
+            "string_ext": pd.array(["x", "y", "x", "z"], dtype="string"),
+            # Bool dtype — must remain bool (already numeric-compatible).
+            "bool_col": [True, False, True, False],
+        }
+    )
+    y = pd.Series([0, 1, 0, 1])
+
+    X_proc, y_proc = preprocess_data(X, y, task="classification")
+
+    # All non-bool columns must be numeric after preprocessing.
+    assert pd.api.types.is_numeric_dtype(X_proc["num"])
+    assert pd.api.types.is_integer_dtype(X_proc["obj_cat"])
+    assert pd.api.types.is_integer_dtype(
+        X_proc["string_ext"]
+    ), f"string_ext column was not label-encoded: dtype={X_proc['string_ext'].dtype}"
+    # Bool columns pass through unchanged (still boolean / numeric).
+    assert pd.api.types.is_bool_dtype(X_proc["bool_col"]) or pd.api.types.is_numeric_dtype(X_proc["bool_col"])
+
+
+def test_significant_field_is_native_python_bool():
+    """``significant = p_value < 0.05`` must yield a native Python ``bool``,
+    not ``numpy.bool_``, so the in-memory results dict is immediately
+    JSON-/consumer-friendly without relying on ``save_cache`` post-
+    processing.
+
+    Regression test for Copilot review on commit 3fdce5e.
+    """
+    import json as json_mod
+    from unittest.mock import patch
+
+    import numpy as np
+
+    from benchmarks.simple_models.run_simple_models_benchmark import run_single_benchmark
+
+    # Use a tiny synthetic dataset so the run is fast; we only care about the
+    # type of ``results["significant"]``.
+    np.random.seed(0)
+    n = 60
+    X = pd.DataFrame({"a": np.random.randn(n), "b": np.random.randn(n)})
+    y = pd.Series((X["a"] + X["b"] > 0).astype(int), name="target")
+
+    fake_load = lambda name, **kw: (X, y, "classification", "Fake (synthetic)")  # noqa: E731
+
+    with patch("benchmarks.simple_models.run_simple_models_benchmark.load_dataset", fake_load):
+        results = run_single_benchmark("titanic", max_features=10, with_llm=False, n_folds=3, n_seeds=1)
+
+    assert results is not None
+    assert "significant" in results
+    sig = results["significant"]
+    # Must be the native ``bool``, not ``numpy.bool_``.
+    assert type(sig) is bool, f"significant must be native ``bool``, got {type(sig).__name__}"
+    # And must be JSON-serializable directly without any custom encoder.
+    json_mod.dumps({"significant": sig})
