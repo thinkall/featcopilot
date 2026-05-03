@@ -70,9 +70,7 @@ def _detect_format(path: Path, override: str | None) -> str:
     if override is not None:
         fmt = override.lower()
         if fmt not in SUPPORTED_INPUT_FORMATS:
-            raise ValueError(
-                f"Unsupported format {override!r}; expected one of {SUPPORTED_INPUT_FORMATS}"
-            )
+            raise ValueError(f"Unsupported format {override!r}; expected one of {SUPPORTED_INPUT_FORMATS}")
         return fmt
 
     suffix = path.suffix.lower().lstrip(".")
@@ -87,13 +85,25 @@ def _detect_format(path: Path, override: str | None) -> str:
 
 
 def _read_table(path: Path, fmt: str):
-    """Read a tabular file into a pandas DataFrame."""
+    """Read a tabular file into a pandas DataFrame.
+
+    For optional ``parquet`` engines (``pyarrow``/``fastparquet``), a missing
+    dependency is converted into a :class:`ValueError` so the CLI's top-level
+    error handler can route it to the deterministic ``exit 2`` user-error path
+    rather than the generic ``exit 1`` backstop.
+    """
     import pandas as pd
 
     if fmt == "csv":
         return pd.read_csv(path)
     if fmt == "parquet":
-        return pd.read_parquet(path)
+        try:
+            return pd.read_parquet(path)
+        except ImportError as exc:
+            raise ValueError(
+                f"Reading parquet requires a parquet engine (pyarrow or fastparquet); "
+                f"install one of them, or convert the input to CSV/JSON. Original error: {exc}"
+            ) from exc
     if fmt == "json":
         # ``orient='records'`` is the agent-friendly default; fall back to
         # pandas' auto-detection when the file isn't a records list.
@@ -105,13 +115,23 @@ def _read_table(path: Path, fmt: str):
 
 
 def _write_table(df, path: Path, fmt: str) -> None:
-    """Write a pandas DataFrame to ``path`` in ``fmt``."""
+    """Write a pandas DataFrame to ``path`` in ``fmt``.
+
+    Parquet ``ImportError`` is normalized to :class:`ValueError` so the CLI
+    surfaces a clean dependency message via the standard ``exit 2`` path.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
 
     if fmt == "csv":
         df.to_csv(path, index=False)
     elif fmt == "parquet":
-        df.to_parquet(path, index=False)
+        try:
+            df.to_parquet(path, index=False)
+        except ImportError as exc:
+            raise ValueError(
+                f"Writing parquet requires a parquet engine (pyarrow or fastparquet); "
+                f"install one of them, or pick CSV/JSON via --output-format. Original error: {exc}"
+            ) from exc
     elif fmt == "json":
         df.to_json(path, orient="records", indent=2)
     else:
@@ -128,9 +148,7 @@ def _load_config(config_path: str | None) -> dict[str, Any]:
     with path.open("r", encoding="utf-8") as fh:
         data = json.load(fh)
     if not isinstance(data, dict):
-        raise ValueError(
-            f"Config file {config_path!r} must contain a JSON object at the top level"
-        )
+        raise ValueError(f"Config file {config_path!r} must contain a JSON object at the top level")
     return data
 
 
@@ -262,7 +280,17 @@ def _cmd_transform(args: argparse.Namespace) -> int:
 
 
 def _cmd_explain(args: argparse.Namespace) -> int:
-    """Fit engines and print feature explanations + code as JSON."""
+    """Fit + transform engines and print feature explanations + code as JSON.
+
+    The built-in engines populate their internal feature-name registry during
+    :meth:`transform`, not :meth:`fit` (planning happens in ``fit`` but feature
+    objects are materialized in ``transform``). We therefore call
+    :meth:`AutoFeatureEngineer.fit_transform` so ``get_feature_names()``,
+    :meth:`explain_features` and :meth:`get_feature_code` all return the
+    actual generated features. Selection is intentionally skipped here so the
+    payload describes every candidate feature the engines produced, not just
+    the post-selection survivors.
+    """
     input_path = Path(args.input)
     if not input_path.exists():
         raise FileNotFoundError(f"Input file not found: {args.input}")
@@ -272,11 +300,12 @@ def _cmd_explain(args: argparse.Namespace) -> int:
     X, y = _split_xy(df, args.target)
 
     engineer = _build_engineer(args)
-    engineer.fit(
+    engineer.fit_transform(
         X,
         y,
         task_description=args.task_description or "prediction task",
         target_name=args.target,
+        apply_selection=False,
     )
 
     explanations = engineer.explain_features()
@@ -427,10 +456,29 @@ def main(argv: list[str] | None = None) -> int:
     """CLI entry point.
 
     Returns the process exit code; suitable for both the ``console_scripts``
-    entry point (``featcopilot``) and ``python -m featcopilot``.
+    entry point (``featcopilot``) and ``python -m featcopilot``. Argparse
+    usage errors (missing subcommand, unknown flag) and the cooperative
+    ``--help`` / ``--version`` actions all normally raise :class:`SystemExit`;
+    we trap those here and return their exit code so that programmatic
+    callers (and agent harnesses) get a consistent integer-returning API.
     """
     parser = _build_parser()
-    args = parser.parse_args(argv)
+
+    try:
+        args = parser.parse_args(argv)
+    except SystemExit as exc:
+        # argparse uses SystemExit(0) for ``--help`` / ``--version`` and
+        # SystemExit(2) for usage errors (also writing to stderr). We let the
+        # output through but convert the exit into a return value so
+        # ``main(argv) -> int`` is honored even on parse-time failures.
+        code = exc.code
+        if code is None:
+            return 0
+        if isinstance(code, int):
+            return code
+        # Non-int code (e.g. error string): print to stderr, return 2.
+        sys.stderr.write(f"{code}\n")
+        return 2
 
     try:
         return args.func(args)

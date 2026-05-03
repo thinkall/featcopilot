@@ -67,10 +67,10 @@ def test_info_text_mode_is_human_readable():
 
 
 def test_top_level_version_flag(capsys):
-    # ``argparse`` ``--version`` action prints to stdout and SystemExits 0.
-    with pytest.raises(SystemExit) as exc:
-        fc_cli.main(["--version"])
-    assert exc.value.code == 0
+    # ``--version`` (argparse action) prints to stdout; main() now traps the
+    # SystemExit and returns the code so the API contract is consistent.
+    rc = fc_cli.main(["--version"])
+    assert rc == 0
     assert __version__ in capsys.readouterr().out
 
 
@@ -132,9 +132,7 @@ def test_transform_include_target_round_trip(tmp_path: Path, tabular_csv: Path):
 def test_transform_parquet_round_trip(tmp_path: Path):
     pytest.importorskip("pyarrow")
     rng = np.random.default_rng(0)
-    df = pd.DataFrame(
-        {"a": rng.normal(size=120), "b": rng.normal(size=120), "y": rng.integers(0, 2, size=120)}
-    )
+    df = pd.DataFrame({"a": rng.normal(size=120), "b": rng.normal(size=120), "y": rng.integers(0, 2, size=120)})
     in_path = tmp_path / "in.parquet"
     out_path = tmp_path / "out.parquet"
     df.to_parquet(in_path, index=False)
@@ -162,9 +160,7 @@ def test_transform_parquet_round_trip(tmp_path: Path):
 
 def test_transform_json_round_trip(tmp_path: Path):
     rng = np.random.default_rng(0)
-    df = pd.DataFrame(
-        {"a": rng.normal(size=80), "b": rng.normal(size=80), "y": rng.integers(0, 2, size=80)}
-    )
+    df = pd.DataFrame({"a": rng.normal(size=80), "b": rng.normal(size=80), "y": rng.integers(0, 2, size=80)})
     in_path = tmp_path / "in.json"
     out_path = tmp_path / "out.json"
     df.to_json(in_path, orient="records")
@@ -356,11 +352,24 @@ def test_invalid_config_file_returns_exit_2(tmp_path: Path, tabular_csv: Path):
     assert "JSON object" in err
 
 
-def test_no_subcommand_exits_nonzero():
-    # argparse SystemExits with code 2 when ``required=True`` subparser is missing.
-    with pytest.raises(SystemExit) as exc:
-        fc_cli.main([])
-    assert exc.value.code == 2
+def test_no_subcommand_exits_nonzero(capsys):
+    # main() now returns the argparse-reported exit code (2 for usage error)
+    # rather than letting SystemExit propagate, so programmatic callers get
+    # an integer back even on parse-time failures.
+    rc = fc_cli.main([])
+    assert rc == 2
+
+
+def test_unknown_flag_returns_exit_2(capsys):
+    rc = fc_cli.main(["transform", "--no-such-flag"])
+    assert rc == 2
+
+
+def test_help_flag_returns_zero(capsys):
+    rc = fc_cli.main(["--help"])
+    assert rc == 0
+    captured = capsys.readouterr()
+    assert "featcopilot" in captured.out
 
 
 # ------------------------------------------------------------------ explain
@@ -381,17 +390,92 @@ def test_explain_emits_json_payload(tmp_path: Path, tabular_csv: Path):
     assert payload["status"] == "ok"
     assert payload["engines"] == ["tabular"]
     assert isinstance(payload["features"], list)
+    # The tabular engine actually generates derived features, and the explain
+    # subcommand must materialize them by running the full fit_transform
+    # pipeline (engines populate _feature_names during transform()).
+    assert payload["n_features"] > 0
+    assert len(payload["features"]) == payload["n_features"]
     # Each feature entry is a dict with the expected keys.
-    if payload["features"]:
-        entry = payload["features"][0]
-        assert {"name", "explanation", "code"} <= set(entry.keys())
+    entry = payload["features"][0]
+    assert {"name", "explanation", "code"} <= set(entry.keys())
+    assert entry["name"]
 
 
-# ------------------------------------------------------------ python -m entry
+# --------------------------------------------------------------- parquet path
+
+
+def test_transform_parquet_missing_engine_returns_exit_2(tmp_path, tabular_csv, monkeypatch):
+    """When pyarrow/fastparquet is missing, the CLI should surface a clean
+    user-facing dependency error (exit 2) rather than the generic exit 1
+    backstop.
+    """
+    import pandas as pd
+
+    def _raise_import_error(self, *args, **kwargs):  # noqa: ANN001
+        raise ImportError("Missing optional dependency 'pyarrow' (simulated)")
+
+    monkeypatch.setattr(pd.DataFrame, "to_parquet", _raise_import_error, raising=True)
+
+    out_path = tmp_path / "out.parquet"
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(out_path),
+            "--target",
+            "y",
+            "--max-features",
+            "5",
+        ]
+    )
+    assert rc == 2
+    assert "parquet engine" in err.lower()
+
+
+# --------------------------------------------------------------- python -m
 
 
 def test_dunder_main_module_runs(monkeypatch, capsys):
-    """``python -m featcopilot info --json`` is exercised via the CLI entry."""
+    """``cli.main`` is invoked via the same code path as ``python -m featcopilot``."""
     monkeypatch.setattr(sys, "argv", ["featcopilot", "info", "--json"])
     rc = fc_cli.main(["info", "--json"])
     assert rc == 0
+
+
+def test_dunder_main_subprocess_invocation():
+    """``python -m featcopilot info --json`` must succeed in a real subprocess.
+
+    Exercises ``featcopilot/__main__.py`` end-to-end so a regression in
+    module-form invocation (e.g. a broken import path) actually breaks the
+    test, not just the unit-level call to ``cli.main``.
+    """
+    import subprocess
+
+    result = subprocess.run(
+        [sys.executable, "-m", "featcopilot", "info", "--json"],
+        capture_output=True,
+        text=True,
+        timeout=60,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["version"] == __version__
+    assert "tabular" in payload["supported_engines"]
+
+
+def test_dunder_main_subprocess_version_flag():
+    """``python -m featcopilot --version`` must print and exit 0."""
+    import subprocess
+
+    result = subprocess.run(
+        [sys.executable, "-m", "featcopilot", "--version"],
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert __version__ in result.stdout
