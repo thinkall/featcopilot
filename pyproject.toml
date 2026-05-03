@@ -86,6 +86,9 @@ Homepage = "https://github.com/thinkall/featcopilot"
 Documentation = "https://github.com/thinkall/featcopilot#readme"
 Repository = "https://github.com/thinkall/featcopilot"
 
+[project.scripts]
+featcopilot = "featcopilot.cli:main"
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["featcopilot*"]
