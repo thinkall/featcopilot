@@ -859,6 +859,144 @@ def test_unreadable_input_csv_returns_exit_2(tmp_path: Path, tabular_csv: Path, 
     assert "failed to read" in err.lower()
 
 
+def test_empty_csv_input_returns_exit_2(tmp_path: Path):
+    """A zero-byte / headerless CSV triggers ``pandas.errors.EmptyDataError``,
+    which must be normalized to the documented exit-2 user-input error path
+    rather than falling through to the generic exit-1 backstop.
+    """
+    in_path = tmp_path / "empty.csv"
+    in_path.write_text("")  # zero bytes -> EmptyDataError on read
+
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(in_path),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+        ]
+    )
+    assert rc == 2
+    assert "failed to read csv" in err.lower()
+
+
+def test_headerless_csv_input_returns_exit_2(tmp_path: Path):
+    """A CSV with no header and no rows is also empty-data territory and
+    must surface as exit 2.
+    """
+    in_path = tmp_path / "headerless.csv"
+    in_path.write_text("\n\n\n")  # only newlines, no header
+
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(in_path),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+        ]
+    )
+    assert rc == 2
+    assert "failed to read csv" in err.lower()
+
+
+def test_transform_include_target_collision_returns_exit_2(tmp_path: Path):
+    """``--include-target`` would silently overwrite an engineered feature
+    if it happens to share the target column's name. The CLI must detect
+    that collision and fail with exit 2 instead of losing the engineered
+    feature.
+
+    A target named ``x1_pow2`` (which the tabular engine generates as a
+    derived feature from a numeric column ``x1``) provokes the collision.
+    """
+    rng = np.random.default_rng(0)
+    n = 200
+    df = pd.DataFrame(
+        {
+            "x1": rng.normal(size=n),
+            "x2": rng.normal(size=n),
+            # Target column has a name that the tabular engine would also
+            # generate (``x1_pow2`` etc. is in the tabular engine's
+            # derived feature catalog).
+            "x1_pow2": rng.integers(0, 2, size=n),
+        }
+    )
+    in_path = tmp_path / "collision.csv"
+    df.to_csv(in_path, index=False)
+    out_path = tmp_path / "out.csv"
+
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(in_path),
+            "--output",
+            str(out_path),
+            "--target",
+            "x1_pow2",
+            "--include-target",
+            "--max-features",
+            "5",
+        ]
+    )
+    # Either the engineered set actually contains the colliding name (in
+    # which case we MUST exit 2), or selection happened to drop it. Skip
+    # if the engine didn't materialize the colliding feature this run —
+    # the test is about the contract, not whether ``x1_pow2`` is always
+    # generated.
+    if rc == 2:
+        assert "include-target would overwrite" in err.lower()
+        assert "x1_pow2" in err
+    else:
+        # No collision actually occurred; the test is a no-op for this
+        # input. Future engine changes that always emit ``x1_pow2`` will
+        # expose the collision branch.
+        assert rc == 0, err
+
+
+def test_transform_include_target_collision_deterministic(tmp_path: Path, tabular_csv: Path, monkeypatch):
+    """Deterministic version of the collision test: monkey-patch the
+    engineer so its transformed frame contains a column with the target's
+    name. This guarantees we exercise the exit-2 collision branch
+    regardless of which features the real engineer picks.
+    """
+    from featcopilot.transformers.sklearn_compat import AutoFeatureEngineer
+
+    real_fit_transform = AutoFeatureEngineer.fit_transform
+
+    def _patched_fit_transform(self, X, y=None, **kwargs):
+        result = real_fit_transform(self, X, y, **kwargs)
+        # Inject a column named ``y`` into the result so it collides with
+        # the target column the test will pass.
+        result = result.copy()
+        result["y"] = result.iloc[:, 0]  # arbitrary engineered values
+        return result
+
+    monkeypatch.setattr(AutoFeatureEngineer, "fit_transform", _patched_fit_transform)
+
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+            "--include-target",
+            "--max-features",
+            "5",
+        ]
+    )
+    assert rc == 2
+    assert "include-target would overwrite" in err.lower()
+    assert "'y'" in err
+
+
 def test_unreadable_input_json_returns_exit_2(tmp_path: Path, tabular_csv: Path, monkeypatch):
     """``OSError`` from ``pd.read_json`` is surfaced as exit 2 too."""
     import pandas as pd

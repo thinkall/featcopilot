@@ -133,7 +133,16 @@ def _read_table(path: Path, fmt: str):
     if fmt == "csv":
         try:
             return pd.read_csv(path)
-        except (OSError, pd.errors.ParserError, UnicodeDecodeError) as exc:
+        except (
+            OSError,
+            pd.errors.ParserError,
+            pd.errors.EmptyDataError,
+            UnicodeDecodeError,
+        ) as exc:
+            # ``EmptyDataError`` fires for headerless / zero-byte CSVs;
+            # without it, those inputs would fall into the generic exit-1
+            # "unexpected error" path instead of the documented exit-2
+            # user-input error.
             raise ValueError(f"Failed to read CSV from {str(path)!r}: {exc}") from exc
     if fmt == "parquet":
         try:
@@ -766,8 +775,21 @@ def _cmd_transform(args: argparse.Namespace) -> int:
 
     if args.include_target and y is not None:
         # Re-attach the target column so downstream training scripts can
-        # consume the engineered file as a single artifact.
+        # consume the engineered file as a single artifact. Detect column
+        # collisions: if an engineered feature happens to share the
+        # target's column name (e.g. a target named ``foo_pow2`` matching
+        # a tabular-engine derived feature), blindly assigning ``transformed[
+        # target_name] = y.values`` would silently overwrite the engineered
+        # column. Surface that as a clean exit-2 error instead. Callers
+        # who knowingly want to overwrite can rename their target before
+        # invoking ``transform`` (or skip ``--include-target``).
         target_name = args.target if args.target in df.columns else "target"
+        if target_name in transformed.columns:
+            raise ValueError(
+                f"--include-target would overwrite engineered feature {target_name!r} "
+                "with the target values. Rename the target column in the input file, "
+                "drop --include-target, or accept the rename and retry."
+            )
         transformed = transformed.copy()
         transformed[target_name] = y.values
 
