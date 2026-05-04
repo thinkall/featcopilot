@@ -50,6 +50,8 @@ import warnings
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+
 from featcopilot import __version__
 from featcopilot.transformers.sklearn_compat import AutoFeatureEngineer
 from featcopilot.utils.logger import get_logger
@@ -788,7 +790,7 @@ def _cmd_transform(args: argparse.Namespace) -> int:
             raise ValueError(
                 f"--include-target would overwrite engineered feature {target_name!r} "
                 "with the target values. Rename the target column in the input file, "
-                "drop --include-target, or accept the rename and retry."
+                "or drop --include-target."
             )
         transformed = transformed.copy()
         transformed[target_name] = y.values
@@ -887,10 +889,22 @@ def _cmd_explain(args: argparse.Namespace) -> int:
                 UserWarning,
                 stacklevel=2,
             )
-            sample_idx = X.sample(n=sample_size, random_state=0).index
-            X = X.loc[sample_idx]
+            # Sample by *position* (``.iloc[...]``), not label
+            # (``.sample(...).index`` + ``.loc[...]``). ``.loc`` selects
+            # by label, so a non-unique index — common when reading
+            # parquet files that preserve a saved index — would let
+            # duplicate labels expand or reorder rows so ``X`` and ``y``
+            # no longer line up. Positional sampling via a NumPy RNG +
+            # ``.iloc`` keeps them aligned regardless of input index.
+            rng_sampler = np.random.default_rng(0)
+            sample_positions = rng_sampler.choice(n_sampled, size=sample_size, replace=False)
+            # Sort the positions for determinism / readable output ordering
+            # (the random selection itself is already deterministic via
+            # the seeded RNG).
+            sample_positions.sort()
+            X = X.iloc[sample_positions]
             if y is not None:
-                y = y.loc[sample_idx]
+                y = y.iloc[sample_positions]
             n_sampled = sample_size
 
         engineer.fit_transform(

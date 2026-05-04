@@ -2317,6 +2317,91 @@ def test_unreadable_config_returns_exit_2(tmp_path, tabular_csv, monkeypatch):
     assert "could not be read" in err.lower()
 
 
+def test_explain_sample_size_handles_non_unique_index(tmp_path: Path):
+    """Sampling must keep X and y aligned even when the input frame has a
+    non-unique index — e.g. a parquet read that preserves a saved index
+    where labels can repeat. Positional sampling (``.iloc``) avoids the
+    label-based ``.loc`` expansion / reordering bug.
+    """
+    pytest.importorskip("pyarrow")  # parquet write needs an engine
+
+    rng = np.random.default_rng(0)
+    n = 4000
+    df = pd.DataFrame(
+        {
+            "x1": rng.normal(size=n),
+            "x2": rng.normal(size=n),
+            "y": rng.integers(0, 2, size=n),
+        }
+    )
+    # Force a non-unique index — labels repeat (each label appears twice).
+    df.index = pd.Index([i // 2 for i in range(n)], name="duplicated_index")
+    in_path = tmp_path / "non_unique.parquet"
+    df.to_parquet(in_path, index=True)
+
+    rc, out, err = _run(
+        [
+            "explain",
+            "--input",
+            str(in_path),
+            "--target",
+            "y",
+            "--explain-sample-size",
+            "100",
+        ]
+    )
+    assert rc == 0, err
+    payload = json.loads(out)
+    assert payload["status"] == "ok"
+    # Sample size must be honored exactly, not expanded by ``.loc``-with-
+    # duplicate-labels behavior.
+    assert payload["n_rows_used"] == 100
+
+
+def test_include_target_collision_error_text_lists_only_actionable_options(
+    tmp_path: Path, tabular_csv: Path, monkeypatch
+):
+    """The error text emitted when ``--include-target`` would overwrite an
+    engineered feature must only suggest actions that are actually
+    possible from this command. The CLI does not offer auto-rename, so
+    the message must NOT mention "rename and retry" or any other phantom
+    option.
+    """
+    from featcopilot.transformers.sklearn_compat import AutoFeatureEngineer
+
+    real_fit_transform = AutoFeatureEngineer.fit_transform
+
+    def _patched_fit_transform(self, X, y=None, **kwargs):
+        result = real_fit_transform(self, X, y, **kwargs)
+        result = result.copy()
+        result["y"] = result.iloc[:, 0]
+        return result
+
+    monkeypatch.setattr(AutoFeatureEngineer, "fit_transform", _patched_fit_transform)
+
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+            "--include-target",
+            "--max-features",
+            "5",
+        ]
+    )
+    assert rc == 2
+    # Must mention the real options.
+    assert "rename the target column" in err.lower()
+    assert "drop --include-target" in err
+    # Must NOT mention non-existent CLI options.
+    assert "accept the rename" not in err.lower()
+    assert "retry" not in err.lower()
+
+
 # --------------------------------------------------------------- python -m
 
 
