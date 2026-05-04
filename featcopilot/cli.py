@@ -508,13 +508,6 @@ def _fit_transform_capturing_warnings(engineer, X, y, **kwargs):
     return captured, result
 
 
-def _fit_capturing_warnings(engineer, X, y, **kwargs):
-    """Sibling of :func:`_fit_transform_capturing_warnings` for explain."""
-    with _capture_featcopilot_messages() as captured:
-        engineer.fit_transform(X, y, **kwargs)
-    return captured
-
-
 class _ThreadCaptureState:
     """Holds per-thread capture *stacks*.
 

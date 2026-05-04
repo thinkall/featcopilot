@@ -2229,22 +2229,59 @@ def test_dunder_main_subprocess_version_flag():
 # ------------------------------------------------------- console script
 
 
+def _featcopilot_package_is_installed() -> bool:
+    """Return True iff the ``featcopilot`` distribution is installed in the
+    current environment (i.e. the entry-point machinery should have placed
+    the console script on ``PATH``).
+
+    Used by the console-script tests to distinguish two cases:
+
+    * Running tests directly against the source tree (``python -m pytest``
+      from a clean checkout, no ``pip install -e .``): the package is
+      *not* installed; the script is legitimately missing and the test
+      should ``skip`` rather than report a packaging bug.
+    * Running tests after ``pip install`` (the CI flow): the package IS
+      installed, so the script MUST be on ``PATH``. If it isn't, that's a
+      real ``[project.scripts]`` regression and the test should ``fail``,
+      not silently pass via skip.
+    """
+    try:
+        from importlib.metadata import PackageNotFoundError, distribution
+    except ImportError:  # pragma: no cover - py3.10+ always has this
+        return False
+    try:
+        distribution("featcopilot")
+    except PackageNotFoundError:
+        return False
+    return True
+
+
 def test_console_script_subprocess_invocation():
     """The installed ``featcopilot`` console script must be on PATH and runnable.
 
     Exercises the ``[project.scripts] featcopilot = "featcopilot.cli:main"``
     entry point end-to-end so a typo or packaging regression in
-    ``pyproject.toml`` would actually break the suite. Skipped when the
-    script isn't on ``PATH`` (e.g. running tests without ``pip install``).
+    ``pyproject.toml`` would actually break the suite. When the
+    ``featcopilot`` distribution is installed, the script must be on
+    ``PATH``: a missing script in that case is a real packaging
+    regression, not a test environment quirk, so we ``fail`` (not
+    ``skip``). The skip is reserved for the rare case of running tests
+    against an un-installed source tree.
     """
     import shutil
     import subprocess
 
     script = shutil.which("featcopilot")
     if script is None:
+        if _featcopilot_package_is_installed():
+            pytest.fail(
+                "featcopilot package is installed but the `featcopilot` console "
+                "script is missing from PATH. This is a `[project.scripts]` "
+                "regression in pyproject.toml."
+            )
         pytest.skip(
-            "featcopilot console script not on PATH (install the package "
-            "with `pip install -e .` to exercise the entry point)"
+            "featcopilot package is not installed in this environment; install "
+            "it with `pip install -e .` to exercise the console-script entry point."
         )
 
     result = subprocess.run(
@@ -2261,12 +2298,21 @@ def test_console_script_subprocess_invocation():
 
 
 def test_console_script_version_flag():
+    """Same install-aware skip/fail policy as
+    :func:`test_console_script_subprocess_invocation`.
+    """
     import shutil
     import subprocess
 
     script = shutil.which("featcopilot")
     if script is None:
-        pytest.skip("featcopilot console script not on PATH")
+        if _featcopilot_package_is_installed():
+            pytest.fail(
+                "featcopilot package is installed but the `featcopilot` console "
+                "script is missing from PATH. This is a `[project.scripts]` "
+                "regression in pyproject.toml."
+            )
+        pytest.skip("featcopilot package is not installed in this environment.")
 
     result = subprocess.run(
         [script, "--version"],
