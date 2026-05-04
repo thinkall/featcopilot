@@ -1112,27 +1112,47 @@ def test_capture_featcopilot_messages_intercepts_logger_warning():
     not just covered transitively via the CLI subcommands.
     """
     fc_logger = logging.getLogger("featcopilot.test_cli")
-    with fc_cli._capture_featcopilot_messages() as captured:
-        fc_logger.warning("captured-warning-message")
-        warnings.warn("captured-runtime-warning", UserWarning, stacklevel=2)
+    # Reset Python's warning-deduplication state for the duration of the
+    # test so a previous test that fired ``warnings.warn`` at the same
+    # source location does not suppress this one.
+    with warnings.catch_warnings():
+        warnings.simplefilter("always")
+        with fc_cli._capture_featcopilot_messages() as captured:
+            fc_logger.warning("captured-warning-message")
+            warnings.warn("captured-runtime-warning", UserWarning, stacklevel=2)
     assert any("captured-warning-message" in m for m in captured)
     assert any("captured-runtime-warning" in m for m in captured)
 
 
-def test_capture_featcopilot_messages_restores_handlers():
-    """The contextmanager must restore the original featcopilot root logger
-    state after the with-block, even if an exception propagates.
+def test_capture_featcopilot_messages_does_not_mutate_logger_state_per_call():
+    """The contextmanager installs hooks *once* (lazily) and then never
+    mutates the featcopilot logger again — so successive captures don't
+    add or remove handlers, regardless of test ordering. The earlier
+    "restores handlers" test (asserting equality with pre-first-call
+    state) was order-dependent: on the very first capture in a process,
+    ``_install_capture_hooks_once()`` permanently adds
+    ``_routing_handler`` and that's a one-way change. We instead assert
+    *stability* across an exception-propagating with-block, which is the
+    real behavioral contract.
     """
+    # First, force install via a no-op capture.
+    with fc_cli._capture_featcopilot_messages():
+        pass
+
     fc_root = logging.getLogger("featcopilot")
-    saved_handlers = list(fc_root.handlers)
-    saved_level = fc_root.level
+    handlers_before = list(fc_root.handlers)
+    level_before = fc_root.level
+    showwarning_before = warnings.showwarning
 
     with pytest.raises(RuntimeError):
         with fc_cli._capture_featcopilot_messages():
             raise RuntimeError("boom")
 
-    assert fc_root.handlers == saved_handlers
-    assert fc_root.level == saved_level
+    # Hooks remain installed (handler stays, level unchanged, showwarning
+    # override remains in place); per-call state has been popped.
+    assert fc_root.handlers == handlers_before
+    assert fc_root.level == level_before
+    assert warnings.showwarning is showwarning_before
 
 
 def test_capture_featcopilot_messages_thread_safety():
@@ -1231,20 +1251,125 @@ def test_capture_warnings_warn_thread_isolated():
         barrier.wait()
         with fc_cli._capture_featcopilot_messages() as captured:
             for i in range(10):
+                # ``stacklevel=2`` is forwarded; reset filter state so we
+                # don't lose the warning to Python's default dedup.
                 warnings.warn(f"{tag}-warn-{i}", UserWarning, stacklevel=2)
         target.extend(captured)
 
-    t1 = threading.Thread(target=worker, args=("A", a_captured))
-    t2 = threading.Thread(target=worker, args=("B", b_captured))
-    t1.start()
-    t2.start()
-    t1.join()
-    t2.join()
+    # Reset warning filters for this test so dedup doesn't suppress
+    # repeated emissions at the same source line.
+    with warnings.catch_warnings():
+        warnings.simplefilter("always")
+        t1 = threading.Thread(target=worker, args=("A", a_captured))
+        t2 = threading.Thread(target=worker, args=("B", b_captured))
+        t1.start()
+        t2.start()
+        t1.join()
+        t2.join()
 
     assert all("A-warn-" in m for m in a_captured)
     assert all("B-warn-" in m for m in b_captured)
     assert not any("B-warn-" in m for m in a_captured)
     assert not any("A-warn-" in m for m in b_captured)
+
+
+def test_nested_capture_on_same_thread_preserves_outer_list():
+    """A capture inside a capture on the same thread must:
+
+    1. Route records to the *innermost* list while the inner block is active.
+    2. Restore the outer list when the inner block exits, so subsequent
+       records flow into the outer payload.
+
+    The previous single-list-per-thread design clobbered the outer
+    registration; this test guards against that regression.
+    """
+    fc_logger = logging.getLogger("featcopilot.test_nested")
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("always")
+        with fc_cli._capture_featcopilot_messages() as outer:
+            fc_logger.warning("outer-before-nested")
+            with fc_cli._capture_featcopilot_messages() as inner:
+                fc_logger.warning("inner-only")
+                warnings.warn("inner-runtime", UserWarning, stacklevel=2)
+            fc_logger.warning("outer-after-nested")
+
+    # Inner contains only the records emitted while it was the active
+    # capture.
+    assert any("inner-only" in m for m in inner)
+    assert any("inner-runtime" in m for m in inner)
+    assert not any("outer-before-nested" in m for m in inner)
+    assert not any("outer-after-nested" in m for m in inner)
+
+    # Outer contains records emitted before AND after the inner block,
+    # but NOT records emitted while inner was active (those went to inner).
+    assert any("outer-before-nested" in m for m in outer)
+    assert any("outer-after-nested" in m for m in outer)
+    assert not any("inner-only" in m for m in outer)
+    assert not any("inner-runtime" in m for m in outer)
+
+
+def test_overlapping_captures_with_out_of_order_exit():
+    """Two threads enter the capture block, then thread A exits *before*
+    thread B. The CLI must continue to capture B's warnings even after
+    A has exited — i.e. A's exit must not restore a global state that
+    disables B's capture.
+
+    This is the strict version of the warnings.showwarning race that
+    existed when the override was saved/restored per-call: A's exit
+    used to restore the original ``warnings.showwarning``, leaking B's
+    subsequent ``warnings.warn`` calls onto stderr.
+    """
+    import threading
+    import time
+
+    barrier = threading.Barrier(2)
+    a_done = threading.Event()
+    a_captured: list[str] = []
+    b_captured: list[str] = []
+
+    fc_logger = logging.getLogger("featcopilot.test_overlap")
+
+    def worker_a():
+        barrier.wait()
+        with fc_cli._capture_featcopilot_messages() as captured:
+            fc_logger.warning("A-1")
+            warnings.warn("A-warn-1", UserWarning, stacklevel=2)
+        a_captured.extend(captured)
+        a_done.set()  # signal: A has exited the capture block
+
+    def worker_b():
+        barrier.wait()
+        with fc_cli._capture_featcopilot_messages() as captured:
+            fc_logger.warning("B-1")
+            # Wait for A to fully exit before emitting B's tail records.
+            assert a_done.wait(timeout=5)
+            time.sleep(0.05)  # small grace so any racy restoration would have happened
+            fc_logger.warning("B-2-after-A-exit")
+            warnings.warn("B-warn-after-A-exit", UserWarning, stacklevel=2)
+        b_captured.extend(captured)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("always")
+        t_a = threading.Thread(target=worker_a)
+        t_b = threading.Thread(target=worker_b)
+        t_b.start()  # start B first so it's already in the block
+        time.sleep(0.05)
+        t_a.start()
+        t_a.join(timeout=5)
+        t_b.join(timeout=5)
+
+    # B's records — including the ones emitted *after* A exited — must
+    # all be captured. None of A's records should have leaked into B.
+    assert any("B-1" in m for m in b_captured)
+    assert any("B-2-after-A-exit" in m for m in b_captured)
+    assert any("B-warn-after-A-exit" in m for m in b_captured)
+    assert not any("A-1" in m for m in b_captured)
+    assert not any("A-warn-1" in m for m in b_captured)
+    # A's payload likewise contains only A's records.
+    assert any("A-1" in m for m in a_captured)
+    assert any("A-warn-1" in m for m in a_captured)
+    assert not any("B-" in m for m in a_captured)
 
 
 def test_unexpected_error_writes_single_stderr_line(monkeypatch, tmp_path: Path, tabular_csv: Path):

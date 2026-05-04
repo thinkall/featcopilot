@@ -500,32 +500,42 @@ def _fit_capturing_warnings(engineer, X, y, **kwargs):
 
 
 class _ThreadCaptureState:
-    """Holds per-thread capture lists.
+    """Holds per-thread capture *stacks*.
 
-    Shared by :class:`_ThreadRoutingHandler` (writes records) and
-    :class:`_SuppressCapturingFilter` (decides whether to drop a record
-    from the original handlers). Mutations are guarded by a small lock;
-    lookups use ``dict.get`` which is atomic under the GIL for hashable
-    keys.
+    Each thread maps to a stack of capture lists. Nested
+    :func:`_capture_featcopilot_messages` calls on the same thread push
+    onto the stack; the innermost active capture is always at the top
+    and receives records / warnings until its block exits, at which
+    point the outer capture (if any) becomes active again.
+
+    Shared by :class:`_ThreadRoutingHandler` (writes records),
+    :class:`_SuppressCapturingFilter` (suppresses stderr), and the
+    routing ``warnings.showwarning`` override.
     """
 
     def __init__(self):
-        self._per_thread: dict[int, list[str]] = {}
+        self._per_thread: dict[int, list[list[str]]] = {}
         self._lock = threading.Lock()
 
-    def register(self, tid: int, target: list[str]) -> None:
+    def push(self, tid: int, target: list[str]) -> None:
         with self._lock:
-            self._per_thread[tid] = target
+            self._per_thread.setdefault(tid, []).append(target)
 
-    def unregister(self, tid: int) -> None:
+    def pop(self, tid: int) -> None:
         with self._lock:
-            self._per_thread.pop(tid, None)
+            stack = self._per_thread.get(tid)
+            if stack:
+                stack.pop()
+                if not stack:
+                    del self._per_thread[tid]
 
     def get(self, tid: int) -> list[str] | None:
-        # Lock-free read: ``dict.get`` is atomic for hashable keys under
-        # the CPython GIL, and we only ever read references to lists owned
-        # by individual threads — no shared mutation hazard.
-        return self._per_thread.get(tid)
+        # Brief lock for thread-safe stack-top read.
+        with self._lock:
+            stack = self._per_thread.get(tid)
+            if stack:
+                return stack[-1]
+            return None
 
 
 class _ThreadRoutingHandler(logging.Handler):
@@ -575,39 +585,82 @@ class _SuppressCapturingFilter(logging.Filter):
 
 # Module-level singletons. Installed exactly once on the featcopilot root
 # logger / its existing handlers; subsequent ``_capture_featcopilot_messages``
-# calls just register/unregister thread state. No global lock is held during
-# the slow ``fit_transform`` body — concurrent threads each capture their
-# own records independently.
+# calls just push/pop thread state. No global lock is held during the slow
+# ``fit_transform`` body — concurrent threads each capture their own records
+# independently.
 _capture_state = _ThreadCaptureState()
 _routing_handler = _ThreadRoutingHandler(_capture_state)
 _suppress_filter = _SuppressCapturingFilter(_capture_state)
 _install_lock = threading.Lock()
 _install_done = False
+# Captures the original ``warnings.showwarning`` at first install so the
+# routing override can chain to it for non-capturing threads (and so we
+# never mutate it again on subsequent capture calls — the previous
+# per-call save/restore raced under concurrent overlapping captures).
+_original_showwarning = None
+
+
+def _routing_showwarning(message, category, filename, lineno, file=None, line=None):
+    """Permanent ``warnings.showwarning`` override (installed once).
+
+    Routes warnings to the *innermost* capturing list for the current
+    thread (via :class:`_ThreadCaptureState` stack lookup). If the
+    current thread is not capturing, chains to the original
+    ``warnings.showwarning`` so non-capturing threads keep their normal
+    behavior.
+
+    Installed once globally — *not* swapped per-call — so concurrent
+    overlapping captures on different threads cannot race on the
+    process-global ``warnings.showwarning`` slot.
+    """
+    target = _capture_state.get(threading.get_ident())
+    if target is not None:
+        target.append(str(message))
+        return
+    if _original_showwarning is not None:
+        _original_showwarning(message, category, filename, lineno, file, line)
 
 
 def _install_capture_hooks_once() -> None:
-    """Install the routing handler + suppress filter on the featcopilot root logger.
+    """Install the routing handler + suppress filter + showwarning override.
 
-    Idempotent: subsequent calls are no-ops. Must be called before the
-    first capture; happens lazily on first use to avoid altering the
-    logging tree at module import time when the CLI is being introspected
-    rather than executed.
+    The logger handler and filter are installed exactly once (idempotent).
+    The ``warnings.showwarning`` override is re-installed every call if
+    something else has replaced it — this is necessary because external
+    code (most commonly ``warnings.catch_warnings()`` blocks) can reset
+    the global ``warnings.showwarning`` and undo a previous install. The
+    fresh re-install captures the current (caller's) ``showwarning`` as
+    the new "original" to chain to, so non-capturing threads still see
+    whatever warning behavior the caller had set up.
+
+    All hooks themselves dispatch on :class:`_ThreadCaptureState` which
+    uses a per-thread stack, so they are no-ops for threads that aren't
+    currently capturing.
     """
-    global _install_done
-    if _install_done:
-        return
+    global _install_done, _original_showwarning
     with _install_lock:
-        if _install_done:
-            return
-        fc_root = logging.getLogger("featcopilot")
-        if _routing_handler not in fc_root.handlers:
-            fc_root.addHandler(_routing_handler)
-        for handler in list(fc_root.handlers):
-            if handler is _routing_handler:
-                continue
-            if _suppress_filter not in handler.filters:
-                handler.addFilter(_suppress_filter)
-        _install_done = True
+        # Logger handler/filter install (truly once — these can't be
+        # silently undone by external code in the way ``warnings.showwarning``
+        # can).
+        if not _install_done:
+            fc_root = logging.getLogger("featcopilot")
+            if _routing_handler not in fc_root.handlers:
+                fc_root.addHandler(_routing_handler)
+            for handler in list(fc_root.handlers):
+                if handler is _routing_handler:
+                    continue
+                if _suppress_filter not in handler.filters:
+                    handler.addFilter(_suppress_filter)
+            _install_done = True
+
+        # ``warnings.showwarning`` install — re-check every entry. A
+        # caller's ``warnings.catch_warnings()`` block restores the
+        # previous ``showwarning`` on exit, undoing our install. Re-
+        # installing on next entry is what makes overlapping captures
+        # robust against caller-side warning context manipulation.
+        if warnings.showwarning is not _routing_showwarning:
+            _original_showwarning = warnings.showwarning
+            warnings.showwarning = _routing_showwarning
 
 
 @contextlib.contextmanager
@@ -616,9 +669,8 @@ def _capture_featcopilot_messages():
     on the *current thread*.
 
     Yields a list that the caller can read after the with-block exits.
-    The list contains formatted log records (in emission order) followed
-    by any Python warning messages emitted during the with-block on this
-    thread.
+    The list contains formatted log records (in emission order) and any
+    Python warning messages emitted during the with-block on this thread.
 
     Concurrency model
     -----------------
@@ -628,40 +680,32 @@ def _capture_featcopilot_messages():
       handlers. Two threads can capture concurrently without blocking
       each other; each sees only its own records, and other threads'
       records still flow normally to stderr.
-    * **``warnings.warn`` records** are intercepted via a per-thread
-      override of :data:`warnings.showwarning`. The override appends to
-      the capturing thread's list and chains to the previous
-      ``showwarning`` for warnings emitted on non-capturing threads.
+    * **``warnings.warn`` records** are intercepted via a permanent
+      :func:`_routing_showwarning` override installed once. The override
+      routes by ``threading.get_ident()`` and chains to the original
+      ``warnings.showwarning`` for non-capturing threads. The override is
+      *not* swapped per-call, so concurrent overlapping captures on
+      different threads cannot race on the process-global
+      ``warnings.showwarning`` slot.
+    * **Nested captures** on the same thread are supported via a
+      per-thread stack in :class:`_ThreadCaptureState`. Records and
+      warnings always go to the innermost active capture; when the inner
+      block exits, the outer capture is automatically reactivated.
 
     The contextmanager does NOT hold any lock for the duration of the
-    with-block — only briefly during install/register/unregister — so
-    long-running ``fit_transform`` calls in one thread do not block
-    other threads from running concurrently.
+    with-block — only briefly during install/push/pop — so long-running
+    ``fit_transform`` calls in one thread do not block other threads
+    from running concurrently.
     """
     _install_capture_hooks_once()
 
     captured: list[str] = []
     tid = threading.get_ident()
-    _capture_state.register(tid, captured)
-
-    # Per-thread ``warnings.warn`` interception. We chain to whatever
-    # ``warnings.showwarning`` was in place before us so non-capturing
-    # threads (or nested captures) still receive their warnings via the
-    # existing path.
-    previous_showwarning = warnings.showwarning
-
-    def _routing_showwarning(message, category, filename, lineno, file=None, line=None):
-        if threading.get_ident() == tid:
-            captured.append(str(message))
-            return
-        previous_showwarning(message, category, filename, lineno, file, line)
-
-    warnings.showwarning = _routing_showwarning
+    _capture_state.push(tid, captured)
     try:
         yield captured
     finally:
-        warnings.showwarning = previous_showwarning
-        _capture_state.unregister(tid)
+        _capture_state.pop(tid)
 
 
 def _cmd_transform(args: argparse.Namespace) -> int:
