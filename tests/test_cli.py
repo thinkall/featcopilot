@@ -403,6 +403,98 @@ def test_scalar_type_mismatch_in_config_returns_exit_2(tmp_path: Path, tabular_c
     assert fragment in err
 
 
+@pytest.mark.parametrize("threshold", [-0.1, 1.1, 5.0, -1.0])
+def test_correlation_threshold_out_of_range_returns_exit_2(tmp_path: Path, tabular_csv: Path, threshold):
+    """``correlation_threshold`` is only meaningful in [0.0, 1.0]. Out-of-range
+    values silently change selector behavior (>1 disables redundancy elim,
+    <0 treats every numeric pair as redundant), so the CLI rejects them up
+    front with a precise exit-2 error.
+    """
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+            "--correlation-threshold",
+            str(threshold),
+            "--max-features",
+            "5",
+        ]
+    )
+    assert rc == 2
+    assert "correlation_threshold" in err
+    assert "[0.0, 1.0]" in err or "0.0" in err
+
+
+def test_correlation_threshold_in_config_out_of_range_returns_exit_2(tmp_path: Path, tabular_csv: Path):
+    """The same range check applies when ``correlation_threshold`` arrives
+    from ``--config`` rather than the CLI flag.
+    """
+    cfg = tmp_path / "cfg.json"
+    cfg.write_text(json.dumps({"correlation_threshold": 2.5}))
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+            "--max-features",
+            "5",
+            "--config",
+            str(cfg),
+        ]
+    )
+    assert rc == 2
+    assert "correlation_threshold" in err
+
+
+def test_correlation_threshold_boundary_values_accepted(tmp_path: Path, tabular_csv: Path):
+    """The boundaries (0.0 and 1.0) must be accepted — they're the inclusive
+    valid range. Default 0.85 is also exercised throughout the suite.
+    """
+    out_path = tmp_path / "out.csv"
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(out_path),
+            "--target",
+            "y",
+            "--correlation-threshold",
+            "0.0",
+            "--max-features",
+            "5",
+        ]
+    )
+    assert rc == 0, err
+
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(out_path),
+            "--target",
+            "y",
+            "--correlation-threshold",
+            "1.0",
+            "--max-features",
+            "5",
+        ]
+    )
+    assert rc == 0, err
+
+
 # ----------------------- --verbose / --no-verbose
 
 
@@ -1732,6 +1824,95 @@ def test_explain_emits_json_payload(tmp_path: Path, tabular_csv: Path):
     entry = payload["features"][0]
     assert {"name", "explanation", "code"} <= set(entry.keys())
     assert entry["name"]
+
+
+def test_explain_caps_input_size_for_large_inputs(tmp_path: Path):
+    """``explain`` is metadata-only. To bound memory / compute on large
+    inputs, the CLI sub-samples to at most ``_EXPLAIN_SAMPLE_SIZE`` rows
+    before running ``fit_transform``. The payload reports ``n_rows_used``
+    so callers can confirm the sampling.
+    """
+    rng = np.random.default_rng(0)
+    n = fc_cli._EXPLAIN_SAMPLE_SIZE * 5  # well above the cap
+    df = pd.DataFrame(
+        {
+            "x1": rng.normal(size=n),
+            "x2": rng.normal(size=n),
+            "y": rng.integers(0, 2, size=n),
+        }
+    )
+    in_path = tmp_path / "big.csv"
+    df.to_csv(in_path, index=False)
+
+    rc, out, err = _run(
+        [
+            "explain",
+            "--input",
+            str(in_path),
+            "--target",
+            "y",
+        ]
+    )
+    assert rc == 0, err
+    payload = json.loads(out)
+    assert payload["status"] == "ok"
+    # Sampling cap was enforced.
+    assert payload["n_rows_used"] == fc_cli._EXPLAIN_SAMPLE_SIZE
+    assert payload["n_features"] > 0
+
+
+def test_explain_uses_full_input_when_smaller_than_sample_cap(tmp_path: Path):
+    """When the input has fewer rows than ``_EXPLAIN_SAMPLE_SIZE``, the
+    sampler is a no-op: ``n_rows_used`` reflects the actual input size.
+    """
+    rng = np.random.default_rng(0)
+    n = 50  # well below the cap
+    df = pd.DataFrame(
+        {
+            "x1": rng.normal(size=n),
+            "x2": rng.normal(size=n),
+            "y": rng.integers(0, 2, size=n),
+        }
+    )
+    in_path = tmp_path / "small.csv"
+    df.to_csv(in_path, index=False)
+
+    rc, out, err = _run(
+        [
+            "explain",
+            "--input",
+            str(in_path),
+            "--target",
+            "y",
+        ]
+    )
+    assert rc == 0, err
+    payload = json.loads(out)
+    assert payload["n_rows_used"] == n
+
+
+def test_explain_sampling_is_deterministic(tmp_path: Path):
+    """Re-running ``explain`` on the same large input produces the same
+    set of feature names (sampling uses a fixed ``random_state``).
+    """
+    rng = np.random.default_rng(0)
+    n = fc_cli._EXPLAIN_SAMPLE_SIZE * 3
+    df = pd.DataFrame(
+        {
+            "x1": rng.normal(size=n),
+            "x2": rng.normal(size=n),
+            "y": rng.integers(0, 2, size=n),
+        }
+    )
+    in_path = tmp_path / "big.csv"
+    df.to_csv(in_path, index=False)
+
+    def _names():
+        rc, out, _ = _run(["explain", "--input", str(in_path), "--target", "y"])
+        assert rc == 0
+        return sorted(f["name"] for f in json.loads(out)["features"])
+
+    assert _names() == _names()
 
 
 # --------------------------------------------------------------- parquet path

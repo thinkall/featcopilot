@@ -376,6 +376,21 @@ def _build_engineer(args: argparse.Namespace, *, include_selection_config: bool 
     _check_scalar_type("gate_n_jobs", gate_n_jobs, (int,), allow_bool=False)
     _check_scalar_type("leakage_guard", leakage_guard, (str,))
 
+    # Range-check ``correlation_threshold``: it's only meaningful in
+    # ``[0.0, 1.0]``. Values above 1 silently disable redundancy
+    # elimination (``FeatureSelector.fit`` only runs it when threshold
+    # < 1.0); values below 0 effectively treat every numeric pair as
+    # redundant. Reject out-of-range up front so the CLI doesn't quietly
+    # change selector behavior.
+    if not (0.0 <= float(correlation_threshold) <= 1.0):
+        raise ValueError(f"`correlation_threshold` must be in the range [0.0, 1.0]; got {correlation_threshold!r}.")
+    # ``max_features`` must be positive when set (matches
+    # AutoFeatureEngineer's own validation). Surface that here too so
+    # the message says ``max_features`` rather than the more cryptic
+    # transformer error.
+    if max_features is not None and max_features <= 0:
+        raise ValueError(f"`max_features` must be a positive integer when set; got {max_features!r}.")
+
     # Validate ``llm_config`` is a JSON object (i.e. a Python dict) before
     # forwarding it. Without this check, a misconfigured non-dict value
     # would only fail at engine-construction time inside
@@ -785,6 +800,15 @@ def _cmd_transform(args: argparse.Namespace) -> int:
     return 0
 
 
+# ``explain`` only needs to fire each engine's planning + feature-naming
+# pass — the actual transformed values are discarded. Capping the input
+# at this many rows keeps the metadata-only command from paying the full
+# memory / compute cost of materializing every engineered value on large
+# datasets, while still giving every engine enough rows to plan its
+# features (the candidate set is independent of input length).
+_EXPLAIN_SAMPLE_SIZE = 1000
+
+
 def _cmd_explain(args: argparse.Namespace) -> int:
     """Fit + transform engines and print feature explanations + code as JSON.
 
@@ -796,6 +820,15 @@ def _cmd_explain(args: argparse.Namespace) -> int:
     actual generated features. Selection is intentionally skipped here so the
     payload describes every candidate feature the engines produced, not just
     the post-selection survivors.
+
+    Performance: large inputs are sub-sampled to at most
+    :data:`_EXPLAIN_SAMPLE_SIZE` rows. The engineered-feature *metadata*
+    (names, explanations, code snippets) is independent of input length —
+    every engine plans its candidate feature set from column structure
+    rather than from individual row values — so the sampled run produces
+    the same payload at a fraction of the memory / compute cost. This
+    keeps ``featcopilot explain`` fast and bounded for agent / CI
+    workflows where the input might be GBs of data.
     """
     input_path = Path(args.input)
     if not input_path.exists():
@@ -804,6 +837,16 @@ def _cmd_explain(args: argparse.Namespace) -> int:
     in_fmt = _detect_format(input_path, args.input_format)
     df = _read_table(input_path, in_fmt)
     X, y = _split_xy(df, args.target)
+
+    # Sample to bound memory / compute. Use a deterministic ``random_state``
+    # so re-running ``explain`` on the same input is reproducible.
+    n_sampled = len(X)
+    if n_sampled > _EXPLAIN_SAMPLE_SIZE:
+        sample_idx = X.sample(n=_EXPLAIN_SAMPLE_SIZE, random_state=0).index
+        X = X.loc[sample_idx]
+        if y is not None:
+            y = y.loc[sample_idx]
+        n_sampled = _EXPLAIN_SAMPLE_SIZE
 
     engineer = _build_engineer(args, include_selection_config=False)
     captured_warnings = _fit_capturing_warnings(
@@ -823,6 +866,7 @@ def _cmd_explain(args: argparse.Namespace) -> int:
         "status": "ok",
         "input": str(input_path),
         "n_features": len(feature_names),
+        "n_rows_used": n_sampled,
         "engines": list(engineer.engines),
         "features": [
             {
