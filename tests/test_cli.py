@@ -1826,14 +1826,15 @@ def test_explain_emits_json_payload(tmp_path: Path, tabular_csv: Path):
     assert entry["name"]
 
 
-def test_explain_caps_input_size_for_large_inputs(tmp_path: Path):
-    """``explain`` is metadata-only. To bound memory / compute on large
-    inputs, the CLI sub-samples to at most ``_EXPLAIN_SAMPLE_SIZE`` rows
-    before running ``fit_transform``. The payload reports ``n_rows_used``
-    so callers can confirm the sampling.
+def test_explain_uses_full_input_by_default(tmp_path: Path):
+    """``explain`` defaults to using the FULL input — no implicit
+    sub-sampling. Some engines (e.g. ``TabularEngine`` categorical
+    encoding) decide which features to plan based on row counts and
+    per-category statistics, so silent sampling would change the
+    advertised metadata. Sampling is opt-in via ``--explain-sample-size``.
     """
     rng = np.random.default_rng(0)
-    n = fc_cli._EXPLAIN_SAMPLE_SIZE * 5  # well above the cap
+    n = 1500  # arbitrary
     df = pd.DataFrame(
         {
             "x1": rng.normal(size=n),
@@ -1856,17 +1857,54 @@ def test_explain_caps_input_size_for_large_inputs(tmp_path: Path):
     assert rc == 0, err
     payload = json.loads(out)
     assert payload["status"] == "ok"
-    # Sampling cap was enforced.
-    assert payload["n_rows_used"] == fc_cli._EXPLAIN_SAMPLE_SIZE
-    assert payload["n_features"] > 0
+    # Default: no sampling — full input is used.
+    assert payload["n_rows_used"] == n
 
 
-def test_explain_uses_full_input_when_smaller_than_sample_cap(tmp_path: Path):
-    """When the input has fewer rows than ``_EXPLAIN_SAMPLE_SIZE``, the
-    sampler is a no-op: ``n_rows_used`` reflects the actual input size.
+def test_explain_caps_input_size_when_sample_size_set(tmp_path: Path):
+    """When ``--explain-sample-size N`` is passed, the input is capped at
+    ``N`` rows (with a captured warning) so callers can opt into bounded
+    cost on huge inputs. The default remains full-input.
     """
     rng = np.random.default_rng(0)
-    n = 50  # well below the cap
+    n = 5000
+    df = pd.DataFrame(
+        {
+            "x1": rng.normal(size=n),
+            "x2": rng.normal(size=n),
+            "y": rng.integers(0, 2, size=n),
+        }
+    )
+    in_path = tmp_path / "big.csv"
+    df.to_csv(in_path, index=False)
+
+    rc, out, err = _run(
+        [
+            "explain",
+            "--input",
+            str(in_path),
+            "--target",
+            "y",
+            "--explain-sample-size",
+            "1000",
+        ]
+    )
+    assert rc == 0, err
+    payload = json.loads(out)
+    # Sampling cap was enforced.
+    assert payload["n_rows_used"] == 1000
+    assert payload["n_features"] > 0
+    # The CLI emits a warning when sampling so callers can detect that
+    # metadata may not match a full-input transform run.
+    assert any("sampling" in w.lower() for w in payload["warnings"])
+
+
+def test_explain_sample_size_smaller_than_input_no_op(tmp_path: Path):
+    """When ``--explain-sample-size`` exceeds the actual input, no sampling
+    happens (and no warning is emitted).
+    """
+    rng = np.random.default_rng(0)
+    n = 50
     df = pd.DataFrame(
         {
             "x1": rng.normal(size=n),
@@ -1884,19 +1922,20 @@ def test_explain_uses_full_input_when_smaller_than_sample_cap(tmp_path: Path):
             str(in_path),
             "--target",
             "y",
+            "--explain-sample-size",
+            "1000",
         ]
     )
     assert rc == 0, err
     payload = json.loads(out)
     assert payload["n_rows_used"] == n
+    assert not any("sampling" in w.lower() for w in payload["warnings"])
 
 
-def test_explain_sampling_is_deterministic(tmp_path: Path):
-    """Re-running ``explain`` on the same large input produces the same
-    set of feature names (sampling uses a fixed ``random_state``).
-    """
+def test_explain_sample_size_via_config(tmp_path: Path):
+    """``explain_sample_size`` is also recognized in ``--config`` JSON."""
     rng = np.random.default_rng(0)
-    n = fc_cli._EXPLAIN_SAMPLE_SIZE * 3
+    n = 5000
     df = pd.DataFrame(
         {
             "x1": rng.normal(size=n),
@@ -1907,12 +1946,79 @@ def test_explain_sampling_is_deterministic(tmp_path: Path):
     in_path = tmp_path / "big.csv"
     df.to_csv(in_path, index=False)
 
-    def _names():
-        rc, out, _ = _run(["explain", "--input", str(in_path), "--target", "y"])
-        assert rc == 0
-        return sorted(f["name"] for f in json.loads(out)["features"])
+    cfg = tmp_path / "cfg.json"
+    cfg.write_text(json.dumps({"explain_sample_size": 500}))
 
-    assert _names() == _names()
+    rc, out, err = _run(
+        [
+            "explain",
+            "--input",
+            str(in_path),
+            "--target",
+            "y",
+            "--config",
+            str(cfg),
+        ]
+    )
+    assert rc == 0, err
+    payload = json.loads(out)
+    assert payload["n_rows_used"] == 500
+
+
+@pytest.mark.parametrize("bad_value", [0, -1, -100])
+def test_explain_sample_size_rejects_non_positive(tmp_path: Path, bad_value):
+    """``--explain-sample-size`` must be a positive integer."""
+    rc, _, err = _run(
+        [
+            "explain",
+            "--input",
+            str(tmp_path / "in.csv"),  # missing — but flag check happens first
+            "--target",
+            "y",
+            "--explain-sample-size",
+            str(bad_value),
+        ]
+    )
+    # We accept either argparse-level rejection or our own ValueError;
+    # both surface as exit 2.
+    assert rc == 2
+
+
+def test_explain_sample_size_rejects_string_in_config(tmp_path: Path, tabular_csv: Path):
+    """Type-validation: ``"explain_sample_size": "100"`` (string) is rejected."""
+    cfg = tmp_path / "cfg.json"
+    cfg.write_text(json.dumps({"explain_sample_size": "100"}))
+    rc, _, err = _run(
+        [
+            "explain",
+            "--input",
+            str(tabular_csv),
+            "--target",
+            "y",
+            "--config",
+            str(cfg),
+        ]
+    )
+    assert rc == 2
+    assert "explain_sample_size" in err
+
+
+def test_explain_sample_size_rejects_zero_in_config(tmp_path: Path, tabular_csv: Path):
+    cfg = tmp_path / "cfg.json"
+    cfg.write_text(json.dumps({"explain_sample_size": 0}))
+    rc, _, err = _run(
+        [
+            "explain",
+            "--input",
+            str(tabular_csv),
+            "--target",
+            "y",
+            "--config",
+            str(cfg),
+        ]
+    )
+    assert rc == 2
+    assert "explain_sample_size" in err
 
 
 # --------------------------------------------------------------- parquet path

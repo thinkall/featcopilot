@@ -228,6 +228,7 @@ _KNOWN_CONFIG_KEYS = frozenset(
         "gate_n_jobs",
         "llm_config",
         "verbose",
+        "explain_sample_size",
     }
 )
 
@@ -800,15 +801,14 @@ def _cmd_transform(args: argparse.Namespace) -> int:
     return 0
 
 
-# ``explain`` only needs to fire each engine's planning + feature-naming
-# pass — the actual transformed values are discarded. Capping the input
-# at this many rows keeps the metadata-only command from paying the full
-# memory / compute cost of materializing every engineered value on large
-# datasets, while still giving every engine enough rows to plan its
-# features (the candidate set is independent of input length).
-_EXPLAIN_SAMPLE_SIZE = 1000
-
-
+# Default ``explain`` behavior is to use the full input so the metadata
+# is a faithful description of what a corresponding ``transform`` run
+# would do — engines like ``TabularEngine._fit_categorical_encoding``
+# use ``n_rows`` and per-category counts to decide e.g. one-hot vs.
+# target-encoding, so subsampling can silently change which features
+# appear. Callers who knowingly accept that trade-off can opt in via
+# ``--explain-sample-size`` (set to ``None``/absent to disable, any
+# positive integer to cap).
 def _cmd_explain(args: argparse.Namespace) -> int:
     """Fit + transform engines and print feature explanations + code as JSON.
 
@@ -821,14 +821,22 @@ def _cmd_explain(args: argparse.Namespace) -> int:
     payload describes every candidate feature the engines produced, not just
     the post-selection survivors.
 
-    Performance: large inputs are sub-sampled to at most
-    :data:`_EXPLAIN_SAMPLE_SIZE` rows. The engineered-feature *metadata*
-    (names, explanations, code snippets) is independent of input length —
-    every engine plans its candidate feature set from column structure
-    rather than from individual row values — so the sampled run produces
-    the same payload at a fraction of the memory / compute cost. This
-    keeps ``featcopilot explain`` fast and bounded for agent / CI
-    workflows where the input might be GBs of data.
+    Performance vs. faithfulness
+    ---------------------------
+    By default ``explain`` runs on the *full* input so the reported
+    metadata is a faithful description of what a corresponding
+    ``transform`` would generate. Some engines (notably
+    :class:`TabularEngine`) consult row counts and per-category
+    statistics when deciding which features to plan, so blind
+    subsampling can silently change the result.
+
+    For very large inputs where the metadata-only nature of ``explain``
+    really should not pay full memory / compute cost, callers can pass
+    ``--explain-sample-size N`` (or set ``"explain_sample_size": N`` in
+    ``--config``) to cap the rows fed to the engineer. The CLI emits a
+    ``UserWarning`` (captured into the JSON payload) noting that the
+    metadata may differ from a full-input ``transform`` run; the
+    ``n_rows_used`` field reports the effective sample size.
     """
     input_path = Path(args.input)
     if not input_path.exists():
@@ -838,25 +846,45 @@ def _cmd_explain(args: argparse.Namespace) -> int:
     df = _read_table(input_path, in_fmt)
     X, y = _split_xy(df, args.target)
 
-    # Sample to bound memory / compute. Use a deterministic ``random_state``
-    # so re-running ``explain`` on the same input is reproducible.
+    # Apply opt-in sample cap from CLI flag or config (CLI flag wins).
+    sample_size = getattr(args, "explain_sample_size", None)
+    if sample_size is None and args.config is not None:
+        sample_size = _load_config(args.config).get("explain_sample_size")
+    if sample_size is not None:
+        _check_scalar_type("explain_sample_size", sample_size, (int,), allow_bool=False)
+        if sample_size <= 0:
+            raise ValueError(f"`explain_sample_size` must be a positive integer when set; got {sample_size!r}.")
+
     n_sampled = len(X)
-    if n_sampled > _EXPLAIN_SAMPLE_SIZE:
-        sample_idx = X.sample(n=_EXPLAIN_SAMPLE_SIZE, random_state=0).index
-        X = X.loc[sample_idx]
-        if y is not None:
-            y = y.loc[sample_idx]
-        n_sampled = _EXPLAIN_SAMPLE_SIZE
 
     engineer = _build_engineer(args, include_selection_config=False)
-    captured_warnings = _fit_capturing_warnings(
-        engineer,
-        X,
-        y,
-        task_description=args.task_description or "prediction task",
-        target_name=args.target,
-        apply_selection=False,
-    )
+
+    # Run the sample-warning AND ``fit_transform`` inside a single
+    # capture context so the sampling notice ends up in the JSON
+    # payload's ``warnings`` field instead of bleeding onto stderr.
+    with _capture_featcopilot_messages() as captured_warnings:
+        if sample_size is not None and n_sampled > sample_size:
+            warnings.warn(
+                f"explain: sampling input down to {sample_size} of {n_sampled} rows. "
+                "Some engines (e.g. TabularEngine categorical encoding) decide which "
+                "features to plan based on row counts and per-category statistics, "
+                "so the reported metadata may differ from a full-input transform run.",
+                UserWarning,
+                stacklevel=2,
+            )
+            sample_idx = X.sample(n=sample_size, random_state=0).index
+            X = X.loc[sample_idx]
+            if y is not None:
+                y = y.loc[sample_idx]
+            n_sampled = sample_size
+
+        engineer.fit_transform(
+            X,
+            y,
+            task_description=args.task_description or "prediction task",
+            target_name=args.target,
+            apply_selection=False,
+        )
 
     explanations = engineer.explain_features()
     code = engineer.get_feature_code()
@@ -953,6 +981,17 @@ def _build_parser() -> argparse.ArgumentParser:
     p_explain.add_argument(
         "--task-description",
         help="Natural-language ML task description (used by the LLM engine).",
+    )
+    p_explain.add_argument(
+        "--explain-sample-size",
+        type=int,
+        default=None,
+        help="Cap the input fed to the engineer at this many rows (deterministic seed). "
+        "OFF by default: the full input is used so the metadata is a faithful description "
+        "of what a corresponding `transform` would generate. Pass a positive integer ONLY "
+        "when you knowingly accept that some engines (e.g. TabularEngine categorical "
+        "encoding) decide which features to plan based on row counts and per-category "
+        "statistics, so the reported metadata may differ from a full-input run.",
     )
     _add_engineer_args(p_explain, include_selection_args=False)
     p_explain.add_argument("--json", action="store_true", help="(Always JSON — flag accepted for symmetry.)")
