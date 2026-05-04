@@ -499,61 +499,169 @@ def _fit_capturing_warnings(engineer, X, y, **kwargs):
     return captured
 
 
+class _ThreadCaptureState:
+    """Holds per-thread capture lists.
+
+    Shared by :class:`_ThreadRoutingHandler` (writes records) and
+    :class:`_SuppressCapturingFilter` (decides whether to drop a record
+    from the original handlers). Mutations are guarded by a small lock;
+    lookups use ``dict.get`` which is atomic under the GIL for hashable
+    keys.
+    """
+
+    def __init__(self):
+        self._per_thread: dict[int, list[str]] = {}
+        self._lock = threading.Lock()
+
+    def register(self, tid: int, target: list[str]) -> None:
+        with self._lock:
+            self._per_thread[tid] = target
+
+    def unregister(self, tid: int) -> None:
+        with self._lock:
+            self._per_thread.pop(tid, None)
+
+    def get(self, tid: int) -> list[str] | None:
+        # Lock-free read: ``dict.get`` is atomic for hashable keys under
+        # the CPython GIL, and we only ever read references to lists owned
+        # by individual threads — no shared mutation hazard.
+        return self._per_thread.get(tid)
+
+
+class _ThreadRoutingHandler(logging.Handler):
+    """Logging handler that routes records to the calling thread's capture list.
+
+    Attached once to the ``featcopilot`` root logger. Records propagated
+    from any ``featcopilot.*`` child logger reach this handler in the same
+    way they reach the existing stderr handler. If the calling thread has
+    a registered capture list, the record is appended to it; otherwise the
+    handler does nothing (the existing stderr handler is what produces the
+    user-facing output for non-capturing threads).
+    """
+
+    def __init__(self, state: _ThreadCaptureState):
+        super().__init__(logging.DEBUG)
+        self._state = state
+        self.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
+
+    def emit(self, record: logging.LogRecord) -> None:
+        target = self._state.get(threading.get_ident())
+        if target is None:
+            return
+        try:
+            target.append(self.format(record))
+        except Exception:  # pragma: no cover - never let logging crash the CLI
+            target.append(record.getMessage())
+
+
+class _SuppressCapturingFilter(logging.Filter):
+    """Filter for the *existing* handlers: drops records from capturing threads.
+
+    Without this filter, every record emitted by a capturing thread would
+    still hit the featcopilot root logger's stderr ``StreamHandler`` and
+    bleed onto stderr — breaking the CLI's "stderr reserved for failures"
+    contract. The filter checks ``threading.get_ident()`` against the
+    shared :class:`_ThreadCaptureState` so non-capturing threads continue
+    to see normal stderr output.
+    """
+
+    def __init__(self, state: _ThreadCaptureState):
+        super().__init__()
+        self._state = state
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return self._state.get(threading.get_ident()) is None
+
+
+# Module-level singletons. Installed exactly once on the featcopilot root
+# logger / its existing handlers; subsequent ``_capture_featcopilot_messages``
+# calls just register/unregister thread state. No global lock is held during
+# the slow ``fit_transform`` body — concurrent threads each capture their
+# own records independently.
+_capture_state = _ThreadCaptureState()
+_routing_handler = _ThreadRoutingHandler(_capture_state)
+_suppress_filter = _SuppressCapturingFilter(_capture_state)
+_install_lock = threading.Lock()
+_install_done = False
+
+
+def _install_capture_hooks_once() -> None:
+    """Install the routing handler + suppress filter on the featcopilot root logger.
+
+    Idempotent: subsequent calls are no-ops. Must be called before the
+    first capture; happens lazily on first use to avoid altering the
+    logging tree at module import time when the CLI is being introspected
+    rather than executed.
+    """
+    global _install_done
+    if _install_done:
+        return
+    with _install_lock:
+        if _install_done:
+            return
+        fc_root = logging.getLogger("featcopilot")
+        if _routing_handler not in fc_root.handlers:
+            fc_root.addHandler(_routing_handler)
+        for handler in list(fc_root.handlers):
+            if handler is _routing_handler:
+                continue
+            if _suppress_filter not in handler.filters:
+                handler.addFilter(_suppress_filter)
+        _install_done = True
+
+
 @contextlib.contextmanager
 def _capture_featcopilot_messages():
-    """Capture all FeatCopilot ``warnings.warn`` calls and logger records.
+    """Capture FeatCopilot log records and ``warnings.warn`` calls emitted
+    on the *current thread*.
 
-    Yields a list that the caller can read after the with-block exits. The
-    list contains formatted log records (in emission order) followed by any
-    Python warning messages emitted during the with-block. The featcopilot
-    root logger's handlers are temporarily replaced with a list-appending
-    handler; child loggers propagate up to the root by default (the only
-    ``propagate=False`` in the project is on the root itself, which
-    prevents bleeding to Python's root logger).
+    Yields a list that the caller can read after the with-block exits.
+    The list contains formatted log records (in emission order) followed
+    by any Python warning messages emitted during the with-block on this
+    thread.
 
-    Concurrency: serialized via ``_capture_lock``. Multiple in-process CLI
-    calls that overlap (e.g. two threads calling ``cli.main(...)``
-    simultaneously) take the lock in turn so neither steals the other's
-    handlers nor restores stale state. Single-process / single-CLI usage
-    is unaffected.
+    Concurrency model
+    -----------------
+    * **Logger records** are routed *per-thread* via
+      :class:`_ThreadRoutingHandler` (added once to the ``featcopilot``
+      root logger) and a :class:`_SuppressCapturingFilter` on the existing
+      handlers. Two threads can capture concurrently without blocking
+      each other; each sees only its own records, and other threads'
+      records still flow normally to stderr.
+    * **``warnings.warn`` records** are intercepted via a per-thread
+      override of :data:`warnings.showwarning`. The override appends to
+      the capturing thread's list and chains to the previous
+      ``showwarning`` for warnings emitted on non-capturing threads.
+
+    The contextmanager does NOT hold any lock for the duration of the
+    with-block — only briefly during install/register/unregister — so
+    long-running ``fit_transform`` calls in one thread do not block
+    other threads from running concurrently.
     """
+    _install_capture_hooks_once()
+
     captured: list[str] = []
+    tid = threading.get_ident()
+    _capture_state.register(tid, captured)
 
-    class _ListHandler(logging.Handler):
-        def emit(self, record):
-            try:
-                captured.append(self.format(record))
-            except Exception:  # pragma: no cover - never let logging crash the CLI
-                captured.append(record.getMessage())
+    # Per-thread ``warnings.warn`` interception. We chain to whatever
+    # ``warnings.showwarning`` was in place before us so non-capturing
+    # threads (or nested captures) still receive their warnings via the
+    # existing path.
+    previous_showwarning = warnings.showwarning
 
-    list_handler = _ListHandler()
-    list_handler.setLevel(logging.DEBUG)
-    list_handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
+    def _routing_showwarning(message, category, filename, lineno, file=None, line=None):
+        if threading.get_ident() == tid:
+            captured.append(str(message))
+            return
+        previous_showwarning(message, category, filename, lineno, file, line)
 
-    fc_root = logging.getLogger("featcopilot")
-    with _capture_lock:
-        saved_handlers = list(fc_root.handlers)
-        saved_level = fc_root.level
-        fc_root.handlers = [list_handler]
-        fc_root.setLevel(logging.DEBUG)
-
-        try:
-            with warnings.catch_warnings(record=True) as caught:
-                warnings.simplefilter("always")
-                yield captured
-                # Append warnings *after* the body returns so the order in
-                # the captured list mirrors emission order: log records
-                # first (appended live by the handler), warnings last.
-                captured.extend(str(w.message) for w in caught)
-        finally:
-            fc_root.handlers = saved_handlers
-            fc_root.setLevel(saved_level)
-
-
-# Serializes ``_capture_featcopilot_messages`` so concurrent CLI calls in
-# the same process can't steal each other's handlers / level on the
-# global ``featcopilot`` logger.
-_capture_lock = threading.Lock()
+    warnings.showwarning = _routing_showwarning
+    try:
+        yield captured
+    finally:
+        warnings.showwarning = previous_showwarning
+        _capture_state.unregister(tid)
 
 
 def _cmd_transform(args: argparse.Namespace) -> int:

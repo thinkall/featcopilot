@@ -1137,8 +1137,8 @@ def test_capture_featcopilot_messages_restores_handlers():
 
 def test_capture_featcopilot_messages_thread_safety():
     """Concurrent ``_capture_featcopilot_messages`` invocations must not
-    steal each other's handlers / lose log records. Implementation uses
-    ``_capture_lock`` to serialize captures.
+    steal each other's records. Implementation uses per-thread routing
+    (no global lock held during the body), so threads execute concurrently.
     """
     import threading
 
@@ -1149,7 +1149,7 @@ def test_capture_featcopilot_messages_thread_safety():
 
     def worker(tag: str):
         # Force both threads to enter the with-block at roughly the same
-        # time so the lock is genuinely contended.
+        # time so the routing dispatch is genuinely contended.
         barrier.wait()
         with fc_cli._capture_featcopilot_messages() as captured:
             for i in range(20):
@@ -1172,11 +1172,79 @@ def test_capture_featcopilot_messages_thread_safety():
         assert all(f"{tag}-" in m for m in res), f"Thread isolation violated in capture {tag!r}: got {res!r}"
         assert len(res) == 20
 
-    # Final state on the global logger must be cleanly restored.
-    fc_root = logging.getLogger("featcopilot")
-    assert all(
-        not isinstance(h, logging.Handler) or "ListHandler" not in type(h).__name__ for h in fc_root.handlers
-    ), "ListHandler leaked onto the global featcopilot logger"
+
+def test_capture_does_not_block_concurrent_callers():
+    """Two concurrent ``_capture_featcopilot_messages`` blocks must run in
+    parallel — i.e. the design does NOT serialize the body via a global
+    lock. Verified by timing: a worker that sleeps inside the block must
+    not block another worker from also entering the block at the same
+    time.
+    """
+    import threading
+    import time
+
+    inside = []
+    inside_lock = threading.Lock()
+    seen_overlap = threading.Event()
+    barrier = threading.Barrier(2)
+
+    def worker():
+        barrier.wait()
+        with fc_cli._capture_featcopilot_messages():
+            with inside_lock:
+                inside.append(1)
+                if len(inside) >= 2:
+                    seen_overlap.set()
+            # Sleep long enough that, if the implementation serialized via
+            # a global lock, the second thread would never enter
+            # simultaneously.
+            time.sleep(0.2)
+            with inside_lock:
+                inside.pop()
+
+    t1 = threading.Thread(target=worker)
+    t2 = threading.Thread(target=worker)
+    t1.start()
+    t2.start()
+    t1.join(timeout=5)
+    t2.join(timeout=5)
+
+    assert seen_overlap.is_set(), (
+        "Both threads should have been inside _capture_featcopilot_messages "
+        "simultaneously; the implementation appears to serialize the body."
+    )
+
+
+def test_capture_warnings_warn_thread_isolated():
+    """``warnings.warn`` calls from one capturing thread must not leak into
+    another capturing thread's payload. The CLI overrides
+    ``warnings.showwarning`` per-thread (rather than using
+    ``warnings.catch_warnings(record=True)`` which is process-global).
+    """
+    import threading
+
+    barrier = threading.Barrier(2)
+    a_captured: list[str] = []
+    b_captured: list[str] = []
+
+    def worker(tag: str, target: list[str]):
+        barrier.wait()
+        with fc_cli._capture_featcopilot_messages() as captured:
+            for i in range(10):
+                warnings.warn(f"{tag}-warn-{i}", UserWarning, stacklevel=2)
+        target.extend(captured)
+
+    t1 = threading.Thread(target=worker, args=("A", a_captured))
+    t2 = threading.Thread(target=worker, args=("B", b_captured))
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
+
+    assert all("A-warn-" in m for m in a_captured)
+    assert all("B-warn-" in m for m in b_captured)
+    assert not any("B-warn-" in m for m in a_captured)
+    assert not any("A-warn-" in m for m in b_captured)
 
 
 def test_unexpected_error_writes_single_stderr_line(monkeypatch, tmp_path: Path, tabular_csv: Path):
