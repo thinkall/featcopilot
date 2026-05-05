@@ -914,10 +914,17 @@ def _cmd_explain(args: argparse.Namespace) -> int:
     For very large inputs where the metadata-only nature of ``explain``
     really should not pay full memory / compute cost, callers can pass
     ``--explain-sample-size N`` (or set ``"explain_sample_size": N`` in
-    ``--config``) to cap the rows fed to the engineer. The CLI emits a
-    ``UserWarning`` (captured into the JSON payload) noting that the
-    metadata may differ from a full-input ``transform`` run; the
-    ``n_rows_used`` field reports the effective sample size.
+    ``--config``) to cap the rows fed to the engineer. The cap is a
+    deterministic *head slice* (the first N rows): for CSV the cap is
+    threaded through ``pd.read_csv(nrows=N)`` so memory is bounded
+    natively; for parquet/JSON pandas has no native row-limit so the
+    file is fully read and then truncated, with a UserWarning explaining
+    the limitation. The cap is NOT a random sample — callers who need
+    randomness should sample externally before invoking ``explain``.
+    A "metadata may differ" UserWarning is emitted (captured into the
+    JSON payload's ``warnings`` field) only when the cap actually
+    truncated the input. The ``n_rows_used`` field reports the effective
+    sample size.
     """
     input_path = Path(args.input)
     if not input_path.exists():
@@ -945,18 +952,28 @@ def _cmd_explain(args: argparse.Namespace) -> int:
     # capture context so the sampling notice ends up in the JSON
     # payload's ``warnings`` field instead of bleeding onto stderr.
     with _capture_featcopilot_messages() as captured_warnings:
-        # Read with ``nrows=sample_size`` so the underlying I/O is
-        # memory-bounded for CSV; for parquet/JSON the bound is
-        # post-read with an emitted UserWarning (captured into the
-        # payload below). Reading FIRST gives us ``len(df)`` so we
-        # only emit the "metadata may differ" notice when the cap
-        # actually shortened the input.
-        df = _read_table(input_path, in_fmt, nrows=sample_size)
+        # Read with ``nrows=sample_size + 1`` so the underlying I/O is
+        # memory-bounded for CSV (``pd.read_csv(nrows=...)``) AND we can
+        # tell from the returned length whether the file actually had
+        # more rows than the cap. ``len(df) > sample_size`` is a strict
+        # proof the file was truncated; ``len(df) <= sample_size`` means
+        # the file fit naturally and no metadata-may-differ warning is
+        # warranted. For parquet/JSON the bound is post-read with its
+        # own UserWarning emitted by ``_read_table``.
+        read_nrows = (sample_size + 1) if sample_size is not None else None
+        df = _read_table(input_path, in_fmt, nrows=read_nrows)
         X, y = _split_xy(df, args.target)
         n_sampled = len(X)
-        if sample_size is not None and n_sampled >= sample_size:
+        if sample_size is not None and n_sampled > sample_size:
+            # Strict proof of truncation: file had at least one more row
+            # than the requested cap. Trim to the exact cap and emit the
+            # "metadata may differ" notice.
+            X = X.iloc[:sample_size]
+            if y is not None:
+                y = y.iloc[:sample_size]
+            n_sampled = sample_size
             warnings.warn(
-                f"explain: capping input to {sample_size} rows (sampling). "
+                f"explain: capping input to {sample_size} rows (head slice). "
                 "Some engines (e.g. TabularEngine categorical encoding) decide which "
                 "features to plan based on row counts and per-category statistics, "
                 "so the reported metadata may differ from a full-input transform run.",
@@ -1072,10 +1089,14 @@ def _build_parser() -> argparse.ArgumentParser:
         "--explain-sample-size",
         type=int,
         default=None,
-        help="Cap the input fed to the engineer at this many rows (deterministic seed). "
-        "OFF by default: the full input is used so the metadata is a faithful description "
-        "of what a corresponding `transform` would generate. Pass a positive integer ONLY "
-        "when you knowingly accept that some engines (e.g. TabularEngine categorical "
+        help="Cap the input fed to the engineer at this many rows. The cap is "
+        "applied as a deterministic head slice (the first N rows of the input — "
+        "for CSV via `pd.read_csv(nrows=N)` so memory is bounded; for parquet/JSON "
+        "the file is fully read and then truncated, with a warning). OFF by default: "
+        "the full input is used so the metadata is a faithful description of what a "
+        "corresponding `transform` would generate. Pass a positive integer ONLY when "
+        "you knowingly accept that (a) the analyzed rows are the first N (not a "
+        "random sample), and (b) some engines (e.g. TabularEngine categorical "
         "encoding) decide which features to plan based on row counts and per-category "
         "statistics, so the reported metadata may differ from a full-input run.",
     )

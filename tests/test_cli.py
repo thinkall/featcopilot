@@ -2447,11 +2447,13 @@ def test_explain_sample_size_bounds_csv_read_with_nrows(tmp_path: Path, monkeypa
     assert rc == 0, err
     payload = json.loads(out)
     assert payload["n_rows_used"] == 200
-    # Must have called pd.read_csv with nrows=200, not loaded the whole
-    # 5000-row file. Multiple calls are OK; at least one must be the
-    # explain read with nrows.
-    explain_reads = [k for k in captured_kwargs if k.get("nrows") == 200]
-    assert explain_reads, f"expected pd.read_csv to be called with nrows=200; got {captured_kwargs!r}"
+    # Must have called pd.read_csv with nrows=201 (sample_size + 1, the
+    # CLI requests one extra row so it can detect whether the input was
+    # actually larger than the cap and only emit the metadata-may-differ
+    # warning when truncation really happened). The full 5000-row file
+    # is never loaded.
+    explain_reads = [k for k in captured_kwargs if k.get("nrows") == 201]
+    assert explain_reads, f"expected pd.read_csv to be called with nrows=201; got {captured_kwargs!r}"
 
 
 def test_explain_sample_size_warns_post_read_for_parquet(tmp_path: Path):
@@ -2564,6 +2566,131 @@ def test_capture_keeps_thread_isolation_with_multiple_active_captures():
     assert all("B-" in m for m in b_captured)
     assert len(a_captured) == 10
     assert len(b_captured) == 10
+
+
+# ----------------------- explain --explain-sample-size warning hygiene
+
+
+def test_explain_no_sampling_warning_when_input_fits_exactly(tmp_path: Path):
+    """When the input has exactly ``--explain-sample-size`` rows, no
+    truncation actually happens, so the "metadata may differ" warning
+    must NOT fire. The success payload was previously inaccurate when
+    the warning fired on the boundary case.
+    """
+    rng = np.random.default_rng(0)
+    n = 200  # exactly the sample-size we'll request
+    df = pd.DataFrame(
+        {
+            "x1": rng.normal(size=n),
+            "x2": rng.normal(size=n),
+            "y": rng.integers(0, 2, size=n),
+        }
+    )
+    in_path = tmp_path / "exact.csv"
+    df.to_csv(in_path, index=False)
+
+    rc, out, err = _run(
+        [
+            "explain",
+            "--input",
+            str(in_path),
+            "--target",
+            "y",
+            "--explain-sample-size",
+            "200",
+        ]
+    )
+    assert rc == 0, err
+    payload = json.loads(out)
+    assert payload["n_rows_used"] == 200
+    # No "metadata may differ" warning — input fit naturally.
+    assert not any("capping input" in w.lower() or "metadata may differ" in w.lower() for w in payload["warnings"])
+
+
+def test_explain_no_sampling_warning_when_input_smaller_than_sample(tmp_path: Path):
+    """When the input has fewer rows than ``--explain-sample-size``,
+    obviously no truncation happens. Belt-and-suspenders coverage of
+    the "<= cap, no warning" branch.
+    """
+    rng = np.random.default_rng(0)
+    n = 50
+    df = pd.DataFrame(
+        {
+            "x1": rng.normal(size=n),
+            "x2": rng.normal(size=n),
+            "y": rng.integers(0, 2, size=n),
+        }
+    )
+    in_path = tmp_path / "small.csv"
+    df.to_csv(in_path, index=False)
+
+    rc, out, err = _run(
+        [
+            "explain",
+            "--input",
+            str(in_path),
+            "--target",
+            "y",
+            "--explain-sample-size",
+            "200",
+        ]
+    )
+    assert rc == 0, err
+    payload = json.loads(out)
+    assert payload["n_rows_used"] == n
+    assert not any("capping input" in w.lower() or "metadata may differ" in w.lower() for w in payload["warnings"])
+
+
+def test_explain_sampling_warning_fires_when_input_strictly_larger(tmp_path: Path):
+    """Strict proof of truncation: input has at least one MORE row than
+    the cap. The warning must fire, and the payload must report
+    ``n_rows_used == sample_size``.
+    """
+    rng = np.random.default_rng(0)
+    n = 201  # exactly one more than the cap
+    df = pd.DataFrame(
+        {
+            "x1": rng.normal(size=n),
+            "x2": rng.normal(size=n),
+            "y": rng.integers(0, 2, size=n),
+        }
+    )
+    in_path = tmp_path / "barely_over.csv"
+    df.to_csv(in_path, index=False)
+
+    rc, out, err = _run(
+        [
+            "explain",
+            "--input",
+            str(in_path),
+            "--target",
+            "y",
+            "--explain-sample-size",
+            "200",
+        ]
+    )
+    assert rc == 0, err
+    payload = json.loads(out)
+    assert payload["n_rows_used"] == 200
+    assert any("capping input" in w.lower() for w in payload["warnings"])
+
+
+def test_explain_sample_size_help_text_describes_head_slice_not_random_seed():
+    """The ``--explain-sample-size`` help text must accurately describe
+    the actual semantics (deterministic head slice, NOT a seeded random
+    sample). Guards against misleading users / agents who would expect
+    an unbiased sample.
+    """
+    parser = fc_cli._build_parser()
+    explain_parser = next(
+        action.choices["explain"] for action in parser._actions if isinstance(action, argparse._SubParsersAction)
+    )
+    sample_help = next(a.help for a in explain_parser._actions if "--explain-sample-size" in a.option_strings)
+    # Must accurately describe the implementation.
+    assert "head slice" in sample_help.lower() or "first n" in sample_help.lower()
+    # Must NOT use the misleading old phrasing.
+    assert "deterministic seed" not in sample_help.lower()
+    assert "random sample" not in sample_help.lower() or "not a random sample" in sample_help.lower()
 
 
 # ----------------------- python -m
