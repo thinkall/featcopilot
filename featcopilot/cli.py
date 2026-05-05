@@ -585,7 +585,8 @@ def _fit_transform_capturing_warnings(engineer, X, y, **kwargs):
 
 
 class _ThreadCaptureState:
-    """Holds per-thread capture *stacks* with strict per-thread isolation.
+    """Holds per-thread capture *stacks* with strict per-thread isolation
+    and a *narrow* cross-thread fallback for LLM-client log records.
 
     Each thread maps to a stack of capture lists. Nested
     :func:`_capture_featcopilot_messages` calls on the same thread push
@@ -593,27 +594,34 @@ class _ThreadCaptureState:
     and receives records / warnings until its block exits, at which
     point the outer capture (if any) becomes active again.
 
-    **Strict thread isolation.** :meth:`get` returns a target list ONLY
-    for the calling thread itself. Records emitted on threads other
-    than the one that opened a capture (e.g. a worker spawned by an
-    LLM sync client wrapping ``ThreadPoolExecutor``) flow through the
-    normal handler chain and reach stderr — same as records emitted
-    by unrelated background work that happens to use ``featcopilot``
-    in the same process. This is intentional: a previous "single-
-    active-capture fallback" was too broad — when a single CLI run
-    was active, *any* featcopilot log on any thread would have been
-    silently swallowed into that command's payload, including
-    unrelated background work, causing misattribution. Strict per-
-    thread routing avoids that ambiguity at the cost of letting some
-    worker-thread records bleed onto stderr; callers who need every
-    last log captured should make sure their worker code explicitly
-    propagates the calling thread's identity (e.g. via
-    ``contextvars`` or a dedicated logging wrapper).
+    **Strict thread isolation by default.** :meth:`get` returns a target
+    list ONLY for the calling thread itself. This avoids the
+    misattribution that an unconditional single-active-capture fallback
+    would cause: any featcopilot log on any thread would otherwise be
+    silently swallowed into the active CLI run's payload, including
+    output from unrelated background work happening in the same process.
+
+    **Narrow LLM-client fallback.** :meth:`get_for_llm_record` is the
+    one exception: when a record originates from
+    ``featcopilot.llm.*_client`` (the sync LLM clients that fall back to
+    ``ThreadPoolExecutor`` in event-loop environments), and exactly one
+    capture is active in the process, the record is routed to that
+    capture even when emitted on a worker thread. This addresses the
+    common case where an LLM client's mock-mode startup warning fires
+    on a worker that ``submit()`` spawned and would otherwise bleed
+    onto stderr; the targeted whitelist keeps unrelated background
+    featcopilot work from being misattributed.
 
     Shared by :class:`_ThreadRoutingHandler` (writes records),
     :class:`_SuppressCapturingFilter` (suppresses stderr), and the
     routing ``warnings.showwarning`` override.
     """
+
+    # Logger-name prefixes whose records are eligible for the narrow
+    # cross-thread fallback. Only the LLM client modules whose sync
+    # entry points fall back to ``ThreadPoolExecutor`` in event-loop
+    # environments are listed.
+    _LLM_FALLBACK_LOGGER_PREFIXES = ("featcopilot.llm.",)
 
     def __init__(self):
         self._per_thread: dict[int, list[list[str]]] = {}
@@ -632,14 +640,42 @@ class _ThreadCaptureState:
                     del self._per_thread[tid]
 
     def get(self, tid: int) -> list[str] | None:
-        # Strict per-thread lookup. No cross-thread fallback (see class
-        # docstring): the previous "single-active-capture" fallback
-        # was too broad and could silently swallow unrelated
-        # background log output into a CLI run's payload.
+        # Strict per-thread lookup. No cross-thread fallback: an
+        # unconditional fallback was too broad and could silently
+        # swallow unrelated background log output into a CLI run's
+        # payload. The narrow LLM-client fallback lives in
+        # :meth:`get_for_llm_record` instead, opted into by name.
         with self._lock:
             stack = self._per_thread.get(tid)
             if stack:
                 return stack[-1]
+            return None
+
+    def get_for_llm_record(self, tid: int, logger_name: str) -> list[str] | None:
+        """Per-thread lookup with a narrow cross-thread fallback for LLM
+        client records.
+
+        When the calling thread has its own active capture, that's used.
+        Otherwise — and only when the record originates from a
+        whitelisted ``featcopilot.llm.*`` logger AND exactly one capture
+        is active in the process — the record is routed to that single
+        capture so it doesn't bleed onto stderr. The whitelist keeps
+        unrelated background featcopilot work strictly isolated.
+        """
+        with self._lock:
+            stack = self._per_thread.get(tid)
+            if stack:
+                return stack[-1]
+            if not logger_name.startswith(self._LLM_FALLBACK_LOGGER_PREFIXES):
+                return None
+            if len(self._per_thread) != 1:
+                # Either no captures are active (nothing to route to) or
+                # multiple are active (ambiguous — keep strict isolation
+                # so concurrent CLI calls don't cross-contaminate).
+                return None
+            only_stack = next(iter(self._per_thread.values()))
+            if only_stack:
+                return only_stack[-1]
             return None
 
 
@@ -649,9 +685,13 @@ class _ThreadRoutingHandler(logging.Handler):
     Attached once to the ``featcopilot`` root logger. Records propagated
     from any ``featcopilot.*`` child logger reach this handler in the same
     way they reach the existing stderr handler. If the calling thread has
-    a registered capture list, the record is appended to it; otherwise the
-    handler does nothing (the existing stderr handler is what produces the
-    user-facing output for non-capturing threads).
+    a registered capture list, the record is appended to it.
+    Otherwise, for records originating from a ``featcopilot.llm.*``
+    logger AND when exactly one capture is active in the process, the
+    record is routed to that capture (the narrow LLM-client cross-thread
+    fallback — see :class:`_ThreadCaptureState`). Records from any
+    other thread / logger combination flow through to the existing
+    stderr handler.
     """
 
     def __init__(self, state: _ThreadCaptureState):
@@ -660,7 +700,7 @@ class _ThreadRoutingHandler(logging.Handler):
         self.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
 
     def emit(self, record: logging.LogRecord) -> None:
-        target = self._state.get(threading.get_ident())
+        target = self._state.get_for_llm_record(threading.get_ident(), record.name)
         if target is None:
             return
         try:
@@ -670,14 +710,18 @@ class _ThreadRoutingHandler(logging.Handler):
 
 
 class _SuppressCapturingFilter(logging.Filter):
-    """Filter for the *existing* handlers: drops records from capturing threads.
+    """Filter for the *existing* handlers: drops records being captured.
 
-    Without this filter, every record emitted by a capturing thread would
-    still hit the featcopilot root logger's stderr ``StreamHandler`` and
-    bleed onto stderr — breaking the CLI's "stderr reserved for failures"
-    contract. The filter checks ``threading.get_ident()`` against the
-    shared :class:`_ThreadCaptureState` so non-capturing threads continue
-    to see normal stderr output.
+    Without this filter, every record routed by
+    :class:`_ThreadRoutingHandler` to a capture list would still hit the
+    featcopilot root logger's stderr ``StreamHandler`` and bleed onto
+    stderr — breaking the CLI's "stderr reserved for failures" contract.
+    The filter mirrors the routing handler's policy so the two stay in
+    lockstep: anything captured (current-thread record OR cross-thread
+    LLM-client record under the narrow fallback) is also suppressed
+    from the original handlers; anything else (records from
+    non-capturing threads / unrelated background work) flows through to
+    stderr unchanged.
     """
 
     def __init__(self, state: _ThreadCaptureState):
@@ -685,7 +729,7 @@ class _SuppressCapturingFilter(logging.Filter):
         self._state = state
 
     def filter(self, record: logging.LogRecord) -> bool:
-        return self._state.get(threading.get_ident()) is None
+        return self._state.get_for_llm_record(threading.get_ident(), record.name) is None
 
 
 # Module-level singletons. Installed exactly once on the featcopilot root

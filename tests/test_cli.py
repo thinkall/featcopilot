@@ -2633,16 +2633,18 @@ def test_explain_sample_size_warns_post_read_for_parquet(tmp_path: Path):
 
 
 def test_capture_does_not_route_unrelated_thread_records():
-    """The capture layer must use STRICT per-thread routing: records
-    emitted on threads other than the one that opened a capture flow
-    through the normal handler chain (and reach stderr) — they are
-    NOT silently rolled into the single in-flight CLI run's payload.
+    """The capture layer must use STRICT per-thread routing for non-LLM
+    records: records emitted on threads other than the one that opened
+    a capture flow through the normal handler chain (and reach stderr)
+    — they are NOT silently rolled into the single in-flight CLI run's
+    payload.
 
     A previous "single-active-capture fallback" was too broad: when a
     single CLI run was active, *any* featcopilot log on any thread
     would have been swallowed into that command's payload, including
     unrelated background work, causing misattribution. This test
-    guards against that regression.
+    guards against that regression for the non-LLM case (the narrow
+    LLM-only fallback is covered separately).
     """
     import threading
 
@@ -2652,9 +2654,10 @@ def test_capture_does_not_route_unrelated_thread_records():
         # Caller emits on its own thread (must be captured).
         fc_logger.warning("from-caller")
 
-        # Spawn a separate, unrelated thread that ALSO emits via the
-        # featcopilot logger. With the over-broad fallback removed, that
-        # record must NOT appear in this capture's payload.
+        # Spawn a separate, unrelated thread that ALSO emits via a
+        # NON-LLM featcopilot logger. With strict per-thread isolation
+        # for non-LLM records, that record must NOT appear in this
+        # capture's payload.
         def _emit_elsewhere():
             fc_logger.warning("from-other-thread")
 
@@ -2663,9 +2666,89 @@ def test_capture_does_not_route_unrelated_thread_records():
         t.join()
 
     assert any("from-caller" in m for m in captured)
-    # Strict per-thread isolation: unrelated thread's record is NOT in
-    # this capture's payload.
+    # Strict per-thread isolation for non-LLM records: unrelated thread's
+    # record is NOT in this capture's payload.
     assert not any("from-other-thread" in m for m in captured)
+
+
+def test_capture_routes_llm_client_worker_records_to_single_active_capture():
+    """The narrow LLM-client fallback: when a record originates from a
+    ``featcopilot.llm.*_client`` logger and exactly one capture is
+    active, the record is routed to that capture even when emitted
+    from a worker thread.
+
+    This addresses the common case where an LLM sync client wrapping
+    ``ThreadPoolExecutor`` (the fallback used in event-loop
+    environments) emits a mock-mode startup warning on a worker thread
+    that ``submit()`` spawned. Without the narrow fallback, that
+    warning would bleed onto stderr on a successful run.
+    """
+    import threading
+    from concurrent.futures import ThreadPoolExecutor
+
+    llm_logger = logging.getLogger("featcopilot.llm.test_client")
+
+    def _emit_llm_in_worker():
+        llm_logger.warning("llm-mock-mode-startup")
+        return "ok"
+
+    with fc_cli._capture_featcopilot_messages() as captured:
+        # Caller emits its own LLM record (current-thread path).
+        llm_logger.warning("llm-from-caller")
+        # ThreadPoolExecutor worker emits an LLM record (cross-thread,
+        # but the narrow LLM-only fallback should route it).
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            assert pool.submit(_emit_llm_in_worker).result(timeout=5) == "ok"
+        # A raw threading.Thread emits an LLM record too.
+        t = threading.Thread(target=_emit_llm_in_worker)
+        t.start()
+        t.join()
+
+    # Caller's record + 2 worker records (one from pool, one from thread)
+    # are all in the capture.
+    assert any("llm-from-caller" in m for m in captured)
+    assert sum(1 for m in captured if "llm-mock-mode-startup" in m) >= 2
+
+
+def test_capture_does_not_apply_llm_fallback_with_multiple_captures():
+    """When two captures are concurrently active, the narrow LLM
+    fallback stays disabled — strict per-thread isolation is preserved
+    so concurrent CLI calls don't cross-contaminate, even for LLM
+    records.
+    """
+    import threading
+    from concurrent.futures import ThreadPoolExecutor
+
+    llm_logger = logging.getLogger("featcopilot.llm.test_dual")
+    a_captured: list[str] = []
+    b_captured: list[str] = []
+    barrier = threading.Barrier(2)
+
+    def worker(tag: str, target: list[str]):
+        barrier.wait()
+        with fc_cli._capture_featcopilot_messages() as captured:
+            llm_logger.warning(f"{tag}-direct")
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                # Submit a worker that emits a record. With two
+                # captures active, the narrow fallback must NOT
+                # activate (it would be ambiguous which capture
+                # "owns" the worker's record).
+                pool.submit(lambda t=tag: llm_logger.warning(f"{t}-worker")).result(timeout=5)
+        target.extend(captured)
+
+    t1 = threading.Thread(target=worker, args=("A", a_captured))
+    t2 = threading.Thread(target=worker, args=("B", b_captured))
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
+
+    # Each capture sees its own direct record (current-thread path).
+    assert any("A-direct" in m for m in a_captured)
+    assert any("B-direct" in m for m in b_captured)
+    # The worker record is NOT in either capture (fallback disabled).
+    assert not any("worker" in m for m in a_captured)
+    assert not any("worker" in m for m in b_captured)
 
 
 def test_capture_keeps_thread_isolation_with_multiple_active_captures():
