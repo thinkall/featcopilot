@@ -3006,6 +3006,156 @@ def test_run_helper_redirects_featcopilot_stream_handlers(monkeypatch):
         assert h.stream is sys.stderr or h.stream is sys.__stderr__
 
 
+# ----------------------- empty-input column-vs-row distinction
+
+
+def test_transform_zero_columns_input_distinguishes_from_zero_rows(tmp_path: Path):
+    """``DataFrame.empty`` is ``True`` for both zero-row AND zero-column
+    frames. The CLI must distinguish: a JSON array of empty objects
+    ``[{}, {}, ...]`` is a zero-COLUMN input (the user has no feature
+    columns), not a zero-ROW input. The error message must point at
+    the actual problem so callers can take the right remediation.
+    """
+    # JSON array of empty objects: pandas reads this as a frame with
+    # rows but no columns.
+    p = tmp_path / "empty_columns.json"
+    p.write_text("[{}, {}, {}]")
+    rc, _out, err = _run(["transform", "--input", str(p), "--output", str(tmp_path / "out.csv"), "--target", "y"])
+    assert rc == 2
+    assert "no columns" in err.lower(), err
+    assert "feature column" in err.lower(), err
+    assert "zero data rows" not in err.lower(), err
+
+
+def test_transform_zero_rows_input_still_uses_zero_rows_message(tmp_path: Path):
+    """The zero-row case (header but no data) still surfaces the
+    distinct "zero data rows" wording so the two failure modes are
+    distinguishable in CLI output.
+    """
+    p = tmp_path / "header_only.csv"
+    p.write_text("x1,x2,y\n")
+    rc, _out, err = _run(["transform", "--input", str(p), "--output", str(tmp_path / "out.csv"), "--target", "y"])
+    assert rc == 2
+    assert "zero data rows" in err.lower(), err
+    assert "no columns" not in err.lower(), err
+
+
+# ----------------------- transform read/write warnings captured (not stderr)
+
+
+def test_transform_read_warning_captured_not_on_stderr(tmp_path: Path, monkeypatch):
+    """``pd.read_csv`` can legitimately emit ``DtypeWarning`` on a
+    successful read with mixed-type columns. That warning must end up
+    in the JSON ``warnings`` field, NOT on stderr — the contract is
+    that successful runs keep stderr empty for agent callers.
+    """
+    import pandas as _pd
+
+    # Build a valid CSV input and a real fit_transform-able payload.
+    rng = np.random.default_rng(0)
+    df = pd.DataFrame(
+        {
+            "x1": rng.normal(size=50),
+            "x2": rng.integers(0, 5, size=50),
+            "y": rng.integers(0, 2, size=50),
+        }
+    )
+    in_path = tmp_path / "in.csv"
+    df.to_csv(in_path, index=False)
+    out_path = tmp_path / "out.csv"
+
+    # Patch ``pd.read_csv`` so that calling it emits a real Python
+    # ``warnings.warn`` (mirroring DtypeWarning on a successful read)
+    # while still returning the same DataFrame.
+    real_read_csv = _pd.read_csv
+
+    def warning_emitting_read_csv(*a, **kw):
+        warnings.warn("pandas-mock-read-csv: DtypeWarning equivalent", UserWarning, stacklevel=2)
+        return real_read_csv(*a, **kw)
+
+    monkeypatch.setattr(_pd, "read_csv", warning_emitting_read_csv)
+
+    rc, out, err = _run(
+        [
+            "transform",
+            "--input",
+            str(in_path),
+            "--output",
+            str(out_path),
+            "--target",
+            "y",
+            "--no-selection",
+            "--json",
+        ]
+    )
+    assert rc == 0, err
+    assert err == "", f"read-time warning leaked to stderr: {err!r}"
+    payload = json.loads(out)
+    assert any("pandas-mock-read-csv" in w for w in payload["warnings"]), payload["warnings"]
+
+
+def test_transform_write_warning_captured_not_on_stderr(tmp_path: Path, monkeypatch, tabular_csv: Path):
+    """Pandas/pyarrow can legitimately emit ``FutureWarning`` /
+    ``UserWarning`` during ``DataFrame.to_csv`` / ``to_parquet`` /
+    ``to_json`` on a successful write. Those warnings must end up in
+    the JSON ``warnings`` field, NOT on stderr.
+    """
+    out_path = tmp_path / "out.csv"
+
+    # Patch ``DataFrame.to_csv`` so calling it emits a warning while
+    # still actually writing the file.
+    real_to_csv = pd.DataFrame.to_csv
+
+    def warning_emitting_to_csv(self, *a, **kw):
+        warnings.warn("pandas-mock-to-csv: FutureWarning equivalent", FutureWarning, stacklevel=2)
+        return real_to_csv(self, *a, **kw)
+
+    monkeypatch.setattr(pd.DataFrame, "to_csv", warning_emitting_to_csv)
+
+    rc, out, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(out_path),
+            "--target",
+            "y",
+            "--no-selection",
+            "--json",
+        ]
+    )
+    assert rc == 0, err
+    assert err == "", f"write-time warning leaked to stderr: {err!r}"
+    payload = json.loads(out)
+    assert any("pandas-mock-to-csv" in w for w in payload["warnings"]), payload["warnings"]
+
+
+# ----------------------- explain captures explain_features warnings
+
+
+def test_explain_features_warnings_captured_not_on_stderr(tmp_path: Path, monkeypatch, tabular_csv: Path):
+    """``explain_features`` / ``get_feature_code`` are now inside the
+    same capture as the read + ``fit_transform``, so any warning they
+    emit goes to the JSON ``warnings`` field, not stderr.
+    """
+    from featcopilot.transformers import sklearn_compat as _sc
+
+    real_explain = _sc.AutoFeatureEngineer.explain_features
+
+    def warning_emitting_explain(self):
+        warnings.warn("explain-features-mock-warning", UserWarning, stacklevel=2)
+        return real_explain(self)
+
+    monkeypatch.setattr(_sc.AutoFeatureEngineer, "explain_features", warning_emitting_explain)
+
+    rc, out, err = _run(["explain", "--input", str(tabular_csv), "--target", "y"])
+    assert rc == 0, err
+    assert err == "", f"explain_features warning leaked to stderr: {err!r}"
+    payload = json.loads(out)
+    assert any("explain-features-mock-warning" in w for w in payload["warnings"]), payload["warnings"]
+
+
 # ----------------------- explain --explain-sample-size warning hygiene
 
 

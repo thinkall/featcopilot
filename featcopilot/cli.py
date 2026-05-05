@@ -228,14 +228,24 @@ def _read_table(path: Path, fmt: str, *, nrows: int | None = None, suppress_trun
         raise ValueError(f"Unsupported input format: {fmt}")
 
     # Reject "header-only" / empty inputs across every supported format.
-    # ``pd.read_csv`` returns an empty DataFrame (no exception) when the
-    # CSV has headers but zero data rows; the same goes for an empty
-    # parquet file or ``[]`` JSON body. Without this check, the CLI
-    # would pass an empty frame into ``TabularEngine``, which divides by
-    # ``len(X)`` while fitting categorical encoding and exits via the
-    # generic ``unexpected error`` path. Surface the issue as a clean
-    # exit-2 user-input error.
-    if df.empty:
+    # ``DataFrame.empty`` returns ``True`` for both zero-row AND
+    # zero-column frames, but those are very different user errors that
+    # warrant different remediation paths, so check the two cases
+    # explicitly. ``pd.read_csv`` returns an empty DataFrame (no
+    # exception) when the CSV has headers but zero data rows; the same
+    # goes for an empty parquet file or ``[]`` JSON body. Without this
+    # check, the CLI would pass an empty frame into ``TabularEngine``,
+    # which divides by ``len(X)`` while fitting categorical encoding and
+    # exits via the generic ``unexpected error`` path. Surface both
+    # cases as clean exit-2 user-input errors.
+    if len(df.columns) == 0:
+        raise ValueError(
+            f"Input file {str(path)!r} has no columns. "
+            "Feature engineering requires at least one input feature column "
+            "(e.g. a JSON array of ``{}`` objects, or a table that only "
+            "preserved an index, would hit this error)."
+        )
+    if len(df) == 0:
         raise ValueError(
             f"Input file {str(path)!r} is empty (zero data rows). "
             "Feature engineering requires at least one row of data."
@@ -555,23 +565,16 @@ def _cmd_info(args: argparse.Namespace) -> int:
 
 
 def _fit_transform_capturing_warnings(engineer, X, y, **kwargs):
-    """Run ``engineer.fit_transform(X, y, **kwargs)`` while capturing both
-    Python ``warnings.warn(...)`` and FeatCopilot logger records.
+    """Thin convenience wrapper: run ``engineer.fit_transform(X, y, **kwargs)``
+    inside a single ``_capture_featcopilot_messages()`` block.
 
-    The CLI contract is that stdout carries the JSON payload and stderr is
-    reserved for failures. Two sources can otherwise bleed onto stderr on
-    a successful run:
-
-    * ``warnings.warn(...)`` — emitted by ``AutoFeatureEngineer.fit`` for
-      leakage-prone column names under the default ``leakage_guard='warn'``.
-    * ``logger.warning(...)`` / ``logger.info(...)`` — emitted by e.g.
-      ``_do_no_harm_gate`` on validation-failure fallback, and by every
-      engine when ``--verbose`` is set.
-
-    The single ``featcopilot`` root logger (``propagate=False``) receives
-    every child logger's records by ordinary Python logging propagation;
-    we swap in a capture handler for the duration of the call so the JSON
-    payload can surface those messages instead of stderr.
+    This helper is *not* used by the CLI subcommands themselves anymore
+    — they wrap a wider region (read + fit_transform + write) in one
+    capture so warnings emitted during pandas / pyarrow read or write
+    phases are also surfaced via the JSON ``warnings`` field instead of
+    leaking onto stderr. It is preserved as a public-ish helper for
+    external test code that just wants to capture messages around a
+    plain ``fit_transform`` call.
 
     Returns
     -------
@@ -930,7 +933,26 @@ def _capture_featcopilot_messages():
 
 
 def _cmd_transform(args: argparse.Namespace) -> int:
-    """Read input, fit/transform, write output."""
+    """Read input, fit/transform, write output.
+
+    The "successful runs keep stderr empty" CLI contract requires that
+    *every* phase that can legitimately emit a Python warning be wrapped
+    in the message capture, not just ``fit_transform``. Concretely:
+
+    * **Read** — ``pd.read_csv`` can emit ``DtypeWarning`` on mixed-type
+      columns and parquet/JSON readers can emit pyarrow / pandas
+      future-warnings on a successful read.
+    * **Fit / transform** — engineers themselves emit warnings (e.g.
+      ``AutoFeatureEngineer.fit`` for leakage-prone column names under
+      ``leakage_guard='warn'``).
+    * **Write** — ``DataFrame.to_csv`` / ``to_parquet`` / ``to_json``
+      can emit pandas / pyarrow ``FutureWarning`` / ``UserWarning``
+      during a successful write.
+
+    All three phases now live inside one capture block so any warnings
+    they emit are surfaced via the JSON ``warnings`` field rather than
+    leaking onto stderr.
+    """
     input_path = Path(args.input)
     if not input_path.exists():
         raise FileNotFoundError(f"Input file not found: {args.input}")
@@ -939,64 +961,70 @@ def _cmd_transform(args: argparse.Namespace) -> int:
     in_fmt = _detect_format(input_path, args.input_format)
     out_fmt = _detect_format(output_path, args.output_format)
 
-    df = _read_table(input_path, in_fmt)
-    X, y = _split_xy(df, args.target)
+    # Single capture context spans read + fit_transform + write so any
+    # legitimate-but-noisy warnings from pandas/pyarrow during read or
+    # write end up in the JSON payload's ``warnings`` field instead of
+    # bleeding to stderr. ``_capture_featcopilot_messages`` is a no-op
+    # for non-warning code paths so wrapping the broader region has no
+    # side effects on the happy path.
+    with _capture_featcopilot_messages() as captured_warnings:
+        df = _read_table(input_path, in_fmt)
+        X, y = _split_xy(df, args.target)
 
-    # Build the engineer first: ``_build_engineer`` runs all scalar / list /
-    # dict type validation on the merged CLI-flag + config view, so any
-    # malformed value (e.g. ``"max_features": "5"``, ``"verbose": "false"``)
-    # surfaces a precise exit-2 error here rather than down the wrong
-    # ``--target is required`` rabbit hole.
-    engineer = _build_engineer(args)
+        # Build the engineer first: ``_build_engineer`` runs all scalar / list /
+        # dict type validation on the merged CLI-flag + config view, so any
+        # malformed value (e.g. ``"max_features": "5"``, ``"verbose": "false"``)
+        # surfaces a precise exit-2 error here rather than down the wrong
+        # ``--target is required`` rabbit hole.
+        engineer = _build_engineer(args)
 
-    # Selection requires a target column to fit against. ``AutoFeatureEngineer``
-    # only actually fits a selector when ``y is not None`` AND ``max_features``
-    # is set; without ``max_features`` the call is a raw feature-generation
-    # run and does not need a target. The CLI mirrors that contract: only
-    # require ``--target`` when both selection is enabled (the default) AND
-    # ``max_features`` is configured (CLI flag or config), so commands like
-    # ``featcopilot transform --input in.csv --output out.csv`` (no target,
-    # no cap) still work. Using ``engineer.max_features`` here means the
-    # value has already been type-validated, so we never report
-    # ``--target is required`` when the real problem is a malformed
-    # ``max_features`` config value.
-    if not args.no_selection and args.target is None and engineer.max_features is not None:
-        raise ValueError(
-            "--target is required when feature selection is applied "
-            "(i.e. when --max-features / config max_features is set). "
-            "Pass --target <column>, or pass --no-selection / drop --max-features to skip selection."
+        # Selection requires a target column to fit against. ``AutoFeatureEngineer``
+        # only actually fits a selector when ``y is not None`` AND ``max_features``
+        # is set; without ``max_features`` the call is a raw feature-generation
+        # run and does not need a target. The CLI mirrors that contract: only
+        # require ``--target`` when both selection is enabled (the default) AND
+        # ``max_features`` is configured (CLI flag or config), so commands like
+        # ``featcopilot transform --input in.csv --output out.csv`` (no target,
+        # no cap) still work. Using ``engineer.max_features`` here means the
+        # value has already been type-validated, so we never report
+        # ``--target is required`` when the real problem is a malformed
+        # ``max_features`` config value.
+        if not args.no_selection and args.target is None and engineer.max_features is not None:
+            raise ValueError(
+                "--target is required when feature selection is applied "
+                "(i.e. when --max-features / config max_features is set). "
+                "Pass --target <column>, or pass --no-selection / drop --max-features to skip selection."
+            )
+
+        transformed = engineer.fit_transform(
+            X,
+            y,
+            task_description=args.task_description or "prediction task",
+            target_name=args.target,
+            apply_selection=not args.no_selection,
         )
 
-    captured_warnings, transformed = _fit_transform_capturing_warnings(
-        engineer,
-        X,
-        y,
-        task_description=args.task_description or "prediction task",
-        target_name=args.target,
-        apply_selection=not args.no_selection,
-    )
+        if args.include_target and y is not None:
+            # Re-attach the target column so downstream training scripts can
+            # consume the engineered file as a single artifact. Detect column
+            # collisions: if an engineered feature happens to share the
+            # target's column name (e.g. a target named ``foo_pow2`` matching
+            # a tabular-engine derived feature), blindly assigning ``transformed[
+            # target_name] = y.values`` would silently overwrite the engineered
+            # column. Surface that as a clean exit-2 error instead. Callers
+            # who knowingly want to overwrite can rename their target before
+            # invoking ``transform`` (or skip ``--include-target``).
+            target_name = args.target if args.target in df.columns else "target"
+            if target_name in transformed.columns:
+                raise ValueError(
+                    f"--include-target would overwrite engineered feature {target_name!r} "
+                    "with the target values. Rename the target column in the input file, "
+                    "or drop --include-target."
+                )
+            transformed = transformed.copy()
+            transformed[target_name] = y.values
 
-    if args.include_target and y is not None:
-        # Re-attach the target column so downstream training scripts can
-        # consume the engineered file as a single artifact. Detect column
-        # collisions: if an engineered feature happens to share the
-        # target's column name (e.g. a target named ``foo_pow2`` matching
-        # a tabular-engine derived feature), blindly assigning ``transformed[
-        # target_name] = y.values`` would silently overwrite the engineered
-        # column. Surface that as a clean exit-2 error instead. Callers
-        # who knowingly want to overwrite can rename their target before
-        # invoking ``transform`` (or skip ``--include-target``).
-        target_name = args.target if args.target in df.columns else "target"
-        if target_name in transformed.columns:
-            raise ValueError(
-                f"--include-target would overwrite engineered feature {target_name!r} "
-                "with the target values. Rename the target column in the input file, "
-                "or drop --include-target."
-            )
-        transformed = transformed.copy()
-        transformed[target_name] = y.values
-
-    _write_table(transformed, output_path, out_fmt)
+        _write_table(transformed, output_path, out_fmt)
 
     payload = {
         "status": "ok",
@@ -1150,9 +1178,16 @@ def _cmd_explain(args: argparse.Namespace) -> int:
             apply_selection=False,
         )
 
-    explanations = engineer.explain_features()
-    code = engineer.get_feature_code()
-    feature_names = engineer.get_feature_names()
+        # ``explain_features`` / ``get_feature_code`` consult engine
+        # internals that may legitimately emit pandas / pyarrow warnings
+        # (e.g. when stringifying expression trees touching deprecated
+        # APIs). Keep them inside the capture so any such warning ends
+        # up in the JSON payload's ``warnings`` field instead of bleeding
+        # to stderr — same "stderr reserved for failures" contract as
+        # the read / fit_transform phases above.
+        explanations = engineer.explain_features()
+        code = engineer.get_feature_code()
+        feature_names = engineer.get_feature_names()
 
     payload = {
         "status": "ok",
