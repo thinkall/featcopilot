@@ -115,7 +115,7 @@ def _detect_format(path: Path, override: str | None) -> str:
     return fmt
 
 
-def _read_table(path: Path, fmt: str, *, nrows: int | None = None):
+def _read_table(path: Path, fmt: str, *, nrows: int | None = None, suppress_truncation_warning: bool = False):
     """Read a tabular file into a pandas DataFrame.
 
     All user-facing failure modes (missing parquet engine, ``--input``
@@ -136,10 +136,17 @@ def _read_table(path: Path, fmt: str, *, nrows: int | None = None):
         directly to :func:`pandas.read_csv` so the underlying read is
         memory-bounded. For ``parquet`` and ``json``, pandas does not
         expose a native row limit, so the file is fully read and then
-        truncated; a :class:`UserWarning` is issued in that case so the
-        caller knows the bound is post-read (not memory-bounded). The
-        ``nrows`` cap is applied with a deterministic head slice so
-        re-runs on the same input produce the same metadata.
+        truncated; a :class:`UserWarning` is issued in that case (unless
+        ``suppress_truncation_warning`` is true) so the caller knows the
+        bound is post-read (not memory-bounded). The ``nrows`` cap is
+        applied with a deterministic head slice so re-runs on the same
+        input produce the same metadata.
+    suppress_truncation_warning : bool, optional
+        When True, the post-read truncation notice (parquet / JSON only)
+        is *not* emitted from this helper. Used by callers that emit
+        their own consolidated, user-facing warning so users don't see
+        a confusing pair of messages — see ``_cmd_explain``'s
+        ``--explain-sample-size`` handling.
     """
     import pandas as pd
 
@@ -182,15 +189,16 @@ def _read_table(path: Path, fmt: str, *, nrows: int | None = None):
             # raised is by definition an I/O or data issue, not a CLI bug.
             raise ValueError(f"Failed to read parquet from {str(path)!r}: {exc}") from exc
         if nrows is not None and len(df) > nrows:
-            warnings.warn(
-                f"--explain-sample-size cap is applied post-read for parquet "
-                f"(loaded {len(df)} rows, truncating to {nrows}). pandas "
-                "does not expose a native parquet row-limit, so the full "
-                "file is materialized in memory before the cap. For hard "
-                "memory bounds on huge inputs, convert to CSV first.",
-                UserWarning,
-                stacklevel=2,
-            )
+            if not suppress_truncation_warning:
+                warnings.warn(
+                    f"--explain-sample-size cap is applied post-read for parquet "
+                    f"(loaded {len(df)} rows, truncating to {nrows}). pandas "
+                    "does not expose a native parquet row-limit, so the full "
+                    "file is materialized in memory before the cap. For hard "
+                    "memory bounds on huge inputs, convert to CSV first.",
+                    UserWarning,
+                    stacklevel=2,
+                )
             df = df.iloc[:nrows]
     elif fmt == "json":
         # ``orient='records'`` is the agent-friendly default; fall back to
@@ -205,15 +213,16 @@ def _read_table(path: Path, fmt: str, *, nrows: int | None = None):
         except OSError as exc:
             raise ValueError(f"Failed to read JSON from {str(path)!r}: {exc}") from exc
         if nrows is not None and len(df) > nrows:
-            warnings.warn(
-                f"--explain-sample-size cap is applied post-read for JSON "
-                f"(loaded {len(df)} rows, truncating to {nrows}). pandas "
-                "does not expose a native JSON row-limit, so the full "
-                "file is materialized in memory before the cap. For hard "
-                "memory bounds on huge inputs, convert to CSV first.",
-                UserWarning,
-                stacklevel=2,
-            )
+            if not suppress_truncation_warning:
+                warnings.warn(
+                    f"--explain-sample-size cap is applied post-read for JSON "
+                    f"(loaded {len(df)} rows, truncating to {nrows}). pandas "
+                    "does not expose a native JSON row-limit, so the full "
+                    "file is materialized in memory before the cap. For hard "
+                    "memory bounds on huge inputs, convert to CSV first.",
+                    UserWarning,
+                    stacklevel=2,
+                )
             df = df.iloc[:nrows]
     else:
         raise ValueError(f"Unsupported input format: {fmt}")
@@ -576,7 +585,7 @@ def _fit_transform_capturing_warnings(engineer, X, y, **kwargs):
 
 
 class _ThreadCaptureState:
-    """Holds per-thread capture *stacks* with a single-active-capture fallback.
+    """Holds per-thread capture *stacks* with strict per-thread isolation.
 
     Each thread maps to a stack of capture lists. Nested
     :func:`_capture_featcopilot_messages` calls on the same thread push
@@ -584,17 +593,22 @@ class _ThreadCaptureState:
     and receives records / warnings until its block exits, at which
     point the outer capture (if any) becomes active again.
 
-    **Worker-thread fallback.** When the calling thread doesn't have a
-    capture but exactly one capture is active anywhere in the process,
-    :meth:`get` returns that single capture. This handles the common
-    case where the capturing thread spawns worker threads (e.g. an LLM
-    sync client wrapping ``ThreadPoolExecutor`` because it was called
-    from a process with a running event loop) — those workers' log
-    records logically belong to the single in-flight CLI run, and
-    routing them there keeps stderr clean. When more than one capture
-    is active concurrently, the fallback stays disabled (each captures
-    only its own thread's records) so concurrent CLI calls don't bleed
-    into each other.
+    **Strict thread isolation.** :meth:`get` returns a target list ONLY
+    for the calling thread itself. Records emitted on threads other
+    than the one that opened a capture (e.g. a worker spawned by an
+    LLM sync client wrapping ``ThreadPoolExecutor``) flow through the
+    normal handler chain and reach stderr — same as records emitted
+    by unrelated background work that happens to use ``featcopilot``
+    in the same process. This is intentional: a previous "single-
+    active-capture fallback" was too broad — when a single CLI run
+    was active, *any* featcopilot log on any thread would have been
+    silently swallowed into that command's payload, including
+    unrelated background work, causing misattribution. Strict per-
+    thread routing avoids that ambiguity at the cost of letting some
+    worker-thread records bleed onto stderr; callers who need every
+    last log captured should make sure their worker code explicitly
+    propagates the calling thread's identity (e.g. via
+    ``contextvars`` or a dedicated logging wrapper).
 
     Shared by :class:`_ThreadRoutingHandler` (writes records),
     :class:`_SuppressCapturingFilter` (suppresses stderr), and the
@@ -618,21 +632,14 @@ class _ThreadCaptureState:
                     del self._per_thread[tid]
 
     def get(self, tid: int) -> list[str] | None:
-        # Brief lock for thread-safe stack-top read AND single-active-
-        # capture fallback (both walk ``self._per_thread``).
+        # Strict per-thread lookup. No cross-thread fallback (see class
+        # docstring): the previous "single-active-capture" fallback
+        # was too broad and could silently swallow unrelated
+        # background log output into a CLI run's payload.
         with self._lock:
             stack = self._per_thread.get(tid)
             if stack:
                 return stack[-1]
-            # Worker-thread fallback. Cross-thread records (e.g. from a
-            # ThreadPoolExecutor worker spawned by the capturing thread)
-            # are routed to the single active capture when there is no
-            # ambiguity. Multiple concurrent captures keep their strict
-            # per-thread isolation.
-            if len(self._per_thread) == 1:
-                only_stack = next(iter(self._per_thread.values()))
-                if only_stack:
-                    return only_stack[-1]
             return None
 
 
@@ -966,16 +973,30 @@ def _cmd_explain(args: argparse.Namespace) -> int:
     # capture context so the sampling notice ends up in the JSON
     # payload's ``warnings`` field instead of bleeding onto stderr.
     with _capture_featcopilot_messages() as captured_warnings:
-        # Read with ``nrows=sample_size + 1`` so the underlying I/O is
-        # memory-bounded for CSV (``pd.read_csv(nrows=...)``) AND we can
-        # tell from the returned length whether the file actually had
-        # more rows than the cap. ``len(df) > sample_size`` is a strict
-        # proof the file was truncated; ``len(df) <= sample_size`` means
-        # the file fit naturally and no metadata-may-differ warning is
-        # warranted. For parquet/JSON the bound is post-read with its
-        # own UserWarning emitted by ``_read_table``.
-        read_nrows = (sample_size + 1) if sample_size is not None else None
-        df = _read_table(input_path, in_fmt, nrows=read_nrows)
+        # Choose a read strategy that gives us:
+        #   1. a memory bound where pandas allows it (CSV ``nrows``), and
+        #   2. enough information to detect truncation without ``_read_table``
+        #      emitting its own (slightly off-by-one) warning that would
+        #      then double up with ours.
+        #
+        # For CSV we ask for ``sample_size + 1`` rows: ``pd.read_csv``
+        # reads at most that many, AND ``len(df) > sample_size`` becomes
+        # a strict proof of truncation. We pass ``suppress_truncation_warning``
+        # so ``_read_table`` doesn't emit its own message — ``_cmd_explain``
+        # is the single source of truth for the sampling notice and uses
+        # the user-facing ``sample_size`` value.
+        #
+        # For parquet/JSON pandas exposes no native row-limit, so we
+        # always read fully (``nrows=None``) and let ``_cmd_explain``
+        # both detect truncation and emit a single notice that includes
+        # the "memory bound is post-read" caveat. Asking ``_read_table``
+        # for a limit there would only have caused it to truncate at
+        # ``sample_size + 1`` and emit a confusing duplicate warning.
+        if sample_size is not None and in_fmt == "csv":
+            read_nrows: int | None = sample_size + 1
+        else:
+            read_nrows = None
+        df = _read_table(input_path, in_fmt, nrows=read_nrows, suppress_truncation_warning=True)
         X, y = _split_xy(df, args.target)
         n_sampled = len(X)
         if sample_size is not None and n_sampled > sample_size:
@@ -985,15 +1006,25 @@ def _cmd_explain(args: argparse.Namespace) -> int:
             X = X.iloc[:sample_size]
             if y is not None:
                 y = y.iloc[:sample_size]
+            original_len = n_sampled
             n_sampled = sample_size
-            warnings.warn(
-                f"explain: capping input to {sample_size} rows (head slice). "
+            msg = f"explain: capping input to {sample_size} rows (head slice). "
+            if in_fmt != "csv":
+                # For parquet/JSON we read the whole file before truncation
+                # (no native row-limit). Surface that fact so callers know
+                # memory wasn't bounded.
+                msg += (
+                    f"For {in_fmt}, pandas does not expose a native row-limit, "
+                    f"so the full file ({original_len}+ rows) was loaded into "
+                    "memory before truncation. For hard memory bounds on huge "
+                    "inputs, convert to CSV first. "
+                )
+            msg += (
                 "Some engines (e.g. TabularEngine categorical encoding) decide which "
                 "features to plan based on row counts and per-category statistics, "
-                "so the reported metadata may differ from a full-input transform run.",
-                UserWarning,
-                stacklevel=2,
+                "so the reported metadata may differ from a full-input transform run."
             )
+            warnings.warn(msg, UserWarning, stacklevel=2)
 
         engineer.fit_transform(
             X,
@@ -1030,8 +1061,35 @@ def _cmd_explain(args: argparse.Namespace) -> int:
     return 0
 
 
+class _StructuredArgumentParser(argparse.ArgumentParser):
+    """``argparse.ArgumentParser`` that emits the CLI's structured single-line
+    error format on usage failures.
+
+    The default ``argparse`` ``error()`` method writes the multi-line
+    usage banner ("usage: featcopilot ...\\n featcopilot: error: ...") to
+    stderr before raising :class:`SystemExit`. That breaks the CLI
+    contract that stderr carries exactly one ``featcopilot: error: ...``
+    line per failure — agents parsing stderr deterministically would see
+    the banner and the actual error mixed together, with no easy way to
+    tell which is which.
+
+    This subclass overrides :meth:`error` to write a single line and
+    skip the banner, so usage failures (missing required argument,
+    unknown flag, missing subcommand, etc.) follow the same single-line
+    contract as the rest of the CLI's exit-2 paths.
+    """
+
+    def error(self, message: str) -> None:  # type: ignore[override]
+        sys.stderr.write(f"featcopilot: error: {message}\n")
+        # ``ArgumentParser.error`` is documented to terminate; ``SystemExit(2)``
+        # is what the parent class would do after writing the banner.
+        # ``main()``'s ``except SystemExit`` handler converts this to an int
+        # return value so callers still see the documented exit-2 contract.
+        raise SystemExit(2)
+
+
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
+    parser = _StructuredArgumentParser(
         prog="featcopilot",
         description=(
             "FeatCopilot CLI — automated feature engineering from the command line. "
@@ -1045,7 +1103,12 @@ def _build_parser() -> argparse.ArgumentParser:
         action="version",
         version=f"featcopilot {__version__}",
     )
-    subparsers = parser.add_subparsers(dest="command", required=True, metavar="COMMAND")
+    # Use the structured parser class for subparsers too so any
+    # subcommand-specific usage error (unknown flag, missing required
+    # arg) follows the same single-line stderr contract.
+    subparsers = parser.add_subparsers(
+        dest="command", required=True, metavar="COMMAND", parser_class=_StructuredArgumentParser
+    )
 
     # ----- info ---------------------------------------------------------
     p_info = subparsers.add_parser(

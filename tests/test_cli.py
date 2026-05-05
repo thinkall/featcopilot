@@ -2015,6 +2015,45 @@ def test_unknown_flag_returns_exit_2(capsys):
     assert rc == 2
 
 
+def test_argparse_usage_error_emits_single_structured_line(tmp_path: Path, tabular_csv: Path):
+    """``argparse`` defaults to writing a multi-line usage banner before its
+    error message, mixing two pieces of information on stderr that agents
+    must then parse apart. The CLI's ``_StructuredArgumentParser`` collapses
+    those into the single canonical ``featcopilot: error: <message>`` line
+    so usage failures match the rest of the exit-2 contract.
+    """
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(tabular_csv),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+            "--no-such-flag",  # genuine unknown flag (not a missing-required)
+        ]
+    )
+    assert rc == 2
+    err_lines = [line for line in err.splitlines() if line.strip()]
+    # Exactly one non-empty stderr line.
+    assert len(err_lines) == 1, f"Expected single-line stderr, got {err_lines!r}"
+    assert err_lines[0].startswith("featcopilot: error: ")
+    # No multi-line ``argparse`` usage banner.
+    assert "usage:" not in err.lower()
+    # Still mentions the offending flag.
+    assert "--no-such-flag" in err
+
+
+def test_argparse_missing_subcommand_emits_single_structured_line():
+    rc, _, err = _run([])
+    assert rc == 2
+    err_lines = [line for line in err.splitlines() if line.strip()]
+    assert len(err_lines) == 1, f"Expected single-line stderr, got {err_lines!r}"
+    assert err_lines[0].startswith("featcopilot: error: ")
+    assert "usage:" not in err.lower()
+
+
 def test_help_flag_returns_zero(capsys):
     rc = fc_cli.main(["--help"])
     assert rc == 0
@@ -2546,7 +2585,9 @@ def test_explain_sample_size_bounds_csv_read_with_nrows(tmp_path: Path, monkeypa
 def test_explain_sample_size_warns_post_read_for_parquet(tmp_path: Path):
     """For parquet inputs, pandas has no native row-limit, so the bound
     is applied post-read. The CLI must surface a warning describing the
-    limitation so callers know memory isn't strictly bounded.
+    limitation so callers know memory isn't strictly bounded. The
+    warning is emitted by ``_cmd_explain`` itself (not duplicated by
+    ``_read_table``) so the user sees one accurate message.
     """
     pytest.importorskip("pyarrow")
     rng = np.random.default_rng(0)
@@ -2576,46 +2617,55 @@ def test_explain_sample_size_warns_post_read_for_parquet(tmp_path: Path):
     payload = json.loads(out)
     assert payload["n_rows_used"] == 100
     # The post-read truncation notice must appear in the captured warnings.
-    assert any("post-read" in w.lower() for w in payload["warnings"])
+    # The unified message says: "For parquet, pandas does not expose a
+    # native row-limit, so the full file ... was loaded into memory before
+    # truncation."
+    captured = " ".join(payload["warnings"]).lower()
+    assert "native row-limit" in captured or "post-read" in captured or "memory before truncation" in captured
+    # The user-facing message uses the actual sample_size (100), NOT the
+    # internal +1 read size, AND there is exactly one truncation notice.
+    assert "100 rows" in " ".join(payload["warnings"])
+    truncation_msgs = [w for w in payload["warnings"] if "truncat" in w.lower() or "capping" in w.lower()]
+    assert len(truncation_msgs) == 1, f"expected exactly one truncation notice, got {truncation_msgs!r}"
 
 
-# ----------------------- worker-thread capture fallback
+# ----------------------- strict per-thread capture isolation
 
 
-def test_capture_routes_worker_thread_records_to_single_active_capture():
-    """When exactly one capture is active in the process, log records
-    emitted on a *different* thread (e.g. a ``ThreadPoolExecutor``
-    worker spawned by an LLM sync client) must still be routed to the
-    single active capture rather than escaping to stderr.
+def test_capture_does_not_route_unrelated_thread_records():
+    """The capture layer must use STRICT per-thread routing: records
+    emitted on threads other than the one that opened a capture flow
+    through the normal handler chain (and reach stderr) — they are
+    NOT silently rolled into the single in-flight CLI run's payload.
 
-    This is the documented "single-active-capture fallback" of
-    :class:`_ThreadCaptureState`.
+    A previous "single-active-capture fallback" was too broad: when a
+    single CLI run was active, *any* featcopilot log on any thread
+    would have been swallowed into that command's payload, including
+    unrelated background work, causing misattribution. This test
+    guards against that regression.
     """
     import threading
-    from concurrent.futures import ThreadPoolExecutor
 
-    fc_logger = logging.getLogger("featcopilot.test_worker")
-
-    def _emit_in_worker():
-        fc_logger.warning("from-worker")
-        return "ok"
+    fc_logger = logging.getLogger("featcopilot.test_unrelated")
 
     with fc_cli._capture_featcopilot_messages() as captured:
         # Caller emits on its own thread (must be captured).
         fc_logger.warning("from-caller")
-        # Spawn a worker thread (different ident) and emit there.
-        with ThreadPoolExecutor(max_workers=1) as pool:
-            assert pool.submit(_emit_in_worker).result(timeout=5) == "ok"
-        # Different non-worker thread also goes through the fallback.
-        t = threading.Thread(target=_emit_in_worker)
+
+        # Spawn a separate, unrelated thread that ALSO emits via the
+        # featcopilot logger. With the over-broad fallback removed, that
+        # record must NOT appear in this capture's payload.
+        def _emit_elsewhere():
+            fc_logger.warning("from-other-thread")
+
+        t = threading.Thread(target=_emit_elsewhere)
         t.start()
         t.join()
 
     assert any("from-caller" in m for m in captured)
-    # Worker-thread records ARE captured under the single-active-capture
-    # fallback (the per-thread stack lookup misses, but exactly one
-    # capture is active, so :meth:`_ThreadCaptureState.get` returns it).
-    assert sum(1 for m in captured if "from-worker" in m) >= 2
+    # Strict per-thread isolation: unrelated thread's record is NOT in
+    # this capture's payload.
+    assert not any("from-other-thread" in m for m in captured)
 
 
 def test_capture_keeps_thread_isolation_with_multiple_active_captures():
