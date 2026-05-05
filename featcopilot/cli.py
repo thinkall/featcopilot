@@ -50,8 +50,6 @@ import warnings
 from pathlib import Path
 from typing import Any
 
-import numpy as np
-
 from featcopilot import __version__
 from featcopilot.transformers.sklearn_compat import AutoFeatureEngineer
 from featcopilot.utils.logger import get_logger
@@ -117,7 +115,7 @@ def _detect_format(path: Path, override: str | None) -> str:
     return fmt
 
 
-def _read_table(path: Path, fmt: str):
+def _read_table(path: Path, fmt: str, *, nrows: int | None = None):
     """Read a tabular file into a pandas DataFrame.
 
     All user-facing failure modes (missing parquet engine, ``--input``
@@ -126,6 +124,22 @@ def _read_table(path: Path, fmt: str):
     top-level handler routes them to the deterministic ``exit 2``
     user-error path. The generic ``exit 1`` backstop is reserved for
     truly unexpected (i.e. CLI-internal) errors.
+
+    Parameters
+    ----------
+    path : pathlib.Path
+        File to read.
+    fmt : str
+        One of ``csv`` / ``parquet`` / ``json``.
+    nrows : int or None, optional
+        Cap the number of rows returned. For ``csv``, this is propagated
+        directly to :func:`pandas.read_csv` so the underlying read is
+        memory-bounded. For ``parquet`` and ``json``, pandas does not
+        expose a native row limit, so the file is fully read and then
+        truncated; a :class:`UserWarning` is issued in that case so the
+        caller knows the bound is post-read (not memory-bounded). The
+        ``nrows`` cap is applied with a deterministic head slice so
+        re-runs on the same input produce the same metadata.
     """
     import pandas as pd
 
@@ -134,7 +148,11 @@ def _read_table(path: Path, fmt: str):
 
     if fmt == "csv":
         try:
-            return pd.read_csv(path)
+            # ``nrows`` is the only memory-bound knob native to read_csv;
+            # passing it here is what lets ``--explain-sample-size`` actually
+            # cap memory on huge CSV inputs (rather than loading the entire
+            # file and then trimming).
+            return pd.read_csv(path, nrows=nrows)
         except (
             OSError,
             pd.errors.ParserError,
@@ -148,7 +166,7 @@ def _read_table(path: Path, fmt: str):
             raise ValueError(f"Failed to read CSV from {str(path)!r}: {exc}") from exc
     if fmt == "parquet":
         try:
-            return pd.read_parquet(path)
+            df = pd.read_parquet(path)
         except ImportError as exc:
             raise ValueError(
                 f"Reading parquet requires a parquet engine (pyarrow or fastparquet); "
@@ -163,18 +181,42 @@ def _read_table(path: Path, fmt: str):
             # operation is delegated to a third-party backend; any error
             # raised is by definition an I/O or data issue, not a CLI bug.
             raise ValueError(f"Failed to read parquet from {str(path)!r}: {exc}") from exc
+        if nrows is not None and len(df) > nrows:
+            warnings.warn(
+                f"--explain-sample-size cap is applied post-read for parquet "
+                f"(loaded {len(df)} rows, truncating to {nrows}). pandas "
+                "does not expose a native parquet row-limit, so the full "
+                "file is materialized in memory before the cap. For hard "
+                "memory bounds on huge inputs, convert to CSV first.",
+                UserWarning,
+                stacklevel=2,
+            )
+            df = df.iloc[:nrows]
+        return df
     if fmt == "json":
         # ``orient='records'`` is the agent-friendly default; fall back to
         # pandas' auto-detection when the file isn't a records list.
         try:
-            return pd.read_json(path, orient="records")
+            df = pd.read_json(path, orient="records")
         except ValueError:
             try:
-                return pd.read_json(path)
+                df = pd.read_json(path)
             except ValueError as exc:
                 raise ValueError(f"Failed to read JSON from {str(path)!r}: {exc}") from exc
         except OSError as exc:
             raise ValueError(f"Failed to read JSON from {str(path)!r}: {exc}") from exc
+        if nrows is not None and len(df) > nrows:
+            warnings.warn(
+                f"--explain-sample-size cap is applied post-read for JSON "
+                f"(loaded {len(df)} rows, truncating to {nrows}). pandas "
+                "does not expose a native JSON row-limit, so the full "
+                "file is materialized in memory before the cap. For hard "
+                "memory bounds on huge inputs, convert to CSV first.",
+                UserWarning,
+                stacklevel=2,
+            )
+            df = df.iloc[:nrows]
+        return df
     raise ValueError(f"Unsupported input format: {fmt}")
 
 
@@ -520,13 +562,25 @@ def _fit_transform_capturing_warnings(engineer, X, y, **kwargs):
 
 
 class _ThreadCaptureState:
-    """Holds per-thread capture *stacks*.
+    """Holds per-thread capture *stacks* with a single-active-capture fallback.
 
     Each thread maps to a stack of capture lists. Nested
     :func:`_capture_featcopilot_messages` calls on the same thread push
     onto the stack; the innermost active capture is always at the top
     and receives records / warnings until its block exits, at which
     point the outer capture (if any) becomes active again.
+
+    **Worker-thread fallback.** When the calling thread doesn't have a
+    capture but exactly one capture is active anywhere in the process,
+    :meth:`get` returns that single capture. This handles the common
+    case where the capturing thread spawns worker threads (e.g. an LLM
+    sync client wrapping ``ThreadPoolExecutor`` because it was called
+    from a process with a running event loop) — those workers' log
+    records logically belong to the single in-flight CLI run, and
+    routing them there keeps stderr clean. When more than one capture
+    is active concurrently, the fallback stays disabled (each captures
+    only its own thread's records) so concurrent CLI calls don't bleed
+    into each other.
 
     Shared by :class:`_ThreadRoutingHandler` (writes records),
     :class:`_SuppressCapturingFilter` (suppresses stderr), and the
@@ -550,11 +604,21 @@ class _ThreadCaptureState:
                     del self._per_thread[tid]
 
     def get(self, tid: int) -> list[str] | None:
-        # Brief lock for thread-safe stack-top read.
+        # Brief lock for thread-safe stack-top read AND single-active-
+        # capture fallback (both walk ``self._per_thread``).
         with self._lock:
             stack = self._per_thread.get(tid)
             if stack:
                 return stack[-1]
+            # Worker-thread fallback. Cross-thread records (e.g. from a
+            # ThreadPoolExecutor worker spawned by the capturing thread)
+            # are routed to the single active capture when there is no
+            # ambiguity. Multiple concurrent captures keep their strict
+            # per-thread isolation.
+            if len(self._per_thread) == 1:
+                only_stack = next(iter(self._per_thread.values()))
+                if only_stack:
+                    return only_stack[-1]
             return None
 
 
@@ -860,10 +924,13 @@ def _cmd_explain(args: argparse.Namespace) -> int:
         raise FileNotFoundError(f"Input file not found: {args.input}")
 
     in_fmt = _detect_format(input_path, args.input_format)
-    df = _read_table(input_path, in_fmt)
-    X, y = _split_xy(df, args.target)
 
     # Apply opt-in sample cap from CLI flag or config (CLI flag wins).
+    # Resolve and validate it BEFORE reading the input so the cap can be
+    # threaded into ``_read_table(... nrows=sample_size)`` to bound memory
+    # on huge inputs (CSV uses ``pd.read_csv(nrows=...)`` natively;
+    # parquet/JSON fall back to post-read truncation with a UserWarning
+    # since pandas doesn't expose a native row-limit for those formats).
     sample_size = getattr(args, "explain_sample_size", None)
     if sample_size is None and args.config is not None:
         sample_size = _load_config(args.config).get("explain_sample_size")
@@ -872,40 +939,30 @@ def _cmd_explain(args: argparse.Namespace) -> int:
         if sample_size <= 0:
             raise ValueError(f"`explain_sample_size` must be a positive integer when set; got {sample_size!r}.")
 
-    n_sampled = len(X)
-
     engineer = _build_engineer(args, include_selection_config=False)
 
     # Run the sample-warning AND ``fit_transform`` inside a single
     # capture context so the sampling notice ends up in the JSON
     # payload's ``warnings`` field instead of bleeding onto stderr.
     with _capture_featcopilot_messages() as captured_warnings:
-        if sample_size is not None and n_sampled > sample_size:
+        # Read with ``nrows=sample_size`` so the underlying I/O is
+        # memory-bounded for CSV; for parquet/JSON the bound is
+        # post-read with an emitted UserWarning (captured into the
+        # payload below). Reading FIRST gives us ``len(df)`` so we
+        # only emit the "metadata may differ" notice when the cap
+        # actually shortened the input.
+        df = _read_table(input_path, in_fmt, nrows=sample_size)
+        X, y = _split_xy(df, args.target)
+        n_sampled = len(X)
+        if sample_size is not None and n_sampled >= sample_size:
             warnings.warn(
-                f"explain: sampling input down to {sample_size} of {n_sampled} rows. "
+                f"explain: capping input to {sample_size} rows (sampling). "
                 "Some engines (e.g. TabularEngine categorical encoding) decide which "
                 "features to plan based on row counts and per-category statistics, "
                 "so the reported metadata may differ from a full-input transform run.",
                 UserWarning,
                 stacklevel=2,
             )
-            # Sample by *position* (``.iloc[...]``), not label
-            # (``.sample(...).index`` + ``.loc[...]``). ``.loc`` selects
-            # by label, so a non-unique index — common when reading
-            # parquet files that preserve a saved index — would let
-            # duplicate labels expand or reorder rows so ``X`` and ``y``
-            # no longer line up. Positional sampling via a NumPy RNG +
-            # ``.iloc`` keeps them aligned regardless of input index.
-            rng_sampler = np.random.default_rng(0)
-            sample_positions = rng_sampler.choice(n_sampled, size=sample_size, replace=False)
-            # Sort the positions for determinism / readable output ordering
-            # (the random selection itself is already deterministic via
-            # the seeded RNG).
-            sample_positions.sort()
-            X = X.iloc[sample_positions]
-            if y is not None:
-                y = y.iloc[sample_positions]
-            n_sampled = sample_size
 
         engineer.fit_transform(
             X,

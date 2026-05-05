@@ -2034,7 +2034,7 @@ def test_explain_caps_input_size_when_sample_size_set(tmp_path: Path):
     assert payload["n_features"] > 0
     # The CLI emits a warning when sampling so callers can detect that
     # metadata may not match a full-input transform run.
-    assert any("sampling" in w.lower() for w in payload["warnings"])
+    assert any("capping input" in w.lower() or "sampling" in w.lower() for w in payload["warnings"])
 
 
 def test_explain_sample_size_smaller_than_input_no_op(tmp_path: Path):
@@ -2067,7 +2067,7 @@ def test_explain_sample_size_smaller_than_input_no_op(tmp_path: Path):
     assert rc == 0, err
     payload = json.loads(out)
     assert payload["n_rows_used"] == n
-    assert not any("sampling" in w.lower() for w in payload["warnings"])
+    assert not any("capping input" in w.lower() or "sampling" in w.lower() for w in payload["warnings"])
 
 
 def test_explain_sample_size_via_config(tmp_path: Path):
@@ -2402,7 +2402,171 @@ def test_include_target_collision_error_text_lists_only_actionable_options(
     assert "retry" not in err.lower()
 
 
-# --------------------------------------------------------------- python -m
+# ----------------------- explain --explain-sample-size memory bound
+
+
+def test_explain_sample_size_bounds_csv_read_with_nrows(tmp_path: Path, monkeypatch):
+    """``--explain-sample-size N`` must propagate to ``pd.read_csv`` as
+    ``nrows=N`` so the underlying read is memory-bounded for huge CSV
+    inputs (rather than fully loading the file and then trimming).
+    """
+    import pandas as pd
+
+    rng = np.random.default_rng(0)
+    n = 5000
+    df = pd.DataFrame(
+        {
+            "x1": rng.normal(size=n),
+            "x2": rng.normal(size=n),
+            "y": rng.integers(0, 2, size=n),
+        }
+    )
+    in_path = tmp_path / "big.csv"
+    df.to_csv(in_path, index=False)
+
+    real_read_csv = pd.read_csv
+    captured_kwargs: list[dict] = []
+
+    def _spy_read_csv(*args, **kwargs):
+        captured_kwargs.append(kwargs.copy())
+        return real_read_csv(*args, **kwargs)
+
+    monkeypatch.setattr(pd, "read_csv", _spy_read_csv, raising=True)
+
+    rc, out, err = _run(
+        [
+            "explain",
+            "--input",
+            str(in_path),
+            "--target",
+            "y",
+            "--explain-sample-size",
+            "200",
+        ]
+    )
+    assert rc == 0, err
+    payload = json.loads(out)
+    assert payload["n_rows_used"] == 200
+    # Must have called pd.read_csv with nrows=200, not loaded the whole
+    # 5000-row file. Multiple calls are OK; at least one must be the
+    # explain read with nrows.
+    explain_reads = [k for k in captured_kwargs if k.get("nrows") == 200]
+    assert explain_reads, f"expected pd.read_csv to be called with nrows=200; got {captured_kwargs!r}"
+
+
+def test_explain_sample_size_warns_post_read_for_parquet(tmp_path: Path):
+    """For parquet inputs, pandas has no native row-limit, so the bound
+    is applied post-read. The CLI must surface a warning describing the
+    limitation so callers know memory isn't strictly bounded.
+    """
+    pytest.importorskip("pyarrow")
+    rng = np.random.default_rng(0)
+    n = 4000
+    df = pd.DataFrame(
+        {
+            "x1": rng.normal(size=n),
+            "x2": rng.normal(size=n),
+            "y": rng.integers(0, 2, size=n),
+        }
+    )
+    in_path = tmp_path / "big.parquet"
+    df.to_parquet(in_path, index=False)
+
+    rc, out, err = _run(
+        [
+            "explain",
+            "--input",
+            str(in_path),
+            "--target",
+            "y",
+            "--explain-sample-size",
+            "100",
+        ]
+    )
+    assert rc == 0, err
+    payload = json.loads(out)
+    assert payload["n_rows_used"] == 100
+    # The post-read truncation notice must appear in the captured warnings.
+    assert any("post-read" in w.lower() for w in payload["warnings"])
+
+
+# ----------------------- worker-thread capture fallback
+
+
+def test_capture_routes_worker_thread_records_to_single_active_capture():
+    """When exactly one capture is active in the process, log records
+    emitted on a *different* thread (e.g. a ``ThreadPoolExecutor``
+    worker spawned by an LLM sync client) must still be routed to the
+    single active capture rather than escaping to stderr.
+
+    This is the documented "single-active-capture fallback" of
+    :class:`_ThreadCaptureState`.
+    """
+    import threading
+    from concurrent.futures import ThreadPoolExecutor
+
+    fc_logger = logging.getLogger("featcopilot.test_worker")
+
+    def _emit_in_worker():
+        fc_logger.warning("from-worker")
+        return "ok"
+
+    with fc_cli._capture_featcopilot_messages() as captured:
+        # Caller emits on its own thread (must be captured).
+        fc_logger.warning("from-caller")
+        # Spawn a worker thread (different ident) and emit there.
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            assert pool.submit(_emit_in_worker).result(timeout=5) == "ok"
+        # Different non-worker thread also goes through the fallback.
+        t = threading.Thread(target=_emit_in_worker)
+        t.start()
+        t.join()
+
+    assert any("from-caller" in m for m in captured)
+    # Worker-thread records ARE captured under the single-active-capture
+    # fallback (the per-thread stack lookup misses, but exactly one
+    # capture is active, so :meth:`_ThreadCaptureState.get` returns it).
+    assert sum(1 for m in captured if "from-worker" in m) >= 2
+
+
+def test_capture_keeps_thread_isolation_with_multiple_active_captures():
+    """The single-active-capture fallback must NOT activate when two
+    threads are concurrently capturing — each must see only its own
+    thread's records, not records emitted on the other thread's
+    workers.
+    """
+    import threading
+
+    fc_logger = logging.getLogger("featcopilot.test_dual")
+    a_captured: list[str] = []
+    b_captured: list[str] = []
+    barrier = threading.Barrier(2)
+    inside = threading.Event()
+
+    def worker(tag: str, target: list[str]):
+        barrier.wait()
+        with fc_cli._capture_featcopilot_messages() as captured:
+            inside.set()
+            for i in range(10):
+                fc_logger.warning(f"{tag}-{i}")
+        target.extend(captured)
+
+    t1 = threading.Thread(target=worker, args=("A", a_captured))
+    t2 = threading.Thread(target=worker, args=("B", b_captured))
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
+
+    # Each capture must contain ONLY its own thread's records (no fallback
+    # cross-talk because two captures are active).
+    assert all("A-" in m for m in a_captured)
+    assert all("B-" in m for m in b_captured)
+    assert len(a_captured) == 10
+    assert len(b_captured) == 10
+
+
+# ----------------------- python -m
 
 
 def test_dunder_main_module_runs(monkeypatch, capsys):
