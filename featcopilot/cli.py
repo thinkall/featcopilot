@@ -152,7 +152,7 @@ def _read_table(path: Path, fmt: str, *, nrows: int | None = None):
             # passing it here is what lets ``--explain-sample-size`` actually
             # cap memory on huge CSV inputs (rather than loading the entire
             # file and then trimming).
-            return pd.read_csv(path, nrows=nrows)
+            df = pd.read_csv(path, nrows=nrows)
         except (
             OSError,
             pd.errors.ParserError,
@@ -164,7 +164,7 @@ def _read_table(path: Path, fmt: str, *, nrows: int | None = None):
             # "unexpected error" path instead of the documented exit-2
             # user-input error.
             raise ValueError(f"Failed to read CSV from {str(path)!r}: {exc}") from exc
-    if fmt == "parquet":
+    elif fmt == "parquet":
         try:
             df = pd.read_parquet(path)
         except ImportError as exc:
@@ -192,8 +192,7 @@ def _read_table(path: Path, fmt: str, *, nrows: int | None = None):
                 stacklevel=2,
             )
             df = df.iloc[:nrows]
-        return df
-    if fmt == "json":
+    elif fmt == "json":
         # ``orient='records'`` is the agent-friendly default; fall back to
         # pandas' auto-detection when the file isn't a records list.
         try:
@@ -216,8 +215,23 @@ def _read_table(path: Path, fmt: str, *, nrows: int | None = None):
                 stacklevel=2,
             )
             df = df.iloc[:nrows]
-        return df
-    raise ValueError(f"Unsupported input format: {fmt}")
+    else:
+        raise ValueError(f"Unsupported input format: {fmt}")
+
+    # Reject "header-only" / empty inputs across every supported format.
+    # ``pd.read_csv`` returns an empty DataFrame (no exception) when the
+    # CSV has headers but zero data rows; the same goes for an empty
+    # parquet file or ``[]`` JSON body. Without this check, the CLI
+    # would pass an empty frame into ``TabularEngine``, which divides by
+    # ``len(X)`` while fitting categorical encoding and exits via the
+    # generic ``unexpected error`` path. Surface the issue as a clean
+    # exit-2 user-input error.
+    if df.empty:
+        raise ValueError(
+            f"Input file {str(path)!r} is empty (zero data rows). "
+            "Feature engineering requires at least one row of data."
+        )
+    return df
 
 
 def _write_table(df, path: Path, fmt: str) -> None:

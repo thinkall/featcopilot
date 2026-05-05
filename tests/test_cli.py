@@ -904,6 +904,93 @@ def test_headerless_csv_input_returns_exit_2(tmp_path: Path):
     assert "failed to read csv" in err.lower()
 
 
+def test_header_only_csv_input_returns_exit_2(tmp_path: Path):
+    """A CSV that has a header line but ZERO data rows is read by pandas
+    as an *empty* DataFrame (no exception). Without the explicit empty
+    check, the CLI would feed it into ``TabularEngine`` which divides by
+    ``len(X)`` and exits via the generic exit-1 backstop. The CLI must
+    surface this as a clean exit-2 user-input error.
+    """
+    in_path = tmp_path / "header_only.csv"
+    in_path.write_text("x1,x2,y\n")  # header but no data
+
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(in_path),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+        ]
+    )
+    assert rc == 2
+    assert "empty" in err.lower()
+    assert "zero data rows" in err.lower()
+
+
+def test_empty_json_input_returns_exit_2(tmp_path: Path):
+    """An empty JSON array is parsed as an empty DataFrame and must be
+    rejected up front like header-only CSV.
+    """
+    in_path = tmp_path / "empty.json"
+    in_path.write_text("[]")
+
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(in_path),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+        ]
+    )
+    assert rc == 2
+    assert "empty" in err.lower()
+
+
+def test_empty_parquet_input_returns_exit_2(tmp_path: Path):
+    """A parquet file with schema but zero rows is rejected up front."""
+    pytest.importorskip("pyarrow")
+    in_path = tmp_path / "empty.parquet"
+    pd.DataFrame({"x1": [], "x2": [], "y": []}).to_parquet(in_path, index=False)
+
+    rc, _, err = _run(
+        [
+            "transform",
+            "--input",
+            str(in_path),
+            "--output",
+            str(tmp_path / "out.csv"),
+            "--target",
+            "y",
+        ]
+    )
+    assert rc == 2
+    assert "empty" in err.lower()
+
+
+def test_explain_header_only_csv_returns_exit_2(tmp_path: Path):
+    """The empty-input check is applied to ``explain`` too."""
+    in_path = tmp_path / "header_only.csv"
+    in_path.write_text("x1,x2,y\n")
+
+    rc, _, err = _run(
+        [
+            "explain",
+            "--input",
+            str(in_path),
+            "--target",
+            "y",
+        ]
+    )
+    assert rc == 2
+    assert "empty" in err.lower()
+
+
 def test_transform_include_target_collision_returns_exit_2(tmp_path: Path):
     """``--include-target`` would silently overwrite an engineered feature
     if it happens to share the target column's name. The CLI must detect
