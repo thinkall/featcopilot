@@ -2722,18 +2722,29 @@ def test_capture_does_not_apply_llm_fallback_with_multiple_captures():
     llm_logger = logging.getLogger("featcopilot.llm.test_dual")
     a_captured: list[str] = []
     b_captured: list[str] = []
-    barrier = threading.Barrier(2)
+    enter_barrier = threading.Barrier(2)
+    inside_barrier = threading.Barrier(2)
+    done_barrier = threading.Barrier(2)
 
     def worker(tag: str, target: list[str]):
-        barrier.wait()
+        # Phase 0: both threads start at roughly the same time.
+        enter_barrier.wait()
         with fc_cli._capture_featcopilot_messages() as captured:
             llm_logger.warning(f"{tag}-direct")
+            # Phase 1: BOTH threads have entered their captures, so
+            # ``_state._per_thread`` has TWO entries when either thread's
+            # worker fires below — that's the multi-capture scenario the
+            # narrow LLM fallback must skip. Without this barrier the
+            # threads race: one thread's worker can fire before the other
+            # has pushed its capture, making ``len == 1`` and (incorrectly
+            # for this test's intent) tripping the fallback.
+            inside_barrier.wait()
             with ThreadPoolExecutor(max_workers=1) as pool:
-                # Submit a worker that emits a record. With two
-                # captures active, the narrow fallback must NOT
-                # activate (it would be ambiguous which capture
-                # "owns" the worker's record).
                 pool.submit(lambda t=tag: llm_logger.warning(f"{t}-worker")).result(timeout=5)
+            # Phase 2: BOTH threads' workers have completed before either
+            # exits its capture. This pins ``len == 2`` for the entire
+            # worker-emit window.
+            done_barrier.wait()
         target.extend(captured)
 
     t1 = threading.Thread(target=worker, args=("A", a_captured))
@@ -2746,7 +2757,8 @@ def test_capture_does_not_apply_llm_fallback_with_multiple_captures():
     # Each capture sees its own direct record (current-thread path).
     assert any("A-direct" in m for m in a_captured)
     assert any("B-direct" in m for m in b_captured)
-    # The worker record is NOT in either capture (fallback disabled).
+    # The worker record is NOT in either capture (fallback disabled
+    # because two captures were active during the worker emit).
     assert not any("worker" in m for m in a_captured)
     assert not any("worker" in m for m in b_captured)
 
