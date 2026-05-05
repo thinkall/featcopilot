@@ -602,26 +602,54 @@ class _ThreadCaptureState:
     output from unrelated background work happening in the same process.
 
     **Narrow LLM-client fallback.** :meth:`get_for_llm_record` is the
-    one exception: when a record originates from
-    ``featcopilot.llm.*_client`` (the sync LLM clients that fall back to
-    ``ThreadPoolExecutor`` in event-loop environments), and exactly one
-    capture is active in the process, the record is routed to that
-    capture even when emitted on a worker thread. This addresses the
-    common case where an LLM client's mock-mode startup warning fires
-    on a worker that ``submit()`` spawned and would otherwise bleed
-    onto stderr; the targeted whitelist keeps unrelated background
-    featcopilot work from being misattributed.
+    one exception: when a record originates from one of the *exact*
+    sync LLM client modules whitelisted in
+    :attr:`_LLM_FALLBACK_LOGGER_NAMES` (the modules whose synchronous
+    entry points fall back to ``ThreadPoolExecutor`` in event-loop
+    environments), and exactly one capture is active in the process,
+    the record is routed to that capture even when emitted on a worker
+    thread. This addresses the common case where an LLM client's
+    mock-mode startup warning fires on a worker that ``submit()``
+    spawned and would otherwise bleed onto stderr. The whitelist is an
+    explicit set of module names — *not* a prefix — so unrelated
+    ``featcopilot.llm.*`` loggers (e.g. ``semantic_engine``,
+    ``code_generator``, ``transform_rule_generator``, ``explainer``)
+    that never run on worker threads do not trigger the fallback.
+
+    **Atomic per-record decision.** :meth:`resolve_for_record` caches
+    the lookup on the record itself the first time it is called, so
+    :class:`_ThreadRoutingHandler` (which routes records) and
+    :class:`_SuppressCapturingFilter` (which suppresses them from
+    stderr) cannot disagree under concurrent push/pop activity from
+    other threads. Without that caching, ``filter`` could see one
+    state and the later ``emit`` could see another, breaking the
+    "captured XOR on stderr" invariant.
 
     Shared by :class:`_ThreadRoutingHandler` (writes records),
     :class:`_SuppressCapturingFilter` (suppresses stderr), and the
     routing ``warnings.showwarning`` override.
     """
 
-    # Logger-name prefixes whose records are eligible for the narrow
-    # cross-thread fallback. Only the LLM client modules whose sync
-    # entry points fall back to ``ThreadPoolExecutor`` in event-loop
-    # environments are listed.
-    _LLM_FALLBACK_LOGGER_PREFIXES = ("featcopilot.llm.",)
+    # Logger names whose records are eligible for the narrow cross-thread
+    # fallback. Only the synchronous LLM client modules whose ``run`` /
+    # batch entry points fall back to ``ThreadPoolExecutor`` workers in
+    # event-loop environments are listed; their startup / mock-mode
+    # warnings legitimately fire from those worker threads. Other
+    # ``featcopilot.llm.*`` loggers are intentionally NOT included so
+    # cross-thread records from unrelated background work cannot be
+    # silently swallowed into an active CLI capture.
+    _LLM_FALLBACK_LOGGER_NAMES = frozenset(
+        {
+            "featcopilot.llm.copilot_client",
+            "featcopilot.llm.litellm_client",
+            "featcopilot.llm.openai_client",
+        }
+    )
+
+    # Sentinel for "no cached decision yet" on a log record. Distinct
+    # from ``None``, which is itself a valid resolved decision meaning
+    # "no capture target — let the record flow to stderr".
+    _UNCACHED = object()
 
     def __init__(self):
         self._per_thread: dict[int, list[list[str]]] = {}
@@ -657,16 +685,25 @@ class _ThreadCaptureState:
 
         When the calling thread has its own active capture, that's used.
         Otherwise — and only when the record originates from a
-        whitelisted ``featcopilot.llm.*`` logger AND exactly one capture
-        is active in the process — the record is routed to that single
-        capture so it doesn't bleed onto stderr. The whitelist keeps
-        unrelated background featcopilot work strictly isolated.
+        whitelisted sync LLM client module
+        (:attr:`_LLM_FALLBACK_LOGGER_NAMES`) AND exactly one capture is
+        active in the process — the record is routed to that single
+        capture so it doesn't bleed onto stderr. The whitelist is an
+        explicit set of module names so unrelated ``featcopilot.llm.*``
+        loggers (e.g. ``semantic_engine``, ``code_generator``) that
+        never hop onto worker threads do not trigger the fallback.
+
+        This method takes the lock once and returns a snapshot
+        decision; callers should generally use :meth:`resolve_for_record`
+        to additionally cache the result on the record so that paired
+        filter / emit calls can never disagree under concurrent
+        push/pop on other threads.
         """
         with self._lock:
             stack = self._per_thread.get(tid)
             if stack:
                 return stack[-1]
-            if not logger_name.startswith(self._LLM_FALLBACK_LOGGER_PREFIXES):
+            if logger_name not in self._LLM_FALLBACK_LOGGER_NAMES:
                 return None
             if len(self._per_thread) != 1:
                 # Either no captures are active (nothing to route to) or
@@ -677,6 +714,29 @@ class _ThreadCaptureState:
             if only_stack:
                 return only_stack[-1]
             return None
+
+    def resolve_for_record(self, record: logging.LogRecord) -> list[str] | None:
+        """Resolve the capture target for ``record`` exactly once.
+
+        The first call computes the decision via
+        :meth:`get_for_llm_record` and caches it on the record itself
+        as ``record._featcopilot_capture_target``; subsequent calls
+        return the cached value. This is what makes the routing
+        handler's ``emit`` and the suppression filter's ``filter``
+        atomic with respect to each other: they always see the same
+        decision for a given record even if another thread pops or
+        pushes a capture between the two calls.
+
+        Logging records are produced and dispatched to handlers in the
+        same thread, so caching directly on the record is safe — there
+        is no concurrent reader of the same record's attributes.
+        """
+        cached = getattr(record, "_featcopilot_capture_target", self._UNCACHED)
+        if cached is not self._UNCACHED:
+            return cached
+        target = self.get_for_llm_record(threading.get_ident(), record.name)
+        record._featcopilot_capture_target = target
+        return target
 
 
 class _ThreadRoutingHandler(logging.Handler):
@@ -700,7 +760,11 @@ class _ThreadRoutingHandler(logging.Handler):
         self.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
 
     def emit(self, record: logging.LogRecord) -> None:
-        target = self._state.get_for_llm_record(threading.get_ident(), record.name)
+        # Use the cached resolver so this handler and the paired
+        # ``_SuppressCapturingFilter`` always see the same decision
+        # for a given record, even if another thread pushes or pops
+        # a capture between the filter and emit phases.
+        target = self._state.resolve_for_record(record)
         if target is None:
             return
         try:
@@ -729,7 +793,15 @@ class _SuppressCapturingFilter(logging.Filter):
         self._state = state
 
     def filter(self, record: logging.LogRecord) -> bool:
-        return self._state.get_for_llm_record(threading.get_ident(), record.name) is None
+        # Use the cached resolver so this filter and the paired
+        # ``_ThreadRoutingHandler`` always see the same decision for a
+        # given record, even if another thread pushes or pops a capture
+        # between this call and the routing handler's emit. Without the
+        # cache, the two could disagree and the same record could end
+        # up both captured and on stderr (or suppressed without being
+        # captured) — breaking the "stderr reserved for failures"
+        # contract under concurrent CLI calls.
+        return self._state.resolve_for_record(record) is None
 
 
 # Module-level singletons. Installed exactly once on the featcopilot root

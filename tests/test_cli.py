@@ -7,6 +7,7 @@ import io
 import json
 import logging
 import sys
+import threading
 import warnings
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
@@ -20,10 +21,34 @@ from featcopilot import cli as fc_cli
 
 
 def _run(argv: list[str]) -> tuple[int, str, str]:
-    """Invoke ``cli.main(argv)`` and capture exit code, stdout, stderr."""
+    """Invoke ``cli.main(argv)`` and capture exit code, stdout, stderr.
+
+    The featcopilot logger installs a ``StreamHandler(sys.stderr)`` at
+    import time, which holds a reference to the *original* ``sys.stderr``
+    object. ``redirect_stderr`` only swaps the ``sys.stderr`` module
+    attribute, so without also redirecting the handler's ``stream`` any
+    log output the suppression filter doesn't catch would still go to
+    the real terminal — leaving every ``err == ""`` assertion in this
+    file vacuously satisfied even in the presence of a leak. This helper
+    therefore both redirects ``sys.stderr`` AND temporarily re-points
+    every ``StreamHandler`` on the ``featcopilot`` root logger at the
+    same ``err`` buffer for the duration of the call, so the captured
+    ``err`` value reflects what would actually have been written to the
+    user's terminal.
+    """
     out, err = io.StringIO(), io.StringIO()
-    with redirect_stdout(out), redirect_stderr(err):
-        rc = fc_cli.main(argv)
+    fc_logger = logging.getLogger("featcopilot")
+    saved_streams: list[tuple[logging.StreamHandler, object]] = []
+    for handler in list(fc_logger.handlers):
+        if isinstance(handler, logging.StreamHandler):
+            saved_streams.append((handler, handler.stream))
+            handler.stream = err
+    try:
+        with redirect_stdout(out), redirect_stderr(err):
+            rc = fc_cli.main(argv)
+    finally:
+        for handler, original_stream in saved_streams:
+            handler.stream = original_stream
     return rc, out.getvalue(), err.getvalue()
 
 
@@ -2672,10 +2697,11 @@ def test_capture_does_not_route_unrelated_thread_records():
 
 
 def test_capture_routes_llm_client_worker_records_to_single_active_capture():
-    """The narrow LLM-client fallback: when a record originates from a
-    ``featcopilot.llm.*_client`` logger and exactly one capture is
-    active, the record is routed to that capture even when emitted
-    from a worker thread.
+    """The narrow LLM-client fallback: when a record originates from one
+    of the *whitelisted* sync LLM client modules
+    (``featcopilot.llm.copilot_client`` / ``litellm_client`` /
+    ``openai_client``) and exactly one capture is active, the record
+    is routed to that capture even when emitted from a worker thread.
 
     This addresses the common case where an LLM sync client wrapping
     ``ThreadPoolExecutor`` (the fallback used in event-loop
@@ -2686,7 +2712,10 @@ def test_capture_routes_llm_client_worker_records_to_single_active_capture():
     import threading
     from concurrent.futures import ThreadPoolExecutor
 
-    llm_logger = logging.getLogger("featcopilot.llm.test_client")
+    # Use an actual whitelisted sync-client module name; an arbitrary
+    # ``featcopilot.llm.*`` name (e.g. ``test_client``) is intentionally
+    # NOT eligible — see ``test_capture_does_not_apply_llm_fallback_for_non_whitelisted_llm_loggers``.
+    llm_logger = logging.getLogger("featcopilot.llm.openai_client")
 
     def _emit_llm_in_worker():
         llm_logger.warning("llm-mock-mode-startup")
@@ -2710,6 +2739,44 @@ def test_capture_routes_llm_client_worker_records_to_single_active_capture():
     assert sum(1 for m in captured if "llm-mock-mode-startup" in m) >= 2
 
 
+def test_capture_does_not_apply_llm_fallback_for_non_whitelisted_llm_loggers():
+    """The narrow LLM-client fallback whitelist is an *exact* set of
+    sync-client module names — NOT a ``featcopilot.llm.*`` prefix.
+    Other ``featcopilot.llm.*`` loggers (e.g. ``semantic_engine``,
+    ``code_generator``, ``transform_rule_generator``, ``explainer``)
+    must keep strict per-thread isolation, so cross-thread records
+    from unrelated background work cannot be silently swallowed into
+    an active CLI capture.
+    """
+    import threading
+
+    non_whitelisted = [
+        "featcopilot.llm.semantic_engine",
+        "featcopilot.llm.code_generator",
+        "featcopilot.llm.transform_rule_generator",
+        "featcopilot.llm.explainer",
+        "featcopilot.llm.test_dummy",  # arbitrary subname — must NOT match
+    ]
+    captured_lists: list[list[str]] = []
+
+    for name in non_whitelisted:
+        other_logger = logging.getLogger(name)
+
+        def _emit_in_other_thread(logger=other_logger, tag=name):
+            logger.warning(f"{tag}-from-other-thread")
+
+        with fc_cli._capture_featcopilot_messages() as captured:
+            t = threading.Thread(target=_emit_in_other_thread)
+            t.start()
+            t.join()
+        captured_lists.append(list(captured))
+
+    for name, captured in zip(non_whitelisted, captured_lists, strict=True):
+        assert not any(
+            f"{name}-from-other-thread" in m for m in captured
+        ), f"Non-whitelisted LLM logger {name} unexpectedly tripped the cross-thread fallback"
+
+
 def test_capture_does_not_apply_llm_fallback_with_multiple_captures():
     """When two captures are concurrently active, the narrow LLM
     fallback stays disabled — strict per-thread isolation is preserved
@@ -2719,7 +2786,7 @@ def test_capture_does_not_apply_llm_fallback_with_multiple_captures():
     import threading
     from concurrent.futures import ThreadPoolExecutor
 
-    llm_logger = logging.getLogger("featcopilot.llm.test_dual")
+    llm_logger = logging.getLogger("featcopilot.llm.openai_client")
     a_captured: list[str] = []
     b_captured: list[str] = []
     enter_barrier = threading.Barrier(2)
@@ -2798,6 +2865,145 @@ def test_capture_keeps_thread_isolation_with_multiple_active_captures():
     assert all("B-" in m for m in b_captured)
     assert len(a_captured) == 10
     assert len(b_captured) == 10
+
+
+def test_capture_decision_is_cached_per_record_for_atomic_filter_emit():
+    """The capture state must resolve each record's routing decision
+    *exactly once*, then cache the outcome on the record itself, so the
+    suppression filter and the routing handler always see the same
+    answer for that record. Otherwise a concurrent push/pop on another
+    thread could land between the filter (computed at handler-1 phase)
+    and the emit (computed at handler-2 phase), making the same record
+    both captured and emitted to stderr (or suppressed without being
+    captured) — breaking the CLI contract.
+    """
+    state = fc_cli._ThreadCaptureState()
+
+    class _CountingState:
+        """Wrap state so we can count ``get_for_llm_record`` calls."""
+
+        def __init__(self, inner):
+            self._inner = inner
+            self.calls: list[tuple[int, str]] = []
+
+        # Forward the attributes ``resolve_for_record`` reads.
+        @property
+        def _UNCACHED(self):
+            return self._inner._UNCACHED
+
+        def get_for_llm_record(self, tid, name):
+            self.calls.append((tid, name))
+            return self._inner.get_for_llm_record(tid, name)
+
+        # Re-bind ``resolve_for_record`` so calls are counted via the
+        # wrapped ``get_for_llm_record``.
+        def resolve_for_record(self, record):
+            return fc_cli._ThreadCaptureState.resolve_for_record(self, record)
+
+    counted = _CountingState(state)
+
+    record = logging.LogRecord(
+        name="featcopilot.llm.openai_client",
+        level=logging.WARNING,
+        pathname=__file__,
+        lineno=1,
+        msg="hello",
+        args=(),
+        exc_info=None,
+    )
+
+    # First call computes and caches; subsequent calls must not hit
+    # ``get_for_llm_record`` again.
+    first = counted.resolve_for_record(record)
+    second = counted.resolve_for_record(record)
+    third = counted.resolve_for_record(record)
+
+    assert first is second is third
+    assert len(counted.calls) == 1, (
+        "resolve_for_record must compute the decision exactly once per record; "
+        f"saw {len(counted.calls)} get_for_llm_record calls"
+    )
+
+    # The cached attribute is set on the record itself.
+    assert hasattr(record, "_featcopilot_capture_target")
+
+
+def test_capture_decision_stable_under_concurrent_pop_between_filter_and_emit():
+    """Regression test for the atomic filter/emit invariant: even if a
+    concurrent thread pops its capture between the moment a record is
+    filtered and the moment it is emitted, both phases see the SAME
+    decision because it was resolved and cached on the record once.
+    """
+    state = fc_cli._ThreadCaptureState()
+    cap_a: list[str] = []
+    state.push(threading.get_ident() ^ 1, cap_a)  # foreign-thread capture
+    try:
+        record = logging.LogRecord(
+            name="featcopilot.llm.copilot_client",
+            level=logging.WARNING,
+            pathname=__file__,
+            lineno=1,
+            msg="hi",
+            args=(),
+            exc_info=None,
+        )
+        # Phase 1: "filter" computes and caches ("len(_per_thread)==1"
+        # so the LLM fallback returns ``cap_a``).
+        first = state.resolve_for_record(record)
+        assert first is cap_a
+
+        # Concurrent pop: another thread tears its capture down. State
+        # would now produce a *different* answer for a fresh lookup.
+        state.pop(threading.get_ident() ^ 1)
+        fresh_lookup = state.get_for_llm_record(threading.get_ident(), record.name)
+        assert fresh_lookup is None  # state has indeed changed
+
+        # Phase 2: "emit" must still see the same decision via the cache.
+        second = state.resolve_for_record(record)
+        assert second is cap_a, (
+            "After a concurrent pop, resolve_for_record must still return the "
+            "originally cached decision so filter and emit cannot disagree"
+        )
+    finally:
+        # Clean up any stragglers.
+        state.pop(threading.get_ident() ^ 1)
+
+
+def test_run_helper_redirects_featcopilot_stream_handlers(monkeypatch):
+    """Regression test for the test helper itself: ``_run`` must
+    redirect every ``logging.StreamHandler`` on the ``featcopilot``
+    root logger so that any handler write that escapes the suppression
+    filter (the contract-violation scenario) lands in the captured
+    ``err`` buffer, NOT on the real terminal.
+
+    Without this redirect, every ``err == ""`` assertion in this file
+    would be vacuously satisfied because the ``StreamHandler`` installed
+    at import time holds a reference to the *original* ``sys.stderr``
+    object and ``redirect_stderr`` only swaps the module attribute.
+    """
+    fc_logger = logging.getLogger("featcopilot")
+    stream_handlers = [h for h in fc_logger.handlers if isinstance(h, logging.StreamHandler)]
+    assert stream_handlers, "featcopilot logger must have at least one StreamHandler"
+
+    # Stub ``cli.main`` to write directly through the StreamHandler's
+    # current ``stream`` attribute (which ``_run`` should have re-pointed
+    # at the captured ``err`` buffer).
+    def fake_main(argv):
+        for h in fc_logger.handlers:
+            if isinstance(h, logging.StreamHandler):
+                h.stream.write("HANDLER_LEAK_LINE\n")
+                h.stream.flush()
+        return 0
+
+    monkeypatch.setattr(fc_cli, "main", fake_main)
+    rc, _out, err = _run(["info"])
+    assert rc == 0
+    assert "HANDLER_LEAK_LINE" in err, (
+        "_run must redirect featcopilot StreamHandler streams; otherwise stderr-cleanliness " "assertions are vacuous"
+    )
+    # And the original stream is restored after the call.
+    for h in stream_handlers:
+        assert h.stream is sys.stderr or h.stream is sys.__stderr__
 
 
 # ----------------------- explain --explain-sample-size warning hygiene
