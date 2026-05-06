@@ -124,6 +124,86 @@ def test_info_text_mode_is_human_readable():
     assert __version__ in out
 
 
+def test_cli_doc_leakage_guard_values_match_source_of_truth():
+    """Regression for round-1 review: the user-guide CLI doc previously
+    listed ``--leakage-guard`` choices as ``warn`` / ``block`` / ``ignore``,
+    but the actual ``AutoFeatureEngineer.SUPPORTED_LEAKAGE_GUARDS`` set is
+    ``{off, warn, raise}``. Following the doc with
+    ``--leakage-guard block`` produced an argparse error rather than the
+    described behavior. This test pins the doc against the source of
+    truth so any future drift fails fast.
+    """
+    from featcopilot.transformers.sklearn_compat import AutoFeatureEngineer
+
+    expected = sorted(AutoFeatureEngineer.SUPPORTED_LEAKAGE_GUARDS)
+    cli_doc = (Path(__file__).resolve().parent.parent / "docs" / "user-guide" / "cli.md").read_text(encoding="utf-8")
+
+    # The ``info`` JSON sample MUST list the actual values (sorted).
+    expected_json_fragment = '"supported_leakage_guards": ' + json.dumps(expected)
+    assert (
+        expected_json_fragment in cli_doc
+    ), f"docs/user-guide/cli.md must show {expected_json_fragment!r} in the info sample; got mismatch with source of truth"
+
+    # The ``--leakage-guard`` row MUST mention each valid value as
+    # ```value`` and MUST NOT mention any value that is not actually
+    # accepted. Using a substring check on the literal backtick-quoted
+    # token avoids false positives from prose elsewhere on the page
+    # (e.g. ``warn`` appears in unrelated wording).
+    invalid_examples = ("`block`", "`ignore`")
+    for bad in invalid_examples:
+        assert bad not in cli_doc, (
+            f"docs/user-guide/cli.md must not advertise {bad} as a leakage_guard value; "
+            f"actual valid values are {expected}"
+        )
+    for value in expected:
+        assert f"`{value}`" in cli_doc, (
+            f"docs/user-guide/cli.md must advertise `{value}` as a valid leakage_guard value; "
+            f"current values are {expected}"
+        )
+
+
+def test_cli_doc_info_sample_matches_engines_and_selection_methods():
+    """Regression for round-2 review: the CLI doc's ``info`` JSON sample
+    must list the FULL sorted ``SUPPORTED_ENGINES`` and
+    ``SUPPORTED_SELECTION_METHODS`` sets, not a truncated subset.
+
+    Round-2 specifically caught that the sample omitted ``llm`` from
+    ``supported_engines`` and ``chi2`` / ``f_test`` / ``xgboost`` from
+    ``supported_selection_methods``. Even with a "truncated" caveat the
+    arrays look complete and steered users away from valid CLI choices,
+    so we now pin the entire sorted list against
+    ``AutoFeatureEngineer.SUPPORTED_*`` so future drift in either
+    direction (adding a new engine, renaming a method) fails fast.
+    """
+    from featcopilot.transformers.sklearn_compat import AutoFeatureEngineer
+
+    cli_doc = (Path(__file__).resolve().parent.parent / "docs" / "user-guide" / "cli.md").read_text(encoding="utf-8")
+
+    expected_engines = sorted(AutoFeatureEngineer.SUPPORTED_ENGINES)
+    engines_fragment = '"supported_engines": ' + json.dumps(expected_engines)
+    assert engines_fragment in cli_doc, (
+        f"docs/user-guide/cli.md ``info`` sample must show {engines_fragment!r}; "
+        "the JSON sample drifted away from AutoFeatureEngineer.SUPPORTED_ENGINES"
+    )
+
+    expected_methods = sorted(AutoFeatureEngineer.SUPPORTED_SELECTION_METHODS)
+    # The methods array is multi-line in the doc (one entry per line)
+    # for readability, so check that each value is present as a
+    # JSON-quoted string in the sample. We anchor the search inside the
+    # ``"supported_selection_methods": [`` block to avoid false
+    # positives from prose like "``mutual_info``".
+    sm_marker = '"supported_selection_methods": ['
+    sm_idx = cli_doc.find(sm_marker)
+    assert sm_idx != -1, "docs/user-guide/cli.md must contain a supported_selection_methods JSON sample block"
+    sm_block_end = cli_doc.find("]", sm_idx)
+    sm_block = cli_doc[sm_idx:sm_block_end]
+    for method in expected_methods:
+        assert f'"{method}"' in sm_block, (
+            f"docs/user-guide/cli.md ``info`` sample must list {method!r} in supported_selection_methods; "
+            f"current set is {expected_methods}"
+        )
+
+
 def test_top_level_version_flag(capsys):
     # ``--version`` (argparse action) prints to stdout; main() now traps the
     # SystemExit and returns the code so the API contract is consistent.

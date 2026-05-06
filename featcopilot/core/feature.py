@@ -12,6 +12,45 @@ from featcopilot.utils.logger import get_logger
 logger = get_logger(__name__)
 
 
+# Curated set of safe Python builtins exposed to ``Feature.compute``'s
+# stored code. Without this whitelist (i.e. with ``{"__builtins__": {}}``)
+# even basic idioms like ``len(df)``, ``range(...)``, ``sum(...)``, or
+# ``int(x)`` raise ``NameError`` at exec time, which means a feature whose
+# code legitimately uses a Python builtin crashes during ``compute`` even
+# though the snippet is otherwise valid. The set mirrors the one used by
+# :class:`featcopilot.core.transform_rule.TransformRule` so both code
+# execution paths agree on what is safe.
+_SAFE_BUILTINS: dict[str, Any] = {
+    "len": len,
+    "sum": sum,
+    "max": max,
+    "min": min,
+    "int": int,
+    "float": float,
+    "str": str,
+    "bool": bool,
+    "abs": abs,
+    "round": round,
+    "pow": pow,
+    "range": range,
+    "list": list,
+    "dict": dict,
+    "set": set,
+    "tuple": tuple,
+    "sorted": sorted,
+    "reversed": reversed,
+    "enumerate": enumerate,
+    "zip": zip,
+    "any": any,
+    "all": all,
+    "map": map,
+    "filter": filter,
+    "isinstance": isinstance,
+    "hasattr": hasattr,
+    "getattr": getattr,
+}
+
+
 class FeatureType(Enum):
     """Types of features."""
 
@@ -109,6 +148,42 @@ class Feature:
         """
         Compute feature values from DataFrame using stored code.
 
+        The stored ``code`` is executed in a single shared namespace
+        with ``df``, ``np`` and ``pd`` bound as names alongside a
+        curated set of safe Python builtins (``len``, ``range``,
+        ``sum``, numeric / sequence constructors, etc.) so common
+        idioms work without giving the snippet a Python import system
+        — ``__import__`` is intentionally NOT in the safe builtins, so
+        an ``import foo`` statement inside the snippet raises at exec
+        time. The snippet must bind its output to a name called
+        ``result``.
+
+        .. note::
+           This is **not** a security sandbox for untrusted code.
+           ``pd`` is in scope, which means the snippet can reach
+           pandas' file I/O helpers (``pd.read_csv``, ``pd.read_parquet``,
+           ``df.to_csv``, ...), and dunder attribute access on objects
+           reachable from ``df`` / ``np`` / ``pd`` is not blocked. The
+           builtin whitelist limits the *namespace* available to plain
+           Python idioms; it does not isolate FeatCopilot from the
+           ambient process. Stored snippets must therefore come from a
+           trusted source (your own code generator, a vetted feature
+           store, or a transform-rule registry you control).
+
+        A *fresh copy* of the safe-builtins dict is passed into ``exec``
+        on every call so that any mutation the snippet performs on
+        ``__builtins__`` (rebinding entries, ``del``, ``pop``) does not
+        bleed into subsequent ``compute`` calls. Likewise the
+        data-bound namespace is constructed fresh per call. Using a
+        SINGLE dict for both ``globals`` and ``locals`` is what makes
+        free variables inside comprehensions and lambdas — which Python
+        resolves against the enclosing function's globals, not the
+        caller's locals — see ``df``, ``np`` and ``pd`` correctly.
+        With separate ``locals`` and ``globals`` dicts a snippet such
+        as ``[df['c'].iloc[i] for i in range(len(df))]`` would
+        otherwise raise ``NameError`` because the implicit comprehension
+        function's body looks ``df`` up in the (empty) ``globals``.
+
         Parameters
         ----------
         df : DataFrame
@@ -118,14 +193,40 @@ class Feature:
         -------
         Series
             Computed feature values
+
+        Raises
+        ------
+        ValueError
+            * If ``self.code`` is empty / missing — message
+              ``"No code defined for feature ..."``.
+            * If ``self.code`` is present but did not bind a
+              ``result`` variable — message
+              ``"Feature ... code did not produce a 'result' variable"``.
+              These two cases produce DIFFERENT messages so a failing
+              snippet is distinguishable from an unset feature when
+              debugging.
         """
-        if self.code:
-            # Execute stored code to compute feature
-            local_vars = {"df": df, "np": np, "pd": pd}
-            exec(self.code, {"__builtins__": {}}, local_vars)
-            if "result" in local_vars:
-                return local_vars["result"]
-        raise ValueError(f"No code defined for feature {self.name}")
+        if not self.code:
+            raise ValueError(f"No code defined for feature {self.name}")
+
+        # Single shared namespace so comprehensions / lambdas /
+        # generator expressions inside the snippet see ``df``, ``np``,
+        # ``pd`` and the safe builtins. Fresh dicts per call so the
+        # snippet cannot pollute either the safe-builtins whitelist or
+        # the data bindings for later ``compute`` invocations.
+        namespace: dict[str, Any] = {
+            "__builtins__": dict(_SAFE_BUILTINS),
+            "df": df,
+            "np": np,
+            "pd": pd,
+        }
+        exec(self.code, namespace)
+        if "result" not in namespace:
+            raise ValueError(
+                f"Feature {self.name!r} code did not produce a 'result' variable. "
+                "Stored snippet must bind its output to a name called 'result'."
+            )
+        return namespace["result"]
 
 
 class FeatureSet:

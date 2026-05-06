@@ -60,6 +60,157 @@ class TestFeature:
 
         assert list(result) == [1, 4, 9, 16]
 
+    def test_feature_compute_uses_safe_builtins(self):
+        """Regression: ``Feature.compute`` previously called
+        ``exec(code, {"__builtins__": {}}, locals)`` which broke any
+        snippet that used a Python builtin (``len``, ``range``, ``int``,
+        ``sum``, ...). The fix exposes a curated set of safe builtins
+        identical to ``TransformRule._get_safe_builtins`` so common
+        idioms work without giving the snippet unrestricted access.
+        """
+        df = pd.DataFrame({"col1": [10, 20, 30, 40, 50]})
+
+        # ``len`` (most common builtin used in a feature) — would NameError
+        # before the fix.
+        f_len = Feature(name="row_count", code="result = pd.Series([len(df)] * len(df))")
+        result = f_len.compute(df)
+        assert list(result) == [5, 5, 5, 5, 5]
+
+        # ``range`` + ``sum`` + numeric builtins — exercises a broader
+        # subset of the whitelist in one snippet.
+        f_range = Feature(
+            name="cumulative_index_sum",
+            code="result = pd.Series([sum(range(int(v))) for v in df['col1']])",
+        )
+        result = f_range.compute(df)
+        # sum(range(10))=45, sum(range(20))=190, sum(range(30))=435,
+        # sum(range(40))=780, sum(range(50))=1225
+        assert list(result) == [45, 190, 435, 780, 1225]
+
+        # ``abs`` + ``round`` + ``min`` / ``max`` — ensure the
+        # whitelist's full set is exposed.
+        f_clip = Feature(
+            name="clipped",
+            code="result = pd.Series([round(min(max(abs(v - 25), 0), 20), 2) for v in df['col1']])",
+        )
+        result = f_clip.compute(df)
+        assert list(result) == [15, 5, 5, 15, 20]
+
+    def test_feature_compute_resolves_df_inside_comprehension(self):
+        """Regression for round-2 review: when a snippet uses a
+        comprehension or lambda whose body references ``df``, ``np`` or
+        ``pd``, Python resolves those free variables against the
+        enclosing function's *globals*, not the caller's locals. With
+        a previous implementation that passed ``df`` only via the
+        ``locals`` argument to ``exec`` (and had ``globals`` set to
+        only ``__builtins__``), the inner reference would fail with
+        ``NameError`` and the call would either crash or be silently
+        dropped by ``FeatureSet.compute_all``. The fix uses a single
+        shared namespace for both ``globals`` and ``locals``.
+        """
+        df = pd.DataFrame({"col1": [1, 2, 3, 4, 5]})
+
+        # List comprehension whose body references ``df`` and uses
+        # ``range`` / ``len`` builtins — this is the exact pattern
+        # called out in the round-2 review.
+        f_compre = Feature(
+            name="from_comprehension",
+            code="result = pd.Series([df['col1'].iloc[i] * 2 for i in range(len(df))])",
+        )
+        result = f_compre.compute(df)
+        assert list(result) == [2, 4, 6, 8, 10]
+
+        # Lambda whose body references ``df`` and ``pd`` — same
+        # globals-resolution rule applies.
+        f_lambda = Feature(
+            name="from_lambda",
+            code=(
+                "fn = lambda i: int(df['col1'].iloc[i]) ** 2\n" "result = pd.Series([fn(i) for i in range(len(df))])"
+            ),
+        )
+        result = f_lambda.compute(df)
+        assert list(result) == [1, 4, 9, 16, 25]
+
+        # Generator expression piped into a builtin — exercises the
+        # iterator-protocol path through the same namespace.
+        f_gen = Feature(
+            name="from_generator",
+            code="result = pd.Series([sum(v for v in df['col1'] if v <= n) for n in df['col1']])",
+        )
+        result = f_gen.compute(df)
+        # cumulative sums for thresholds 1, 2, 3, 4, 5: 1, 3, 6, 10, 15
+        assert list(result) == [1, 3, 6, 10, 15]
+
+    def test_feature_compute_isolates_safe_builtins_across_calls(self):
+        """Regression: ``_SAFE_BUILTINS`` must NOT be passed to ``exec``
+        by reference. If it were, a snippet that rebinds entries in its
+        own ``__builtins__`` view (e.g. ``__builtins__['len'] = lambda
+        x: -999``) would leak that mutation into every subsequent
+        ``Feature.compute`` call in the same process, breaking unrelated
+        features. The fix passes ``dict(_SAFE_BUILTINS)`` (a fresh
+        shallow copy) per call so that side effects are local to that
+        single ``exec``.
+
+        Round-2 review note: an earlier version of this test started
+        the attacker snippet with ``import builtins``, but ``__import__``
+        is intentionally NOT in the safe-builtins whitelist, so the
+        snippet raised at the very first line and the surrounding
+        ``try/except`` swallowed the failure ─ meaning the test would
+        pass even if ``_SAFE_BUILTINS`` were still being shared by
+        reference. This rewrite mutates ``__builtins__`` directly via
+        the dict that ``exec`` sees as the snippet's builtins source,
+        AND asserts inside the snippet (via ``len(df) == -999``) that
+        the rebinding actually took effect. That dual assertion is
+        what makes the test a real regression check.
+        """
+        df = pd.DataFrame({"col1": [1, 2, 3]})
+
+        # Attacker snippet: rebind ``len`` in this call's __builtins__
+        # dict. The trailing ``result = pd.Series([len(df)])`` would
+        # yield 3 if the rebinding had failed, and -999 if the
+        # rebinding succeeded. That's the in-snippet proof that
+        # mutation IS possible within a single exec ─ which is what
+        # makes the per-call-copy isolation contract meaningful.
+        f_attacker = Feature(
+            name="poisoner",
+            code=("__builtins__['len'] = lambda x: -999\nresult = pd.Series([len(df)])\n"),
+        )
+        poisoned = f_attacker.compute(df)
+        assert list(poisoned) == [-999], (
+            "Attacker snippet failed to mutate __builtins__: the regression test "
+            "is no longer exercising the isolation path it claims to protect"
+        )
+
+        # A clean, well-behaved feature run AFTER the attacker must
+        # see the original ``len`` builtin, not the poisoned version.
+        f_victim = Feature(
+            name="clean_user",
+            code="result = pd.Series([len(df)] * len(df))",
+        )
+        clean = f_victim.compute(df)
+        assert list(clean) == [3, 3, 3], (
+            "Per-call dict copy of _SAFE_BUILTINS is broken: a previous " "feature's mutation leaked into a later call"
+        )
+
+    def test_feature_compute_distinguishes_missing_code_from_missing_result(self):
+        """Regression: the ``ValueError`` raised by ``Feature.compute``
+        must use DIFFERENT messages for the two distinct failure
+        modes (``self.code`` empty / missing vs. snippet ran but did
+        not bind ``result``). Previously both paths surfaced the
+        misleading ``"No code defined ..."`` message even when the
+        code was clearly present, making debugging harder.
+        """
+        # No code at all → "No code defined" branch.
+        f_empty = Feature(name="no_code")
+        with pytest.raises(ValueError, match="No code defined for feature no_code"):
+            f_empty.compute(pd.DataFrame({"x": [1]}))
+
+        # Code present but does not produce ``result`` → distinct
+        # message that points at the actual cause.
+        f_no_result = Feature(name="no_result", code="x = df['col1'] * 2")
+        with pytest.raises(ValueError, match=r"Feature 'no_result' code did not produce a 'result' variable"):
+            f_no_result.compute(pd.DataFrame({"col1": [1, 2, 3]}))
+
 
 class TestFeatureSet:
     """Tests for FeatureSet class."""

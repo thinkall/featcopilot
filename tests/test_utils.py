@@ -204,6 +204,81 @@ class TestFeatureCacheDisk:
             cache._memory_cache.clear()
             assert "disk_key" in cache.list_keys()
 
+    def test_corrupted_cache_read_logs_warning(self):
+        """Regression: ``FeatureCache.get`` previously had a bare
+        ``except Exception: pass`` that silently swallowed ``pickle``
+        errors when the on-disk cache entry was corrupted (truncated
+        write, version mismatch, partial flush). The fix logs a
+        warning via ``featcopilot.utils.cache``'s module logger so
+        users can diagnose disk issues. This test corrupts the on-disk
+        ``.pkl`` and asserts ``get()`` returns ``None`` AND emits a
+        warning containing the cache path.
+        """
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = FeatureCache(cache_dir=tmpdir)
+            cache.set("victim", {"value": 42})
+
+            # Find the persisted file and corrupt it.
+            pkl_path = next(Path(tmpdir).glob("*.pkl"))
+            pkl_path.write_bytes(b"\x00\x01\x02not-a-valid-pickle-stream")
+
+            # Drop the in-memory entry so ``get`` falls through to disk.
+            cache._memory_cache.clear()
+
+            with patch("featcopilot.utils.cache.logger") as mock_logger:
+                value = cache.get("victim")
+                assert value is None
+                assert mock_logger.warning.called, "FeatureCache must log on read failure"
+                msg = mock_logger.warning.call_args[0][0]
+                assert "failed to read cache entry" in msg
+
+    def test_unpicklable_value_logs_warning_on_set(self):
+        """Regression: ``FeatureCache.set`` previously had a bare
+        ``except Exception: pass`` that silently swallowed
+        ``pickle.PicklingError`` when the value could not be persisted
+        (e.g. lambda / open file handle). The fix logs a warning so
+        operational issues with the cache directory surface in
+        observability.
+        """
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = FeatureCache(cache_dir=tmpdir)
+
+            # Lambdas cannot be pickled by the default protocol.
+            unpicklable = lambda x: x  # noqa: E731
+
+            with patch("featcopilot.utils.cache.logger") as mock_logger:
+                cache.set("bad", unpicklable)
+                assert mock_logger.warning.called, "FeatureCache must log on persist failure"
+                msg = mock_logger.warning.call_args[0][0]
+                assert "failed to persist cache entry" in msg
+
+    def test_corrupted_metadata_read_logs_warning(self):
+        """Regression: ``FeatureCache.get_metadata`` previously had a
+        bare ``except Exception: pass`` that hid corrupted JSON
+        metadata files. The fix logs a warning.
+        """
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = FeatureCache(cache_dir=tmpdir)
+            cache.set("k", "v", metadata={"src": "tabular"})
+
+            # Corrupt the metadata JSON.
+            meta_path = next(Path(tmpdir).glob("*.meta.json"))
+            meta_path.write_text("{not valid json")
+
+            # Force re-read from disk by clearing the in-memory metadata cache.
+            cache._metadata.clear()
+
+            with patch("featcopilot.utils.cache.logger") as mock_logger:
+                md = cache.get_metadata("k")
+                assert md is None
+                assert mock_logger.warning.called, "FeatureCache must log on metadata read failure"
+                msg = mock_logger.warning.call_args[0][0]
+                assert "failed to read cache metadata" in msg
+
 
 class TestFeatureCacheDataHash:
     """Tests for FeatureCache with data_hash parameter."""
