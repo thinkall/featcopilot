@@ -61,7 +61,7 @@ Sample (truncated) output:
   "version": "0.3.7",
   "supported_engines": ["relational", "tabular", "text", "timeseries"],
   "supported_selection_methods": ["correlation", "importance", "mutual_info"],
-  "supported_leakage_guards": ["block", "ignore", "warn"],
+  "supported_leakage_guards": ["off", "raise", "warn"],
   "supported_input_formats": ["csv", "json"],
   "supported_output_formats": ["csv", "json"],
   "parquet_available": false
@@ -97,7 +97,7 @@ Common flags:
 | `--max-features N` | Cap on engine output / selection. Forwarded both to engine constructors and to the selector. |
 | `--no-selection` | Skip feature selection entirely (raw feature generation). |
 | `--selection-methods` | Override the default `mutual_info importance` selection set. |
-| `--leakage-guard` | How to handle suspicious column names: `warn` (default), `block`, or `ignore`. |
+| `--leakage-guard` | How to handle suspicious column names: `warn` (default — log a warning and continue), `raise` (hard-fail with an error), or `off` (disable the check). |
 | `--include-target` | Re-attach the target column to the output file (collision-safe). |
 | `--task-description` | Free-form ML task description forwarded to LLM-aware engines. |
 | `--config FILE` | JSON config with nested keys (e.g. `llm_config`, `selection_methods`). CLI flags override config values. |

@@ -124,6 +124,44 @@ def test_info_text_mode_is_human_readable():
     assert __version__ in out
 
 
+def test_cli_doc_leakage_guard_values_match_source_of_truth():
+    """Regression for round-1 review: the user-guide CLI doc previously
+    listed ``--leakage-guard`` choices as ``warn`` / ``block`` / ``ignore``,
+    but the actual ``AutoFeatureEngineer.SUPPORTED_LEAKAGE_GUARDS`` set is
+    ``{off, warn, raise}``. Following the doc with
+    ``--leakage-guard block`` produced an argparse error rather than the
+    described behavior. This test pins the doc against the source of
+    truth so any future drift fails fast.
+    """
+    from featcopilot.transformers.sklearn_compat import AutoFeatureEngineer
+
+    expected = sorted(AutoFeatureEngineer.SUPPORTED_LEAKAGE_GUARDS)
+    cli_doc = (Path(__file__).resolve().parent.parent / "docs" / "user-guide" / "cli.md").read_text(encoding="utf-8")
+
+    # The ``info`` JSON sample MUST list the actual values (sorted).
+    expected_json_fragment = '"supported_leakage_guards": ' + json.dumps(expected)
+    assert (
+        expected_json_fragment in cli_doc
+    ), f"docs/user-guide/cli.md must show {expected_json_fragment!r} in the info sample; got mismatch with source of truth"
+
+    # The ``--leakage-guard`` row MUST mention each valid value as
+    # ```value`` and MUST NOT mention any value that is not actually
+    # accepted. Using a substring check on the literal backtick-quoted
+    # token avoids false positives from prose elsewhere on the page
+    # (e.g. ``warn`` appears in unrelated wording).
+    invalid_examples = ("`block`", "`ignore`")
+    for bad in invalid_examples:
+        assert bad not in cli_doc, (
+            f"docs/user-guide/cli.md must not advertise {bad} as a leakage_guard value; "
+            f"actual valid values are {expected}"
+        )
+    for value in expected:
+        assert f"`{value}`" in cli_doc, (
+            f"docs/user-guide/cli.md must advertise `{value}` as a valid leakage_guard value; "
+            f"current values are {expected}"
+        )
+
+
 def test_top_level_version_flag(capsys):
     # ``--version`` (argparse action) prints to stdout; main() now traps the
     # SystemExit and returns the code so the API contract is consistent.
