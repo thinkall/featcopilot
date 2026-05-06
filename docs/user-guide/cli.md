@@ -219,5 +219,6 @@ clean exit-2 error pointing at the missing dependency.
 
 * [Overview](overview.md) ─ the underlying `AutoFeatureEngineer` API.
 * [Engines](engines.md) ─ what each engine generates.
-* [LLM Features](llm-features.md) ─ configuring the LLM backend (used
-  by `--config llm_config`).
+* [LLM Features](llm-features.md) ─ configuring the LLM backend (provide
+  an `llm_config` object inside the JSON file passed to `--config`, as
+  shown in the [Configuration files](#configuration-files) section above).

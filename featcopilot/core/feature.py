@@ -148,12 +148,28 @@ class Feature:
         """
         Compute feature values from DataFrame using stored code.
 
-        The stored ``code`` is executed with ``df``, ``np`` and ``pd`` available
-        as local variables and a curated set of safe Python builtins
-        (``len``, ``range``, ``sum``, numeric / sequence constructors, etc.)
-        in globals so common idioms work without giving the snippet
-        unrestricted access to imports / file I/O. The snippet must
-        bind its output to a local variable named ``result``.
+        The stored ``code`` is executed in a single shared namespace
+        with ``df``, ``np`` and ``pd`` bound as names alongside a
+        curated set of safe Python builtins (``len``, ``range``,
+        ``sum``, numeric / sequence constructors, etc.) so common
+        idioms work without giving the snippet unrestricted access to
+        imports / file I/O. The snippet must bind its output to a name
+        called ``result``.
+
+        A *fresh copy* of the safe-builtins dict is passed into ``exec``
+        on every call so that any mutation the snippet performs on
+        ``__builtins__`` (``del``, ``pop``, attribute assignment,
+        rebinding) does not bleed into subsequent ``compute`` calls.
+        Likewise the data-bound namespace is constructed fresh per
+        call. Using a SINGLE dict for both ``globals`` and ``locals``
+        is what makes free variables inside comprehensions and lambdas
+        — which Python resolves against the enclosing function's
+        globals, not the caller's locals — see ``df``, ``np`` and
+        ``pd`` correctly. With separate ``locals`` and ``globals``
+        dicts a snippet such as ``[df['c'].iloc[i] for i in
+        range(len(df))]`` would otherwise raise ``NameError`` because
+        the implicit comprehension function's body looks ``df`` up in
+        the (empty) ``globals``.
 
         Parameters
         ----------
@@ -168,15 +184,36 @@ class Feature:
         Raises
         ------
         ValueError
-            If ``self.code`` is empty / missing or if the executed code
-            does not bind a ``result`` variable.
+            * If ``self.code`` is empty / missing — message
+              ``"No code defined for feature ..."``.
+            * If ``self.code`` is present but did not bind a
+              ``result`` variable — message
+              ``"Feature ... code did not produce a 'result' variable"``.
+              These two cases produce DIFFERENT messages so a failing
+              snippet is distinguishable from an unset feature when
+              debugging.
         """
-        if self.code:
-            local_vars = {"df": df, "np": np, "pd": pd}
-            exec(self.code, {"__builtins__": _SAFE_BUILTINS}, local_vars)
-            if "result" in local_vars:
-                return local_vars["result"]
-        raise ValueError(f"No code defined for feature {self.name}")
+        if not self.code:
+            raise ValueError(f"No code defined for feature {self.name}")
+
+        # Single shared namespace so comprehensions / lambdas /
+        # generator expressions inside the snippet see ``df``, ``np``,
+        # ``pd`` and the safe builtins. Fresh dicts per call so the
+        # snippet cannot pollute either the safe-builtins whitelist or
+        # the data bindings for later ``compute`` invocations.
+        namespace: dict[str, Any] = {
+            "__builtins__": dict(_SAFE_BUILTINS),
+            "df": df,
+            "np": np,
+            "pd": pd,
+        }
+        exec(self.code, namespace)
+        if "result" not in namespace:
+            raise ValueError(
+                f"Feature {self.name!r} code did not produce a 'result' variable. "
+                "Stored snippet must bind its output to a name called 'result'."
+            )
+        return namespace["result"]
 
 
 class FeatureSet:
