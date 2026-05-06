@@ -12,6 +12,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from featcopilot.utils.logger import get_logger
+from featcopilot.utils.models import DEFAULT_MODEL
 
 logger = get_logger(__name__)
 
@@ -19,7 +20,7 @@ logger = get_logger(__name__)
 class CopilotConfig(BaseModel):
     """Configuration for Copilot client."""
 
-    model: str = Field(default="gpt-5.2", description="Model to use")
+    model: str = Field(default=DEFAULT_MODEL, description="Model to use")
     temperature: float = Field(default=0.3, ge=0, le=1, description="Temperature for generation")
     max_tokens: int = Field(default=4096, description="Maximum tokens in response")
     timeout: float = Field(default=60.0, description="Timeout in seconds")
@@ -40,12 +41,13 @@ class CopilotFeatureClient:
     ----------
     config : CopilotConfig, optional
         Configuration for the client
-    model : str, default='gpt-5.2'
-        Model to use for generation
+    model : str, optional
+        Model to use for generation. Defaults to
+        :data:`featcopilot.utils.models.DEFAULT_MODEL`.
 
     Examples
     --------
-    >>> client = CopilotFeatureClient(model='gpt-5.2')
+    >>> client = CopilotFeatureClient()  # uses DEFAULT_MODEL
     >>> await client.start()
     >>> suggestions = await client.suggest_features(
     ...     column_info={'age': 'int', 'income': 'float'},
@@ -54,7 +56,7 @@ class CopilotFeatureClient:
     >>> await client.stop()
     """
 
-    def __init__(self, config: CopilotConfig | None = None, model: str = "gpt-5.2", **kwargs):
+    def __init__(self, config: CopilotConfig | None = None, model: str = DEFAULT_MODEL, **kwargs):
         self.config = config or CopilotConfig(model=model, **kwargs)
         self._client = None
         self._session = None

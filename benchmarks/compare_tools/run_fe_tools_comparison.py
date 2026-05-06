@@ -62,6 +62,7 @@ from benchmarks.feature_cache import (
 )
 from benchmarks.splits import split_benchmark_data
 from featcopilot.utils.logger import get_logger  # noqa: E402
+from featcopilot.utils.models import DEFAULT_MODEL  # noqa: E402
 
 logger = get_logger(__name__)
 
@@ -1465,7 +1466,7 @@ if __name__ == "__main__":
         tools_to_run = None  # None means run all available tools
 
     # Run benchmark
-    llm_config = {"model": "gpt-5.2", "max_suggestions": 20, "backend": "copilot"} if args.with_llm else None
+    llm_config = {"model": DEFAULT_MODEL, "max_suggestions": 20, "backend": "copilot"} if args.with_llm else None
     results = run_comparison_benchmark(
         dataset_names=dataset_names,
         tools=tools_to_run,

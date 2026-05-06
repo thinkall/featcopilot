@@ -909,3 +909,89 @@ def test_significant_field_is_native_python_bool():
     assert type(sig) is bool, f"significant must be native ``bool``, got {type(sig).__name__}"
     # And must be JSON-serializable directly without any custom encoder.
     json_mod.dumps({"significant": sig})
+
+
+# ---------------------------------------------------------------------------
+# Exception-handling hardening regression tests
+# ---------------------------------------------------------------------------
+
+
+def test_resolve_source_only_swallows_expected_exceptions():
+    """``_resolve_source`` must let unexpected exceptions propagate.
+
+    Pre-fix this used a bare ``except Exception`` which masked genuine bugs
+    (e.g. an ``AttributeError`` raised by a refactor regression in
+    ``is_real_world``). We now narrow to ``(KeyError, ValueError, TypeError)``
+    and let everything else propagate.
+    """
+    from unittest.mock import patch
+
+    from benchmarks.simple_models import run_simple_models_benchmark as bench
+
+    # Expected: KeyError on unknown dataset name → bucket as synthetic.
+    with patch.object(bench, "is_real_world", side_effect=KeyError("unknown")):
+        assert bench._resolve_source({"dataset": "totally_unknown"}) == "synthetic"
+
+    # Unexpected: an ``AttributeError`` (a real bug) MUST propagate, not be
+    # silently bucketed as "synthetic".
+    with patch.object(bench, "is_real_world", side_effect=AttributeError("bug!")):
+        try:
+            bench._resolve_source({"dataset": "titanic"})
+        except AttributeError:
+            pass
+        else:
+            raise AssertionError("AttributeError must propagate, not be swallowed")
+
+
+def test_expected_fe_failures_includes_recoverable_types():
+    """``_EXPECTED_FE_FAILURES`` covers the recoverable per-fold error types.
+
+    The benchmark's per-fold FeatCopilot try/except must distinguish
+    *expected* validation errors (which justify a silent baseline fallback)
+    from *unexpected* bugs (which deserve a full traceback). This test pins
+    the contract for the expected-error list.
+    """
+    from benchmarks.simple_models.run_simple_models_benchmark import (
+        _EXPECTED_FE_FAILURES,
+    )
+
+    # Recoverable user-input / validation failures.
+    assert ValueError in _EXPECTED_FE_FAILURES
+    assert KeyError in _EXPECTED_FE_FAILURES
+    assert TypeError in _EXPECTED_FE_FAILURES
+    assert RuntimeError in _EXPECTED_FE_FAILURES
+    # Genuine bugs MUST NOT be in the expected list — otherwise they'd be
+    # silently swallowed instead of surfaced via ``logger.exception``.
+    assert AttributeError not in _EXPECTED_FE_FAILURES
+    assert NameError not in _EXPECTED_FE_FAILURES
+    assert ImportError not in _EXPECTED_FE_FAILURES
+
+
+def test_benchmark_module_uses_centralized_default_model():
+    """Benchmarks pull the default Copilot model from ``DEFAULT_MODEL``.
+
+    Pre-fix every benchmark runner duplicated the literal ``"gpt-5.2"``
+    string in its ``llm_config`` builder. We now import the centralized
+    constant so a future model change is a single-line edit.
+    """
+    from benchmarks.simple_models.run_simple_models_benchmark import (
+        get_featcopilot_engines,
+    )
+    from featcopilot.utils.models import DEFAULT_MODEL
+
+    _, llm_config = get_featcopilot_engines("classification", with_llm=True)
+    assert llm_config is not None
+    assert llm_config["model"] == DEFAULT_MODEL
+
+
+def test_benchmark_logger_is_configured():
+    """The benchmark module exposes a stdlib logger for surfacing failures.
+
+    Previously the per-fold FeatCopilot try/except used ``print(...)``,
+    which made failures invisible to log aggregators / CI summaries.
+    This test pins that the module owns a ``logger`` attribute.
+    """
+    from benchmarks.simple_models import run_simple_models_benchmark as bench
+
+    assert hasattr(bench, "logger")
+    assert bench.logger.name == "benchmarks.simple_models.run_simple_models_benchmark"

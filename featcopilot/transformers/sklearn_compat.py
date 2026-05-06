@@ -17,6 +17,7 @@ from featcopilot.engines.text import TextEngine
 from featcopilot.engines.timeseries import TimeSeriesEngine
 from featcopilot.selection.unified import FeatureSelector
 from featcopilot.utils.logger import get_logger
+from featcopilot.utils.models import DEFAULT_MODEL
 from featcopilot.utils.validation import find_potential_leakage_columns
 
 logger = get_logger(__name__)
@@ -364,7 +365,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             from featcopilot.llm.semantic_engine import SemanticEngine
 
             return SemanticEngine(
-                model=self.llm_config.get("model", "gpt-5.2"),
+                model=self.llm_config.get("model", DEFAULT_MODEL),
                 max_suggestions=self.llm_config.get("max_suggestions", 20),
                 domain=self.llm_config.get("domain"),
                 verbose=self.verbose,

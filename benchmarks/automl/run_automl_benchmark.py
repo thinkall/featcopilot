@@ -79,6 +79,7 @@ from benchmarks.feature_cache import (
     sanitize_feature_names,
     save_feature_cache,
 )
+from featcopilot.utils.models import DEFAULT_MODEL
 
 warnings.filterwarnings("ignore")
 
@@ -362,7 +363,7 @@ def get_featcopilot_engines(task: str, with_llm: bool) -> tuple[list[str], dict[
         engines.append("text")
     if with_llm:
         engines.append("llm")
-        return engines, {"model": "gpt-5.2", "max_suggestions": 20, "backend": "copilot"}
+        return engines, {"model": DEFAULT_MODEL, "max_suggestions": 20, "backend": "copilot"}
     return engines, None
 
 

@@ -9,6 +9,7 @@ import pandas as pd
 
 from featcopilot.core.feature import Feature, FeatureSet
 from featcopilot.utils.logger import get_logger
+from featcopilot.utils.models import DEFAULT_MODEL
 
 logger = get_logger(__name__)
 
@@ -22,8 +23,9 @@ class FeatureExplainer:
 
     Parameters
     ----------
-    model : str, default='gpt-5.2'
-        LLM model to use
+    model : str, optional
+        LLM model to use. Defaults to
+        :data:`featcopilot.utils.models.DEFAULT_MODEL`.
     backend : str, default='copilot'
         LLM backend to use: 'copilot', 'openai', or 'litellm'
     api_key : str, optional
@@ -39,7 +41,7 @@ class FeatureExplainer:
 
     def __init__(
         self,
-        model: str = "gpt-5.2",
+        model: str = DEFAULT_MODEL,
         verbose: bool = False,
         backend: Literal["copilot", "litellm", "openai"] = "copilot",
         api_key: str | None = None,

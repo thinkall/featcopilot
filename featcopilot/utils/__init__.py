@@ -2,6 +2,7 @@
 
 from featcopilot.utils.cache import FeatureCache
 from featcopilot.utils.models import (
+    DEFAULT_MODEL,
     fetch_models,
     get_default_model,
     get_model_info,
@@ -15,6 +16,7 @@ from featcopilot.utils.validation import find_potential_leakage_columns
 __all__ = [
     "parallel_apply",
     "FeatureCache",
+    "DEFAULT_MODEL",
     "fetch_models",
     "list_models",
     "get_model_info",

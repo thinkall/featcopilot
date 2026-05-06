@@ -12,6 +12,7 @@ from pydantic import Field
 from featcopilot.core.base import BaseEngine, EngineConfig
 from featcopilot.core.feature import Feature, FeatureOrigin, FeatureSet, FeatureType
 from featcopilot.utils.logger import get_logger
+from featcopilot.utils.models import DEFAULT_MODEL
 
 logger = get_logger(__name__)
 
@@ -20,7 +21,7 @@ class SemanticEngineConfig(EngineConfig):
     """Configuration for semantic feature engine."""
 
     name: str = "SemanticEngine"
-    model: str = Field(default="gpt-5.2", description="LLM model to use")
+    model: str = Field(default=DEFAULT_MODEL, description="LLM model to use")
     max_suggestions: int = Field(default=20, description="Max features to suggest")
     validate_features: bool = Field(default=True, description="Validate generated code")
     domain: str | None = Field(default=None, description="Domain context")
@@ -53,8 +54,9 @@ class SemanticEngine(BaseEngine):
 
     Parameters
     ----------
-    model : str, default='gpt-5.2'
-        LLM model to use
+    model : str, optional
+        LLM model to use. Defaults to
+        :data:`featcopilot.utils.models.DEFAULT_MODEL`.
     max_suggestions : int, default=20
         Maximum number of features to suggest
     validate_features : bool, default=True
@@ -102,7 +104,7 @@ class SemanticEngine(BaseEngine):
 
     def __init__(
         self,
-        model: str = "gpt-5.2",
+        model: str = DEFAULT_MODEL,
         max_suggestions: int = 20,
         validate_features: bool = True,
         domain: str | None = None,
