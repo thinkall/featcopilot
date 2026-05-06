@@ -143,40 +143,43 @@ class TestFeature:
 
     def test_feature_compute_isolates_safe_builtins_across_calls(self):
         """Regression: ``_SAFE_BUILTINS`` must NOT be passed to ``exec``
-        by reference. If it were, a malicious / buggy snippet could
-        delete or rebind entries (e.g. ``del __builtins__['len']``)
-        and the mutation would persist across subsequent ``Feature.compute``
-        calls in the same process, breaking unrelated features. The
-        fix passes ``dict(_SAFE_BUILTINS)`` (a shallow copy) per call
-        so that side effects are local to that single ``exec``.
+        by reference. If it were, a snippet that rebinds entries in its
+        own ``__builtins__`` view (e.g. ``__builtins__['len'] = lambda
+        x: -999``) would leak that mutation into every subsequent
+        ``Feature.compute`` call in the same process, breaking unrelated
+        features. The fix passes ``dict(_SAFE_BUILTINS)`` (a fresh
+        shallow copy) per call so that side effects are local to that
+        single ``exec``.
+
+        Round-2 review note: an earlier version of this test started
+        the attacker snippet with ``import builtins``, but ``__import__``
+        is intentionally NOT in the safe-builtins whitelist, so the
+        snippet raised at the very first line and the surrounding
+        ``try/except`` swallowed the failure ─ meaning the test would
+        pass even if ``_SAFE_BUILTINS`` were still being shared by
+        reference. This rewrite mutates ``__builtins__`` directly via
+        the dict that ``exec`` sees as the snippet's builtins source,
+        AND asserts inside the snippet (via ``len(df) == -999``) that
+        the rebinding actually took effect. That dual assertion is
+        what makes the test a real regression check.
         """
         df = pd.DataFrame({"col1": [1, 2, 3]})
 
-        # Snippet that rebinds ``len`` inside its own builtins view.
-        # If the implementation passed _SAFE_BUILTINS by reference,
-        # this would corrupt the whitelist for every feature that runs
-        # after it.
+        # Attacker snippet: rebind ``len`` in this call's __builtins__
+        # dict. The trailing ``result = pd.Series([len(df)])`` would
+        # yield 3 if the rebinding had failed, and -999 if the
+        # rebinding succeeded. That's the in-snippet proof that
+        # mutation IS possible within a single exec ─ which is what
+        # makes the per-call-copy isolation contract meaningful.
         f_attacker = Feature(
             name="poisoner",
-            code=(
-                "import builtins\n"
-                # We can't directly mutate __builtins__ because exec
-                # turns the dict into a module, but we CAN rebind keys.
-                "_b = __builtins__\n"
-                "if isinstance(_b, dict):\n"
-                "    _b['len'] = lambda x: -999\n"
-                "result = pd.Series([1, 2, 3])"
-            ),
+            code=("__builtins__['len'] = lambda x: -999\nresult = pd.Series([len(df)])\n"),
         )
-        # The attacker may or may not actually corrupt anything —
-        # depending on Python's exec semantics — but the next call
-        # MUST behave correctly regardless.
-        try:
-            f_attacker.compute(df)
-        except Exception:
-            # Even if the attacker snippet itself fails, the isolation
-            # contract still applies to the next call.
-            pass
+        poisoned = f_attacker.compute(df)
+        assert list(poisoned) == [-999], (
+            "Attacker snippet failed to mutate __builtins__: the regression test "
+            "is no longer exercising the isolation path it claims to protect"
+        )
 
         # A clean, well-behaved feature run AFTER the attacker must
         # see the original ``len`` builtin, not the poisoned version.
@@ -184,8 +187,8 @@ class TestFeature:
             name="clean_user",
             code="result = pd.Series([len(df)] * len(df))",
         )
-        result = f_victim.compute(df)
-        assert list(result) == [3, 3, 3], (
+        clean = f_victim.compute(df)
+        assert list(clean) == [3, 3, 3], (
             "Per-call dict copy of _SAFE_BUILTINS is broken: a previous " "feature's mutation leaked into a later call"
         )
 

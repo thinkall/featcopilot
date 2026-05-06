@@ -152,24 +152,37 @@ class Feature:
         with ``df``, ``np`` and ``pd`` bound as names alongside a
         curated set of safe Python builtins (``len``, ``range``,
         ``sum``, numeric / sequence constructors, etc.) so common
-        idioms work without giving the snippet unrestricted access to
-        imports / file I/O. The snippet must bind its output to a name
-        called ``result``.
+        idioms work without giving the snippet a Python import system
+        — ``__import__`` is intentionally NOT in the safe builtins, so
+        an ``import foo`` statement inside the snippet raises at exec
+        time. The snippet must bind its output to a name called
+        ``result``.
+
+        .. note::
+           This is **not** a security sandbox for untrusted code.
+           ``pd`` is in scope, which means the snippet can reach
+           pandas' file I/O helpers (``pd.read_csv``, ``pd.read_parquet``,
+           ``df.to_csv``, ...), and dunder attribute access on objects
+           reachable from ``df`` / ``np`` / ``pd`` is not blocked. The
+           builtin whitelist limits the *namespace* available to plain
+           Python idioms; it does not isolate FeatCopilot from the
+           ambient process. Stored snippets must therefore come from a
+           trusted source (your own code generator, a vetted feature
+           store, or a transform-rule registry you control).
 
         A *fresh copy* of the safe-builtins dict is passed into ``exec``
         on every call so that any mutation the snippet performs on
-        ``__builtins__`` (``del``, ``pop``, attribute assignment,
-        rebinding) does not bleed into subsequent ``compute`` calls.
-        Likewise the data-bound namespace is constructed fresh per
-        call. Using a SINGLE dict for both ``globals`` and ``locals``
-        is what makes free variables inside comprehensions and lambdas
-        — which Python resolves against the enclosing function's
-        globals, not the caller's locals — see ``df``, ``np`` and
-        ``pd`` correctly. With separate ``locals`` and ``globals``
-        dicts a snippet such as ``[df['c'].iloc[i] for i in
-        range(len(df))]`` would otherwise raise ``NameError`` because
-        the implicit comprehension function's body looks ``df`` up in
-        the (empty) ``globals``.
+        ``__builtins__`` (rebinding entries, ``del``, ``pop``) does not
+        bleed into subsequent ``compute`` calls. Likewise the
+        data-bound namespace is constructed fresh per call. Using a
+        SINGLE dict for both ``globals`` and ``locals`` is what makes
+        free variables inside comprehensions and lambdas — which Python
+        resolves against the enclosing function's globals, not the
+        caller's locals — see ``df``, ``np`` and ``pd`` correctly.
+        With separate ``locals`` and ``globals`` dicts a snippet such
+        as ``[df['c'].iloc[i] for i in range(len(df))]`` would
+        otherwise raise ``NameError`` because the implicit comprehension
+        function's body looks ``df`` up in the (empty) ``globals``.
 
         Parameters
         ----------

@@ -59,14 +59,26 @@ Sample (truncated) output:
 ```json
 {
   "version": "0.3.7",
-  "supported_engines": ["relational", "tabular", "text", "timeseries"],
-  "supported_selection_methods": ["correlation", "importance", "mutual_info"],
+  "supported_engines": ["llm", "relational", "tabular", "text", "timeseries"],
+  "supported_selection_methods": [
+    "chi2",
+    "correlation",
+    "f_test",
+    "importance",
+    "mutual_info",
+    "xgboost"
+  ],
   "supported_leakage_guards": ["off", "raise", "warn"],
   "supported_input_formats": ["csv", "json"],
   "supported_output_formats": ["csv", "json"],
   "parquet_available": false
 }
 ```
+
+When a parquet engine (`pyarrow` or `fastparquet`) IS importable in the
+current environment, `"parquet"` is added to `supported_input_formats`
+and `supported_output_formats` (in source order, so the lists become
+`["csv", "parquet", "json"]`) and `parquet_available` flips to `true`.
 
 `parquet_available` reflects whether `pyarrow` or `fastparquet` is
 importable in the current environment. The base FeatCopilot install does
