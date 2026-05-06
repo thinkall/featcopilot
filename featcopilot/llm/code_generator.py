@@ -10,6 +10,7 @@ import pandas as pd
 
 from featcopilot.core.feature import Feature, FeatureOrigin, FeatureType
 from featcopilot.utils.logger import get_logger
+from featcopilot.utils.models import DEFAULT_MODEL
 
 logger = get_logger(__name__)
 
@@ -23,8 +24,9 @@ class FeatureCodeGenerator:
 
     Parameters
     ----------
-    model : str, default='gpt-5.2'
-        LLM model to use
+    model : str, optional
+        LLM model to use. Defaults to
+        :data:`featcopilot.utils.models.DEFAULT_MODEL`.
     validate : bool, default=True
         Whether to validate generated code
     backend : str, default='copilot'
@@ -45,7 +47,7 @@ class FeatureCodeGenerator:
 
     def __init__(
         self,
-        model: str = "gpt-5.2",
+        model: str = DEFAULT_MODEL,
         validate: bool = True,
         verbose: bool = False,
         backend: Literal["copilot", "litellm", "openai"] = "copilot",

@@ -43,6 +43,7 @@ Examples:
 
 import argparse
 import json
+import logging
 import time
 import warnings
 from datetime import datetime
@@ -79,10 +80,38 @@ from benchmarks.feature_cache import (
     sanitize_feature_frames,
     sanitize_feature_names,
 )
+from featcopilot.utils.models import DEFAULT_MODEL
+
+# Module logger for surfacing exceptions that were previously swallowed.
+# We deliberately use the stdlib ``logging`` module here (rather than
+# ``featcopilot.utils.logger.get_logger``) because the latter sets
+# ``propagate=False`` on the ``featcopilot.*`` logger tree, which prevents
+# benchmark output from reaching root-logger handlers configured by
+# downstream consumers (CI runners, log aggregators, ``pytest --log-cli``).
+# A vanilla ``logging.getLogger(__name__)`` here keeps the benchmark output
+# routable through the consumer's normal logging configuration.
+# ``logging.basicConfig`` is the consumer's responsibility.
+logger = logging.getLogger(__name__)
 
 # Default configuration
 DEFAULT_MAX_FEATURES = 100
 QUICK_DATASETS = ["titanic", "house_prices", "credit_risk", "bike_sharing", "customer_churn", "insurance_claims"]
+
+
+# Exception types we expect to encounter during per-fold feature
+# engineering. These come from sklearn / pandas / featcopilot validation
+# code paths and represent recoverable user-input issues (bad columns,
+# wrong dtypes, etc.). Anything else we surface via ``logger.exception``
+# so genuine bugs (e.g. ``AttributeError`` from a refactor regression)
+# don't get masked behind a benign-looking baseline-fallback.
+_EXPECTED_FE_FAILURES: tuple[type[BaseException], ...] = (
+    ValueError,
+    KeyError,
+    TypeError,
+    RuntimeError,
+    MemoryError,
+    np.linalg.LinAlgError,
+)
 
 
 # Markers that indicate a loader returned synthetic data despite the
@@ -148,7 +177,11 @@ def _resolve_source(result: dict) -> str:
         return "synthetic"
     try:
         return "real_world" if is_real_world(dataset) else "synthetic"
-    except Exception:
+    except (KeyError, ValueError, TypeError):
+        # ``is_real_world`` raises only ``KeyError`` for unknown datasets
+        # and ``ValueError``/``TypeError`` for invalid input; anything else
+        # is a genuine bug we want to surface rather than silently bucket
+        # as "synthetic".
         return "synthetic"
 
 
@@ -384,7 +417,7 @@ def get_featcopilot_engines(task: str, with_llm: bool) -> tuple[list[str], dict[
         engines.append("text")
     if with_llm:
         engines.append("llm")
-        return engines, {"model": "gpt-5.2", "max_suggestions": 20, "backend": "copilot"}
+        return engines, {"model": DEFAULT_MODEL, "max_suggestions": 20, "backend": "copilot"}
     return engines, None
 
 
@@ -597,6 +630,11 @@ def run_single_benchmark(
         fe_times = []
         n_features_generated = []
         engines_used: list[str] = []
+        # Track per-fold FeatCopilot failures so the silent baseline
+        # fallback is visible to consumers (previously the same broad
+        # ``except Exception`` would mask the failure rate behind an
+        # otherwise-healthy-looking results row).
+        fe_failed_folds: list[dict[str, Any]] = []
 
         seeds = [42 + i * 7 for i in range(n_seeds)]
         if not seeds:
@@ -667,12 +705,55 @@ def run_single_benchmark(
                     # would just produce ``["str", "str", ...]``.
                     if not engines_used:
                         engines_used = list(fold_engines)
-                except Exception as e:
-                    print(f"   FeatCopilot error on fold {fold_idx}: {e}")
+                except _EXPECTED_FE_FAILURES as e:
+                    # Recoverable per-fold failure (bad columns, wrong dtypes,
+                    # etc.). Fall back to baseline score and record the failure
+                    # so it shows up in the results dict.
+                    logger.warning(
+                        "FeatCopilot recoverable error on dataset=%s seed=%s fold=%s: %s: %s",
+                        dataset_name,
+                        seed,
+                        fold_idx,
+                        type(e).__name__,
+                        e,
+                    )
+                    fe_failed_folds.append(
+                        {
+                            "seed": seed,
+                            "fold": fold_idx,
+                            "error_type": type(e).__name__,
+                            "error_message": str(e),
+                            "expected": True,
+                        }
+                    )
                     tabular_fold_scores.append(best_baseline[primary_metric])
                     fe_times.append(0.0)
                     # Fall back to the (per-fold) baseline feature width since
                     # FeatCopilot didn't produce engineered features this fold.
+                    n_features_generated.append(X_train.shape[1])
+                except Exception as e:
+                    # Unexpected error — surface the full traceback so genuine
+                    # bugs (e.g. a refactor regression raising ``AttributeError``)
+                    # don't get masked behind a silent baseline-fallback. We
+                    # still continue to the next fold so a single bad fold
+                    # doesn't poison the entire dataset run.
+                    logger.exception(
+                        "FeatCopilot UNEXPECTED error on dataset=%s seed=%s fold=%s",
+                        dataset_name,
+                        seed,
+                        fold_idx,
+                    )
+                    fe_failed_folds.append(
+                        {
+                            "seed": seed,
+                            "fold": fold_idx,
+                            "error_type": type(e).__name__,
+                            "error_message": str(e),
+                            "expected": False,
+                        }
+                    )
+                    tabular_fold_scores.append(best_baseline[primary_metric])
+                    fe_times.append(0.0)
                     n_features_generated.append(X_train.shape[1])
 
         baseline_scores = np.array(baseline_fold_scores)
@@ -689,7 +770,19 @@ def run_single_benchmark(
         if len(baseline_scores) >= 5 and not np.allclose(baseline_scores, tabular_scores):
             try:
                 _, p_value = stats.wilcoxon(tabular_scores, baseline_scores, alternative="two-sided")
-            except ValueError:
+            except ValueError as e:
+                # ``scipy.stats.wilcoxon`` raises ``ValueError`` when the input
+                # contains all-zero differences or insufficient non-zero pairs.
+                # Falling back to ``p_value = 1.0`` (no significance) is the
+                # right behaviour, but log so it doesn't look like a real
+                # null result. Anything other than ``ValueError`` is a bug
+                # we want to surface.
+                logger.warning(
+                    "Wilcoxon test failed for %s (n=%d), reporting p_value=1.0: %s",
+                    dataset_name,
+                    len(baseline_scores),
+                    e,
+                )
                 p_value = 1.0
 
         # Cast to native Python ``bool`` so the in-memory results dict is
@@ -726,15 +819,25 @@ def run_single_benchmark(
             "engines_used": engines_used,
             "baseline_fold_scores": baseline_scores.tolist(),
             "tabular_fold_scores": tabular_scores.tolist(),
+            # Per-fold FeatCopilot failure log. Empty list means every fold
+            # ran the engineered pipeline cleanly. Non-empty entries record
+            # the seed/fold, exception class, message, and whether the
+            # exception was an *expected* validation error (``expected=True``)
+            # or an *unexpected* bug (``expected=False``) so reviewers /
+            # report consumers can see at a glance whether the
+            # ``tabular_best_score`` is a fair comparison.
+            "fe_failed_folds": fe_failed_folds,
+            "n_fe_failed_folds": len(fe_failed_folds),
         }
 
         return results
 
     except Exception as e:
-        print(f"Error: {e}")
-        import traceback
-
-        traceback.print_exc()
+        # Top-level safety net: keep the benchmark loop alive when a single
+        # dataset fails so the rest of the suite still produces a report.
+        # Surface the full traceback (``logger.exception``) so unexpected
+        # failures don't look like a benign skip.
+        logger.exception("Dataset run failed for %s: %s", dataset_name, e)
         return None
 
 

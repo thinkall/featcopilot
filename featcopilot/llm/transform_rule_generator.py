@@ -13,6 +13,7 @@ import pandas as pd
 from featcopilot.core.transform_rule import TransformRule
 from featcopilot.stores.rule_store import TransformRuleStore
 from featcopilot.utils.logger import get_logger
+from featcopilot.utils.models import DEFAULT_MODEL
 
 logger = get_logger(__name__)
 
@@ -26,8 +27,9 @@ class TransformRuleGenerator:
 
     Parameters
     ----------
-    model : str, default='gpt-5.2'
-        LLM model to use
+    model : str, optional
+        LLM model to use. Defaults to
+        :data:`featcopilot.utils.models.DEFAULT_MODEL`.
     store : TransformRuleStore, optional
         Rule store for saving and retrieving rules
     validate : bool, default=True
@@ -51,7 +53,7 @@ class TransformRuleGenerator:
 
     def __init__(
         self,
-        model: str = "gpt-5.2",
+        model: str = DEFAULT_MODEL,
         store: TransformRuleStore | None = None,
         validate: bool = True,
         verbose: bool = False,

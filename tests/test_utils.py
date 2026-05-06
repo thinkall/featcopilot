@@ -431,6 +431,60 @@ class TestModelsDefault:
         """Test DEFAULT_MODEL constant value."""
         assert DEFAULT_MODEL == "gpt-5.2"
 
+    def test_default_model_exposed_from_utils_package(self):
+        """``DEFAULT_MODEL`` is exported from the ``featcopilot.utils`` namespace.
+
+        Pins the public re-export so downstream code can do
+        ``from featcopilot.utils import DEFAULT_MODEL`` without dipping
+        into the private ``featcopilot.utils.models`` module.
+        """
+        from featcopilot.utils import DEFAULT_MODEL as DEFAULT_MODEL_PUBLIC
+
+        assert DEFAULT_MODEL_PUBLIC == DEFAULT_MODEL
+
+    def test_llm_modules_share_default_model(self):
+        """All Copilot-backed LLM modules use ``DEFAULT_MODEL`` as their default.
+
+        Regression guard: previously every module duplicated the literal
+        ``"gpt-5.2"`` string, which made it possible to drift the default
+        across modules silently. We now expect every Copilot-backed
+        constructor / Pydantic config to default to ``DEFAULT_MODEL``.
+
+        OpenAI / LiteLLM clients are intentionally excluded — they
+        default to ``"gpt-4o"`` because that's a real public model
+        identifier for those backends.
+        """
+        from featcopilot.llm.code_generator import FeatureCodeGenerator
+        from featcopilot.llm.copilot_client import CopilotConfig, CopilotFeatureClient
+        from featcopilot.llm.explainer import FeatureExplainer
+        from featcopilot.llm.semantic_engine import SemanticEngine, SemanticEngineConfig
+        from featcopilot.llm.transform_rule_generator import TransformRuleGenerator
+
+        assert CopilotConfig().model == DEFAULT_MODEL
+        assert CopilotFeatureClient().config.model == DEFAULT_MODEL
+        assert FeatureCodeGenerator().model == DEFAULT_MODEL
+        assert FeatureExplainer().model == DEFAULT_MODEL
+        assert SemanticEngineConfig().model == DEFAULT_MODEL
+        assert TransformRuleGenerator().model == DEFAULT_MODEL
+        # SemanticEngine accepts the model in __init__ and stores it on
+        # its config; verify the default propagates end-to-end.
+        engine = SemanticEngine(validate_features=False)
+        assert engine.config.model == DEFAULT_MODEL
+
+    def test_auto_feature_engineer_llm_default_model(self):
+        """AutoFeatureEngineer.llm_config falls back to ``DEFAULT_MODEL``.
+
+        The internal ``_create_engine("llm")`` path used to hardcode
+        ``"gpt-5.2"`` as a fallback when ``llm_config`` was missing the
+        ``model`` key. We now expect the centralized default to be used
+        so a future model change in one place propagates everywhere.
+        """
+        from featcopilot.transformers.sklearn_compat import AutoFeatureEngineer
+
+        afe = AutoFeatureEngineer(llm_config={})  # missing "model" key
+        engine = afe._create_engine("llm")
+        assert engine.config.model == DEFAULT_MODEL
+
 
 class TestFetchModels:
     """Tests for fetch_models function."""
