@@ -58,7 +58,7 @@ Sample (truncated) output:
 
 ```json
 {
-  "version": "0.3.7",
+  "version": "0.4.0",
   "supported_engines": ["llm", "relational", "tabular", "text", "timeseries"],
   "supported_selection_methods": [
     "chi2",
