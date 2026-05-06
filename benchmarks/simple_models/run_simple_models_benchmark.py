@@ -83,11 +83,14 @@ from benchmarks.feature_cache import (
 from featcopilot.utils.models import DEFAULT_MODEL
 
 # Module logger for surfacing exceptions that were previously swallowed.
-# We use the stdlib ``logging`` module here (rather than
-# ``featcopilot.utils.logger.get_logger``) so the benchmark stays usable
-# even before featcopilot is installed (e.g. the benchmark cache loader
-# imports this module from CI smoke tests). ``logging.basicConfig`` is
-# the consumer's responsibility.
+# We deliberately use the stdlib ``logging`` module here (rather than
+# ``featcopilot.utils.logger.get_logger``) because the latter sets
+# ``propagate=False`` on the ``featcopilot.*`` logger tree, which prevents
+# benchmark output from reaching root-logger handlers configured by
+# downstream consumers (CI runners, log aggregators, ``pytest --log-cli``).
+# A vanilla ``logging.getLogger(__name__)`` here keeps the benchmark output
+# routable through the consumer's normal logging configuration.
+# ``logging.basicConfig`` is the consumer's responsibility.
 logger = logging.getLogger(__name__)
 
 # Default configuration
