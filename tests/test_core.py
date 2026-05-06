@@ -60,6 +60,42 @@ class TestFeature:
 
         assert list(result) == [1, 4, 9, 16]
 
+    def test_feature_compute_uses_safe_builtins(self):
+        """Regression: ``Feature.compute`` previously called
+        ``exec(code, {"__builtins__": {}}, locals)`` which broke any
+        snippet that used a Python builtin (``len``, ``range``, ``int``,
+        ``sum``, ...). The fix exposes a curated set of safe builtins
+        identical to ``TransformRule._get_safe_builtins`` so common
+        idioms work without giving the snippet unrestricted access.
+        """
+        df = pd.DataFrame({"col1": [10, 20, 30, 40, 50]})
+
+        # ``len`` (most common builtin used in a feature) — would NameError
+        # before the fix.
+        f_len = Feature(name="row_count", code="result = pd.Series([len(df)] * len(df))")
+        result = f_len.compute(df)
+        assert list(result) == [5, 5, 5, 5, 5]
+
+        # ``range`` + ``sum`` + numeric builtins — exercises a broader
+        # subset of the whitelist in one snippet.
+        f_range = Feature(
+            name="cumulative_index_sum",
+            code="result = pd.Series([sum(range(int(v))) for v in df['col1']])",
+        )
+        result = f_range.compute(df)
+        # sum(range(10))=45, sum(range(20))=190, sum(range(30))=435,
+        # sum(range(40))=780, sum(range(50))=1225
+        assert list(result) == [45, 190, 435, 780, 1225]
+
+        # ``abs`` + ``round`` + ``min`` / ``max`` — ensure the
+        # whitelist's full set is exposed.
+        f_clip = Feature(
+            name="clipped",
+            code="result = pd.Series([round(min(max(abs(v - 25), 0), 20), 2) for v in df['col1']])",
+        )
+        result = f_clip.compute(df)
+        assert list(result) == [15, 5, 5, 15, 20]
+
 
 class TestFeatureSet:
     """Tests for FeatureSet class."""

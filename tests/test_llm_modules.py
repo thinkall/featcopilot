@@ -2596,3 +2596,52 @@ class TestCopilotClientSDKCompatibility:
 
         result = asyncio.run(client.send_prompt("hi"))
         assert "timed out" in result.lower()
+
+
+# ---------------------------------------------------------------------------
+# featcopilot.llm package public-API consistency
+# ---------------------------------------------------------------------------
+
+
+class TestLLMPackageExports:
+    """Pin the public API of the ``featcopilot.llm`` package.
+
+    Regression: ``SyncCopilotFeatureClient`` was defined in
+    ``copilot_client.py`` and used by sibling modules (e.g.
+    ``code_generator.py``, ``explainer.py``) but was missing from
+    ``featcopilot/llm/__init__.py``'s imports and ``__all__`` while the
+    sister classes ``SyncOpenAIFeatureClient`` and
+    ``SyncLiteLLMFeatureClient`` WERE both exported. That made
+    ``from featcopilot.llm import SyncCopilotFeatureClient`` raise
+    ``ImportError`` even though the class itself was importable from the
+    submodule, which is a public-API surface inconsistency callers
+    legitimately notice.
+    """
+
+    def test_sync_clients_are_all_exported(self):
+        """All three sync LLM clients must be importable directly from
+        the ``featcopilot.llm`` package."""
+        from featcopilot.llm import (
+            SyncCopilotFeatureClient,
+            SyncLiteLLMFeatureClient,
+            SyncOpenAIFeatureClient,
+        )
+
+        # Identity check: the names exposed by the package must be the
+        # same objects defined in the underlying submodules.
+        from featcopilot.llm.copilot_client import SyncCopilotFeatureClient as _SCC
+        from featcopilot.llm.litellm_client import SyncLiteLLMFeatureClient as _SLC
+        from featcopilot.llm.openai_client import SyncOpenAIFeatureClient as _SOC
+
+        assert SyncCopilotFeatureClient is _SCC
+        assert SyncLiteLLMFeatureClient is _SLC
+        assert SyncOpenAIFeatureClient is _SOC
+
+    def test_sync_clients_are_listed_in_dunder_all(self):
+        """``__all__`` must mirror the imports so ``from featcopilot.llm
+        import *`` is consistent with explicit imports."""
+        import featcopilot.llm as llm_pkg
+
+        assert "SyncCopilotFeatureClient" in llm_pkg.__all__
+        assert "SyncLiteLLMFeatureClient" in llm_pkg.__all__
+        assert "SyncOpenAIFeatureClient" in llm_pkg.__all__

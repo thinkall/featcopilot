@@ -4,7 +4,7 @@ Uses OpenAI SDK, LiteLLM, or GitHub Copilot SDK for intelligent feature generati
 """
 
 from featcopilot.llm.code_generator import FeatureCodeGenerator
-from featcopilot.llm.copilot_client import CopilotFeatureClient
+from featcopilot.llm.copilot_client import CopilotFeatureClient, SyncCopilotFeatureClient
 from featcopilot.llm.explainer import FeatureExplainer
 from featcopilot.llm.litellm_client import LiteLLMFeatureClient, SyncLiteLLMFeatureClient
 from featcopilot.llm.openai_client import OpenAIFeatureClient, SyncOpenAIFeatureClient
@@ -13,6 +13,7 @@ from featcopilot.llm.transform_rule_generator import TransformRuleGenerator
 
 __all__ = [
     "CopilotFeatureClient",
+    "SyncCopilotFeatureClient",
     "LiteLLMFeatureClient",
     "SyncLiteLLMFeatureClient",
     "OpenAIFeatureClient",

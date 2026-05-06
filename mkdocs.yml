@@ -80,6 +80,7 @@ nav:
     - LLM Features: user-guide/llm-features.md
     - Feature Selection: user-guide/selection.md
     - Feature Stores: user-guide/feature-stores.md
+    - Command-Line Interface: user-guide/cli.md
     - Benchmarks: user-guide/benchmarks.md
     - Best Practices: user-guide/best-practices.md
   - Examples:

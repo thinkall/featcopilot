@@ -79,7 +79,7 @@ Development dependencies include:
 ```python
 import featcopilot
 print(featcopilot.__version__)
-# Output: 0.1.0
+# Output: 0.3.7
 
 from featcopilot import AutoFeatureEngineer
 print("Installation successful!")

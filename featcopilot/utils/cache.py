@@ -8,6 +8,10 @@ from typing import Any
 
 import pandas as pd
 
+from featcopilot.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 class FeatureCache:
     """
@@ -85,8 +89,18 @@ class FeatureCache:
                     # Store in memory cache
                     self._memory_cache[cache_key] = value
                     return value
-                except Exception:
-                    pass
+                except Exception as exc:  # noqa: BLE001 - we re-surface via logger
+                    # Cache reads must never crash the caller (a corrupted
+                    # entry should fall back to recomputing the feature)
+                    # but the failure must not be silent: log a warning
+                    # so users can diagnose disk issues / pickle version
+                    # mismatches / partially-written files.
+                    logger.warning(
+                        "FeatureCache: failed to read cache entry %s (%s: %s)",
+                        cache_path,
+                        type(exc).__name__,
+                        exc,
+                    )
 
         return None
 
@@ -137,8 +151,18 @@ class FeatureCache:
                 meta_path = self.cache_dir / f"{cache_key}.meta.json"
                 with open(meta_path, "w") as f:
                     json.dump(metadata or {}, f)
-            except Exception:
-                pass
+            except Exception as exc:  # noqa: BLE001 - we re-surface via logger
+                # Persisting to disk is best-effort: a write failure (e.g.
+                # disk full, read-only filesystem, unpicklable value)
+                # should not crash the caller, but it must not be silent
+                # either. Log a warning so operational issues with the
+                # cache directory surface in observability.
+                logger.warning(
+                    "FeatureCache: failed to persist cache entry %s (%s: %s)",
+                    cache_path,
+                    type(exc).__name__,
+                    exc,
+                )
 
     def has(self, key: str, data_hash: str | None = None) -> bool:
         """Check if key exists in cache."""
@@ -205,8 +229,17 @@ class FeatureCache:
                 try:
                     with open(meta_path) as f:
                         return json.load(f)
-                except Exception:
-                    pass
+                except Exception as exc:  # noqa: BLE001 - we re-surface via logger
+                    # Same rationale as the cache-read path: a corrupted
+                    # metadata file should fall back to "no metadata
+                    # available" rather than crashing the caller, but
+                    # the failure must surface via the logger.
+                    logger.warning(
+                        "FeatureCache: failed to read cache metadata %s (%s: %s)",
+                        meta_path,
+                        type(exc).__name__,
+                        exc,
+                    )
 
         return None
 

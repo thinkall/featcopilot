@@ -12,6 +12,45 @@ from featcopilot.utils.logger import get_logger
 logger = get_logger(__name__)
 
 
+# Curated set of safe Python builtins exposed to ``Feature.compute``'s
+# stored code. Without this whitelist (i.e. with ``{"__builtins__": {}}``)
+# even basic idioms like ``len(df)``, ``range(...)``, ``sum(...)``, or
+# ``int(x)`` raise ``NameError`` at exec time, which means a feature whose
+# code legitimately uses a Python builtin crashes during ``compute`` even
+# though the snippet is otherwise valid. The set mirrors the one used by
+# :class:`featcopilot.core.transform_rule.TransformRule` so both code
+# execution paths agree on what is safe.
+_SAFE_BUILTINS: dict[str, Any] = {
+    "len": len,
+    "sum": sum,
+    "max": max,
+    "min": min,
+    "int": int,
+    "float": float,
+    "str": str,
+    "bool": bool,
+    "abs": abs,
+    "round": round,
+    "pow": pow,
+    "range": range,
+    "list": list,
+    "dict": dict,
+    "set": set,
+    "tuple": tuple,
+    "sorted": sorted,
+    "reversed": reversed,
+    "enumerate": enumerate,
+    "zip": zip,
+    "any": any,
+    "all": all,
+    "map": map,
+    "filter": filter,
+    "isinstance": isinstance,
+    "hasattr": hasattr,
+    "getattr": getattr,
+}
+
+
 class FeatureType(Enum):
     """Types of features."""
 
@@ -109,6 +148,13 @@ class Feature:
         """
         Compute feature values from DataFrame using stored code.
 
+        The stored ``code`` is executed with ``df``, ``np`` and ``pd`` available
+        as local variables and a curated set of safe Python builtins
+        (``len``, ``range``, ``sum``, numeric / sequence constructors, etc.)
+        in globals so common idioms work without giving the snippet
+        unrestricted access to imports / file I/O. The snippet must
+        bind its output to a local variable named ``result``.
+
         Parameters
         ----------
         df : DataFrame
@@ -118,11 +164,16 @@ class Feature:
         -------
         Series
             Computed feature values
+
+        Raises
+        ------
+        ValueError
+            If ``self.code`` is empty / missing or if the executed code
+            does not bind a ``result`` variable.
         """
         if self.code:
-            # Execute stored code to compute feature
             local_vars = {"df": df, "np": np, "pd": pd}
-            exec(self.code, {"__builtins__": {}}, local_vars)
+            exec(self.code, {"__builtins__": _SAFE_BUILTINS}, local_vars)
             if "result" in local_vars:
                 return local_vars["result"]
         raise ValueError(f"No code defined for feature {self.name}")
