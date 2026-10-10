@@ -49,7 +49,10 @@ jobs:
 
       - name: Diagnose Python 3.10 native optimizer
         if: matrix.python-version == '3.10'
+        env:
+          OPENBLAS_CORETYPE: HASWELL
         run: |
+          python -c "import numpy, scipy.linalg; from threadpoolctl import threadpool_info; print(threadpool_info())"
           gdb --batch --return-child-result -ex "set pagination off" -ex run -ex "thread apply all bt" --args python -m pytest tests/test_predictive_logistic_workers.py -q
           gdb --batch --return-child-result -ex "set pagination off" -ex run -ex "thread apply all bt" --args python -m pytest tests/ -v --cov=featcopilot --cov-report=xml --cov-report=term-missing
 
