@@ -54,6 +54,10 @@ explicit, legacy defaults are unchanged, and negative results stay published.
 
 ## Installation
 
+The core package supports Python 3.10+. The GitHub Copilot SDK extra
+(`llm`, also included by `full` and `benchmark`) requires Python 3.11+
+and SDK 0.3.0 or newer, matching the session APIs used by FeatCopilot.
+
 ```bash
 # Basic installation
 pip install featcopilot

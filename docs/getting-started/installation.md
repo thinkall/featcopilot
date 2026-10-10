@@ -2,7 +2,8 @@
 
 ## Requirements
 
-- Python 3.10 or higher
+- Python 3.10 or higher for the core package
+- Python 3.11 or higher for GitHub Copilot integration (`llm`, `full`, or `benchmark` extras)
 - pip or conda package manager
 
 ## Basic Installation
@@ -30,7 +31,10 @@ FeatCopilot supports two LLM backends:
 pip install featcopilot[llm]
 ```
 
-This installs the GitHub Copilot SDK for native Copilot integration.
+This requires Python 3.11+ and installs GitHub Copilot SDK 0.3.0 or newer,
+which provides the session APIs used by FeatCopilot. The older SDK available
+on Python 3.10 does not provide those APIs; core feature engineering still
+supports Python 3.10.
 
 ### Option 2: LiteLLM (100+ Providers)
 
@@ -73,6 +77,11 @@ Development dependencies include:
 - `black` - Code formatting
 - `ruff` - Linting
 - `mypy` - Type checking
+- `psutil` - Isolated worker and process-limit tests
+
+On Python 3.11+, install `".[dev,llm]"` to also run the Copilot SDK contract
+tests. These use mocked clients, not live provider calls. The Python 3.10
+CI job runs the core suite without the unsupported SDK extra.
 
 ## Verify Installation
 
@@ -95,14 +104,14 @@ print("Installation successful!")
 | pandas | >=1.3.0 | Data manipulation |
 | scipy | >=1.7.0 | Scientific computing |
 | scikit-learn | >=1.0.0 | ML utilities & transformers |
-| pydantic | >=2.0.0 | Configuration validation |
+| pydantic | >=2.5.0 | Configuration validation |
 | joblib | >=1.1.0 | Parallel processing |
 
 ### Optional Dependencies
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| github-copilot-sdk | >=0.1.0 | GitHub Copilot SDK (default LLM backend) |
+| github-copilot-sdk | >=0.3.0 | GitHub Copilot SDK (Python 3.11+) |
 | litellm | >=1.0.0 | LiteLLM (100+ LLM providers) |
 | statsmodels | >=0.13.0 | Advanced time series |
 
