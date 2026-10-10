@@ -117,6 +117,21 @@ print("Installation successful!")
 
 ## Troubleshooting
 
+### Native optimizer crashes on Linux x86-64 with Python 3.10
+
+The SciPy 1.15.0-1.15.3 wheels share an OpenBLAS 0.3.28 build with a
+worker-buffer initialization regression. Growing the native thread pool
+beyond its startup size can crash in a triangular-solve worker. The
+upstream fix is documented in
+[OpenMathLib/OpenBLAS#4879](https://github.com/OpenMathLib/OpenBLAS/pull/4879).
+
+FeatCopilot excludes those four SciPy releases only on the reproduced
+Python 3.10/Linux/x86-64 combination. The resolver can use SciPy 1.14.1
+(compatible with NumPy 2.2.6) there, without changing the L-BFGS-B solver,
+thread limits or test assertions. Other platforms and Python versions
+are not constrained by this exclusion, and future patched releases are
+not blocked. No library preload, CPU-kernel override or warmup is needed.
+
 ### ImportError: No module named 'featcopilot'
 
 Ensure you've installed the package:
