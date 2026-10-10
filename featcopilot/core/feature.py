@@ -156,7 +156,10 @@ class Feature:
         When ``transformation`` names a registered transformation, that
         callable is also exposed under its registered name so features
         created by :class:`~featcopilot.core.registry.FeatureRegistry`
-        can execute. ``__import__`` is intentionally NOT in the safe
+        can execute. Stored fitted-frequency features receive their internal
+        callable separately: they must supply their fitted mapping and are
+        not advertised as public unary transformations.
+        ``__import__`` is intentionally NOT in the safe
         builtins, so an ``import foo`` statement inside the snippet raises
         at exec time. The snippet must bind its output to a name called
         ``result``.
@@ -229,6 +232,10 @@ class Feature:
             registered_transform = registry.get_transformation(self.transformation)
             if registered_transform is not None:
                 namespace[self.transformation] = registered_transform
+            elif self.transformation == "fitted_frequency_v1":
+                from featcopilot.utils.frequency import apply_frequency_mapping
+
+                namespace[self.transformation] = apply_frequency_mapping
 
         exec(self.code, namespace)
         if "result" not in namespace:

@@ -136,13 +136,23 @@ def test_shared_unsupported_values_raise_without_coercion_or_contents(value):
         FittedRuleEngine([FittedRuleSpec(name="f", operator="frequency", columns=["x"])]).fit(series.to_frame("x"))
 
 
-def test_frequency_fit_requires_rows_and_registered_apply_requires_a_mapping():
+def test_frequency_fit_requires_rows_and_stateful_apply_is_not_a_unary_transformation():
     with pytest.raises(ValueError, match="nonempty"):
         fit_frequency_mapping(pd.Series([], dtype=object))
-    apply = registry.get_transformation(OPERATOR)
-    assert apply is apply_frequency_mapping
-    with pytest.raises(TypeError):
-        apply(pd.Series(["a"]))
+    assert OPERATOR not in registry.list_transformations()
+    assert registry.get_transformation(OPERATOR) is None
+    with pytest.raises(ValueError, match="Unknown transformation"):
+        registry.create_feature(name="frequency", transformation=OPERATOR, source_columns=["value"])
+
+
+def test_serialized_frequency_features_keep_their_internal_callable_and_fitted_mapping():
+    train = pd.Series(["a", "b", "a"], name="value")
+    mapping = fit_frequency_mapping(train)
+    feature = PredictiveTabularEngine._frequency_feature("value", mapping, len(train), "final_fit")
+    future = pd.DataFrame({"value": ["b", "a", "unseen", None]}, index=[3, 1, 8, 5])
+    expected = apply_frequency_mapping(future["value"], mapping)
+    for restored in (feature, Feature.from_dict(feature.to_dict()), pickle.loads(pickle.dumps(feature))):
+        assert_series_equal(restored.compute(future), expected)
 
 
 @pytest.mark.parametrize("value", ["true", "false", 0, 1, None, np.bool_(True)])

@@ -165,9 +165,9 @@ class ImportanceSelector(BaseSelector):
                 import xgboost as xgb
 
                 if is_classification:
-                    return xgb.XGBClassifier(n_estimators=self.n_estimators, random_state=42, n_jobs=-1)
+                    model = xgb.XGBClassifier(n_estimators=self.n_estimators, random_state=42, n_jobs=-1)
                 else:
-                    return xgb.XGBRegressor(n_estimators=self.n_estimators, random_state=42, n_jobs=-1)
+                    model = xgb.XGBRegressor(n_estimators=self.n_estimators, random_state=42, n_jobs=-1)
             except ImportError:
                 if self.verbose:
                     logger.warning("XGBoost not available, falling back to RandomForest")

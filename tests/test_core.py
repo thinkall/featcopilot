@@ -533,6 +533,20 @@ class TestRegistryGenerators:
 class TestRegistryCreateFeature:
     """Tests for FeatureRegistry.create_feature."""
 
+    def test_every_default_transformation_supports_unary_feature_creation(self, monkeypatch):
+        registry = FeatureRegistry()
+        monkeypatch.setattr(registry, "_transformations", {})
+        registry._init_default_transformations()
+        frame = pd.DataFrame({"value": [-2.0, 0.0, 3.0]}, index=[5, 8, 13])
+
+        for transformation in registry.list_transformations():
+            feature = registry.create_feature(
+                name=f"value_{transformation}", transformation=transformation, source_columns=["value"]
+            )
+            result = feature.compute(frame)
+            expected = registry.get_transformation(transformation)(frame["value"])
+            pd.testing.assert_series_equal(result, expected)
+
     def test_create_feature_valid(self):
         """Test creating a feature with a valid transformation."""
         registry = FeatureRegistry()

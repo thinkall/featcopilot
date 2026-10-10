@@ -7,6 +7,7 @@ from typing import Any, Literal
 
 import numpy as np
 import pandas as pd
+from numpy.typing import NDArray
 from pydantic import BaseModel, ConfigDict, model_validator
 
 from featcopilot.core.base import BaseEngine, EngineConfig
@@ -248,6 +249,7 @@ class PointInTimeRelationalEngine(BaseEngine):
             values = []
             for entity, cutoff in zip(entities, cutoffs, strict=True):
                 history = self._history[spec.name].get(entity)
+                eligible: NDArray[np.float64]
                 if history is None:
                     eligible = np.empty(0)
                 else:

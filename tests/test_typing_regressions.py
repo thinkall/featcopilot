@@ -8,13 +8,18 @@ from dataclasses import dataclass
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
+import numpy as np
+import pandas as pd
 import pytest
 
+from featcopilot.engines.point_in_time import PointInTimeRelationalEngine
 from featcopilot.engines.text import TextEngine
+from featcopilot.engines.timeseries import TimeSeriesEngine
 from featcopilot.llm.copilot_client import CopilotFeatureClient, SyncCopilotFeatureClient
 from featcopilot.llm.litellm_client import LiteLLMFeatureClient, SyncLiteLLMFeatureClient
 from featcopilot.llm.openai_client import OpenAIFeatureClient, SyncOpenAIFeatureClient
 from featcopilot.llm.semantic_engine import SemanticEngine
+from featcopilot.selection.importance import ImportanceSelector
 from featcopilot.stores.feast_store import FeastFeatureStore
 from featcopilot.utils.cache import FeatureCache
 from featcopilot.utils.models import _fetch_models_from_copilot
@@ -196,7 +201,7 @@ def test_optional_integrations_remain_importable_without_sdks():
     script = """
 import builtins
 original_import = builtins.__import__
-blocked = {"copilot", "openai", "litellm", "feast", "transformers", "nest_asyncio"}
+blocked = {"copilot", "openai", "litellm", "feast", "transformers", "nest_asyncio", "xgboost"}
 def base_install_import(name, *args, **kwargs):
     if name.split(".")[0] in blocked:
         raise ImportError(name)
@@ -208,6 +213,104 @@ import featcopilot.llm.litellm_client
 import featcopilot.llm.openai_client
 import featcopilot.stores.feast_store
 import featcopilot.engines.text
+import featcopilot.selection.importance
 """
     result = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True, check=False)
     assert result.returncode == 0, result.stderr
+
+
+@pytest.mark.parametrize("is_classification", [False, True])
+@pytest.mark.parametrize("available", [False, True])
+def test_importance_optional_model_preserves_constructor_and_fallback(monkeypatch, is_classification, available):
+    """Protocol annotations preserve optional learners and the dependency-free fallback."""
+    from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+
+    classifier = MagicMock()
+    regressor = MagicMock()
+    module = SimpleNamespace(XGBClassifier=classifier, XGBRegressor=regressor) if available else None
+    monkeypatch.setitem(sys.modules, "xgboost", module)
+    selector = ImportanceSelector(model="xgboost", n_estimators=7)
+
+    model = selector._create_model(is_classification)
+
+    if available:
+        chosen, unused = (classifier, regressor) if is_classification else (regressor, classifier)
+        assert model is chosen.return_value
+        chosen.assert_called_once_with(n_estimators=7, random_state=42, n_jobs=-1)
+        unused.assert_not_called()
+    else:
+        assert isinstance(model, RandomForestClassifier if is_classification else RandomForestRegressor)
+        assert model.n_estimators == 7
+        assert model.random_state == 42
+        assert model.n_jobs is None
+
+
+@pytest.mark.parametrize("dtype", [np.int32, np.int64, np.float32, np.float64])
+def test_timeseries_numpy_index_scalars_preserve_feature_values(dtype):
+    """Count ratios and extrema locations are real Python scalars across NumPy dtypes."""
+    engine = TimeSeriesEngine()
+    series = np.array([2, 0, 3, 0, 3, 1], dtype=dtype)
+    features = engine._extract_counts(series, "value")
+    features.update(engine._extract_complexity(series, "value"))
+    features.update(engine._extract_fft(series, "value"))
+
+    expected = {
+        "value_first_loc_max": 2 / 6,
+        "value_first_loc_min": 1 / 6,
+        "value_last_loc_max": 4 / 6,
+        "value_last_loc_min": 3 / 6,
+        "value_pct_reoccurring_data_points": 4 / 6,
+    }
+    for name, value in expected.items():
+        assert type(features[name]) is float
+        assert features[name] == pytest.approx(value)
+    magnitude = np.abs(np.fft.fft(series))
+    assert type(features["value_dominant_freq_idx"]) is int
+    assert features["value_dominant_freq_idx"] == int(np.argmax(magnitude[1:3])) + 1
+    assert features["value_spectral_energy"] == pytest.approx(np.sum(magnitude**2))
+    for coefficient in range(1, 4):
+        assert features[f"value_fft_coeff_{coefficient}"] == pytest.approx(magnitude[coefficient])
+
+
+@pytest.mark.parametrize("dtype", [np.float32, np.float64])
+def test_approximate_entropy_preserves_normalized_match_counts(dtype):
+    """Explicit array typing must not change entropy normalization or short-series behavior."""
+    engine = TimeSeriesEngine()
+    series = np.array([0, 1, 0, 1, 0, 1, 0, 1], dtype=dtype)
+    expected = (4 * np.log(4 / 7 + 1e-10) + 3 * np.log(3 / 7 + 1e-10)) / 7 - np.log(0.5 + 1e-10)
+    assert engine._approximate_entropy(series) == pytest.approx(expected)
+    assert engine._approximate_entropy(series[:3]) == 0
+    assert engine._approximate_entropy(np.ones(8, dtype=dtype)) == 0
+
+
+@pytest.mark.parametrize("aggregation,empty", [("count", 0.0), ("sum", 0.0), ("mean", np.nan)])
+def test_point_in_time_float_slices_preserve_unknown_and_known_entities(aggregation, empty):
+    """Empty and populated float arrays share the aggregate boundary without changing cutoffs."""
+    query = pd.DataFrame(
+        {"entity": ["new", "known", "known"], "when": pd.to_datetime(["2025-01-03", "2025-01-03", "2025-01-01"])},
+        index=[5, 2, 5],
+    )
+    history = pd.DataFrame(
+        {
+            "entity": ["known", "known", "known"],
+            "available": pd.to_datetime(["2025-01-01", "2025-01-02", "2025-01-03"]),
+            "value": pd.array([1.5, None, 99.0], dtype="Float64"),
+        }
+    )
+    engine = PointInTimeRelationalEngine(
+        [
+            {
+                "name": "past",
+                "table": "events",
+                "entity_column": "entity",
+                "available_at": "available",
+                "value_column": "value",
+                "aggregation": aggregation,
+            }
+        ],
+        entity_column="entity",
+        prediction_time_column="when",
+    )
+    result = engine.fit_transform(query, related_tables={"events": history})
+    pd.testing.assert_frame_equal(result[query.columns], query)
+    np.testing.assert_allclose(result["past"], [empty, 1.0 if aggregation == "count" else 1.5, empty], equal_nan=True)

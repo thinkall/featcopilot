@@ -6,6 +6,7 @@ Inspired by TSFresh but with better integration and LLM capabilities.
 
 import numpy as np
 import pandas as pd
+from numpy.typing import NDArray
 from pydantic import Field
 
 from featcopilot.core.base import BaseEngine, EngineConfig
@@ -407,7 +408,7 @@ class TimeSeriesEngine(BaseEngine):
         features[f"{prefix}_spectral_energy"] = np.sum(fft_abs**2)
 
         # Dominant frequency
-        dominant_idx = np.argmax(fft_abs[1 : len(fft_abs) // 2]) + 1
+        dominant_idx = int(np.argmax(fft_abs[1 : len(fft_abs) // 2])) + 1
         features[f"{prefix}_dominant_freq_idx"] = dominant_idx
 
         return features
@@ -484,7 +485,7 @@ class TimeSeriesEngine(BaseEngine):
 
         def _phi(m_val: int) -> float:
             patterns = np.array([series[i : i + m_val] for i in range(n - m_val + 1)])
-            counts = np.zeros(len(patterns))
+            counts: NDArray[np.float64] = np.zeros(len(patterns))
             for i, pattern in enumerate(patterns):
                 for other in patterns:
                     if np.max(np.abs(pattern - other)) < r:
@@ -568,7 +569,7 @@ class TimeSeriesEngine(BaseEngine):
         features[f"{prefix}_sum_reoccurring_data_points"] = float(np.sum(counts[reoccurring_mask]))
 
         # Percentage of reoccurring data points
-        features[f"{prefix}_pct_reoccurring_data_points"] = np.sum(counts[reoccurring_mask]) / len(series_clean)
+        features[f"{prefix}_pct_reoccurring_data_points"] = int(np.sum(counts[reoccurring_mask])) / len(series_clean)
 
         return features
 
@@ -590,16 +591,20 @@ class TimeSeriesEngine(BaseEngine):
         features[f"{prefix}_count_below_mean"] = np.sum(series_clean < mean_val)
 
         # First location of maximum
-        features[f"{prefix}_first_loc_max"] = np.argmax(series_clean) / len(series_clean)
+        features[f"{prefix}_first_loc_max"] = int(np.argmax(series_clean)) / len(series_clean)
 
         # First location of minimum
-        features[f"{prefix}_first_loc_min"] = np.argmin(series_clean) / len(series_clean)
+        features[f"{prefix}_first_loc_min"] = int(np.argmin(series_clean)) / len(series_clean)
 
         # Last location of maximum
-        features[f"{prefix}_last_loc_max"] = (len(series_clean) - 1 - np.argmax(series_clean[::-1])) / len(series_clean)
+        features[f"{prefix}_last_loc_max"] = (len(series_clean) - 1 - int(np.argmax(series_clean[::-1]))) / len(
+            series_clean
+        )
 
         # Last location of minimum
-        features[f"{prefix}_last_loc_min"] = (len(series_clean) - 1 - np.argmin(series_clean[::-1])) / len(series_clean)
+        features[f"{prefix}_last_loc_min"] = (len(series_clean) - 1 - int(np.argmin(series_clean[::-1]))) / len(
+            series_clean
+        )
 
         # Longest strike above mean
         above_mean = series_clean > mean_val
