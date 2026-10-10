@@ -288,6 +288,11 @@ class CopilotPlanProvider:
     timeout : float, default=60.0
         SDK wait timeout, not a generation/token limit.
 
+    Raises
+    ------
+    ValueError
+        If configuration is invalid or the optional SDK cannot be imported.
+
     Notes
     -----
     Construction/preflight never starts a client or probes authentication.
@@ -299,14 +304,20 @@ class CopilotPlanProvider:
 
     A fresh SDK client/session is stopped in finally for every attempt, including
     startup/send failures. No shared conversation can leak across folds. The
-    synchronous API must run outside an active asyncio loop (or via to_thread).
+    transport supports legacy subprocess configuration and the explicit stdio
+    runtime connection API; unsupported isolation settings block preflight.
+    Both retain the same isolated working directory and restrictive CLI flags.
+    The synchronous API must run outside an active asyncio loop (or via to_thread).
     SDK auth.getStatus must confirm an existing login before creating a session.
     Do not pass --no-auto-login: SDK 0.3.0 uses that flag to disable logged-in-user
     authentication, not just to prevent interactive login.
     """
 
     def __init__(self, *, model: str = DEFAULT_MODEL, timeout: float = 60.0) -> None:
-        from copilot import CopilotClient
+        try:
+            from copilot import CopilotClient
+        except ImportError as exc:
+            raise ValueError("Copilot evaluation requires the optional SDK; install 'featcopilot[llm]'") from exc
 
         if model != DEFAULT_MODEL:
             raise ValueError("Copilot evaluation must preserve the configured project default model")
@@ -332,6 +343,23 @@ class CopilotPlanProvider:
         }
         if not required.issubset(inspect.signature(CopilotClient.create_session).parameters):
             raise PreflightBlockedError("Installed Copilot SDK lacks reviewed session-isolation parameters")
+        constructor_parameters = inspect.signature(CopilotClient).parameters
+        modern_parameters = {"connection", "working_directory", "log_level", "use_logged_in_user"}
+        self._uses_runtime_connection = modern_parameters.issubset(constructor_parameters)
+        if self._uses_runtime_connection:
+            from copilot import RuntimeConnection
+
+            transport_parameters = inspect.signature(RuntimeConnection.for_stdio).parameters
+            required_transport_parameters = {"args"}
+        elif {"config", "auto_start"}.issubset(constructor_parameters):
+            from copilot.client import SubprocessConfig
+
+            transport_parameters = inspect.signature(SubprocessConfig).parameters
+            required_transport_parameters = {"cwd", "cli_args", "log_level", "use_logged_in_user"}
+        else:
+            raise PreflightBlockedError("Installed Copilot SDK lacks reviewed client-isolation parameters")
+        if not required_transport_parameters.issubset(transport_parameters):
+            raise PreflightBlockedError("Installed Copilot SDK lacks reviewed transport-isolation parameters")
         self._client_type = CopilotClient
         self._model = model
         self._timeout = timeout
@@ -361,25 +389,40 @@ class CopilotPlanProvider:
         raise RuntimeError("Run synchronous Copilot evaluation outside an active asyncio loop or use asyncio.to_thread")
 
     async def _send_plan(self, request: PlanRequest, max_tokens: int) -> PlanResponse:
-        from copilot.client import SubprocessConfig
         from copilot.generated.session_events import AssistantMessageData, AssistantUsageData
-        from copilot.session import PermissionRequestResult
 
         # Discovery=False does NOT disable AGENTS.md; isolate cwd and disable
         # custom instructions explicitly using flags verified with the SDK CLI.
         with TemporaryDirectory(prefix="featcopilot-plan-") as workspace:
-            config = SubprocessConfig(
-                cwd=workspace,
-                use_logged_in_user=True,
-                log_level="error",
-                cli_args=[
-                    "--no-custom-instructions",
-                    "--disable-builtin-mcps",
-                    "--no-ask-user",
-                    "--no-auto-update",
-                ],
-            )
-            client = self._client_type(config, auto_start=False)
+            cli_args = [
+                "--no-custom-instructions",
+                "--disable-builtin-mcps",
+                "--no-ask-user",
+                "--no-auto-update",
+            ]
+            if self._uses_runtime_connection:
+                from copilot import RuntimeConnection
+                from copilot.generated.rpc import PermissionDecisionReject
+
+                client = self._client_type(
+                    connection=RuntimeConnection.for_stdio(args=cli_args),
+                    working_directory=workspace,
+                    use_logged_in_user=True,
+                    log_level="error",
+                )
+                permission_denied = PermissionDecisionReject()
+            else:
+                from copilot.client import SubprocessConfig
+                from copilot.session import PermissionRequestResult
+
+                config = SubprocessConfig(
+                    cwd=workspace,
+                    use_logged_in_user=True,
+                    log_level="error",
+                    cli_args=cli_args,
+                )
+                client = self._client_type(config, auto_start=False)
+                permission_denied = PermissionRequestResult(kind="reject")
             try:
                 await client.start()
                 auth_status = await client.get_auth_status()
@@ -388,7 +431,7 @@ class CopilotPlanProvider:
                         "Copilot has no authenticated logged-in user; authenticate outside the benchmark"
                     )
                 session = await client.create_session(
-                    on_permission_request=lambda _request, _invocation: PermissionRequestResult(kind="reject"),
+                    on_permission_request=lambda _request, _invocation: permission_denied,
                     model=self._model,
                     streaming=False,
                     available_tools=[],

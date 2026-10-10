@@ -2509,16 +2509,18 @@ class TestCopilotClientSDKCompatibility:
         assert "timeout" in kwargs
         assert result == "hello"
 
-    def test_stop_prefers_disconnect_over_destroy(self):
+    @pytest.mark.parametrize("legacy_destroy", [False, True])
+    def test_stop_prefers_disconnect_over_destroy(self, legacy_destroy):
         """``stop()`` must call ``disconnect()`` when available (SDK
-        0.3.x); ``destroy()`` is deprecated."""
+        0.3.x+), including SDK versions that removed ``destroy()``."""
         from unittest.mock import AsyncMock, MagicMock
 
         from featcopilot.llm.copilot_client import CopilotFeatureClient
 
-        fake_session = MagicMock()
+        fake_session = MagicMock(spec=["disconnect", "destroy"] if legacy_destroy else ["disconnect"])
         fake_session.disconnect = AsyncMock()
-        fake_session.destroy = AsyncMock()
+        if legacy_destroy:
+            fake_session.destroy = AsyncMock()
 
         fake_client = MagicMock()
         fake_client.stop = AsyncMock()
@@ -2534,7 +2536,8 @@ class TestCopilotClientSDKCompatibility:
         asyncio.run(client.stop())
 
         fake_session.disconnect.assert_awaited_once()
-        fake_session.destroy.assert_not_called()
+        if legacy_destroy:
+            fake_session.destroy.assert_not_called()
         fake_client.stop.assert_awaited_once()
 
     def test_stop_falls_back_to_destroy_for_old_sdk(self):
@@ -2560,6 +2563,14 @@ class TestCopilotClientSDKCompatibility:
         asyncio.run(client.stop())
 
         fake_session.destroy.assert_awaited_once()
+
+    def test_stop_rejects_session_without_a_supported_cleanup_method(self):
+        import asyncio
+
+        client = CopilotFeatureClient()
+        client._session = SimpleNamespace()
+        with pytest.raises(RuntimeError, match="no supported cleanup method"):
+            asyncio.run(client.stop())
 
     def test_send_prompt_handles_builtin_timeout_error(self):
         """``send_prompt`` returns the timeout sentinel when ``send_and_wait``

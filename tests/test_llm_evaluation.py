@@ -1,8 +1,10 @@
 """Mock-only coverage for bounded, training-only LLM plan evaluation."""
 
+import inspect
 import json
 import pickle
 import sqlite3
+import sys
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from contextlib import closing
 from dataclasses import FrozenInstanceError, asdict, replace
@@ -223,12 +225,21 @@ def test_blocked_preflight_makes_zero_calls_and_no_reservations(change, tmp_path
     assert ledger.snapshot().attempts == 0
 
 
-def test_default_copilot_preflight_is_explicitly_blocked_even_with_live_approval():
+def test_default_copilot_preflight_is_explicitly_blocked_even_with_live_approval(monkeypatch):
+    monkeypatch.setitem(sys.modules, "copilot", None)
     report = preflight(live_approved=True)
     assert not report.allowed
     assert report.backend == "copilot"
     assert report.model == DEFAULT_MODEL
     assert "hard_output_cap_unverified" in report.blockers
+
+
+def test_copilot_missing_sdk_reports_actionable_configuration_error(monkeypatch):
+    monkeypatch.setitem(sys.modules, "copilot", None)
+    with pytest.raises(ValueError, match=r"featcopilot\[llm\]") as caught:
+        CopilotPlanProvider()
+    assert isinstance(caught.value.__cause__, ModuleNotFoundError)
+    assert caught.value.__cause__.name == "copilot"
 
 
 def test_real_provider_requires_explicit_review_and_matching_backend():
@@ -898,6 +909,7 @@ def test_schema_errors_fail_before_provider_attempt(tmp_path, frames):
 
 @pytest.fixture
 def copilot_sdk():
+    pytest.importorskip("copilot", reason="Copilot adapter contract tests require featcopilot[llm]")
     from copilot.generated.session_events import AssistantMessageData
     from copilot.session import CopilotSession
 
@@ -946,6 +958,26 @@ def test_copilot_hard_default_cannot_make_calls_even_with_live_approval(copilot_
     assert ledger.snapshot().attempts == 0
 
 
+@pytest.mark.parametrize("unsupported", ["client", "transport", "session"])
+def test_copilot_blocks_unsupported_isolation_before_startup(copilot_sdk, monkeypatch, unsupported):
+    factory, _, _ = copilot_sdk
+    if unsupported == "client":
+        monkeypatch.setattr(factory, "__signature__", inspect.Signature())
+    elif unsupported == "session":
+        monkeypatch.setattr(factory.create_session, "__signature__", inspect.Signature())
+    elif "connection" in inspect.signature(factory).parameters:
+        from copilot import RuntimeConnection
+
+        monkeypatch.setattr(RuntimeConnection, "for_stdio", lambda: None)
+    else:
+        import copilot.client as sdk_client
+
+        monkeypatch.setattr(sdk_client, "SubprocessConfig", lambda: None)
+    with pytest.raises(PreflightBlockedError, match=f"{unsupported}-isolation"):
+        CopilotPlanProvider()
+    factory.assert_not_called()
+
+
 def test_copilot_adapter_keeps_model_and_sends_one_isolated_typed_request(copilot_sdk, tmp_path, frames):
     factory, client, session = copilot_sdk
     budget = EvaluationBudget(require_hard_token_cap=False)
@@ -964,19 +996,34 @@ def test_copilot_adapter_keeps_model_and_sends_one_isolated_typed_request(copilo
     client.stop.assert_awaited_once()
     session.send_and_wait.assert_awaited_once()
     session.on.return_value.assert_called_once()
-    config = factory.call_args.args[0]
-    assert config.use_logged_in_user is True
-    assert config.github_token is None
-    assert "--no-custom-instructions" in config.cli_args
-    assert "--no-auto-login" not in config.cli_args
-    assert "--disable-builtin-mcps" in config.cli_args
-    assert config.cwd != str(tmp_path)
+    if factory.call_args.args:
+        config = factory.call_args.args[0]
+        assert factory.call_args.kwargs == {"auto_start": False}
+        assert config.use_logged_in_user is True
+        assert config.github_token is None
+        assert config.use_stdio is True
+        assert config.log_level == "error"
+        cli_args, workspace = config.cli_args, config.cwd
+    else:
+        from copilot import RuntimeConnection
+
+        config = factory.call_args.kwargs
+        assert config["use_logged_in_user"] is True
+        assert "github_token" not in config
+        assert config["log_level"] == "error"
+        assert isinstance(config["connection"], type(RuntimeConnection.for_stdio()))
+        cli_args, workspace = config["connection"].args, config["working_directory"]
+    assert set(cli_args) == {"--no-custom-instructions", "--disable-builtin-mcps", "--no-ask-user", "--no-auto-update"}
+    assert "--no-auto-login" not in cli_args
+    assert workspace != str(tmp_path)
     options = client.create_session.call_args.kwargs
-    assert options["working_directory"] == config.cwd
+    assert options["working_directory"] == workspace
     assert options["available_tools"] == options["tools"] == []
     assert options["mcp_servers"] == {}
+    assert options["skill_directories"] == options["custom_agents"] == []
     assert options["enable_config_discovery"] is False
     assert options["infinite_sessions"] == {"enabled": False}
+    assert options["streaming"] is False
     assert options["model"] == "gpt-5.6-sol"
     assert options["on_permission_request"](None, {}).kind == "reject"
     assert "max_tokens" not in options

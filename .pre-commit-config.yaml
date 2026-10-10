@@ -4,9 +4,9 @@ repos:
     hooks:
       - id: trailing-whitespace
         # Frozen benchmark records have byte-level checksums; never rewrite them.
-        exclude: ^benchmarks/(tabular-results/|suites/|families\.json$)
+        exclude: ^benchmarks/(tabular-results/|suites/|families\.json$|simple_models/SIMPLE_MODELS_CACHE(_LLM)?\.json$)
       - id: end-of-file-fixer
-        exclude: ^benchmarks/(tabular-results/|suites/|families\.json$)
+        exclude: ^benchmarks/(tabular-results/|suites/|families\.json$|simple_models/SIMPLE_MODELS_CACHE(_LLM)?\.json$)
       - id: check-yaml
         args: [--unsafe]
       - id: check-added-large-files

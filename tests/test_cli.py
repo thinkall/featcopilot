@@ -3049,7 +3049,8 @@ def test_capture_decision_stable_under_concurrent_pop_between_filter_and_emit():
         state.pop(threading.get_ident() ^ 1)
 
 
-def test_run_helper_redirects_featcopilot_stream_handlers(monkeypatch):
+@pytest.mark.parametrize("custom_stream", [False, True])
+def test_run_helper_redirects_featcopilot_stream_handlers(monkeypatch, custom_stream):
     """Regression test for the test helper itself: ``_run`` must
     redirect every ``logging.StreamHandler`` on the ``featcopilot``
     root logger so that any handler write that escapes the suppression
@@ -3062,8 +3063,11 @@ def test_run_helper_redirects_featcopilot_stream_handlers(monkeypatch):
     object and ``redirect_stderr`` only swaps the module attribute.
     """
     fc_logger = logging.getLogger("featcopilot")
+    if custom_stream:
+        monkeypatch.setattr(fc_logger, "handlers", [*fc_logger.handlers, logging.StreamHandler(io.StringIO())])
     stream_handlers = [h for h in fc_logger.handlers if isinstance(h, logging.StreamHandler)]
     assert stream_handlers, "featcopilot logger must have at least one StreamHandler"
+    original_streams = [(handler, handler.stream) for handler in stream_handlers]
 
     # Stub ``cli.main`` to write directly through the StreamHandler's
     # current ``stream`` attribute (which ``_run`` should have re-pointed
@@ -3082,8 +3086,8 @@ def test_run_helper_redirects_featcopilot_stream_handlers(monkeypatch):
         "_run must redirect featcopilot StreamHandler streams; otherwise stderr-cleanliness " "assertions are vacuous"
     )
     # And the original stream is restored after the call.
-    for h in stream_handlers:
-        assert h.stream is sys.stderr or h.stream is sys.__stderr__
+    for handler, original_stream in original_streams:
+        assert handler.stream is original_stream
 
 
 # ----------------------- empty-input column-vs-row distinction

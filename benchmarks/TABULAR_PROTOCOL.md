@@ -125,8 +125,10 @@ They are not inputs to the new reports.
 - Run directories are new and immutable with respect to reuse. Reports are
   checkpointed after every case. Public data stay in an ignored download cache;
   worker copies of input payloads are removed on completion.
-- Git preserves exact bytes for published evidence, suite JSON and the family
-  registry using `.gitattributes`. Mutating pre-commit formatters exclude these
+- Git preserves exact bytes for published evidence, suite JSON, the family
+  registry and the two legacy `simple_models/SIMPLE_MODELS_CACHE*.json`
+  descriptors referenced by exposure proofs using `.gitattributes`.
+  Mutating pre-commit formatters exclude these
   frozen records (and archived runner copies); the large-file and conflict checks
   still apply. Verify ordered archive parts against their recorded SHA-256
   indexes rather than reformatting historical evidence. Active benchmark Python

@@ -1,13 +1,22 @@
 """Tests for transform rules feature."""
 
+import json
 import tempfile
+from unittest.mock import Mock
 
 import pandas as pd
 import pytest
 
 from featcopilot.core.transform_rule import TransformRule
+from featcopilot.llm._types import FeatureClient
 from featcopilot.llm.transform_rule_generator import TransformRuleGenerator
 from featcopilot.stores.rule_store import TransformRuleStore
+
+
+@pytest.fixture
+def rule_client():
+    """Supply an in-process client without importing or starting an optional SDK."""
+    return Mock(spec=FeatureClient)
 
 
 class TestTransformRule:
@@ -365,9 +374,17 @@ class TestTransformRuleGenerator:
 
             assert generator.store is store
 
-    def test_generator_generate_from_description(self):
+    def test_generator_generate_from_description(self, rule_client):
         """Test generating rule from description."""
         generator = TransformRuleGenerator(verbose=True)
+        generator._client = rule_client
+        rule_client.send_prompt.return_value = json.dumps(
+            {
+                "name": "price_per_quantity",
+                "code": "result = df['price'] / (df['quantity'] + 1e-8)",
+                "input_columns": ["price", "quantity"],
+            }
+        )
 
         rule = generator.generate_from_description(
             description="Calculate the ratio of price to quantity",
@@ -375,15 +392,21 @@ class TestTransformRuleGenerator:
         )
 
         assert rule is not None
-        assert rule.name is not None
-        assert rule.code is not None
+        assert rule.name == "price_per_quantity"
+        assert rule.input_columns == ["price", "quantity"]
         assert "result" in rule.code
+        rule_client.send_prompt.assert_called_once()
+        rule_client.start.assert_not_called()
 
-    def test_generator_generate_and_save(self):
+    def test_generator_generate_and_save(self, rule_client):
         """Test generating and saving a rule."""
         with tempfile.TemporaryDirectory() as tmpdir:
             store = TransformRuleStore(path=f"{tmpdir}/rules.json")
             generator = TransformRuleGenerator(store=store)
+            generator._client = rule_client
+            rule_client.send_prompt.return_value = json.dumps(
+                {"name": "square", "code": "result = df['value'] ** 2", "input_columns": ["value"]}
+            )
 
             rule = generator.generate_from_description(
                 description="Square a numeric column",
@@ -394,7 +417,8 @@ class TestTransformRuleGenerator:
             # Verify saved
             saved = store.get_rule(rule.id)
             assert saved is not None
-            assert saved.name == rule.name
+            assert saved.name == rule.name == "square"
+            rule_client.send_prompt.assert_called_once()
 
     def test_generator_suggest_rules(self):
         """Test suggesting existing rules."""
@@ -419,11 +443,19 @@ class TestTransformRuleGenerator:
 
             assert len(suggestions) >= 1
 
-    def test_generator_generate_and_suggest(self):
+    def test_generator_generate_and_suggest(self, rule_client):
         """Test generate_and_suggest method."""
         with tempfile.TemporaryDirectory() as tmpdir:
             store = TransformRuleStore(path=f"{tmpdir}/rules.json")
             generator = TransformRuleGenerator(store=store)
+            generator._client = rule_client
+            rule_client.send_prompt.return_value = json.dumps(
+                {
+                    "name": "bmi",
+                    "code": "result = df['weight'] / (df['height'] ** 2 + 1e-8)",
+                    "input_columns": ["height", "weight"],
+                }
+            )
 
             # First call - should generate new rule
             new_rule, existing = generator.generate_and_suggest(
@@ -432,7 +464,9 @@ class TestTransformRuleGenerator:
             )
 
             assert new_rule is not None
+            assert new_rule.name == "bmi"
             assert len(existing) == 0
+            rule_client.send_prompt.assert_called_once()
 
     def test_generator_save_rule(self):
         """Test saving rule through generator."""
@@ -458,11 +492,19 @@ class TestTransformRuleGenerator:
 class TestIntegration:
     """Integration tests for the transform rules feature."""
 
-    def test_full_workflow(self):
+    def test_full_workflow(self, rule_client):
         """Test the complete workflow of generating, saving, and reusing rules."""
         with tempfile.TemporaryDirectory() as tmpdir:
             store = TransformRuleStore(path=f"{tmpdir}/rules.json")
             generator = TransformRuleGenerator(store=store)
+            generator._client = rule_client
+            rule_client.send_prompt.return_value = json.dumps(
+                {
+                    "name": "percentage_change",
+                    "code": "result = 100 * (df['current'] - df['previous']) / (df['previous'] + 1e-8)",
+                    "input_columns": ["current", "previous"],
+                }
+            )
 
             # Step 1: Generate a rule
             rule = generator.generate_from_description(
@@ -474,17 +516,19 @@ class TestIntegration:
 
             # Step 2: Apply to original data
             df1 = pd.DataFrame({"current": [110, 220], "previous": [100, 200]})
-            # Create mapping manually since rule was generated
             _, mapping = rule.matches_columns(df1.columns.tolist())
-            if not mapping:
-                mapping = {"current": "current", "previous": "previous"}
+            assert rule.apply(df1, column_mapping=mapping).tolist() == pytest.approx([10.0, 10.0])
 
             # Step 3: Find and apply to new data with different column names
             df2 = pd.DataFrame({"current_value": [150, 250], "previous_value": [100, 200]})
             matches = store.find_matching_rules(columns=df2.columns.tolist())
 
-            # Verify the rule can be found
-            assert len(matches) >= 0  # Mock LLM might create different rules
+            assert len(matches) == 1
+            matched_rule, mapping = matches[0]
+            assert matched_rule.id == rule.id
+            assert matched_rule.tags == ["percentage", "change"]
+            assert matched_rule.apply(df2, column_mapping=mapping).tolist() == pytest.approx([50.0, 25.0])
+            rule_client.send_prompt.assert_called_once()
 
     def test_rule_reuse_across_datasets(self):
         """Test that rules can be reused across different datasets."""

@@ -127,13 +127,16 @@ class CopilotFeatureClient:
         if self._session:
             # ``destroy()`` was renamed to ``disconnect()`` in the
             # Copilot SDK 0.3.x; ``destroy()`` still works but emits a
-            # ``DeprecationWarning``. Prefer the new name with a fallback
-            # for older SDKs (<0.3) that don't yet expose ``disconnect``.
+            # ``DeprecationWarning`` before being removed. Prefer the new
+            # name and look up the legacy method only for older SDKs.
             disconnect = getattr(self._session, "disconnect", None)
             if disconnect is not None:
                 await disconnect()
             else:
-                await self._session.destroy()
+                destroy = getattr(self._session, "destroy", None)
+                if destroy is None:
+                    raise RuntimeError("Copilot session has no supported cleanup method")
+                await destroy()
         if self._client:
             await self._client.stop()
         self._is_started = False

@@ -2,6 +2,8 @@
 
 import copy
 import json
+import sys
+from unittest.mock import Mock
 
 import numpy as np
 import pandas as pd
@@ -1215,7 +1217,19 @@ def test_resplit_flag_does_not_change_nonconfirmation_splits(experiment, monkeyp
 
 
 def test_llm_preflight_blocks_before_data_opening_without_explicit_soft_policy(experiment, monkeypatch):
+    from benchmarks import llm_evaluation
+
     output, arguments = experiment
+    provider = Mock(
+        spec=llm_evaluation.PlanProvider,
+        capabilities=llm_evaluation.ProviderCapabilities(
+            single_attempt=True,
+            configured=True,
+            attempt_scope="logical_api_call",
+            evidence="Local capability fixture: no verified hard token cap and no provider calls.",
+        ),
+    )
+    monkeypatch.setattr(llm_evaluation, "CopilotPlanProvider", lambda: provider)
     monkeypatch.setattr(execution, "_prepare_dataset", lambda *a: pytest.fail("blocked preflight opened data"))
     assert (
         tabular.main(
@@ -1231,3 +1245,41 @@ def test_llm_preflight_blocks_before_data_opening_without_explicit_soft_policy(e
         )
         == 2
     )
+    provider.send_plan.assert_not_called()
+    assert not output.exists()
+
+
+@pytest.mark.parametrize("soft_policy", [False, True])
+def test_missing_copilot_sdk_exits_before_data_ledger_or_provider(experiment, monkeypatch, caplog, soft_policy):
+    from benchmarks import llm_evaluation
+
+    output, arguments = experiment
+    ledger_path = output.parent / "shared-budget"
+    monkeypatch.setitem(sys.modules, "copilot", None)
+    prepare = Mock(side_effect=AssertionError("missing SDK opened data"))
+    ledger = Mock(side_effect=AssertionError("missing SDK created a ledger"))
+    send = Mock(side_effect=AssertionError("missing SDK started the provider"))
+    monkeypatch.setattr(execution, "_prepare_dataset", prepare)
+    monkeypatch.setattr(llm_evaluation, "EvaluationLedger", ledger)
+    monkeypatch.setattr(llm_evaluation.CopilotPlanProvider, "send_plan", send)
+    assert (
+        tabular.main(
+            [
+                *arguments,
+                "--methods",
+                "baseline",
+                "llm-plan",
+                "--live-llm",
+                "--llm-ledger",
+                str(ledger_path),
+                *(["--allow-soft-llm-tokens"] if soft_policy else []),
+            ]
+        )
+        == 2
+    )
+    assert "featcopilot[llm]" in caplog.text
+    prepare.assert_not_called()
+    ledger.assert_not_called()
+    send.assert_not_called()
+    assert not output.exists()
+    assert not ledger_path.exists()
