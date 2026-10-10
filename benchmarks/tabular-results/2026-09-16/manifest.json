@@ -1,0 +1,989 @@
+{
+  "protocol_version": 1,
+  "suite": {
+    "name": "inria-tabular-development-v1",
+    "source": "https://huggingface.co/datasets/inria-soda/tabular-benchmark",
+    "revision": "8d0ff9103525b7e3579b180230fddb3186258301",
+    "purpose": "Fixed development subset, not the full published benchmark or a held-out SOTA evaluation.",
+    "datasets": [
+      {
+        "name": "magic",
+        "path": "clf_num/MagicTelescope.csv",
+        "target": "class",
+        "task": "classification",
+        "openml_id": 44125,
+        "categorical": []
+      },
+      {
+        "name": "bank",
+        "path": "clf_num/bank-marketing.csv",
+        "target": "Class",
+        "task": "classification",
+        "openml_id": 44126,
+        "categorical": []
+      },
+      {
+        "name": "credit",
+        "path": "clf_num/credit.csv",
+        "target": "SeriousDlqin2yrs",
+        "task": "classification",
+        "openml_id": 44089,
+        "categorical": []
+      },
+      {
+        "name": "heloc",
+        "path": "clf_num/heloc.csv",
+        "target": "RiskPerformance",
+        "task": "classification",
+        "openml_id": 45026,
+        "categorical": []
+      },
+      {
+        "name": "credit_default",
+        "path": "clf_num/default-of-credit-card-clients.csv",
+        "target": "y",
+        "task": "classification",
+        "openml_id": 45020,
+        "categorical": []
+      },
+      {
+        "name": "eye_movements",
+        "path": "clf_cat/eye_movements.csv",
+        "target": "label",
+        "task": "classification",
+        "openml_id": 44157,
+        "categorical": [
+          "P1stFixation",
+          "P2stFixation",
+          "nextWordRegress"
+        ]
+      },
+      {
+        "name": "cpu",
+        "path": "reg_num/cpu_act.csv",
+        "target": "usr",
+        "task": "regression",
+        "openml_id": 44132,
+        "categorical": []
+      },
+      {
+        "name": "wine",
+        "path": "reg_num/wine_quality.csv",
+        "target": "quality",
+        "task": "regression",
+        "openml_id": 44136,
+        "categorical": []
+      },
+      {
+        "name": "houses",
+        "path": "reg_num/houses.csv",
+        "target": "medianhousevalue",
+        "task": "regression",
+        "openml_id": 44138,
+        "categorical": []
+      },
+      {
+        "name": "elevators",
+        "path": "reg_num/elevators.csv",
+        "target": "Goal",
+        "task": "regression",
+        "openml_id": 44134,
+        "categorical": []
+      },
+      {
+        "name": "abalone",
+        "path": "reg_cat/abalone.csv",
+        "target": "Classnumberofrings",
+        "task": "regression",
+        "openml_id": 45042,
+        "categorical": [
+          "Sex"
+        ]
+      },
+      {
+        "name": "diamonds",
+        "path": "reg_cat/diamonds.csv",
+        "target": "price",
+        "task": "regression",
+        "openml_id": 44059,
+        "categorical": [
+          "cut",
+          "color",
+          "clarity"
+        ]
+      }
+    ]
+  },
+  "config": {
+    "datasets": null,
+    "methods": [
+      "baseline",
+      "featcopilot",
+      "polynomial",
+      "openfe-stateless",
+      "autofeat"
+    ],
+    "learners": [
+      "linear",
+      "random_forest",
+      "lightgbm"
+    ],
+    "folds": 3,
+    "seeds": [
+      42
+    ],
+    "max_rows": 5000,
+    "max_added_features": 50,
+    "threads": 2,
+    "memory_limit_mb": 4096,
+    "case_timeout": 120.0,
+    "total_seconds": 10800.0,
+    "synthetic": true
+  },
+  "started_utc": "2026-09-16T02:53:08.831170+00:00",
+  "versions": {
+    "featcopilot": "0.4.0",
+    "numpy": "2.4.4",
+    "pandas": "2.3.3",
+    "scikit-learn": "1.7.2",
+    "lightgbm": "4.6.0",
+    "openfe": "0.0.12",
+    "autofeat": "2.1.1",
+    "psutil": "7.2.2",
+    "joblib": "1.3.2",
+    "threadpoolctl": "3.6.0"
+  },
+  "python": "3.13.13 | packaged by conda-forge | (main, Apr  8 2026, 01:56:49) [MSC v.1944 64 bit (AMD64)]",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "git_commit": "bf119812162af87c29bc8d09bb3c705576b94f27",
+  "source_sha256": "0ff154db8fa09d72b18aef5fa8663c1c96af18201cafd88a5bd2b28495bc8e55",
+  "datasets": [
+    {
+      "name": "magic",
+      "path": "clf_num/MagicTelescope.csv",
+      "target": "class",
+      "task": "classification",
+      "openml_id": 44125,
+      "categorical": [],
+      "source": "real_world",
+      "url": "https://huggingface.co/datasets/inria-soda/tabular-benchmark/resolve/8d0ff9103525b7e3579b180230fddb3186258301/clf_num/MagicTelescope.csv",
+      "sha256": "67d05a42c20136481420e4df91722e6057a71e992b2fa83e6099a693e3d3d26e",
+      "original_rows": 13376,
+      "sampled_rows": 5000,
+      "sample_indices_sha256": "40ef00ce019dfd1e43a6ad56c6af52189d17dae2b19bc894be72f704e360d5de",
+      "columns": [
+        "fLength:",
+        "fWidth:",
+        "fSize:",
+        "fConc:",
+        "fConc1:",
+        "fAsym:",
+        "fM3Long:",
+        "fM3Trans:",
+        "fAlpha:",
+        "fDist:"
+      ],
+      "dtypes": [
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64"
+      ]
+    },
+    {
+      "name": "bank",
+      "path": "clf_num/bank-marketing.csv",
+      "target": "Class",
+      "task": "classification",
+      "openml_id": 44126,
+      "categorical": [],
+      "source": "real_world",
+      "url": "https://huggingface.co/datasets/inria-soda/tabular-benchmark/resolve/8d0ff9103525b7e3579b180230fddb3186258301/clf_num/bank-marketing.csv",
+      "sha256": "3433fecd416ce949692442882669881746e8a6b24b904a5f808cdcb196443e7e",
+      "original_rows": 10578,
+      "sampled_rows": 5000,
+      "sample_indices_sha256": "3d97efd6c467c56597014245a85dd09b339d2a911b7d18ac1fb7af15d35eb92f",
+      "columns": [
+        "V1",
+        "V6",
+        "V10",
+        "V12",
+        "V13",
+        "V14",
+        "V15"
+      ],
+      "dtypes": [
+        "int64",
+        "float64",
+        "int64",
+        "float64",
+        "int64",
+        "float64",
+        "int64"
+      ]
+    },
+    {
+      "name": "credit",
+      "path": "clf_num/credit.csv",
+      "target": "SeriousDlqin2yrs",
+      "task": "classification",
+      "openml_id": 44089,
+      "categorical": [],
+      "source": "real_world",
+      "url": "https://huggingface.co/datasets/inria-soda/tabular-benchmark/resolve/8d0ff9103525b7e3579b180230fddb3186258301/clf_num/credit.csv",
+      "sha256": "22a759296600c39a56884dafd84eb346be018c537ff096adc8c2ae7e0520f2a9",
+      "original_rows": 16714,
+      "sampled_rows": 5000,
+      "sample_indices_sha256": "55f0969c93e86b1a9b236c9b347b0d3143218c5cf3790bbd8e2307addb9e24c5",
+      "columns": [
+        "RevolvingUtilizationOfUnsecuredLines",
+        "age",
+        "NumberOfTime30-59DaysPastDueNotWorse",
+        "DebtRatio",
+        "MonthlyIncome",
+        "NumberOfOpenCreditLinesAndLoans",
+        "NumberOfTimes90DaysLate",
+        "NumberRealEstateLoansOrLines",
+        "NumberOfTime60-89DaysPastDueNotWorse",
+        "NumberOfDependents"
+      ],
+      "dtypes": [
+        "float64",
+        "int64",
+        "int64",
+        "float64",
+        "float64",
+        "int64",
+        "int64",
+        "int64",
+        "int64",
+        "int64"
+      ]
+    },
+    {
+      "name": "heloc",
+      "path": "clf_num/heloc.csv",
+      "target": "RiskPerformance",
+      "task": "classification",
+      "openml_id": 45026,
+      "categorical": [],
+      "source": "real_world",
+      "url": "https://huggingface.co/datasets/inria-soda/tabular-benchmark/resolve/8d0ff9103525b7e3579b180230fddb3186258301/clf_num/heloc.csv",
+      "sha256": "656c893ddc6447de22786db47ce79530ac607c772b326f396bb11768ef25cd91",
+      "original_rows": 10000,
+      "sampled_rows": 5000,
+      "sample_indices_sha256": "90b6c8c866ab246e8bec6199b79bb629d252a916aeb647c46d034fee1a6d44f8",
+      "columns": [
+        "ExternalRiskEstimate",
+        "MSinceOldestTradeOpen",
+        "MSinceMostRecentTradeOpen",
+        "AverageMInFile",
+        "NumSatisfactoryTrades",
+        "NumTrades60Ever2DerogPubRec",
+        "NumTrades90Ever2DerogPubRec",
+        "PercentTradesNeverDelq",
+        "MSinceMostRecentDelq",
+        "MaxDelq2PublicRecLast12M",
+        "NumTotalTrades",
+        "NumTradesOpeninLast12M",
+        "PercentInstallTrades",
+        "MSinceMostRecentInqexcl7days",
+        "NumInqLast6M",
+        "NumInqLast6Mexcl7days",
+        "NetFractionRevolvingBurden",
+        "NetFractionInstallBurden",
+        "NumRevolvingTradesWBalance",
+        "NumInstallTradesWBalance",
+        "NumBank2NatlTradesWHighUtilization",
+        "PercentTradesWBalance"
+      ],
+      "dtypes": [
+        "int64",
+        "int64",
+        "int64",
+        "int64",
+        "int64",
+        "int64",
+        "int64",
+        "int64",
+        "int64",
+        "int64",
+        "int64",
+        "int64",
+        "int64",
+        "int64",
+        "int64",
+        "int64",
+        "int64",
+        "int64",
+        "int64",
+        "int64",
+        "int64",
+        "int64"
+      ]
+    },
+    {
+      "name": "credit_default",
+      "path": "clf_num/default-of-credit-card-clients.csv",
+      "target": "y",
+      "task": "classification",
+      "openml_id": 45020,
+      "categorical": [],
+      "source": "real_world",
+      "url": "https://huggingface.co/datasets/inria-soda/tabular-benchmark/resolve/8d0ff9103525b7e3579b180230fddb3186258301/clf_num/default-of-credit-card-clients.csv",
+      "sha256": "186ec333a9d81da4f62d66ff5ea17e1fa8dcf14b0e95be94fe95c04af3502c5f",
+      "original_rows": 13272,
+      "sampled_rows": 5000,
+      "sample_indices_sha256": "d04af8b45c950669c2cc20cc4a694aa7b4f69ae069d177d933af4714341b5f10",
+      "columns": [
+        "x1",
+        "x5",
+        "x6",
+        "x7",
+        "x8",
+        "x9",
+        "x10",
+        "x11",
+        "x12",
+        "x13",
+        "x14",
+        "x15",
+        "x16",
+        "x17",
+        "x18",
+        "x19",
+        "x20",
+        "x21",
+        "x22",
+        "x23"
+      ],
+      "dtypes": [
+        "float64",
+        "int64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64"
+      ]
+    },
+    {
+      "name": "eye_movements",
+      "path": "clf_cat/eye_movements.csv",
+      "target": "label",
+      "task": "classification",
+      "openml_id": 44157,
+      "categorical": [
+        "P1stFixation",
+        "P2stFixation",
+        "nextWordRegress"
+      ],
+      "source": "real_world",
+      "url": "https://huggingface.co/datasets/inria-soda/tabular-benchmark/resolve/8d0ff9103525b7e3579b180230fddb3186258301/clf_cat/eye_movements.csv",
+      "sha256": "030ea93e3d3d0d2620541ed2cf9f1e5fb0e0272b6914ece1228e4fa9596ba14d",
+      "original_rows": 7608,
+      "sampled_rows": 5000,
+      "sample_indices_sha256": "576e09b063f4e411ae8f9ea3a89412116446832616bcb50afcfbfd2d2f773584",
+      "columns": [
+        "lineNo",
+        "assgNo",
+        "P1stFixation",
+        "P2stFixation",
+        "prevFixDur",
+        "firstfixDur",
+        "firstPassFixDur",
+        "nextFixDur",
+        "firstSaccLen",
+        "lastSaccLen",
+        "prevFixPos",
+        "landingPos",
+        "leavingPos",
+        "totalFixDur",
+        "meanFixDur",
+        "regressLen",
+        "nextWordRegress",
+        "regressDur",
+        "pupilDiamMax",
+        "pupilDiamLag",
+        "timePrtctg",
+        "titleNo",
+        "wordNo"
+      ],
+      "dtypes": [
+        "float64",
+        "float64",
+        "category",
+        "category",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "category",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "int64",
+        "int64"
+      ]
+    },
+    {
+      "name": "cpu",
+      "path": "reg_num/cpu_act.csv",
+      "target": "usr",
+      "task": "regression",
+      "openml_id": 44132,
+      "categorical": [],
+      "source": "real_world",
+      "url": "https://huggingface.co/datasets/inria-soda/tabular-benchmark/resolve/8d0ff9103525b7e3579b180230fddb3186258301/reg_num/cpu_act.csv",
+      "sha256": "27c53365c8067ecfa273191c8b065946ec9519358d27cc753c64cee884400324",
+      "original_rows": 8192,
+      "sampled_rows": 5000,
+      "sample_indices_sha256": "9bbe10a4a8ea68bdebe53c927e51a40e6e032210da8de0c1967aee0e846dbd2f",
+      "columns": [
+        "lread",
+        "lwrite",
+        "scall",
+        "sread",
+        "swrite",
+        "fork",
+        "exec",
+        "rchar",
+        "wchar",
+        "pgout",
+        "ppgout",
+        "pgfree",
+        "pgscan",
+        "atch",
+        "pgin",
+        "ppgin",
+        "pflt",
+        "vflt",
+        "runqsz",
+        "freemem",
+        "freeswap"
+      ],
+      "dtypes": [
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64"
+      ]
+    },
+    {
+      "name": "wine",
+      "path": "reg_num/wine_quality.csv",
+      "target": "quality",
+      "task": "regression",
+      "openml_id": 44136,
+      "categorical": [],
+      "source": "real_world",
+      "url": "https://huggingface.co/datasets/inria-soda/tabular-benchmark/resolve/8d0ff9103525b7e3579b180230fddb3186258301/reg_num/wine_quality.csv",
+      "sha256": "676ad3f1ff02fa4dc26d43d4af84a6dc165fd1801742f7db1ec706fcaa77acb2",
+      "original_rows": 6497,
+      "sampled_rows": 5000,
+      "sample_indices_sha256": "8a1c6f69ed47a2f6a4d3abc78bbac4b17a30951bd04cdccdff39ecc7765ca226",
+      "columns": [
+        "fixed.acidity",
+        "volatile.acidity",
+        "citric.acid",
+        "residual.sugar",
+        "chlorides",
+        "free.sulfur.dioxide",
+        "total.sulfur.dioxide",
+        "density",
+        "pH",
+        "sulphates",
+        "alcohol"
+      ],
+      "dtypes": [
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64"
+      ]
+    },
+    {
+      "name": "houses",
+      "path": "reg_num/houses.csv",
+      "target": "medianhousevalue",
+      "task": "regression",
+      "openml_id": 44138,
+      "categorical": [],
+      "source": "real_world",
+      "url": "https://huggingface.co/datasets/inria-soda/tabular-benchmark/resolve/8d0ff9103525b7e3579b180230fddb3186258301/reg_num/houses.csv",
+      "sha256": "452b89f7a546bb4d714edb1174d919a0146b2812a8fe1a266a85bb225f939ce1",
+      "original_rows": 20640,
+      "sampled_rows": 5000,
+      "sample_indices_sha256": "a9a12858d9cd9890ac73448d6d2d78958d29b035dfbcdf0d3030360407cc45ba",
+      "columns": [
+        "median_income",
+        "housing_median_age",
+        "total_rooms",
+        "total_bedrooms",
+        "population",
+        "households",
+        "latitude",
+        "longitude"
+      ],
+      "dtypes": [
+        "float64",
+        "int64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64"
+      ]
+    },
+    {
+      "name": "elevators",
+      "path": "reg_num/elevators.csv",
+      "target": "Goal",
+      "task": "regression",
+      "openml_id": 44134,
+      "categorical": [],
+      "source": "real_world",
+      "url": "https://huggingface.co/datasets/inria-soda/tabular-benchmark/resolve/8d0ff9103525b7e3579b180230fddb3186258301/reg_num/elevators.csv",
+      "sha256": "07c912ee2e9718ab0ae7783ea8751d4fa74417b7c5e90c991a66e2adcf894cb8",
+      "original_rows": 16599,
+      "sampled_rows": 5000,
+      "sample_indices_sha256": "0fe9977f01b7d4aa80c1b4c987ae8edb334d3beb6fc113ca95b719da913b9630",
+      "columns": [
+        "climbRate",
+        "Sgz",
+        "p",
+        "q",
+        "curRoll",
+        "absRoll",
+        "diffClb",
+        "diffRollRate",
+        "diffDiffClb",
+        "SaTime1",
+        "SaTime2",
+        "SaTime3",
+        "SaTime4",
+        "diffSaTime1",
+        "diffSaTime3",
+        "Sa"
+      ],
+      "dtypes": [
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64"
+      ]
+    },
+    {
+      "name": "abalone",
+      "path": "reg_cat/abalone.csv",
+      "target": "Classnumberofrings",
+      "task": "regression",
+      "openml_id": 45042,
+      "categorical": [
+        "Sex"
+      ],
+      "source": "real_world",
+      "url": "https://huggingface.co/datasets/inria-soda/tabular-benchmark/resolve/8d0ff9103525b7e3579b180230fddb3186258301/reg_cat/abalone.csv",
+      "sha256": "428e169a61d8a0601cfbe967e39a5b56371faa15d20a234509356185165f302d",
+      "original_rows": 4177,
+      "sampled_rows": 4177,
+      "sample_indices_sha256": "56a8b7eb92f61f2d18a4e2f16102282f7ee9c1eabafb3018ee72ce3fba493d8d",
+      "columns": [
+        "Sex",
+        "Length",
+        "Diameter",
+        "Height",
+        "Whole_weight",
+        "Shucked_weight",
+        "Viscera_weight",
+        "Shell_weight"
+      ],
+      "dtypes": [
+        "category",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64"
+      ]
+    },
+    {
+      "name": "diamonds",
+      "path": "reg_cat/diamonds.csv",
+      "target": "price",
+      "task": "regression",
+      "openml_id": 44059,
+      "categorical": [
+        "cut",
+        "color",
+        "clarity"
+      ],
+      "source": "real_world",
+      "url": "https://huggingface.co/datasets/inria-soda/tabular-benchmark/resolve/8d0ff9103525b7e3579b180230fddb3186258301/reg_cat/diamonds.csv",
+      "sha256": "2bee7a39cc6221d35641167fce2611a563db774cd5916607adcf576a0b1c1855",
+      "original_rows": 53940,
+      "sampled_rows": 5000,
+      "sample_indices_sha256": "277fdd31accdbad46c94621d8b691bf5ac4ef2ecca21480b873ac5a0a0d191d0",
+      "columns": [
+        "carat",
+        "cut",
+        "color",
+        "clarity",
+        "depth",
+        "table",
+        "x",
+        "y",
+        "z"
+      ],
+      "dtypes": [
+        "float64",
+        "category",
+        "category",
+        "category",
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+        "float64"
+      ]
+    },
+    {
+      "name": "polynomial_regression",
+      "task": "regression",
+      "source": "synthetic",
+      "sampled_rows": 2000,
+      "sha256": "50f3e74f2cc594ed6986f1d2b39da46db8ec0d1a9aa9cb6c57e6135027aaf8a3"
+    },
+    {
+      "name": "xor_classification",
+      "task": "classification",
+      "source": "synthetic",
+      "sampled_rows": 2500,
+      "sha256": "31ef786ec9ad049ffb779de070591981af1a01de56af4754269c864c0acd9704"
+    }
+  ],
+  "splits": [
+    {
+      "dataset": "magic",
+      "seed": 42,
+      "fold": 0,
+      "sha256": "0a5f6d168facea10408ea186d6844858ff983697ec7f7e88394618e19fa31895"
+    },
+    {
+      "dataset": "magic",
+      "seed": 42,
+      "fold": 1,
+      "sha256": "b2dce26602ed7b0e01a90eb5ea116cf2f818f594cc6e29b3bb69bb01429fcdcf"
+    },
+    {
+      "dataset": "magic",
+      "seed": 42,
+      "fold": 2,
+      "sha256": "61d0290f866075be8863c8008794c235646aefb37ed26393a29f19ab02f2ddfd"
+    },
+    {
+      "dataset": "bank",
+      "seed": 42,
+      "fold": 0,
+      "sha256": "7eb805bcf86a26b366b16d9b35cd0eff8a73d41357d24d56299b5257b5da7c72"
+    },
+    {
+      "dataset": "bank",
+      "seed": 42,
+      "fold": 1,
+      "sha256": "bfbe6bc3d847aa3efe208267f919ce594959041caa146ca2993ecf2192efa3d4"
+    },
+    {
+      "dataset": "bank",
+      "seed": 42,
+      "fold": 2,
+      "sha256": "c00e321b31bdd89b97cb6a4a064f81afa61baf66133a110fdd92e1c2f282121c"
+    },
+    {
+      "dataset": "credit",
+      "seed": 42,
+      "fold": 0,
+      "sha256": "3bb3c1091b056b7abbb13cd2b82bc6d2abc02ed3decb4d997b048cfcbdaa4098"
+    },
+    {
+      "dataset": "credit",
+      "seed": 42,
+      "fold": 1,
+      "sha256": "b8dde0a4d507c677e478d4fd5d98eee1d0840394db3836f66ce3326600c2d698"
+    },
+    {
+      "dataset": "credit",
+      "seed": 42,
+      "fold": 2,
+      "sha256": "9395cc797461a3bb884c8c71df3e56ef0cc74bf9a5253c949f1bca1a83d27122"
+    },
+    {
+      "dataset": "heloc",
+      "seed": 42,
+      "fold": 0,
+      "sha256": "1449f9cadc733d2855d4548e2fb4a0e65372edf7b18ec93b88d6892c377e9d87"
+    },
+    {
+      "dataset": "heloc",
+      "seed": 42,
+      "fold": 1,
+      "sha256": "0a1971773daae355687f073845805f532ea7191b30ee391c6160a27f2eabeac8"
+    },
+    {
+      "dataset": "heloc",
+      "seed": 42,
+      "fold": 2,
+      "sha256": "d7e037529154bdadb0dc401983f1896a56ab57054f14ce9cb5ca79cd519f7b9f"
+    },
+    {
+      "dataset": "credit_default",
+      "seed": 42,
+      "fold": 0,
+      "sha256": "ca39e0ce90cd0f0c92b19b2bbe8c9c1579c8157c4ce95a4c871f2d7f9f9178a6"
+    },
+    {
+      "dataset": "credit_default",
+      "seed": 42,
+      "fold": 1,
+      "sha256": "b38d584ef89497dc082385e82ec94de015731ac460b4d9fc3d5a7729202796d0"
+    },
+    {
+      "dataset": "credit_default",
+      "seed": 42,
+      "fold": 2,
+      "sha256": "e707bfd899bfff604c1082290f60233674a2b75ff72e94a1295576520665e635"
+    },
+    {
+      "dataset": "eye_movements",
+      "seed": 42,
+      "fold": 0,
+      "sha256": "aaf1ba14cef532c0a603ffa13025e4e84a5cdefd9d818e3030b66a00107f1fc6"
+    },
+    {
+      "dataset": "eye_movements",
+      "seed": 42,
+      "fold": 1,
+      "sha256": "ee9a6429ba23f34df1ebec2f5126a086787bf8ec37fe2781e9626f69ff673509"
+    },
+    {
+      "dataset": "eye_movements",
+      "seed": 42,
+      "fold": 2,
+      "sha256": "760f66fcf19ceacb3bd942858eb986e71312774b435b9329d8d71096983341ed"
+    },
+    {
+      "dataset": "cpu",
+      "seed": 42,
+      "fold": 0,
+      "sha256": "4f85dc33625ae6711465e314952558648e9f344a2a133d66a509041cd54917a8"
+    },
+    {
+      "dataset": "cpu",
+      "seed": 42,
+      "fold": 1,
+      "sha256": "03e169278ea1bf17f40c7a51d3dbef8634224638950af9adeef3cbf387ad6e27"
+    },
+    {
+      "dataset": "cpu",
+      "seed": 42,
+      "fold": 2,
+      "sha256": "5ac3ecb2f750d9bd892fd4c6b59f068ca2470e2bb705c091d70d10a4d1c41386"
+    },
+    {
+      "dataset": "wine",
+      "seed": 42,
+      "fold": 0,
+      "sha256": "4f85dc33625ae6711465e314952558648e9f344a2a133d66a509041cd54917a8"
+    },
+    {
+      "dataset": "wine",
+      "seed": 42,
+      "fold": 1,
+      "sha256": "03e169278ea1bf17f40c7a51d3dbef8634224638950af9adeef3cbf387ad6e27"
+    },
+    {
+      "dataset": "wine",
+      "seed": 42,
+      "fold": 2,
+      "sha256": "5ac3ecb2f750d9bd892fd4c6b59f068ca2470e2bb705c091d70d10a4d1c41386"
+    },
+    {
+      "dataset": "houses",
+      "seed": 42,
+      "fold": 0,
+      "sha256": "4f85dc33625ae6711465e314952558648e9f344a2a133d66a509041cd54917a8"
+    },
+    {
+      "dataset": "houses",
+      "seed": 42,
+      "fold": 1,
+      "sha256": "03e169278ea1bf17f40c7a51d3dbef8634224638950af9adeef3cbf387ad6e27"
+    },
+    {
+      "dataset": "houses",
+      "seed": 42,
+      "fold": 2,
+      "sha256": "5ac3ecb2f750d9bd892fd4c6b59f068ca2470e2bb705c091d70d10a4d1c41386"
+    },
+    {
+      "dataset": "elevators",
+      "seed": 42,
+      "fold": 0,
+      "sha256": "4f85dc33625ae6711465e314952558648e9f344a2a133d66a509041cd54917a8"
+    },
+    {
+      "dataset": "elevators",
+      "seed": 42,
+      "fold": 1,
+      "sha256": "03e169278ea1bf17f40c7a51d3dbef8634224638950af9adeef3cbf387ad6e27"
+    },
+    {
+      "dataset": "elevators",
+      "seed": 42,
+      "fold": 2,
+      "sha256": "5ac3ecb2f750d9bd892fd4c6b59f068ca2470e2bb705c091d70d10a4d1c41386"
+    },
+    {
+      "dataset": "abalone",
+      "seed": 42,
+      "fold": 0,
+      "sha256": "ca129eddb152a33f539c868cb384fcfd474516b2c917e8a8fae1d478e48c89d1"
+    },
+    {
+      "dataset": "abalone",
+      "seed": 42,
+      "fold": 1,
+      "sha256": "8e2ac8ee74561ebaf05a6e99bc4424996d5fd381969759a24cab1a47c28a08bd"
+    },
+    {
+      "dataset": "abalone",
+      "seed": 42,
+      "fold": 2,
+      "sha256": "3642bddc987054ca45561f7ebf67525413378031a1050addad33275e3f450c96"
+    },
+    {
+      "dataset": "diamonds",
+      "seed": 42,
+      "fold": 0,
+      "sha256": "4f85dc33625ae6711465e314952558648e9f344a2a133d66a509041cd54917a8"
+    },
+    {
+      "dataset": "diamonds",
+      "seed": 42,
+      "fold": 1,
+      "sha256": "03e169278ea1bf17f40c7a51d3dbef8634224638950af9adeef3cbf387ad6e27"
+    },
+    {
+      "dataset": "diamonds",
+      "seed": 42,
+      "fold": 2,
+      "sha256": "5ac3ecb2f750d9bd892fd4c6b59f068ca2470e2bb705c091d70d10a4d1c41386"
+    },
+    {
+      "dataset": "polynomial_regression",
+      "seed": 42,
+      "fold": 0,
+      "sha256": "f556e2cd771ed57ba71d44494f96b909752de018e59add5f8213d3ede5d6b5d0"
+    },
+    {
+      "dataset": "polynomial_regression",
+      "seed": 42,
+      "fold": 1,
+      "sha256": "0ea5d00bb468b42bc1f49c8129f1f2ccbc37cec553fd2fb869307aa415df8a29"
+    },
+    {
+      "dataset": "polynomial_regression",
+      "seed": 42,
+      "fold": 2,
+      "sha256": "0413819d8ccbe715cb8953186c07c3f44aef15bf1e71ee421b35d0ac80b950f4"
+    },
+    {
+      "dataset": "xor_classification",
+      "seed": 42,
+      "fold": 0,
+      "sha256": "293916360cd70b16cdfaf5c6b6dcf2244931e09f9d92e388d06b917e9cf36fa7"
+    },
+    {
+      "dataset": "xor_classification",
+      "seed": 42,
+      "fold": 1,
+      "sha256": "1be0771364178b0c8ece3d45a0278588f4776117cc86cbc702aba59b230ffb01"
+    },
+    {
+      "dataset": "xor_classification",
+      "seed": 42,
+      "fold": 2,
+      "sha256": "e771a8bf932ad941f976116755b9645ce8df022bca7021f99e6661e3e8ff59fa"
+    }
+  ],
+  "finished_utc": "2026-09-16T05:09:56.412065+00:00",
+  "source_sha256_at_finish": "0ff154db8fa09d72b18aef5fa8663c1c96af18201cafd88a5bd2b28495bc8e55",
+  "source_changed": false
+}

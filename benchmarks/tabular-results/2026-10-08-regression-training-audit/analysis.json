@@ -1,0 +1,2740 @@
+{
+  "not_scored_evaluation": true,
+  "not_confirmation": true,
+  "identity_source_boundary_and_archive_checks_passed": true,
+  "successful_jobs": 30,
+  "exact_component_replays": 60,
+  "fitted_designs_instrumented": 120,
+  "prediction_pipeline_fits": 240,
+  "source_sha256": "3ec8d9c2f8bfc02dd70ce35774d1a1cfd1dc43adca2cc793e3f8c5550a39b535",
+  "results_sha256": "7f4c3b78b25654d478cdf6ba8e2db8bc7a34dda17a11b4ac92778edcfad67d41",
+  "protocol_sha256": "8b2a037bbb83e854fb6cd8d933c141e4b632e4db76bc0e02dfcaf495ee863d91",
+  "summary": {
+    "final_design_status_counts": {
+      "full_column_rank": 26,
+      "rank_deficient": 4
+    },
+    "inner_design_status_counts": {
+      "full_column_rank": 24,
+      "rank_deficient": 6
+    },
+    "changed_ordered_plans": 28,
+    "changed_widths": 20,
+    "final_coefficient_l2_range": [
+      59.65956784573209,
+      270.1042358946371
+    ]
+  },
+  "components": [
+    {
+      "seed": 42,
+      "fold": 0,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.98956581864721e-13,
+        "singular_value_min": 4.412154370022149,
+        "singular_value_max": 22.324968805915695,
+        "condition_number": 5.059879354539362,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0510410037901104e-12,
+        "singular_value_min": 5.517658013155191,
+        "singular_value_max": 25.17802060117156,
+        "condition_number": 4.563171646583055,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 102.76732403433849,
+        "linf": 72.97859180233812
+      },
+      "final_coefficient_norms": {
+        "l2": 98.4764332395064,
+        "linf": 66.00675471025653
+      },
+      "inner_training_residual_rmse": 62.60403448345722,
+      "final_training_residual_rmse": 59.89546453144738,
+      "inner_training_boundary_fraction": 0.08037825059101655,
+      "final_training_boundary_fraction": 0.07358156028368794
+    },
+    {
+      "seed": 42,
+      "fold": 0,
+      "role": "fe",
+      "regularization": 10.0,
+      "widths": [
+        16,
+        31
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 16,
+        "rank": 16,
+        "rank_tolerance": 1.0434347350191753e-12,
+        "singular_value_min": 0.7787887812886424,
+        "singular_value_max": 33.327746693743194,
+        "condition_number": 42.79433332179825,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 31,
+        "rank": 31,
+        "rank_tolerance": 2.030125650517364e-12,
+        "singular_value_min": 0.412749508255363,
+        "singular_value_max": 48.63230384673025,
+        "condition_number": 117.82522540679092,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 83.73602544795155,
+        "linf": 41.13380086038493
+      },
+      "final_coefficient_norms": {
+        "l2": 67.37709153945396,
+        "linf": 27.752950406269438
+      },
+      "inner_training_residual_rmse": 27.899430716858106,
+      "final_training_residual_rmse": 26.24736127592967,
+      "inner_training_boundary_fraction": 0.20345744680851063,
+      "final_training_boundary_fraction": 0.13964273445551356
+    },
+    {
+      "seed": 137,
+      "fold": 0,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.923476250210199e-13,
+        "singular_value_min": 4.439713477258913,
+        "singular_value_max": 22.113875929471725,
+        "condition_number": 4.980924116554673,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0510410037901104e-12,
+        "singular_value_min": 5.517658013155191,
+        "singular_value_max": 25.17802060117156,
+        "condition_number": 4.563171646583055,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 105.65015941074385,
+        "linf": 60.14724072999315
+      },
+      "final_coefficient_norms": {
+        "l2": 98.4764332395064,
+        "linf": 66.00675471025653
+      },
+      "inner_training_residual_rmse": 60.15843283828513,
+      "final_training_residual_rmse": 59.89546453144738,
+      "inner_training_boundary_fraction": 0.06382978723404255,
+      "final_training_boundary_fraction": 0.07358156028368794
+    },
+    {
+      "seed": 137,
+      "fold": 0,
+      "role": "fe",
+      "regularization": 1.0,
+      "widths": [
+        11,
+        11
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 11,
+        "rank": 11,
+        "rank_tolerance": 9.175249220231683e-13,
+        "singular_value_min": 1.553370688732412,
+        "singular_value_max": 29.306134020756627,
+        "condition_number": 18.866156181092318,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 11,
+        "rank": 11,
+        "rank_tolerance": 1.385717778904598e-12,
+        "singular_value_min": 1.93822073865224,
+        "singular_value_max": 33.19530889742244,
+        "condition_number": 17.126691627758102,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 138.5388329067633,
+        "linf": 90.63030807777645
+      },
+      "final_coefficient_norms": {
+        "l2": 159.84276859411918,
+        "linf": 113.5723585956058
+      },
+      "inner_training_residual_rmse": 26.505635680573565,
+      "final_training_residual_rmse": 35.753750084693685,
+      "inner_training_boundary_fraction": 0.16247582205029013,
+      "final_training_boundary_fraction": 0.19148936170212766
+    },
+    {
+      "seed": 2029,
+      "fold": 0,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 7.048324743086537e-13,
+        "singular_value_min": 4.760227209240182,
+        "singular_value_max": 22.51264729542608,
+        "condition_number": 4.729322006253459,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0510410037901104e-12,
+        "singular_value_min": 5.517658013155191,
+        "singular_value_max": 25.17802060117156,
+        "condition_number": 4.563171646583055,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 110.00754151896479,
+        "linf": 72.80694256601794
+      },
+      "final_coefficient_norms": {
+        "l2": 98.4764332395064,
+        "linf": 66.00675471025653
+      },
+      "inner_training_residual_rmse": 58.57407305700632,
+      "final_training_residual_rmse": 59.89546453144738,
+      "inner_training_boundary_fraction": 0.07919621749408984,
+      "final_training_boundary_fraction": 0.07358156028368794
+    },
+    {
+      "seed": 2029,
+      "fold": 0,
+      "role": "fe",
+      "regularization": 10.0,
+      "widths": [
+        31,
+        56
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 31,
+        "rank": 25,
+        "rank_tolerance": 1.5367729723044842e-12,
+        "singular_value_min": 3.488752514390387e-16,
+        "singular_value_max": 49.085178620025,
+        "condition_number": null,
+        "condition_status": "rank_deficient",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 56,
+        "rank": 41,
+        "rank_tolerance": 2.823147249334948e-12,
+        "singular_value_min": 2.4104273544217426e-16,
+        "singular_value_max": 67.62938776657933,
+        "condition_number": null,
+        "condition_status": "rank_deficient",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 55.599396997994575,
+        "linf": 21.70523536505898
+      },
+      "final_coefficient_norms": {
+        "l2": 59.65956784573209,
+        "linf": 17.868918786841093
+      },
+      "inner_training_residual_rmse": 24.18981756884702,
+      "final_training_residual_rmse": 24.688041880147505,
+      "inner_training_boundary_fraction": 0.13350125944584382,
+      "final_training_boundary_fraction": 0.11103717083372944
+    },
+    {
+      "seed": 42,
+      "fold": 1,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.848866682677929e-13,
+        "singular_value_min": 4.8703801493531245,
+        "singular_value_max": 21.875569815615975,
+        "condition_number": 4.491552844909129,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0421284042172249e-12,
+        "singular_value_min": 5.910630469555521,
+        "singular_value_max": 24.96451645162183,
+        "condition_number": 4.223663884962709,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 88.90444591235065,
+        "linf": 57.675410837066394
+      },
+      "final_coefficient_norms": {
+        "l2": 85.87747393953155,
+        "linf": 60.462023654415745
+      },
+      "inner_training_residual_rmse": 56.33533730745301,
+      "final_training_residual_rmse": 51.94098771577434,
+      "inner_training_boundary_fraction": 0.08156028368794327,
+      "final_training_boundary_fraction": 0.07712765957446809
+    },
+    {
+      "seed": 42,
+      "fold": 1,
+      "role": "fe",
+      "regularization": 10.0,
+      "widths": [
+        31,
+        31
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 31,
+        "rank": 30,
+        "rank_tolerance": 1.3406449600879162e-12,
+        "singular_value_min": 3.37370081452484e-15,
+        "singular_value_max": 42.820766969418955,
+        "condition_number": null,
+        "condition_status": "rank_deficient",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 31,
+        "rank": 30,
+        "rank_tolerance": 1.9404389739588094e-12,
+        "singular_value_min": 3.4345096449593038e-15,
+        "singular_value_max": 46.48383106412809,
+        "condition_number": null,
+        "condition_status": "rank_deficient",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 62.900396060786704,
+        "linf": 22.245407235631404
+      },
+      "final_coefficient_norms": {
+        "l2": 63.54263322664056,
+        "linf": 26.10403043888
+      },
+      "inner_training_residual_rmse": 26.905113584494565,
+      "final_training_residual_rmse": 25.532691636544527,
+      "inner_training_boundary_fraction": 0.17458132599220005,
+      "final_training_boundary_fraction": 0.1520729399621538
+    },
+    {
+      "seed": 137,
+      "fold": 1,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.876632981137539e-13,
+        "singular_value_min": 4.797114486368286,
+        "singular_value_max": 21.96425654710261,
+        "condition_number": 4.578639223541009,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0421284042172249e-12,
+        "singular_value_min": 5.910630469555521,
+        "singular_value_max": 24.96451645162183,
+        "condition_number": 4.223663884962709,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 91.91114348127385,
+        "linf": 67.06465820602666
+      },
+      "final_coefficient_norms": {
+        "l2": 85.87747393953155,
+        "linf": 60.462023654415745
+      },
+      "inner_training_residual_rmse": 54.82744450570108,
+      "final_training_residual_rmse": 51.94098771577434,
+      "inner_training_boundary_fraction": 0.06855791962174941,
+      "final_training_boundary_fraction": 0.07712765957446809
+    },
+    {
+      "seed": 137,
+      "fold": 1,
+      "role": "fe",
+      "regularization": 0.1,
+      "widths": [
+        56,
+        11
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 56,
+        "rank": 55,
+        "rank_tolerance": 1.6641595691872068e-12,
+        "singular_value_min": 1.7291872878642574e-15,
+        "singular_value_max": 53.153960394869145,
+        "condition_number": null,
+        "condition_status": "rank_deficient",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 11,
+        "rank": 11,
+        "rank_tolerance": 1.4189466155556116e-12,
+        "singular_value_min": 1.6962099849196755,
+        "singular_value_max": 33.9913162184834,
+        "condition_number": 20.039568520812043,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 198.1780205614819,
+        "linf": 65.85397437882393
+      },
+      "final_coefficient_norms": {
+        "l2": 100.37518092104693,
+        "linf": 61.941243986339146
+      },
+      "inner_training_residual_rmse": 18.76926079602775,
+      "final_training_residual_rmse": 41.4273359506759,
+      "inner_training_boundary_fraction": 0.10007610350076103,
+      "final_training_boundary_fraction": 0.109284332688588
+    },
+    {
+      "seed": 2029,
+      "fold": 1,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.951383629445473e-13,
+        "singular_value_min": 5.047635200251484,
+        "singular_value_max": 22.203013278921986,
+        "condition_number": 4.398696101852959,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0421284042172249e-12,
+        "singular_value_min": 5.910630469555521,
+        "singular_value_max": 24.96451645162183,
+        "condition_number": 4.223663884962709,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 96.63492189406101,
+        "linf": 69.64307448432824
+      },
+      "final_coefficient_norms": {
+        "l2": 85.87747393953155,
+        "linf": 60.462023654415745
+      },
+      "inner_training_residual_rmse": 47.29264967349694,
+      "final_training_residual_rmse": 51.94098771577434,
+      "inner_training_boundary_fraction": 0.07801418439716312,
+      "final_training_boundary_fraction": 0.07712765957446809
+    },
+    {
+      "seed": 2029,
+      "fold": 1,
+      "role": "fe",
+      "regularization": 10.0,
+      "widths": [
+        11,
+        16
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 11,
+        "rank": 11,
+        "rank_tolerance": 8.876133160989654e-13,
+        "singular_value_min": 0.7361168217277307,
+        "singular_value_max": 28.350744678243906,
+        "condition_number": 38.51392040152298,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 16,
+        "rank": 16,
+        "rank_tolerance": 1.5474353772242948e-12,
+        "singular_value_min": 0.7861739014302969,
+        "singular_value_max": 37.069305256634344,
+        "condition_number": 47.151533762687436,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 79.26551977945086,
+        "linf": 57.11617939699519
+      },
+      "final_coefficient_norms": {
+        "l2": 75.49772251988888,
+        "linf": 38.41656553491749
+      },
+      "inner_training_residual_rmse": 28.25186679118856,
+      "final_training_residual_rmse": 29.79785106467158,
+      "inner_training_boundary_fraction": 0.1124031007751938,
+      "final_training_boundary_fraction": 0.16977985323549033
+    },
+    {
+      "seed": 42,
+      "fold": 2,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.957637136170785e-13,
+        "singular_value_min": 4.731209698990966,
+        "singular_value_max": 22.222987243856647,
+        "condition_number": 4.697104685213209,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0583150155803707e-12,
+        "singular_value_min": 5.620695794769937,
+        "singular_value_max": 25.352271860682755,
+        "condition_number": 4.510521968520885,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 109.21675872103793,
+        "linf": 71.02305569647885
+      },
+      "final_coefficient_norms": {
+        "l2": 100.38656623342787,
+        "linf": 62.65230149679664
+      },
+      "inner_training_residual_rmse": 61.53955168207642,
+      "final_training_residual_rmse": 59.03092026977088,
+      "inner_training_boundary_fraction": 0.08392434988179669,
+      "final_training_boundary_fraction": 0.07890070921985816
+    },
+    {
+      "seed": 42,
+      "fold": 2,
+      "role": "fe",
+      "regularization": 1.0,
+      "widths": [
+        16,
+        11
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 16,
+        "rank": 16,
+        "rank_tolerance": 1.0796661699331558e-12,
+        "singular_value_min": 1.3032007989967336,
+        "singular_value_max": 34.484994046776535,
+        "condition_number": 26.46176558004318,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 11,
+        "rank": 11,
+        "rank_tolerance": 1.4280384951097765e-12,
+        "singular_value_min": 2.022166985462578,
+        "singular_value_max": 34.209115076846345,
+        "condition_number": 16.91705745508494,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 145.17524397379313,
+        "linf": 65.35669160601265
+      },
+      "final_coefficient_norms": {
+        "l2": 155.00101857639956,
+        "linf": 90.89362078950413
+      },
+      "inner_training_residual_rmse": 29.519538145361977,
+      "final_training_residual_rmse": 37.04419601349921,
+      "inner_training_boundary_fraction": 0.21492007104795738,
+      "final_training_boundary_fraction": 0.20261121856866537
+    },
+    {
+      "seed": 137,
+      "fold": 2,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.988133014591516e-13,
+        "singular_value_min": 4.4077491447879575,
+        "singular_value_max": 22.32039236917008,
+        "condition_number": 5.063898065878665,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0583150155803707e-12,
+        "singular_value_min": 5.620695794769937,
+        "singular_value_max": 25.352271860682755,
+        "condition_number": 4.510521968520885,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 111.10966091441833,
+        "linf": 68.55309593656878
+      },
+      "final_coefficient_norms": {
+        "l2": 100.38656623342787,
+        "linf": 62.65230149679664
+      },
+      "inner_training_residual_rmse": 57.74139588287885,
+      "final_training_residual_rmse": 59.03092026977088,
+      "inner_training_boundary_fraction": 0.07092198581560284,
+      "final_training_boundary_fraction": 0.07890070921985816
+    },
+    {
+      "seed": 137,
+      "fold": 2,
+      "role": "fe",
+      "regularization": 10.0,
+      "widths": [
+        31,
+        31
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 31,
+        "rank": 31,
+        "rank_tolerance": 1.3601065807477014e-12,
+        "singular_value_min": 0.11874004609239744,
+        "singular_value_max": 43.44237936340076,
+        "condition_number": 365.8612304192313,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 31,
+        "rank": 31,
+        "rank_tolerance": 1.9575192712346148e-12,
+        "singular_value_min": 0.3017595999725423,
+        "singular_value_max": 46.89299500267434,
+        "condition_number": 155.39851924161226,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 65.84404810799445,
+        "linf": 27.418554252312592
+      },
+      "final_coefficient_norms": {
+        "l2": 68.4735804233694,
+        "linf": 26.88793196665704
+      },
+      "inner_training_residual_rmse": 27.62222980027335,
+      "final_training_residual_rmse": 28.03164156793922,
+      "inner_training_boundary_fraction": 0.12010084804033921,
+      "final_training_boundary_fraction": 0.16067435059349733
+    },
+    {
+      "seed": 2029,
+      "fold": 2,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 7.062275193831949e-13,
+        "singular_value_min": 4.836194436082036,
+        "singular_value_max": 22.55720562505636,
+        "condition_number": 4.664247048621707,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0583150155803707e-12,
+        "singular_value_min": 5.620695794769937,
+        "singular_value_max": 25.352271860682755,
+        "condition_number": 4.510521968520885,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 114.14430295379998,
+        "linf": 71.0751474792768
+      },
+      "final_coefficient_norms": {
+        "l2": 100.38656623342787,
+        "linf": 62.65230149679664
+      },
+      "inner_training_residual_rmse": 55.17849395519236,
+      "final_training_residual_rmse": 59.03092026977088,
+      "inner_training_boundary_fraction": 0.08628841607565012,
+      "final_training_boundary_fraction": 0.07890070921985816
+    },
+    {
+      "seed": 2029,
+      "fold": 2,
+      "role": "fe",
+      "regularization": 10.0,
+      "widths": [
+        16,
+        11
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 16,
+        "rank": 16,
+        "rank_tolerance": 1.0089335411189885e-12,
+        "singular_value_min": 0.5537036058545631,
+        "singular_value_max": 32.22576397039058,
+        "condition_number": 58.20038668640179,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 11,
+        "rank": 11,
+        "rank_tolerance": 1.4079767007149992e-12,
+        "singular_value_min": 1.9845093320297371,
+        "singular_value_max": 33.72852842918304,
+        "condition_number": 16.995903160952043,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 91.72269603889978,
+        "linf": 65.48148613213073
+      },
+      "final_coefficient_norms": {
+        "l2": 97.55456266968449,
+        "linf": 53.578813793806624
+      },
+      "inner_training_residual_rmse": 27.229076115800538,
+      "final_training_residual_rmse": 35.283994286211815,
+      "inner_training_boundary_fraction": 0.1582222222222222,
+      "final_training_boundary_fraction": 0.17408123791102514
+    },
+    {
+      "seed": 42,
+      "fold": 3,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.924598874285351e-13,
+        "singular_value_min": 4.752947606348545,
+        "singular_value_max": 22.117461638242315,
+        "condition_number": 4.653420039535018,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0584347307254625e-12,
+        "singular_value_min": 5.728387134262256,
+        "singular_value_max": 25.355139674953108,
+        "condition_number": 4.426226629010563,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 104.40801468382729,
+        "linf": 68.92583597892305
+      },
+      "final_coefficient_norms": {
+        "l2": 94.6791590486183,
+        "linf": 56.20654447771752
+      },
+      "inner_training_residual_rmse": 64.47673672667047,
+      "final_training_residual_rmse": 59.60929910724831,
+      "inner_training_boundary_fraction": 0.07328605200945626,
+      "final_training_boundary_fraction": 0.07180851063829788
+    },
+    {
+      "seed": 42,
+      "fold": 3,
+      "role": "fe",
+      "regularization": 1.0,
+      "widths": [
+        56,
+        31
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 56,
+        "rank": 55,
+        "rank_tolerance": 1.5644065991762083e-12,
+        "singular_value_min": 2.9065678182752852e-15,
+        "singular_value_max": 49.96780834826891,
+        "condition_number": null,
+        "condition_status": "rank_deficient",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 31,
+        "rank": 31,
+        "rank_tolerance": 2.0580521628534454e-12,
+        "singular_value_min": 0.3309073954420979,
+        "singular_value_max": 49.30129230710543,
+        "condition_number": 148.98818517258601,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 128.8071493320486,
+        "linf": 58.3960835014354
+      },
+      "final_coefficient_norms": {
+        "l2": 123.56068963398829,
+        "linf": 60.11676757055389
+      },
+      "inner_training_residual_rmse": 21.568869059295718,
+      "final_training_residual_rmse": 26.592471605341952,
+      "inner_training_boundary_fraction": 0.12046962736089842,
+      "final_training_boundary_fraction": 0.16506189821182943
+    },
+    {
+      "seed": 137,
+      "fold": 3,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.900627500108042e-13,
+        "singular_value_min": 4.536283593952269,
+        "singular_value_max": 22.04089605539658,
+        "condition_number": 4.858800292993432,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0584347307254625e-12,
+        "singular_value_min": 5.728387134262256,
+        "singular_value_max": 25.355139674953108,
+        "condition_number": 4.426226629010563,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 104.32264304960279,
+        "linf": 61.85158647481143
+      },
+      "final_coefficient_norms": {
+        "l2": 94.6791590486183,
+        "linf": 56.20654447771752
+      },
+      "inner_training_residual_rmse": 63.51025216349461,
+      "final_training_residual_rmse": 59.60929910724831,
+      "inner_training_boundary_fraction": 0.06973995271867613,
+      "final_training_boundary_fraction": 0.07180851063829788
+    },
+    {
+      "seed": 137,
+      "fold": 3,
+      "role": "fe",
+      "regularization": 10.0,
+      "widths": [
+        16,
+        11
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 16,
+        "rank": 16,
+        "rank_tolerance": 1.0084544423398699e-12,
+        "singular_value_min": 0.7616141436294747,
+        "singular_value_max": 32.21046135277985,
+        "condition_number": 42.292362375626055,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 11,
+        "rank": 11,
+        "rank_tolerance": 1.3080645155926257e-12,
+        "singular_value_min": 2.703011222915134,
+        "singular_value_max": 31.335100345742113,
+        "condition_number": 11.592663796618627,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 88.7414377997805,
+        "linf": 42.70595172853249
+      },
+      "final_coefficient_norms": {
+        "l2": 108.97886064683516,
+        "linf": 59.65156097058146
+      },
+      "inner_training_residual_rmse": 29.07091615196164,
+      "final_training_residual_rmse": 35.22512080765768,
+      "inner_training_boundary_fraction": 0.16762749445676275,
+      "final_training_boundary_fraction": 0.18837772397094432
+    },
+    {
+      "seed": 2029,
+      "fold": 3,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 7.003802320182891e-13,
+        "singular_value_min": 4.9476844768030155,
+        "singular_value_max": 22.370440793866866,
+        "condition_number": 4.521395998218888,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0584347307254625e-12,
+        "singular_value_min": 5.728387134262256,
+        "singular_value_max": 25.355139674953108,
+        "condition_number": 4.426226629010563,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 107.92945492750816,
+        "linf": 70.38727011829982
+      },
+      "final_coefficient_norms": {
+        "l2": 94.6791590486183,
+        "linf": 56.20654447771752
+      },
+      "inner_training_residual_rmse": 57.980026984074044,
+      "final_training_residual_rmse": 59.60929910724831,
+      "inner_training_boundary_fraction": 0.07092198581560284,
+      "final_training_boundary_fraction": 0.07180851063829788
+    },
+    {
+      "seed": 2029,
+      "fold": 3,
+      "role": "fe",
+      "regularization": 0.1,
+      "widths": [
+        7,
+        16
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 7,
+        "rank": 7,
+        "rank_tolerance": 7.593503505974496e-13,
+        "singular_value_min": 4.104334667607011,
+        "singular_value_max": 24.253971319108718,
+        "condition_number": 5.909355177717449,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 16,
+        "rank": 16,
+        "rank_tolerance": 1.8144912720081667e-12,
+        "singular_value_min": 0.7064207261435572,
+        "singular_value_max": 43.46671391746275,
+        "condition_number": 61.530915372136946,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 136.08786419519026,
+        "linf": 93.33837830970549
+      },
+      "final_coefficient_norms": {
+        "l2": 153.31386215519692,
+        "linf": 95.62785273932612
+      },
+      "inner_training_residual_rmse": 38.699837412346625,
+      "final_training_residual_rmse": 30.661869342743714,
+      "inner_training_boundary_fraction": 0.10840932117527863,
+      "final_training_boundary_fraction": 0.1346409574468085
+    },
+    {
+      "seed": 42,
+      "fold": 4,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.866637936366395e-13,
+        "singular_value_min": 4.691255613064444,
+        "singular_value_max": 21.932331951423976,
+        "condition_number": 4.675151763281821,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0508480004622146e-12,
+        "singular_value_min": 5.690421503517496,
+        "singular_value_max": 25.173397145237555,
+        "condition_number": 4.423819418241124,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 113.37174012181688,
+        "linf": 80.6927434138179
+      },
+      "final_coefficient_norms": {
+        "l2": 101.72133568248043,
+        "linf": 66.74763374526806
+      },
+      "inner_training_residual_rmse": 61.10228262104085,
+      "final_training_residual_rmse": 57.08689270407606,
+      "inner_training_boundary_fraction": 0.08037825059101655,
+      "final_training_boundary_fraction": 0.08067375886524823
+    },
+    {
+      "seed": 42,
+      "fold": 4,
+      "role": "fe",
+      "regularization": 10.0,
+      "widths": [
+        31,
+        11
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 31,
+        "rank": 31,
+        "rank_tolerance": 1.2846368816629876e-12,
+        "singular_value_min": 0.21935119628251493,
+        "singular_value_max": 41.03184525931792,
+        "condition_number": 187.06004778962165,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 11,
+        "rank": 11,
+        "rank_tolerance": 1.4108869014626763e-12,
+        "singular_value_min": 1.9329436284216952,
+        "singular_value_max": 33.79824321111289,
+        "condition_number": 17.485374490051807,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 71.54124939523764,
+        "linf": 26.078364697009874
+      },
+      "final_coefficient_norms": {
+        "l2": 98.5973120972758,
+        "linf": 57.01996220134795
+      },
+      "inner_training_residual_rmse": 29.0724150667911,
+      "final_training_residual_rmse": 31.993545630107253,
+      "inner_training_boundary_fraction": 0.17136958017894013,
+      "final_training_boundary_fraction": 0.17263056092843326
+    },
+    {
+      "seed": 137,
+      "fold": 4,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.846372714344021e-13,
+        "singular_value_min": 4.599485776772972,
+        "singular_value_max": 21.86760397529026,
+        "condition_number": 4.754358429744446,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0508480004622146e-12,
+        "singular_value_min": 5.690421503517496,
+        "singular_value_max": 25.173397145237555,
+        "condition_number": 4.423819418241124,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 111.16655818008485,
+        "linf": 71.86655820789963
+      },
+      "final_coefficient_norms": {
+        "l2": 101.72133568248043,
+        "linf": 66.74763374526806
+      },
+      "inner_training_residual_rmse": 62.22729120236413,
+      "final_training_residual_rmse": 57.08689270407606,
+      "inner_training_boundary_fraction": 0.08156028368794327,
+      "final_training_boundary_fraction": 0.08067375886524823
+    },
+    {
+      "seed": 137,
+      "fold": 4,
+      "role": "fe",
+      "regularization": 0.1,
+      "widths": [
+        11,
+        11
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 11,
+        "rank": 11,
+        "rank_tolerance": 9.37205507232439e-13,
+        "singular_value_min": 1.47858479945955,
+        "singular_value_max": 29.934740235046732,
+        "condition_number": 20.245534950709917,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 11,
+        "rank": 11,
+        "rank_tolerance": 1.4653969800206554e-12,
+        "singular_value_min": 2.392207074630043,
+        "singular_value_max": 35.10404943175997,
+        "condition_number": 14.674335597468643,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 202.7040524741076,
+        "linf": 167.0785632908436
+      },
+      "final_coefficient_norms": {
+        "l2": 102.4968650149727,
+        "linf": 79.17042002222811
+      },
+      "inner_training_residual_rmse": 39.61976644202955,
+      "final_training_residual_rmse": 32.23222312093605,
+      "inner_training_boundary_fraction": 0.1399097356544165,
+      "final_training_boundary_fraction": 0.11315280464216634
+    },
+    {
+      "seed": 2029,
+      "fold": 4,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.986538037268703e-13,
+        "singular_value_min": 4.902820269648199,
+        "singular_value_max": 22.31529794415115,
+        "condition_number": 4.551522739329863,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0508480004622146e-12,
+        "singular_value_min": 5.690421503517496,
+        "singular_value_max": 25.173397145237555,
+        "condition_number": 4.423819418241124,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 112.3859039991837,
+        "linf": 71.82761457599665
+      },
+      "final_coefficient_norms": {
+        "l2": 101.72133568248043,
+        "linf": 66.74763374526806
+      },
+      "inner_training_residual_rmse": 57.40500893763595,
+      "final_training_residual_rmse": 57.08689270407606,
+      "inner_training_boundary_fraction": 0.07565011820330969,
+      "final_training_boundary_fraction": 0.08067375886524823
+    },
+    {
+      "seed": 2029,
+      "fold": 4,
+      "role": "fe",
+      "regularization": 10.0,
+      "widths": [
+        11,
+        11
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 11,
+        "rank": 11,
+        "rank_tolerance": 9.330063066115805e-13,
+        "singular_value_min": 1.2495088206617417,
+        "singular_value_max": 29.80061599142012,
+        "condition_number": 23.84986444164329,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 11,
+        "rank": 11,
+        "rank_tolerance": 1.4108869014626763e-12,
+        "singular_value_min": 1.9329436284216952,
+        "singular_value_max": 33.79824321111289,
+        "condition_number": 17.485374490051807,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 102.34331172498268,
+        "linf": 67.05469260834651
+      },
+      "final_coefficient_norms": {
+        "l2": 98.5973120972758,
+        "linf": 57.01996220134795
+      },
+      "inner_training_residual_rmse": 27.50992085111714,
+      "final_training_residual_rmse": 31.993545630107253,
+      "inner_training_boundary_fraction": 0.13926499032882012,
+      "final_training_boundary_fraction": 0.17263056092843326
+    },
+    {
+      "seed": 42,
+      "fold": 5,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.724490878135511e-13,
+        "singular_value_min": 4.9663697214556946,
+        "singular_value_max": 21.478308236189637,
+        "condition_number": 4.324750157725696,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.031747467309737e-12,
+        "singular_value_min": 6.049030460831306,
+        "singular_value_max": 24.715837815513748,
+        "condition_number": 4.085917235093093,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 89.53519649811122,
+        "linf": 70.09959863442765
+      },
+      "final_coefficient_norms": {
+        "l2": 80.11722969797451,
+        "linf": 57.90866936202575
+      },
+      "inner_training_residual_rmse": 61.22654651818627,
+      "final_training_residual_rmse": 56.58366362537429,
+      "inner_training_boundary_fraction": 0.08274231678486997,
+      "final_training_boundary_fraction": 0.08333333333333333
+    },
+    {
+      "seed": 42,
+      "fold": 5,
+      "role": "fe",
+      "regularization": 10.0,
+      "widths": [
+        31,
+        11
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 31,
+        "rank": 31,
+        "rank_tolerance": 1.2281042288216342e-12,
+        "singular_value_min": 0.36363657677575567,
+        "singular_value_max": 39.22616842051945,
+        "condition_number": 107.87189992911277,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 11,
+        "rank": 11,
+        "rank_tolerance": 1.3257587422730218e-12,
+        "singular_value_min": 1.8979700768862238,
+        "singular_value_max": 31.7589711578934,
+        "condition_number": 16.733125324081296,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 63.53978549669055,
+        "linf": 22.44002558388859
+      },
+      "final_coefficient_norms": {
+        "l2": 74.66763626061407,
+        "linf": 39.74438260030741
+      },
+      "inner_training_residual_rmse": 28.182795154843955,
+      "final_training_residual_rmse": 32.341992689522655,
+      "inner_training_boundary_fraction": 0.16620816139385602,
+      "final_training_boundary_fraction": 0.14396509936984975
+    },
+    {
+      "seed": 137,
+      "fold": 5,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.723754575949894e-13,
+        "singular_value_min": 4.943965171450763,
+        "singular_value_max": 21.475956455871355,
+        "condition_number": 4.343872926105065,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.031747467309737e-12,
+        "singular_value_min": 6.049030460831306,
+        "singular_value_max": 24.715837815513748,
+        "condition_number": 4.085917235093093,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 84.50384440040833,
+        "linf": 54.7807975257066
+      },
+      "final_coefficient_norms": {
+        "l2": 80.11722969797451,
+        "linf": 57.90866936202575
+      },
+      "inner_training_residual_rmse": 62.36173610713973,
+      "final_training_residual_rmse": 56.58366362537429,
+      "inner_training_boundary_fraction": 0.08628841607565012,
+      "final_training_boundary_fraction": 0.08333333333333333
+    },
+    {
+      "seed": 137,
+      "fold": 5,
+      "role": "fe",
+      "regularization": 1.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.723754575949894e-13,
+        "singular_value_min": 4.943965171450763,
+        "singular_value_max": 21.475956455871355,
+        "condition_number": 4.343872926105065,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.031747467309737e-12,
+        "singular_value_min": 6.049030460831306,
+        "singular_value_max": 24.715837815513748,
+        "condition_number": 4.085917235093093,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 88.98336761068076,
+        "linf": 57.32980316256664
+      },
+      "final_coefficient_norms": {
+        "l2": 83.4803775780602,
+        "linf": 61.35982665062859
+      },
+      "inner_training_residual_rmse": 62.12773606174974,
+      "final_training_residual_rmse": 56.44568120621435,
+      "inner_training_boundary_fraction": 0.08628841607565012,
+      "final_training_boundary_fraction": 0.08333333333333333
+    },
+    {
+      "seed": 2029,
+      "fold": 5,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.797152974344691e-13,
+        "singular_value_min": 5.262155666371711,
+        "singular_value_max": 21.710394044282985,
+        "condition_number": 4.125760509713777,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.031747467309737e-12,
+        "singular_value_min": 6.049030460831306,
+        "singular_value_max": 24.715837815513748,
+        "condition_number": 4.085917235093093,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 86.69528492914887,
+        "linf": 57.631706153205066
+      },
+      "final_coefficient_norms": {
+        "l2": 80.11722969797451,
+        "linf": 57.90866936202575
+      },
+      "inner_training_residual_rmse": 59.127179578991544,
+      "final_training_residual_rmse": 56.58366362537429,
+      "inner_training_boundary_fraction": 0.08037825059101655,
+      "final_training_boundary_fraction": 0.08333333333333333
+    },
+    {
+      "seed": 2029,
+      "fold": 5,
+      "role": "fe",
+      "regularization": 10.0,
+      "widths": [
+        31,
+        31
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 31,
+        "rank": 31,
+        "rank_tolerance": 1.3077266857599794e-12,
+        "singular_value_min": 0.26227731300291496,
+        "singular_value_max": 41.76934336660352,
+        "condition_number": 159.25641027952463,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 31,
+        "rank": 30,
+        "rank_tolerance": 2.034783045107082e-12,
+        "singular_value_min": 4.360819092683828e-15,
+        "singular_value_max": 48.74387321129819,
+        "condition_number": null,
+        "condition_status": "rank_deficient",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 59.67941726432888,
+        "linf": 18.531934855955175
+      },
+      "final_coefficient_norms": {
+        "l2": 67.3261104973783,
+        "linf": 27.198566515584627
+      },
+      "inner_training_residual_rmse": 24.743351201743163,
+      "final_training_residual_rmse": 26.18238248788532,
+      "inner_training_boundary_fraction": 0.14975956033890542,
+      "final_training_boundary_fraction": 0.18219319353729804
+    },
+    {
+      "seed": 42,
+      "fold": 6,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.877080339255223e-13,
+        "singular_value_min": 4.486910262127612,
+        "singular_value_max": 21.965685427848786,
+        "condition_number": 4.895503619328695,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0553997223518392e-12,
+        "singular_value_min": 5.445775273659096,
+        "singular_value_max": 25.282435086758873,
+        "condition_number": 4.642577744448723,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 108.43678485218742,
+        "linf": 73.4531288910019
+      },
+      "final_coefficient_norms": {
+        "l2": 98.20606472731407,
+        "linf": 60.48897817055899
+      },
+      "inner_training_residual_rmse": 64.4500699618261,
+      "final_training_residual_rmse": 59.66463689276794,
+      "inner_training_boundary_fraction": 0.07919621749408984,
+      "final_training_boundary_fraction": 0.0797872340425532
+    },
+    {
+      "seed": 42,
+      "fold": 6,
+      "role": "fe",
+      "regularization": 10.0,
+      "widths": [
+        16,
+        31
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 16,
+        "rank": 16,
+        "rank_tolerance": 1.0364804663617758e-12,
+        "singular_value_min": 0.48502818923939867,
+        "singular_value_max": 33.10562441194107,
+        "condition_number": 68.25505227614906,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 31,
+        "rank": 31,
+        "rank_tolerance": 2.025625767222275e-12,
+        "singular_value_min": 0.35232599239584517,
+        "singular_value_max": 48.524507715182516,
+        "condition_number": 137.72616486570277,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 95.06069948946119,
+        "linf": 47.5570472343813
+      },
+      "final_coefficient_norms": {
+        "l2": 66.33995853885865,
+        "linf": 28.359413374679697
+      },
+      "inner_training_residual_rmse": 32.39602918394147,
+      "final_training_residual_rmse": 26.674485935238344,
+      "inner_training_boundary_fraction": 0.18533333333333332,
+      "final_training_boundary_fraction": 0.15237603305785125
+    },
+    {
+      "seed": 137,
+      "fold": 6,
+      "role": "raw",
+      "regularization": 0.1,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.820453274376204e-13,
+        "singular_value_min": 4.779165587534171,
+        "singular_value_max": 21.78481618792805,
+        "condition_number": 4.558288636148305,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0553997223518392e-12,
+        "singular_value_min": 5.445775273659096,
+        "singular_value_max": 25.282435086758873,
+        "condition_number": 4.642577744448723,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 105.16914721935895,
+        "linf": 74.5196051498159
+      },
+      "final_coefficient_norms": {
+        "l2": 102.9407982865489,
+        "linf": 62.919834711691415
+      },
+      "inner_training_residual_rmse": 64.63480895491564,
+      "final_training_residual_rmse": 59.45916655803895,
+      "inner_training_boundary_fraction": 0.08037825059101655,
+      "final_training_boundary_fraction": 0.0797872340425532
+    },
+    {
+      "seed": 137,
+      "fold": 6,
+      "role": "fe",
+      "regularization": 10.0,
+      "widths": [
+        16,
+        31
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 16,
+        "rank": 16,
+        "rank_tolerance": 1.0326801477685002e-12,
+        "singular_value_min": 0.7031564039733146,
+        "singular_value_max": 32.98424062895835,
+        "condition_number": 46.90882489667281,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 31,
+        "rank": 31,
+        "rank_tolerance": 2.025625767222275e-12,
+        "singular_value_min": 0.35232599239584517,
+        "singular_value_max": 48.524507715182516,
+        "condition_number": 137.72616486570277,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 75.41418185406734,
+        "linf": 35.20774752984241
+      },
+      "final_coefficient_norms": {
+        "l2": 66.33995853885865,
+        "linf": 28.359413374679697
+      },
+      "inner_training_residual_rmse": 29.44300361802773,
+      "final_training_residual_rmse": 26.674485935238344,
+      "inner_training_boundary_fraction": 0.12694185530403906,
+      "final_training_boundary_fraction": 0.15237603305785125
+    },
+    {
+      "seed": 2029,
+      "fold": 6,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.975740381222539e-13,
+        "singular_value_min": 4.845233912471077,
+        "singular_value_max": 22.280809774118545,
+        "condition_number": 4.598500335921924,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0553997223518392e-12,
+        "singular_value_min": 5.445775273659096,
+        "singular_value_max": 25.282435086758873,
+        "condition_number": 4.642577744448723,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 99.83243691229775,
+        "linf": 63.15346917501434
+      },
+      "final_coefficient_norms": {
+        "l2": 98.20606472731407,
+        "linf": 60.48897817055899
+      },
+      "inner_training_residual_rmse": 59.71350674098855,
+      "final_training_residual_rmse": 59.66463689276794,
+      "inner_training_boundary_fraction": 0.07328605200945626,
+      "final_training_boundary_fraction": 0.0797872340425532
+    },
+    {
+      "seed": 2029,
+      "fold": 6,
+      "role": "fe",
+      "regularization": 0.1,
+      "widths": [
+        16,
+        56
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 16,
+        "rank": 16,
+        "rank_tolerance": 1.2077467663154145e-12,
+        "singular_value_min": 0.7449847765576736,
+        "singular_value_max": 38.575942459120725,
+        "condition_number": 51.780846633359815,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 56,
+        "rank": 53,
+        "rank_tolerance": 2.722127802158779e-12,
+        "singular_value_min": 7.541653812326798e-16,
+        "singular_value_max": 65.20943486945289,
+        "condition_number": null,
+        "condition_status": "rank_deficient",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 165.7490173912279,
+        "linf": 95.48857075561504
+      },
+      "final_coefficient_norms": {
+        "l2": 270.1042358946371,
+        "linf": 101.70978643266366
+      },
+      "inner_training_residual_rmse": 28.834652697096754,
+      "final_training_residual_rmse": 20.63121394386796,
+      "inner_training_boundary_fraction": 0.10062056737588652,
+      "final_training_boundary_fraction": 0.11063259642071012
+    },
+    {
+      "seed": 42,
+      "fold": 7,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.846711740787986e-13,
+        "singular_value_min": 4.585410306410187,
+        "singular_value_max": 21.868686840089342,
+        "condition_number": 4.769188661158185,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0478171344694736e-12,
+        "singular_value_min": 5.675708349347548,
+        "singular_value_max": 25.100791789091183,
+        "condition_number": 4.422494998703844,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 110.35587229898361,
+        "linf": 78.41350265233531
+      },
+      "final_coefficient_norms": {
+        "l2": 99.40153417272154,
+        "linf": 62.30261608468746
+      },
+      "inner_training_residual_rmse": 65.30845756944703,
+      "final_training_residual_rmse": 60.7763950817228,
+      "inner_training_boundary_fraction": 0.07919621749408984,
+      "final_training_boundary_fraction": 0.07890070921985816
+    },
+    {
+      "seed": 42,
+      "fold": 7,
+      "role": "fe",
+      "regularization": 10.0,
+      "widths": [
+        11,
+        31
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 11,
+        "rank": 11,
+        "rank_tolerance": 8.84666119816254e-13,
+        "singular_value_min": 1.6297854919311328,
+        "singular_value_max": 28.256609982636764,
+        "condition_number": 17.337625179836095,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 31,
+        "rank": 31,
+        "rank_tolerance": 1.9301274454841748e-12,
+        "singular_value_min": 0.2952534091939461,
+        "singular_value_max": 46.236815129043066,
+        "condition_number": 156.60044453092502,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 119.41221882338073,
+        "linf": 69.51305361869733
+      },
+      "final_coefficient_norms": {
+        "l2": 73.65910152974882,
+        "linf": 36.617039621787335
+      },
+      "inner_training_residual_rmse": 43.29981727595463,
+      "final_training_residual_rmse": 26.248953280068577,
+      "inner_training_boundary_fraction": 0.19638242894056848,
+      "final_training_boundary_fraction": 0.16046831955922866
+    },
+    {
+      "seed": 137,
+      "fold": 7,
+      "role": "raw",
+      "regularization": 0.1,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.741437693578131e-13,
+        "singular_value_min": 4.885776892335386,
+        "singular_value_max": 21.532437081375807,
+        "condition_number": 4.407167489607445,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0478171344694736e-12,
+        "singular_value_min": 5.675708349347548,
+        "singular_value_max": 25.100791789091183,
+        "condition_number": 4.422494998703844,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 106.12332734988372,
+        "linf": 71.95967080970817
+      },
+      "final_coefficient_norms": {
+        "l2": 103.98235795323728,
+        "linf": 64.410496865372
+      },
+      "inner_training_residual_rmse": 65.71699691967301,
+      "final_training_residual_rmse": 60.57863586911604,
+      "inner_training_boundary_fraction": 0.08156028368794327,
+      "final_training_boundary_fraction": 0.07890070921985816
+    },
+    {
+      "seed": 137,
+      "fold": 7,
+      "role": "fe",
+      "regularization": 1.0,
+      "widths": [
+        31,
+        16
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 31,
+        "rank": 30,
+        "rank_tolerance": 1.3991666952096217e-12,
+        "singular_value_min": 1.7457631891182361e-15,
+        "singular_value_max": 44.689975937413195,
+        "condition_number": null,
+        "condition_status": "rank_deficient",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 16,
+        "rank": 16,
+        "rank_tolerance": 1.65559259400882e-12,
+        "singular_value_min": 0.6036243190537994,
+        "singular_value_max": 39.66024568859295,
+        "condition_number": 65.70352525021137,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 123.36173055472199,
+        "linf": 53.486200449910946
+      },
+      "final_coefficient_norms": {
+        "l2": 153.58243180098964,
+        "linf": 98.62319073546234
+      },
+      "inner_training_residual_rmse": 25.602362754310853,
+      "final_training_residual_rmse": 29.765146823638833,
+      "inner_training_boundary_fraction": 0.15555555555555556,
+      "final_training_boundary_fraction": 0.1848151848151848
+    },
+    {
+      "seed": 2029,
+      "fold": 7,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.91914242512073e-13,
+        "singular_value_min": 4.907474590981612,
+        "singular_value_max": 22.1000335088632,
+        "condition_number": 4.503341402821745,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0478171344694736e-12,
+        "singular_value_min": 5.675708349347548,
+        "singular_value_max": 25.100791789091183,
+        "condition_number": 4.422494998703844,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 101.03620463022504,
+        "linf": 65.20210373149322
+      },
+      "final_coefficient_norms": {
+        "l2": 99.40153417272154,
+        "linf": 62.30261608468746
+      },
+      "inner_training_residual_rmse": 59.8434291245502,
+      "final_training_residual_rmse": 60.7763950817228,
+      "inner_training_boundary_fraction": 0.06973995271867613,
+      "final_training_boundary_fraction": 0.07890070921985816
+    },
+    {
+      "seed": 2029,
+      "fold": 7,
+      "role": "fe",
+      "regularization": 0.1,
+      "widths": [
+        16,
+        11
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 16,
+        "rank": 16,
+        "rank_tolerance": 1.1416148185983573e-12,
+        "singular_value_min": 0.45586453497621804,
+        "singular_value_max": 36.4636600825546,
+        "condition_number": 79.98792905540869,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 11,
+        "rank": 11,
+        "rank_tolerance": 1.494699047745631e-12,
+        "singular_value_min": 2.0356209034954853,
+        "singular_value_max": 35.8059897577567,
+        "condition_number": 17.589714124212474,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 189.92614699899082,
+        "linf": 131.6821994832029
+      },
+      "final_coefficient_norms": {
+        "l2": 152.48306860822836,
+        "linf": 89.81184252549933
+      },
+      "inner_training_residual_rmse": 30.19006617879861,
+      "final_training_residual_rmse": 41.996840245443565,
+      "inner_training_boundary_fraction": 0.09530141843971632,
+      "final_training_boundary_fraction": 0.1402321083172147
+    },
+    {
+      "seed": 42,
+      "fold": 8,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.833863364893191e-13,
+        "singular_value_min": 4.637756820222258,
+        "singular_value_max": 21.82764858413749,
+        "condition_number": 4.706509942255107,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0484978459468752e-12,
+        "singular_value_min": 5.596819435064272,
+        "singular_value_max": 25.117098448431463,
+        "condition_number": 4.487745002290399,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 110.04782363604647,
+        "linf": 82.1402367338868
+      },
+      "final_coefficient_norms": {
+        "l2": 98.95668785185457,
+        "linf": 68.27327346314027
+      },
+      "inner_training_residual_rmse": 65.93551850295212,
+      "final_training_residual_rmse": 61.142835899839476,
+      "inner_training_boundary_fraction": 0.07565011820330969,
+      "final_training_boundary_fraction": 0.07535460992907801
+    },
+    {
+      "seed": 42,
+      "fold": 8,
+      "role": "fe",
+      "regularization": 1.0,
+      "widths": [
+        56,
+        11
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 56,
+        "rank": 48,
+        "rank_tolerance": 1.7861744793354053e-12,
+        "singular_value_min": 2.1035750631180756e-16,
+        "singular_value_max": 57.05116822378454,
+        "condition_number": null,
+        "condition_status": "rank_deficient",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 11,
+        "rank": 11,
+        "rank_tolerance": 1.4097366108589689e-12,
+        "singular_value_min": 1.8688931092937848,
+        "singular_value_max": 33.77068763486701,
+        "condition_number": 18.06988717917005,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 126.5063850063036,
+        "linf": 64.48167184961056
+      },
+      "final_coefficient_norms": {
+        "l2": 156.83255911155916,
+        "linf": 109.53001707601379
+      },
+      "inner_training_residual_rmse": 24.78045153347736,
+      "final_training_residual_rmse": 37.1294550177083,
+      "inner_training_boundary_fraction": 0.12517544978946024,
+      "final_training_boundary_fraction": 0.16150870406189555
+    },
+    {
+      "seed": 137,
+      "fold": 8,
+      "role": "raw",
+      "regularization": 0.1,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.751640338993026e-13,
+        "singular_value_min": 4.7420705539967845,
+        "singular_value_max": 21.565024762289788,
+        "condition_number": 4.547596775867036,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0484978459468752e-12,
+        "singular_value_min": 5.596819435064272,
+        "singular_value_max": 25.117098448431463,
+        "condition_number": 4.487745002290399,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 105.22909589561438,
+        "linf": 70.75039100756332
+      },
+      "final_coefficient_norms": {
+        "l2": 103.78378892270983,
+        "linf": 72.51299481451932
+      },
+      "inner_training_residual_rmse": 66.39793091341917,
+      "final_training_residual_rmse": 60.93649583649593,
+      "inner_training_boundary_fraction": 0.07919621749408984,
+      "final_training_boundary_fraction": 0.07535460992907801
+    },
+    {
+      "seed": 137,
+      "fold": 8,
+      "role": "fe",
+      "regularization": 0.1,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.751640338993026e-13,
+        "singular_value_min": 4.7420705539967845,
+        "singular_value_max": 21.565024762289788,
+        "condition_number": 4.547596775867036,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0484978459468752e-12,
+        "singular_value_min": 5.596819435064272,
+        "singular_value_max": 25.117098448431463,
+        "condition_number": 4.487745002290399,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 105.22909589561438,
+        "linf": 70.75039100756332
+      },
+      "final_coefficient_norms": {
+        "l2": 103.78378892270983,
+        "linf": 72.51299481451932
+      },
+      "inner_training_residual_rmse": 66.39793091341917,
+      "final_training_residual_rmse": 60.93649583649593,
+      "inner_training_boundary_fraction": 0.07919621749408984,
+      "final_training_boundary_fraction": 0.07535460992907801
+    },
+    {
+      "seed": 2029,
+      "fold": 8,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.917805407632443e-13,
+        "singular_value_min": 4.907769042653265,
+        "singular_value_max": 22.09576301846459,
+        "condition_number": 4.5022010666009376,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0484978459468752e-12,
+        "singular_value_min": 5.596819435064272,
+        "singular_value_max": 25.117098448431463,
+        "condition_number": 4.487745002290399,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 98.39655291362735,
+        "linf": 60.225064913867435
+      },
+      "final_coefficient_norms": {
+        "l2": 98.95668785185457,
+        "linf": 68.27327346314027
+      },
+      "inner_training_residual_rmse": 61.69517705019178,
+      "final_training_residual_rmse": 61.142835899839476,
+      "inner_training_boundary_fraction": 0.06382978723404255,
+      "final_training_boundary_fraction": 0.07535460992907801
+    },
+    {
+      "seed": 2029,
+      "fold": 8,
+      "role": "fe",
+      "regularization": 10.0,
+      "widths": [
+        31,
+        11
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 31,
+        "rank": 31,
+        "rank_tolerance": 1.3316534752221138e-12,
+        "singular_value_min": 0.1735554374304209,
+        "singular_value_max": 42.53357514040381,
+        "condition_number": 245.0719825903219,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 188,
+        "columns": 11,
+        "rank": 11,
+        "rank_tolerance": 1.4031723929795442e-12,
+        "singular_value_min": 1.941480565987453,
+        "singular_value_max": 33.61343971361299,
+        "condition_number": 17.313302179008378,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 62.81509783786068,
+        "linf": 24.11232071951508
+      },
+      "final_coefficient_norms": {
+        "l2": 98.621461402303,
+        "linf": 53.89434505057822
+      },
+      "inner_training_residual_rmse": 25.726667012717567,
+      "final_training_residual_rmse": 35.47113318014992,
+      "inner_training_boundary_fraction": 0.11696040283817807,
+      "final_training_boundary_fraction": 0.16247582205029013
+    },
+    {
+      "seed": 42,
+      "fold": 9,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.841340687414935e-13,
+        "singular_value_min": 4.592820123362956,
+        "singular_value_max": 21.8515314684798,
+        "condition_number": 4.7577590416233555,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 189,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0560749446579499e-12,
+        "singular_value_min": 5.7057058545729085,
+        "singular_value_max": 25.164755170565396,
+        "condition_number": 4.410454343768316,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 111.29638610769577,
+        "linf": 77.03315487413322
+      },
+      "final_coefficient_norms": {
+        "l2": 100.20268680180116,
+        "linf": 67.73237030513098
+      },
+      "inner_training_residual_rmse": 64.14045280019343,
+      "final_training_residual_rmse": 59.696284220891286,
+      "inner_training_boundary_fraction": 0.0768321513002364,
+      "final_training_boundary_fraction": 0.07671957671957672
+    },
+    {
+      "seed": 42,
+      "fold": 9,
+      "role": "fe",
+      "regularization": 10.0,
+      "widths": [
+        31,
+        11
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 31,
+        "rank": 31,
+        "rank_tolerance": 1.2849304962383686e-12,
+        "singular_value_min": 0.4174015436879762,
+        "singular_value_max": 41.04122343302201,
+        "condition_number": 98.32551904432322,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 189,
+        "columns": 11,
+        "rank": 11,
+        "rank_tolerance": 1.415927947623341e-12,
+        "singular_value_min": 1.9477880094430797,
+        "singular_value_max": 33.73953744603148,
+        "condition_number": 17.321976150617353,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 79.9287933570382,
+        "linf": 29.560200642156538
+      },
+      "final_coefficient_norms": {
+        "l2": 98.1471298489169,
+        "linf": 53.553080999396414
+      },
+      "inner_training_residual_rmse": 26.925865409555886,
+      "final_training_residual_rmse": 34.5391004559416,
+      "inner_training_boundary_fraction": 0.16341966536786615,
+      "final_training_boundary_fraction": 0.16786916786916786
+    },
+    {
+      "seed": 137,
+      "fold": 9,
+      "role": "raw",
+      "regularization": 0.1,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.835532461125093e-13,
+        "singular_value_min": 4.9362556123940005,
+        "singular_value_max": 21.832979748086455,
+        "condition_number": 4.422984031310694,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 189,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0560749446579499e-12,
+        "singular_value_min": 5.7057058545729085,
+        "singular_value_max": 25.164755170565396,
+        "condition_number": 4.410454343768316,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 101.09674762575223,
+        "linf": 67.63825942869435
+      },
+      "final_coefficient_norms": {
+        "l2": 105.03285760085555,
+        "linf": 71.44107863728537
+      },
+      "inner_training_residual_rmse": 63.34091033010692,
+      "final_training_residual_rmse": 59.4829311020383,
+      "inner_training_boundary_fraction": 0.07801418439716312,
+      "final_training_boundary_fraction": 0.07671957671957672
+    },
+    {
+      "seed": 137,
+      "fold": 9,
+      "role": "fe",
+      "regularization": 10.0,
+      "widths": [
+        31,
+        31
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 31,
+        "rank": 31,
+        "rank_tolerance": 1.3110856810771887e-12,
+        "singular_value_min": 0.2486960019284349,
+        "singular_value_max": 41.87663109751787,
+        "condition_number": 168.38481830346572,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 189,
+        "columns": 31,
+        "rank": 31,
+        "rank_tolerance": 2.0216820015555534e-12,
+        "singular_value_min": 0.3170720234399516,
+        "singular_value_max": 48.1737899940065,
+        "condition_number": 151.93327204135954,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 64.7463409774594,
+        "linf": 26.680323288658034
+      },
+      "final_coefficient_norms": {
+        "l2": 68.18377500426334,
+        "linf": 25.510075207342624
+      },
+      "inner_training_residual_rmse": 26.886655865734074,
+      "final_training_residual_rmse": 26.66071055898283,
+      "inner_training_boundary_fraction": 0.15990836197021763,
+      "final_training_boundary_fraction": 0.15655443513929243
+    },
+    {
+      "seed": 2029,
+      "fold": 9,
+      "role": "raw",
+      "regularization": 10.0,
+      "widths": [
+        6,
+        6
+      ],
+      "ordered_names_equal": true,
+      "inner_design": {
+        "rows": 141,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 6.774042120621799e-13,
+        "singular_value_min": 4.92482221015633,
+        "singular_value_max": 21.636577000159132,
+        "condition_number": 4.3933722024601405,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 189,
+        "columns": 6,
+        "rank": 6,
+        "rank_tolerance": 1.0560749446579499e-12,
+        "singular_value_min": 5.7057058545729085,
+        "singular_value_max": 25.164755170565396,
+        "condition_number": 4.410454343768316,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 103.16393658836463,
+        "linf": 69.85117833031865
+      },
+      "final_coefficient_norms": {
+        "l2": 100.20268680180116,
+        "linf": 67.73237030513098
+      },
+      "inner_training_residual_rmse": 62.42893995862066,
+      "final_training_residual_rmse": 59.696284220891286,
+      "inner_training_boundary_fraction": 0.07092198581560284,
+      "final_training_boundary_fraction": 0.07671957671957672
+    },
+    {
+      "seed": 2029,
+      "fold": 9,
+      "role": "fe",
+      "regularization": 10.0,
+      "widths": [
+        16,
+        16
+      ],
+      "ordered_names_equal": false,
+      "inner_design": {
+        "rows": 141,
+        "columns": 16,
+        "rank": 16,
+        "rank_tolerance": 1.0489339792233067e-12,
+        "singular_value_min": 0.6105040794217117,
+        "singular_value_max": 33.50339487919387,
+        "condition_number": 54.87824898881809,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "final_design": {
+        "rows": 189,
+        "columns": 16,
+        "rank": 16,
+        "rank_tolerance": 1.6109088342723711e-12,
+        "singular_value_min": 0.6979260887784703,
+        "singular_value_max": 38.385653046332756,
+        "condition_number": 54.99959618004307,
+        "condition_status": "full_column_rank",
+        "design_scope": "fitted_pipeline_training_transform_no_added_intercept_column"
+      },
+      "inner_coefficient_norms": {
+        "l2": 78.58181126686972,
+        "linf": 33.668229765097564
+      },
+      "final_coefficient_norms": {
+        "l2": 89.3147716206594,
+        "linf": 45.28785144719891
+      },
+      "inner_training_residual_rmse": 30.055438795204907,
+      "final_training_residual_rmse": 30.68519399465823,
+      "inner_training_boundary_fraction": 0.13031914893617022,
+      "final_training_boundary_fraction": 0.18112582781456954
+    }
+  ],
+  "measurement_hours": 0.36680851505555556,
+  "cycle_used_hours": 70.32875956877777,
+  "cycle_remaining_hours": 1.6712404312222304,
+  "limitations": [
+    "Diagnostic design conditioning is unpenalized and omits the intercept column; not the centered regularized Ridge solve condition.",
+    "Coefficient norms are scale/representation dependent and do not identify a safe threshold.",
+    "Training boundary counts are neither changed-value counts nor future clipping/extrapolation rates.",
+    "No outer-test data were sent to workers or selected/scored by this verification."
+  ],
+  "analysis_runner_sha256": "14ef69ea543d2b859836c2081d52bf8113310c0ace7d6d8ea53071fc8f196f45"
+}

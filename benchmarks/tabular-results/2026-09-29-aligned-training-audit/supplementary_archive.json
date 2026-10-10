@@ -1,0 +1,30 @@
+{
+  "format": "bounded-lossless-artifacts-v1",
+  "purpose": "Exact oversized record copies; original audit artifacts and checksum index remain unchanged.",
+  "files": [
+    {
+      "name": "record-11.json",
+      "compression": "gzip",
+      "parts": [
+        "record-11.json.gz.part1"
+      ],
+      "sha256": "2b0e55b972aa286ac168bd708e249ff87ab4767a5bce1e88667ace5efada6f1f"
+    },
+    {
+      "name": "record-14.json",
+      "compression": "gzip",
+      "parts": [
+        "record-14.json.gz.part1"
+      ],
+      "sha256": "7f0d26d9fdcb924fa4a8c05bed4e45ad703cb202396875a0521946a63f8b0d8e"
+    },
+    {
+      "name": "record-17.json",
+      "compression": "gzip",
+      "parts": [
+        "record-17.json.gz.part1"
+      ],
+      "sha256": "3df890aebe976932859804895c160dcc0f8001eb8dc6e2323aa8afe20d6e0928"
+    }
+  ]
+}

@@ -1,5 +1,8 @@
 """Tests for LiteLLM client."""
 
+import sys
+from types import SimpleNamespace
+
 import pytest
 
 from featcopilot.llm.litellm_client import (
@@ -9,6 +12,17 @@ from featcopilot.llm.litellm_client import (
 )
 
 
+@pytest.fixture(autouse=True)
+def fake_litellm_sdk(monkeypatch):
+    """Keep all tests independent of provider availability and credentials."""
+
+    async def complete(**kwargs):
+        content = LiteLLMFeatureClient()._mock_response(kwargs["messages"][-1]["content"])
+        return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content=content))])
+
+    monkeypatch.setitem(sys.modules, "litellm", SimpleNamespace(acompletion=complete))
+
+
 class TestLiteLLMConfig:
     """Tests for LiteLLMConfig."""
 
@@ -16,7 +30,7 @@ class TestLiteLLMConfig:
         """Test default configuration values."""
         config = LiteLLMConfig()
 
-        assert config.model == "gpt-4o"
+        assert config.model == "gpt-5.6-sol"
         assert config.temperature == 0.3
         assert config.max_tokens == 4096
         assert config.timeout == 60.0

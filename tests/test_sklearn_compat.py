@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pandas as pd
 import pytest
+from sklearn.base import clone
 
 from featcopilot.transformers.sklearn_compat import AutoFeatureEngineer, FeatureEngineerTransformer
 
@@ -109,6 +110,44 @@ class TestFeatureEngineerTransformer:
         engine = transformer._create_engine()
         assert isinstance(engine, TabularEngine)
 
+    def test_clone_preserves_engine_kwargs(self):
+        """Sklearn cloning must retain engine-specific configuration."""
+        transformer = FeatureEngineerTransformer(
+            engine="tabular",
+            max_features=7,
+            keep_original_categorical=False,
+        )
+
+        cloned = clone(transformer)
+
+        assert cloned.engine == "tabular"
+        assert cloned.engine_kwargs == {
+            "max_features": 7,
+            "keep_original_categorical": False,
+        }
+
+    def test_fit_transform_uses_training_safe_target_encoding(self):
+        """The sklearn wrapper must preserve the engine's cross-fitting behavior."""
+        n = 20
+        X = pd.DataFrame({"category": [f"category_{i}" for i in range(n)]})
+        y = pd.Series(np.arange(n, dtype=float))
+        transformer = FeatureEngineerTransformer(
+            engine="tabular",
+            polynomial_degree=1,
+            include_transforms=[],
+            onehot_ratio_threshold=0.0,
+            target_encode_ratio_threshold=1.0,
+            target_encode_cv=5,
+            min_samples_per_category=1,
+            keep_original_categorical=False,
+        )
+
+        training_result = transformer.fit_transform(X, y)
+        inference_result = transformer.transform(X)
+
+        assert not np.allclose(training_result["category_target_encoded"], y)
+        assert np.allclose(inference_result["category_target_encoded"], y)
+
 
 class TestAutoFeatureEngineer:
     """Tests for AutoFeatureEngineer."""
@@ -189,6 +228,22 @@ class TestAutoFeatureEngineer:
         assert isinstance(result, pd.DataFrame)
         assert afe._is_fitted is True
         assert afe._selector is None
+
+    def test_fit_transform_cross_fits_tabular_target_encoding(self):
+        """AutoFeatureEngineer must not expose full-target category means during fit."""
+        categories = np.repeat([f"category_{i}" for i in range(10)], 10)
+        X = pd.DataFrame({"category": categories})
+        y = pd.Series(np.arange(len(X), dtype=float))
+        afe = AutoFeatureEngineer(engines=["tabular"])
+
+        training_result = afe.fit_transform(X, y, apply_selection=False)
+        inference_result = afe.transform(X)
+
+        assert "category_target_encoded" in training_result
+        assert not np.allclose(
+            training_result["category_target_encoded"],
+            inference_result["category_target_encoded"],
+        )
 
     def test_fit_transform_with_selection(self, sample_df, sample_target):
         """Test fit_transform with selection enabled, y provided, and max_features set."""

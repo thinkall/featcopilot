@@ -1,0 +1,17 @@
+{
+  "reference_run": "2026-10-03-subsample85-development",
+  "reference_seed": 42,
+  "prediction_rows": 162,
+  "member_checks_including_both_views": 324,
+  "exact_metric_fields": [
+    "loss",
+    "brier_sum",
+    "accuracy",
+    "balanced_accuracy",
+    "macro_f1",
+    "roc_auc",
+    "average_precision"
+  ],
+  "differences": [],
+  "excluded_identity_fields": "Timing, pickle class paths and generated fit IDs are not compared as semantic prediction equality."
+}

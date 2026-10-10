@@ -1,0 +1,16 @@
+__pycache__/
+cells/
+cells/infrared-oral-temperature-fold-0-featcopilot-frequency-aligned-robust/result.json
+cells/infrared-oral-temperature-fold-0-featcopilot-frequency-aligned/result.json
+cells/infrared-oral-temperature-fold-1-featcopilot-frequency-aligned-robust/result.json
+cells/infrared-oral-temperature-fold-1-featcopilot-frequency-aligned/result.json
+cells/infrared-oral-temperature-fold-2-featcopilot-frequency-aligned-robust/result.json
+cells/infrared-oral-temperature-fold-2-featcopilot-frequency-aligned/result.json
+record-14.json
+record-15.json
+record-18.json
+record-19.json
+record-22.json
+record-23.json
+results.json
+source.zip

@@ -1,0 +1,247 @@
+{
+  "checks_passed": true,
+  "not_confirmation": true,
+  "original_decision": "blocked",
+  "original_artifact_sha256": {
+    "results.json": "4e5ae41a54e77f7c4fd1926fe4621e6fd6737ad3d1cb364c8f143bf2e2f7e92a",
+    "manifest.json": "99475fab6026e5872d033312a321bd9cd90eb753aa18d1e2175af9ecbb5d94b1",
+    "source.zip": "6c11ef81d7965c1e70b70a4a93d0c6bdaa08aa61457b9eafcdac93c4285d65eb",
+    "prepared/thoracic-surgery.pkl": "02b89bb73f26d82fae8073cddbe3a9e1d58bc8fcfd1304a1ad09eeef3a63113a"
+  },
+  "original_report_sha256": "0e9a6032554f193aa73528771ad84902446f243bf15a0d0620e992fe09cd2c68",
+  "source_sha256": "489c114e8b36609a602bd77ecd54e86b99ed53d23f75700cfa81b5efcb82a36b",
+  "source_archive_sha256": "da153e42890965501169ac321004c25ecd3e8721df5cfa4254017c6cb3fd5dac",
+  "results_sha256": "4d823e5ee0f5028d8394e2d36c0ed922361e3097f244e8a9c6f1cee48139d097",
+  "protocol_sha256": "ae7aad1c21581b4ceed2c0fa0f711827b4fa8a2636976ac886a7de48ffdcf125",
+  "claim_boundary": {
+    "evaluation_tier": "standard_iid_unverified_entity",
+    "claim_scope": "Row-level standard public IID benchmark evidence only, under explicitly unresolved patient/entity mapping.",
+    "patient_entity_independence_verified": false,
+    "patient_entity_disjoint_claims_allowed": false,
+    "clinical_generalization_claims_allowed": false,
+    "pool_with_verified_entity_cohorts": false,
+    "prospective_clinical_decision_use_authorized": false,
+    "known_group_time_constraints_must_be_preserved": true,
+    "future_confirmation_requires_explicit_tier_binding": true,
+    "limits": "This is not a waiver for known repeat-entity or temporal leakage. If later evidence identifies available group IDs, repeated-entity links or mandatory temporal boundaries, stop and review; do not drop or ignore them to preserve IID eligibility."
+  },
+  "compatibility": {
+    "name": "safe-scale-v1",
+    "versions": {
+      "autofeat": "2.1.1",
+      "numpy": "2.4.4",
+      "pandas": "2.3.3",
+      "scikit-learn": "1.7.2",
+      "scipy": "1.17.1",
+      "numba": "0.65.1",
+      "sympy": "1.14.0",
+      "joblib": "1.3.2"
+    },
+    "upstream_source_sha256": {
+      "autofeat.py": "b05ebbc4c4adb184817f46b9c3b217f24da0aa21db93e0ce11bd35fe6c092741",
+      "featsel.py": "cc96ca82b3a2392c21fd5256b526770d6b681dac1c56c9a3b478c905a8ad2122",
+      "nb_utils.py": "20f6f76884284c5e0031dd9df55b57bef2a463f1c99ef77bb5d9f591b0cb0204",
+      "feateng.py": "7f536fc86b6a29aa3b4b112b072929eeb2e583f4c7aa9285604d6f9d99c5fb31"
+    },
+    "compatibility_source_sha256": "c0e38a9dadd4d165bc692a8a4c945f61eed9e4ca0982d17cd4419eceb99c95aa",
+    "feature_scaling": "denominator=1 only for wholly finite, exactly constant columns with upstream std==0",
+    "underflow_policy": "nonconstant columns with std==0 are not repaired",
+    "target_scaling": "unchanged",
+    "scope": [
+      "selection_features",
+      "shuffled_noise_features"
+    ],
+    "upstream_generation": "unchanged",
+    "license": "MIT"
+  },
+  "comparison": [
+    {
+      "method": "baseline-robust",
+      "scored_folds": 3,
+      "mean_log_loss": 0.5101797608530757,
+      "folds": [
+        {
+          "fold": 0,
+          "status": "success",
+          "loss": 0.4885064152152423,
+          "n_output_features": 16,
+          "parameters": null
+        },
+        {
+          "fold": 1,
+          "status": "success",
+          "loss": 0.5136322144137796,
+          "n_output_features": 16,
+          "parameters": null
+        },
+        {
+          "fold": 2,
+          "status": "success",
+          "loss": 0.5284006529302053,
+          "n_output_features": 16,
+          "parameters": null
+        }
+      ]
+    },
+    {
+      "method": "featcopilot-frequency-aligned-robust",
+      "scored_folds": 3,
+      "mean_log_loss": 0.5201426371241868,
+      "folds": [
+        {
+          "fold": 0,
+          "status": "success",
+          "loss": 0.4885064152152423,
+          "n_output_features": 16,
+          "parameters": null
+        },
+        {
+          "fold": 1,
+          "status": "success",
+          "loss": 0.5136322144137796,
+          "n_output_features": 16,
+          "parameters": null
+        },
+        {
+          "fold": 2,
+          "status": "success",
+          "loss": 0.5582892817435386,
+          "n_output_features": 17,
+          "parameters": null
+        }
+      ]
+    },
+    {
+      "method": "prediction-average-robust",
+      "scored_folds": 3,
+      "mean_log_loss": 0.508215272154519,
+      "folds": [
+        {
+          "fold": 0,
+          "status": "success",
+          "loss": 0.4885064152152423,
+          "n_output_features": 16,
+          "parameters": null
+        },
+        {
+          "fold": 1,
+          "status": "success",
+          "loss": 0.5136322144137796,
+          "n_output_features": 16,
+          "parameters": null
+        },
+        {
+          "fold": 2,
+          "status": "success",
+          "loss": 0.5225071868345352,
+          "n_output_features": 17,
+          "parameters": null
+        }
+      ]
+    },
+    {
+      "method": "openfe-inductive-native-robust",
+      "scored_folds": 3,
+      "mean_log_loss": 0.5101797608530757,
+      "folds": [
+        {
+          "fold": 0,
+          "status": "success",
+          "loss": 0.4885064152152423,
+          "n_output_features": 17,
+          "parameters": {
+            "num_leaves": 7
+          }
+        },
+        {
+          "fold": 1,
+          "status": "success",
+          "loss": 0.5136322144137796,
+          "n_output_features": 17,
+          "parameters": {
+            "num_leaves": 7
+          }
+        },
+        {
+          "fold": 2,
+          "status": "success",
+          "loss": 0.5284006529302053,
+          "n_output_features": 17,
+          "parameters": {
+            "num_leaves": 15
+          }
+        }
+      ]
+    },
+    {
+      "method": "autofeat-native-robust",
+      "scored_folds": 2,
+      "mean_log_loss": null,
+      "folds": [
+        {
+          "fold": 0,
+          "status": "success",
+          "loss": 0.48596503013805553,
+          "n_output_features": 66,
+          "parameters": {
+            "num_leaves": 7
+          }
+        },
+        {
+          "fold": 1,
+          "status": "success",
+          "loss": 0.46625394360698164,
+          "n_output_features": 63,
+          "parameters": {
+            "num_leaves": 7
+          }
+        },
+        {
+          "fold": 2,
+          "status": "error",
+          "loss": null,
+          "n_output_features": null,
+          "parameters": null
+        }
+      ]
+    },
+    {
+      "method": "autofeat-native-safe-scale-v1-robust",
+      "scored_folds": 3,
+      "mean_log_loss": 0.503197075983526,
+      "folds": [
+        {
+          "fold": 0,
+          "status": "success",
+          "loss": 0.5160467248082252,
+          "n_output_features": 59,
+          "parameters": {
+            "num_leaves": 7
+          }
+        },
+        {
+          "fold": 1,
+          "status": "success",
+          "loss": 0.5077795202028267,
+          "n_output_features": 49,
+          "parameters": {
+            "num_leaves": 7
+          }
+        },
+        {
+          "fold": 2,
+          "status": "success",
+          "loss": 0.48576498293952636,
+          "n_output_features": 47,
+          "parameters": {
+            "num_leaves": 7
+          }
+        }
+      ]
+    }
+  ],
+  "physical_jobs": 3,
+  "measurement_hours": 0.12464403327777779,
+  "cycle_used_hours": 61.05288084216666,
+  "cycle_remaining_hours": 10.947119157833342
+}

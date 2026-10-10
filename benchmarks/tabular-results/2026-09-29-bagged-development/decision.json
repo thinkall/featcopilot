@@ -1,0 +1,85 @@
+{
+  "promote": false,
+  "sota_demonstrated": false,
+  "reason": "Three observational mean-loss strata decline, stability is mixed, and worst boosted-classification harm increases.",
+  "strata": [
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "lightgbm",
+      "families": 9,
+      "single_mean": 0.08120197247515595,
+      "bagged_mean": 0.07550728227591905,
+      "not_worse_mean": false,
+      "worst_bagged_reduction": -0.3289994082412613,
+      "no_stability_decline": false,
+      "single_jaccard": 0.32636834078442173,
+      "bagged_jaccard": 0.314168058420932
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "linear",
+      "families": 9,
+      "single_mean": 0.16122116402097295,
+      "bagged_mean": 0.14839837256615496,
+      "not_worse_mean": false,
+      "worst_bagged_reduction": -0.04702817625670774,
+      "no_stability_decline": true,
+      "single_jaccard": 0.3888431391355368,
+      "bagged_jaccard": 0.4162926044219202
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "lightgbm",
+      "families": 6,
+      "single_mean": 0.013888997693933222,
+      "bagged_mean": 0.026001708249787165,
+      "not_worse_mean": true,
+      "worst_bagged_reduction": -0.025732252206930317,
+      "no_stability_decline": true,
+      "single_jaccard": 0.26250006266135295,
+      "bagged_jaccard": 0.3011700474918866
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "linear",
+      "families": 6,
+      "single_mean": 0.14971749267459214,
+      "bagged_mean": 0.1477297840998378,
+      "not_worse_mean": false,
+      "worst_bagged_reduction": 0.034377579421932536,
+      "no_stability_decline": false,
+      "single_jaccard": 0.40486166601769535,
+      "bagged_jaccard": 0.36723092294683496
+    },
+    {
+      "source": "simulation",
+      "task": "regression",
+      "learner": "lightgbm",
+      "families": 1,
+      "single_mean": 0.06322202953018852,
+      "bagged_mean": 0.09588773815382556,
+      "not_worse_mean": true,
+      "worst_bagged_reduction": 0.09588773815382556,
+      "no_stability_decline": true,
+      "single_jaccard": 0.25146198830409355,
+      "bagged_jaccard": 0.2585034013605442
+    },
+    {
+      "source": "simulation",
+      "task": "regression",
+      "learner": "linear",
+      "families": 1,
+      "single_mean": 0.813937210592161,
+      "bagged_mean": 0.8060624362747554,
+      "not_worse_mean": false,
+      "worst_bagged_reduction": 0.8060624362747554,
+      "no_stability_decline": false,
+      "single_jaccard": 0.8194070080862533,
+      "bagged_jaccard": 0.5279347143753923
+    }
+  ]
+}

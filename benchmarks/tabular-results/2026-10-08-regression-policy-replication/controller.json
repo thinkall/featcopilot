@@ -1,0 +1,62 @@
+{
+  "source_sha256": "6e6815ee2dbd45d6179405ac5add14c5cabdb7725a68b9d50506a530b6283e5d",
+  "protocol_sha256": "66374f399b619e086e75e93e959e8b295abc1927a3008d3396c0a64638295c2d",
+  "runner_sha256": "20094ca3cd9b90c9eae7676c5614c845b6311dea6999db5400793731f2e7f05d",
+  "reference_source_verified": true,
+  "started_utc": "2026-10-08T03:50:13.755080+00:00",
+  "stages": {
+    "iid-linear": {
+      "prepared_sha256": {
+        "uci-concrete-strength": "02a860c2dd49dfef6acead8614e9fcaa434ae3905b988b1d80a8cad4dc8b7d1d",
+        "uci-energy-efficiency": "1659c4234c49b1bec321c44c37338ca06258ca57daf203996da903213a504378",
+        "uci-combined-cycle-power": "c0fd7be32fd4defb8497137a05fcc39e226bcfb142d6365e21952218fc8165a4",
+        "uci-real-estate-sindian": "a6f35796afdad6997c86c09243be1650a24f825fe65b425ef5c31b6478fddccf",
+        "uci-auto-mpg": "5a3ed1638a86100661f3fbb62fb15841943c27056432537ba0fa2c17e5c7bf4c",
+        "wine": "15805dc9ccf41c2e740c5cdda65d58849d8d040e543bcea38fd3269bf61c10b0",
+        "houses": "155415f87aa20455b0d1a2ad55f70bbdf3d63a87dddbc040e96f8a21966bfe36",
+        "infrared-oral-temperature": "012d2275bae0d129729c3c55a5884eb9e3203052806fcd3900265690a125bdc6"
+      },
+      "source_archive_sha256": "503db142009e97719b942423eb10383f13ae8b27a5ee2bf7c7913be6beb4d437",
+      "effective_budget_seconds": 6000,
+      "exit_code": 0
+    },
+    "iid-lightgbm": {
+      "prepared_sha256": {
+        "uci-concrete-strength": "02a860c2dd49dfef6acead8614e9fcaa434ae3905b988b1d80a8cad4dc8b7d1d",
+        "uci-energy-efficiency": "1659c4234c49b1bec321c44c37338ca06258ca57daf203996da903213a504378",
+        "uci-combined-cycle-power": "c0fd7be32fd4defb8497137a05fcc39e226bcfb142d6365e21952218fc8165a4",
+        "uci-real-estate-sindian": "a6f35796afdad6997c86c09243be1650a24f825fe65b425ef5c31b6478fddccf",
+        "uci-auto-mpg": "5a3ed1638a86100661f3fbb62fb15841943c27056432537ba0fa2c17e5c7bf4c",
+        "wine": "15805dc9ccf41c2e740c5cdda65d58849d8d040e543bcea38fd3269bf61c10b0",
+        "houses": "155415f87aa20455b0d1a2ad55f70bbdf3d63a87dddbc040e96f8a21966bfe36",
+        "infrared-oral-temperature": "012d2275bae0d129729c3c55a5884eb9e3203052806fcd3900265690a125bdc6"
+      },
+      "source_archive_sha256": "67cdee9dea99344e3b9ae4eb6954b02e70f90b8bf62bebfe9748485abe005f66",
+      "effective_budget_seconds": 12000,
+      "exit_code": 0
+    },
+    "hardware-linear": {
+      "prepared_sha256": {
+        "computer-hardware-performance": "9b41a54261472f08dcc0d9996c7c8080d0bfb3f50923144c68ca71f2fc967f0c"
+      },
+      "source_archive_sha256": "a3cabdd852203c8a9017a2405648525f82b6aa5325a6f3576aca8829f4e2a61a",
+      "effective_budget_seconds": 3000,
+      "exit_code": 0
+    },
+    "hardware-lightgbm": {
+      "prepared_sha256": {
+        "computer-hardware-performance": "9b41a54261472f08dcc0d9996c7c8080d0bfb3f50923144c68ca71f2fc967f0c"
+      },
+      "source_archive_sha256": "8ae6bf5cb12baf218c7a49330ec4bea2b730d09ea6477ddbba10ab6d9bffa5a1",
+      "effective_budget_seconds": 4200,
+      "exit_code": 0
+    }
+  },
+  "scored_cells": 340,
+  "expected_cells": 340,
+  "source_sha256_at_finish": "6e6815ee2dbd45d6179405ac5add14c5cabdb7725a68b9d50506a530b6283e5d",
+  "source_changed": false,
+  "active_seconds": 20044.76202969998,
+  "budget_overshoot_seconds": 0.0,
+  "finished_utc": "2026-10-08T09:23:36.476801+00:00"
+}

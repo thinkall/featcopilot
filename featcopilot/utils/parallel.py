@@ -51,7 +51,7 @@ def parallel_apply(
 
         results = Parallel(n_jobs=n_jobs, verbose=1 if verbose else 0)(delayed(func)(row) for _, row in data.iterrows())
 
-        return results
+        return list(results)
 
     except ImportError:
         # Fallback to sequential processing

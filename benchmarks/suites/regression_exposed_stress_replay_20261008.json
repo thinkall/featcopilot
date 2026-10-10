@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "name": "regression-exposed-stress-replay-20261008",
+  "family_registry": "../families.json",
+  "purpose": "Already-exposed development/stress reuse of exactly two previously measured regression origins. Not fresh confirmation. Only dataset role/prior_exposure are amended; original source, target, predictor, rights and source-split definitions are retained.",
+  "audit": "regression_exposed_stress_replay_audit_20261008.json",
+  "source_manifest": "frequency_fresh_confirmation_iid_20260928.json",
+  "source_manifest_sha256": "ecabf7db78b914bc100e7bd1c8179cf98f709f6973279b48b44f6cbd7ec4240b",
+  "historical_annotations": "Copied reservation IDs/roles and old source acquisition notes are historical provenance, not current admission authority. Current dataset role=development and prior_exposure=exposed govern reuse.",
+  "study_plan": {
+    "amendment_timing": "Explicit parent-approved pre-outcome plan on 2026-10-08; no new payloads or performance values were inspected to create this manifest.",
+    "methods": [
+      "baseline-robust",
+      "featcopilot-frequency-aligned-robust",
+      "featcopilot-regression-average-robust"
+    ],
+    "learners": ["linear", "lightgbm"],
+    "learner_meaning": "linear is the runner's Ridge regression learner; the averaging method is the fixed 0.5 raw/FE study selected by the parent.",
+    "seeds": [42],
+    "threads": 8,
+    "memory_limit_mb": 4096,
+    "case_timeout_seconds": 600,
+    "shared_total_active_seconds_ceiling": 14400,
+    "budget_scope": "ONE cumulative 14400-second ceiling across primary, infrared and hardware executions, not 14400 seconds per output directory. Parent allocates/enforces the remaining allowance; this descriptive manifest introduces no controller or cross-run budget mechanism.",
+    "execution_policy": "Use existing execution.execute with development roles and explicit dataset filtering. No confirmation preregistration, no new resplitting flag or loader changes.",
+    "primary_seven": {
+      "catalog_suite": "frequency_development_replay_20260924.json",
+      "catalog_datasets": [
+        "uci-concrete-strength",
+        "uci-energy-efficiency",
+        "uci-combined-cycle-power",
+        "uci-real-estate-sindian",
+        "uci-auto-mpg"
+      ],
+      "legacy_suite": "../tabular_suite.json",
+      "cached_legacy_datasets": ["houses", "wine"],
+      "legacy_rights_policy": "Retain existing legacy-not-reviewed/cached-only labeling. This manifest grants no new acquisition or licensing approval for legacy inputs.",
+      "origin_policy": "Energy Efficiency keeps its existing simulation designation; no source-origin relabeling.",
+      "split_policy": "iid",
+      "folds": 3,
+      "max_rows": 5000,
+      "expected_cells": 126,
+      "result_scope": "primary_seven"
+    },
+    "infrared_stress": {
+      "datasets": ["infrared-oral-temperature"],
+      "split_policy": "iid",
+      "folds": 3,
+      "max_rows": 5000,
+      "expected_cells": 18,
+      "result_scope": "infrared_iid_development_stress",
+      "intake": "May be selected alongside the primary seven under the same IID3/row-cap configuration, but must retain its separate result scope."
+    },
+    "hardware_stress": {
+      "datasets": ["computer-hardware-performance"],
+      "split_policy": "official",
+      "folds": 10,
+      "max_rows": 0,
+      "all_source_official_splits": true,
+      "official_split_dimensions": {"repeats": 1, "folds": 10, "samples": 1},
+      "expected_cells": 60,
+      "result_scope": "hardware_official10_development_stress",
+      "intake": "Separate execution with only this dataset, max_rows=0 and folds=10. Any nonzero cap is forbidden by the existing official-source provider, even though the source contains only 209 rows.",
+      "seed_meaning": "Seed42 configures model/internal evaluation randomness; it does not recreate or reshuffle the task-provided official folds.",
+      "comparison_limit": "A different split design from the earlier three-fold IID confirmation failure; NOT a replication of that IID failure."
+    },
+    "expected_total_cells": 204,
+    "expected_total_formula": "7*3*3*2 primary + 1*3*3*2 infrared + 1*10*3*2 hardware = 126+18+60 = 204",
+    "reporting_constraints": {
+      "stress_in_primary_mean": false,
+      "combine_stress_scopes": false,
+      "fresh_confirmation_claim": false,
+      "clinical_generalization_claim": false,
+      "patient_or_entity_disjoint_claim": false,
+      "hardware_future_generation_claim": false,
+      "infrared_future_illness_claim": false,
+      "scope": "Report primary, infrared IID stress and hardware official-fold stress separately. Do not treat exposed stress selection as independent confirmation evidence or pool incompatible split designs."
+    }
+  },
+  "datasets": [
+    {
+      "name": "computer-hardware-performance",
+      "family_id": "computer-hardware-performance",
+      "task": "regression",
+      "provider": "openml_task",
+      "role": "development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "fresh-origin-reservation-20260924",
+      "prior_exposure": "exposed",
+      "origin_kind": "observational",
+      "target": "class",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Static published relative CPU performance PRP from machine cycle time, memory, cache and channel specifications. OpenML names PRP class. Estimated ERP is absent, as are vendor/model identifiers.",
+      "evaluation_limitations": "Different origin from exposed cpu-act, which is Sun Sparcstation 20/712 activity telemetry predicting usr. Do not treat ERP fitted by the original authors as a predictor or a new outcome. No future hardware-generation claim.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI dataset publication explicitly licenses this data under CC BY 4.0; the OpenML Public/license badge is not the grant relied upon.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/29/computer+hardware",
+          "https://archive.ics.uci.edu/api/dataset?id=29"
+        ],
+        "primary_page_sha256": "ca075e010c166b618045f238372248cd939909c01466f7f22a82cb05f13ddea1",
+        "reviewed_on": "2026-09-24",
+        "scope": "Metadata-only candidate reservation now; later acquisition/use only after explicit parent release and protocol freeze. Local scientific processing only, no hosted row sharing or individual high-stakes deployment.",
+        "obligations": "Retain original source/contributor attribution, dataset and paper citations, and describe all curation/target/timing limitations."
+      },
+      "source": {
+        "uci_id": 29,
+        "dataset_id": 230,
+        "dataset_version": 1,
+        "task_id": 2318,
+        "columns": ["MYCT", "MMIN", "MMAX", "CACH", "CHMIN", "CHMAX", "class"],
+        "target_columns": ["class"],
+        "schema_reviewed": true,
+        "expected_rows": 209,
+        "md5_checksum": "e26d62e83069b74dff6cf492e06868a0",
+        "official_split_dimensions": {"repeats": 1, "folds": 10, "samples": 1},
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=29",
+        "primary_metadata_sha256": "3f880e3b6332d8c446f0a30153fb31648bfdae745d0d235cdc4643a6239b52fa",
+        "openml_description_sha256": "8d2cbe14385cf1975ffc0825a28107acc3d8338c2c7088aa43238c3c68ba4a3d",
+        "openml_features_sha256": "bf98357d33f30c828694d03728108e26c6433a4087389f68e04d428833f10681",
+        "openml_qualities_sha256": "4b4966f7d5bf82f7be3c06944f5bad15c980edd49b1885d4aa7a7aac26ec2a7c",
+        "openml_task_sha256": "3242345c0e10716eb51ddb975ee004cccf8b4c28b2a4b5a807871ea1146b684a",
+        "categorical_rule": "All NOMINAL and STRING predictors are categorical unless explicitly excluded; no value-cardinality heuristics or model outcomes.",
+        "payload_sha256_status": "Not acquired. Original upstream MD5 is a metadata pin, not evidence that payload bytes have been verified."
+      },
+      "metadata_profile": {
+        "rows": 209,
+        "predictors": 6,
+        "stratum": "regression",
+        "classes": null,
+        "minimum_class_count": null,
+        "class_labels": null,
+        "profile_kind": "official_reported_metadata_not_recomputed_from_payload",
+        "payload_checked": false,
+        "selected_fold_class_support_checked": false
+      }
+    },
+    {
+      "name": "infrared-oral-temperature",
+      "family_id": "infrared-oral-temperature",
+      "task": "regression",
+      "provider": "uci",
+      "role": "development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "fresh-origin-reservation-20260924",
+      "prior_exposure": "exposed",
+      "origin_kind": "observational",
+      "target": "aveOralM",
+      "target_transform": "identity",
+      "categorical": ["Gender", "Age", "Ethnicity"],
+      "drop_columns": ["SubjectID", "aveOralF"],
+      "split_policy": "iid",
+      "prediction_time": "Contemporaneous oral temperature in monitor mode from measured infrared temperatures, demographic categories and acquisition conditions. Exclude fast-mode oral temperature and SubjectID; not fever diagnosis or future illness prediction.",
+      "evaluation_limitations": "This is a heterogeneous clinical measurement/calibration table, not a homogeneous pixel benchmark. IRT-2 and repeated camera/location variants share this origin and are not separate families. No identifiable images, subject reidentification, individual clinical use or hosted row transfer is approved.",
+      "rights": {
+        "status": "approved",
+        "license": "CC0-1.0",
+        "access": "public",
+        "approval_basis": "UCI explicitly delegates licensing to the linked original data. PhysioNet face-oral-temp-data v1.0.0 is Open Access with an explicit CC0 1.0 grant for the de-identified data files; no UCI default license is assumed.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/925/infrared+thermography+temperature+dataset",
+          "https://physionet.org/content/face-oral-temp-data/1.0.0/",
+          "https://physionet.org/content/face-oral-temp-data/view-license/1.0.0/"
+        ],
+        "primary_page_sha256": "1e419b42921384d551c10e15af2542639964205cef509b7bf5c6837a6d5b599e",
+        "reviewed_on": "2026-09-24",
+        "scope": "Metadata-only candidate reservation now; later acquisition/use only after explicit parent release and protocol freeze. Local scientific processing only, no hosted row sharing or individual high-stakes deployment.",
+        "obligations": "Retain original source/contributor attribution, dataset and paper citations, and describe all curation/target/timing limitations.",
+        "primary_license_sha256": "b50ed9146ede4dcf431a4717f549b940e264a2e73d69b242cef3b61ebf85ce4e"
+      },
+      "source": {
+        "uci_id": 925,
+        "data_url": "https://archive.ics.uci.edu/static/public/925/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=925",
+        "metadata_sha256": "e4f80bdf53f7b1824c9bf49943f5960ee00b910f4223ffd1967ae90067152c26",
+        "schema_reviewed": true,
+        "columns": [
+          "SubjectID", "aveOralF", "aveOralM", "Gender", "Age", "Ethnicity",
+          "T_atm", "Humidity", "Distance", "T_offset1", "Max1R13_1", "Max1L13_1",
+          "aveAllR13_1", "aveAllL13_1", "T_RC1", "T_RC_Dry1", "T_RC_Wet1",
+          "T_RC_Max1", "T_LC1", "T_LC_Dry1", "T_LC_Wet1", "T_LC_Max1",
+          "RCC1", "LCC1", "canthiMax1", "canthi4Max1", "T_FHCC1", "T_FHRC1",
+          "T_FHLC1", "T_FHBC1", "T_FHTC1", "T_FH_Max1", "T_FHC_Max1",
+          "T_Max1", "T_OR1", "T_OR_Max1"
+        ],
+        "target_columns": ["aveOralF", "aveOralM"],
+        "expected_rows": 1020,
+        "payload_sha256_status": "Not acquired; reported shape and reviewed schema require payload verification after explicit release."
+      },
+      "metadata_profile": {
+        "rows": 1020,
+        "predictors": 33,
+        "stratum": "regression",
+        "classes": null,
+        "minimum_class_count": null,
+        "class_labels": null,
+        "profile_kind": "official_reported_metadata_not_recomputed_from_payload",
+        "payload_checked": false,
+        "selected_fold_class_support_checked": false
+      }
+    }
+  ]
+}

@@ -4,11 +4,13 @@ Generates Python code for custom features based on natural language descriptions
 """
 
 import re
-from typing import Any, Literal
+from typing import Literal
 
 import pandas as pd
 
 from featcopilot.core.feature import Feature, FeatureOrigin, FeatureType
+from featcopilot.llm._execution import normalize_feature_code
+from featcopilot.llm._types import FeatureClient
 from featcopilot.utils.logger import get_logger
 from featcopilot.utils.models import DEFAULT_MODEL
 
@@ -60,9 +62,9 @@ class FeatureCodeGenerator:
         self.backend = backend
         self.api_key = api_key
         self.api_base = api_base
-        self._client: Any | None = None
+        self._client: FeatureClient | None = None
 
-    def _ensure_client(self) -> None:
+    def _ensure_client(self) -> FeatureClient:
         """Ensure client is initialized."""
         if self._client is None:
             if self.backend == "openai":
@@ -78,6 +80,7 @@ class FeatureCodeGenerator:
 
                 self._client = SyncCopilotFeatureClient(model=self.model)
             self._client.start()
+        return self._client
 
     def generate(
         self,
@@ -105,10 +108,10 @@ class FeatureCodeGenerator:
         feature : Feature
             Generated feature with code
         """
-        self._ensure_client()
+        client = self._ensure_client()
 
         # Generate code
-        code = self._client.generate_feature_code(
+        code = client.generate_feature_code(
             description=description,
             column_info=columns,
             constraints=constraints,
@@ -125,14 +128,18 @@ class FeatureCodeGenerator:
 
         # Validate if enabled
         if self.validate and sample_data is not None:
-            validation = self._client.validate_feature_code(
+            validation = client.validate_feature_code(
                 code, {col: sample_data[col].tolist() for col in sample_data.columns}
             )
             if not validation["valid"]:
-                if self.verbose:
-                    logger.warning(f"Code validation failed: {validation['error']}")
+                logger.warning(f"Code validation failed: {validation['error']}")
                 # Try to fix common issues
                 code = self._fix_common_issues(code, validation["error"])
+                validation = client.validate_feature_code(
+                    code, {col: sample_data[col].tolist() for col in sample_data.columns}
+                )
+                if not validation["valid"]:
+                    raise ValueError(f"Generated feature failed validation: {validation['error']}")
 
         feature = Feature(
             name=name,
@@ -175,37 +182,13 @@ class FeatureCodeGenerator:
                 feature = self.generate(desc, columns, sample_data=sample_data)
                 features.append(feature)
             except Exception as e:
-                if self.verbose:
-                    logger.error(f"Failed to generate feature for '{desc}': {e}")
+                logger.error(f"Failed to generate feature for '{desc}': {e}")
 
         return features
 
     def _clean_code(self, code: str) -> str:
         """Clean and normalize generated code."""
-        # Remove markdown code blocks
-        code = code.strip()
-        if code.startswith("```"):
-            lines = code.split("\n")
-            code = "\n".join(line for line in lines if not line.startswith("```"))
-
-        # Remove comments
-        lines = []
-        for line in code.split("\n"):
-            if not line.strip().startswith("#"):
-                lines.append(line)
-        code = "\n".join(lines).strip()
-
-        # Ensure result assignment
-        if "result" not in code:
-            # Try to extract the expression and wrap it
-            if "=" in code:
-                # Already has an assignment, replace variable name
-                code = re.sub(r"^(\w+)\s*=", "result =", code)
-            else:
-                # Raw expression
-                code = f"result = {code}"
-
-        return code
+        return normalize_feature_code(code)
 
     def _generate_name(self, description: str) -> str:
         """Generate a feature name from description."""

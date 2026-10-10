@@ -1,0 +1,104 @@
+{
+  "protocol": "regression_fixed_average_development_v1",
+  "declared_on": "2026-10-08",
+  "role": "development",
+  "not_confirmation": true,
+  "method": "featcopilot-regression-average-robust",
+  "methods": [
+    "baseline-robust",
+    "featcopilot-frequency-aligned-robust",
+    "featcopilot-regression-average-robust"
+  ],
+  "learners": ["linear", "lightgbm"],
+  "seeds": [42],
+  "weights": {"raw": 0.5, "fe": 0.5},
+  "weight_selection": "fixed_before_results_no_optimization",
+  "primary_families": [
+    "concrete-strength",
+    "energy-efficiency",
+    "combined-cycle-power",
+    "real-estate-sindian",
+    "auto-mpg",
+    "wine-quality",
+    "california-housing"
+  ],
+  "stress_families": ["infrared-oral-temperature", "computer-hardware-performance"],
+  "stages": [
+    {
+      "name": "iid",
+      "datasets": [
+        "uci-concrete-strength",
+        "uci-energy-efficiency",
+        "uci-combined-cycle-power",
+        "uci-real-estate-sindian",
+        "uci-auto-mpg",
+        "wine",
+        "houses",
+        "infrared-oral-temperature"
+      ],
+      "folds": 3,
+      "split_policy": "iid",
+      "max_rows": 5000,
+      "budget_seconds": 10800,
+      "expected_cells": 144
+    },
+    {
+      "name": "hardware-official",
+      "datasets": ["computer-hardware-performance"],
+      "folds": 10,
+      "split_policy": "official",
+      "max_rows": 0,
+      "budget_seconds": 3600,
+      "expected_cells": 60
+    }
+  ],
+  "expected_cells": 204,
+  "threads": 8,
+  "case_timeout_seconds": 600,
+  "memory_limit_mb": 4096,
+  "max_candidates": 1000,
+  "max_added_features": 50,
+  "stability_repeats": 3,
+  "numeric_clip_quantiles": [0.0, 1.0],
+  "categorical_encoding": "one_hot",
+  "target_transform": "identity",
+  "worker_hash_policy": "PYTHONHASHSEED_equals_cell_seed_before_interpreter_start",
+  "combined_ceiling_seconds": 14400,
+  "budget_scope": "Both stages share one four-hour ceiling; stage allocations are maxima, not separate new authorizations. Controller/import overhead is charged to the same ceiling and remaining time constrains dispatch.",
+  "prior_cycle_used_hours": 61.05288084216666,
+  "cycle_total_hours": 72,
+  "prior_llm_attempts": 96,
+  "new_llm_calls": 0,
+  "primary_metric": "RMSE",
+  "aggregation": "Average fold loss within each family before computing relative gains; average family gains equally within each declared scope and learner.",
+  "comparators": ["baseline-robust", "featcopilot-frequency-aligned-robust"],
+  "required_parity_fields": [
+    "outer_prediction_sha256",
+    "outer_feature_names_sha256",
+    "parameters",
+    "inner_losses",
+    "n_output_features",
+    "loss",
+    "r2",
+    "mae"
+  ],
+  "followup_criteria": {
+    "complete_declared_coverage_required": true,
+    "component_control_parity_required": true,
+    "positive_primary_mean_gain_vs_raw_required_per_learner": true,
+    "maximum_family_relative_rmse_increase_vs_raw": 0.05,
+    "apply_harm_limit_to_each_stress_family_separately": true,
+    "single_fe_mean_and_tail_tradeoff_must_be_reported": true,
+    "automatic_default_promotion": false,
+    "sota_claim_authorized": false
+  },
+  "claim_boundaries": [
+    "All nine origins are already exposed; none is fresh confirmation.",
+    "Keep the seven-family primary mean separate from each of the two selected stress families.",
+    "Hardware uses all ten original official folds without a row cap; this is not a replay of the earlier three-fold IID result.",
+    "Infrared is contemporaneous measurement evidence, not clinical, prospective or entity-disjoint generalization.",
+    "Retain the simulation designation for Energy Efficiency and cached-only legacy-not-reviewed rights labels for houses and wine.",
+    "No reference-package superiority follows from this raw/single-FE technique ablation.",
+    "No weight sweep, target-transform sweep, operator search or post-result panel substitution is authorized by this protocol."
+  ]
+}

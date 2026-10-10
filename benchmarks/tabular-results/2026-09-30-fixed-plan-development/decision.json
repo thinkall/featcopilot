@@ -1,0 +1,78 @@
+{
+  "promote": false,
+  "sota_demonstrated": false,
+  "reason": "Independent plan gate underperforms the incumbent in every observational stratum and worsens classification tail harm.",
+  "gate_counts": {
+    "accepted": 50,
+    "no_features": 35,
+    "insufficient_gain": 11
+  },
+  "strata": [
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "lightgbm",
+      "families": 9,
+      "ordinary_raw_mean": 0.03198429666410976,
+      "matched_raw_mean": 0.036384695887028494,
+      "incumbent_mean": 0.08120197247515595,
+      "worst_matched_reduction": -0.4665783236940808,
+      "not_worse_than_incumbent": false
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "linear",
+      "families": 9,
+      "ordinary_raw_mean": 0.11379566800128035,
+      "matched_raw_mean": 0.1057176381236372,
+      "incumbent_mean": 0.16122116402097295,
+      "worst_matched_reduction": -0.42350771840412293,
+      "not_worse_than_incumbent": false
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "lightgbm",
+      "families": 6,
+      "ordinary_raw_mean": 0.0127039984459865,
+      "matched_raw_mean": 0.021820305298963876,
+      "incumbent_mean": 0.013888997693933222,
+      "worst_matched_reduction": -0.017240787477874164,
+      "not_worse_than_incumbent": false
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "linear",
+      "families": 6,
+      "ordinary_raw_mean": 0.1308896803938396,
+      "matched_raw_mean": 0.13182219406366383,
+      "incumbent_mean": 0.14971749267459214,
+      "worst_matched_reduction": 0.01890252702748474,
+      "not_worse_than_incumbent": false
+    },
+    {
+      "source": "simulation",
+      "task": "regression",
+      "learner": "lightgbm",
+      "families": 1,
+      "ordinary_raw_mean": -0.05542132717084258,
+      "matched_raw_mean": -0.07118052124129348,
+      "incumbent_mean": 0.06322202953018852,
+      "worst_matched_reduction": -0.07118052124129348,
+      "not_worse_than_incumbent": false
+    },
+    {
+      "source": "simulation",
+      "task": "regression",
+      "learner": "linear",
+      "families": 1,
+      "ordinary_raw_mean": 0.8122006482227417,
+      "matched_raw_mean": 0.8122534774936707,
+      "incumbent_mean": 0.813937210592161,
+      "worst_matched_reduction": 0.8122534774936707,
+      "not_worse_than_incumbent": false
+    }
+  ]
+}

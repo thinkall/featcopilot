@@ -1,0 +1,2036 @@
+{
+  "schema_version": 1,
+  "name": "standard-iid-policy-confirmation-release-20261003",
+  "family_registry": "../families.json",
+  "evaluation_tier": "standard_iid_unverified_entity",
+  "claim_boundary": {
+    "evaluation_tier": "standard_iid_unverified_entity",
+    "claim_scope": "Row-level standard public IID benchmark evidence only, under explicitly unresolved patient/entity mapping.",
+    "patient_entity_independence_verified": false,
+    "patient_entity_disjoint_claims_allowed": false,
+    "clinical_generalization_claims_allowed": false,
+    "pool_with_verified_entity_cohorts": false,
+    "prospective_clinical_decision_use_authorized": false,
+    "known_group_time_constraints_must_be_preserved": true,
+    "future_confirmation_requires_explicit_tier_binding": true,
+    "limits": "This is not a waiver for known repeat-entity or temporal leakage. If later evidence identifies available group IDs, repeated-entity links or mandatory temporal boundaries, stop and review; do not drop or ignore them to preserve IID eligibility."
+  },
+  "purpose": "Append-only metadata release proof for the two-source qualified-tier policy test; no payloads, labels or models opened by this task.",
+  "authorization": {
+    "timestamp": "2026-10-03T19:36:35.966+08:00",
+    "scope": "Release only after strict controller sampling/source/tier binding is ready. Exactly the existing two families, eight outcomes, two learners, six physical jobs per case; no model execution by this metadata task."
+  },
+  "exposure_check": {
+    "ledger_path": "benchmarks/.cache/exposure.sqlite",
+    "access": "SQLite URI mode=ro; no writes",
+    "query": "SELECT family_id,run_id,role,created_at FROM exposure ORDER BY family_id,run_id",
+    "row_count": 207,
+    "logical_rows_sha256": "3ac5d067a134afe22a76db9234b28b3fe01385708666bc5c3d5a51f595e0dd03",
+    "rows": [
+      {
+        "family_id": "adult",
+        "run_id": "11d2a3f3d445692a65f4bea67e61c9e14c9b7b085c658168291d01e3895d6b6f",
+        "role": "development",
+        "created_at": "2026-09-30T19:10:07.405182+00:00"
+      },
+      {
+        "family_id": "adult",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:27.167775+00:00"
+      },
+      {
+        "family_id": "adult",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.215108+00:00"
+      },
+      {
+        "family_id": "adult",
+        "run_id": "23af63399977aa8783458992e2eac99a67dd0355fc249cb43a3a11c246e79e88",
+        "role": "development",
+        "created_at": "2026-10-03T02:25:55.932042+00:00"
+      },
+      {
+        "family_id": "adult",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:06.294233+00:00"
+      },
+      {
+        "family_id": "adult",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.023155+00:00"
+      },
+      {
+        "family_id": "adult",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:00.887532+00:00"
+      },
+      {
+        "family_id": "adult",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.185731+00:00"
+      },
+      {
+        "family_id": "adult",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:40.271692+00:00"
+      },
+      {
+        "family_id": "adult",
+        "run_id": "ab421a05619154e95c3adcede7cbc1e0c4f80b441c9ff67801ada72ddcface36",
+        "role": "development",
+        "created_at": "2026-09-30T13:47:21.057816+00:00"
+      },
+      {
+        "family_id": "adult",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:12.461344+00:00"
+      },
+      {
+        "family_id": "adult",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:48.246107+00:00"
+      },
+      {
+        "family_id": "assam-medical-entrance",
+        "run_id": "205bacfad79659a49ecb47afcddc737cbd3f6701122dadd6d19fdfa0e20262e6",
+        "role": "confirmation",
+        "created_at": "2026-09-30T01:08:27.141965+00:00"
+      },
+      {
+        "family_id": "australian-credit-approval",
+        "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+        "role": "confirmation",
+        "created_at": "2026-09-28T01:38:21.590842+00:00"
+      },
+      {
+        "family_id": "auto-mpg",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.964361+00:00"
+      },
+      {
+        "family_id": "auto-mpg",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.773312+00:00"
+      },
+      {
+        "family_id": "auto-mpg",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.545256+00:00"
+      },
+      {
+        "family_id": "auto-mpg",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.687185+00:00"
+      },
+      {
+        "family_id": "auto-mpg",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.939782+00:00"
+      },
+      {
+        "family_id": "auto-mpg",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.714926+00:00"
+      },
+      {
+        "family_id": "auto-mpg",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:13.223339+00:00"
+      },
+      {
+        "family_id": "auto-mpg",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:49.014516+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "11d2a3f3d445692a65f4bea67e61c9e14c9b7b085c658168291d01e3895d6b6f",
+        "role": "development",
+        "created_at": "2026-09-30T19:19:45.912695+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.838852+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "23af63399977aa8783458992e2eac99a67dd0355fc249cb43a3a11c246e79e88",
+        "role": "development",
+        "created_at": "2026-10-03T02:31:17.219699+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.408141+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.174076+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.558957+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.819951+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.375998+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "ab421a05619154e95c3adcede7cbc1e0c4f80b441c9ff67801ada72ddcface36",
+        "role": "development",
+        "created_at": "2026-09-30T13:56:54.768948+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "b75e94b7e74c0b95fd38a4f237ac3a31b3e9894166a27c70f85423fd4982fefd",
+        "role": "development",
+        "created_at": "2026-09-24T02:04:38.040577+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:13.100572+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:48.892234+00:00"
+      },
+      {
+        "family_id": "california-housing",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:28.301260+00:00"
+      },
+      {
+        "family_id": "california-housing",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:57.141987+00:00"
+      },
+      {
+        "family_id": "california-housing",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.873285+00:00"
+      },
+      {
+        "family_id": "california-housing",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.640344+00:00"
+      },
+      {
+        "family_id": "california-housing",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.869282+00:00"
+      },
+      {
+        "family_id": "california-housing",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:40.116662+00:00"
+      },
+      {
+        "family_id": "california-housing",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.809720+00:00"
+      },
+      {
+        "family_id": "california-housing",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:13.396378+00:00"
+      },
+      {
+        "family_id": "california-housing",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:49.190989+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "11d2a3f3d445692a65f4bea67e61c9e14c9b7b085c658168291d01e3895d6b6f",
+        "role": "development",
+        "created_at": "2026-09-30T19:26:41.333422+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:57.015859+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "23af63399977aa8783458992e2eac99a67dd0355fc249cb43a3a11c246e79e88",
+        "role": "development",
+        "created_at": "2026-10-03T02:34:58.671907+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.692856+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.454403+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.735052+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.987584+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.643585+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "ab421a05619154e95c3adcede7cbc1e0c4f80b441c9ff67801ada72ddcface36",
+        "role": "development",
+        "created_at": "2026-09-30T14:03:33.965045+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "b75e94b7e74c0b95fd38a4f237ac3a31b3e9894166a27c70f85423fd4982fefd",
+        "role": "development",
+        "created_at": "2026-09-24T02:04:38.130018+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:13.269857+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:49.062194+00:00"
+      },
+      {
+        "family_id": "combined-cycle-power",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.893944+00:00"
+      },
+      {
+        "family_id": "combined-cycle-power",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.510790+00:00"
+      },
+      {
+        "family_id": "combined-cycle-power",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.274612+00:00"
+      },
+      {
+        "family_id": "combined-cycle-power",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.613922+00:00"
+      },
+      {
+        "family_id": "combined-cycle-power",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.873295+00:00"
+      },
+      {
+        "family_id": "combined-cycle-power",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.471117+00:00"
+      },
+      {
+        "family_id": "combined-cycle-power",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:13.153186+00:00"
+      },
+      {
+        "family_id": "combined-cycle-power",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:48.945925+00:00"
+      },
+      {
+        "family_id": "communities-crime",
+        "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+        "role": "confirmation",
+        "created_at": "2026-09-28T01:38:21.049218+00:00"
+      },
+      {
+        "family_id": "computer-hardware-performance",
+        "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+        "role": "confirmation",
+        "created_at": "2026-09-28T01:38:21.210509+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "12de448078245ea61495c6e442b7f81d9e6907edbc0c15b553448004ba9ebda3",
+        "role": "development",
+        "created_at": "2026-09-20T08:52:54.881121+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:28.075106+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.636965+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:06.960342+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.711007+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.340820+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "7bf61e7cf3f0c03687d21bfb072f1054f9df4d9f1ee8f1c2969fa45b8d357bad",
+        "role": "development",
+        "created_at": "2026-09-17T06:51:56.088888+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.617367+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:40.938193+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "a5c05d09c00626a942851f70d680f8a121cb0c6f5840c2e8a7715db4cdbf30ec",
+        "role": "development",
+        "created_at": "2026-09-17T07:23:12.228125+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:12.896687+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:48.682243+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "f1113556c7db1d80a1b00fd28f006515bf715c8a9af875df1d517ea2f03af17b",
+        "role": "development",
+        "created_at": "2026-09-17T07:19:07.259838+00:00"
+      },
+      {
+        "family_id": "contraceptive-method-choice",
+        "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+        "role": "confirmation",
+        "created_at": "2026-09-28T01:38:22.149323+00:00"
+      },
+      {
+        "family_id": "differentiated-thyroid-recurrence",
+        "run_id": "205bacfad79659a49ecb47afcddc737cbd3f6701122dadd6d19fdfa0e20262e6",
+        "role": "confirmation",
+        "created_at": "2026-09-30T01:08:26.984560+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "11d2a3f3d445692a65f4bea67e61c9e14c9b7b085c658168291d01e3895d6b6f",
+        "role": "development",
+        "created_at": "2026-09-30T19:34:44.920544+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:27.795029+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.524043+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "23af63399977aa8783458992e2eac99a67dd0355fc249cb43a3a11c246e79e88",
+        "role": "development",
+        "created_at": "2026-10-03T02:39:05.346022+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:06.749764+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.497413+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.211800+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "7bf61e7cf3f0c03687d21bfb072f1054f9df4d9f1ee8f1c2969fa45b8d357bad",
+        "role": "development",
+        "created_at": "2026-09-17T06:51:56.059433+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.499043+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:40.728420+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "ab421a05619154e95c3adcede7cbc1e0c4f80b441c9ff67801ada72ddcface36",
+        "role": "development",
+        "created_at": "2026-09-30T14:11:28.373341+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:12.780967+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:48.563764+00:00"
+      },
+      {
+        "family_id": "energy-efficiency",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:28.176485+00:00"
+      },
+      {
+        "family_id": "energy-efficiency",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.671956+00:00"
+      },
+      {
+        "family_id": "energy-efficiency",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.037263+00:00"
+      },
+      {
+        "family_id": "energy-efficiency",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.789596+00:00"
+      },
+      {
+        "family_id": "energy-efficiency",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.379160+00:00"
+      },
+      {
+        "family_id": "energy-efficiency",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.652188+00:00"
+      },
+      {
+        "family_id": "energy-efficiency",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.016341+00:00"
+      },
+      {
+        "family_id": "energy-efficiency",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:12.930733+00:00"
+      },
+      {
+        "family_id": "energy-efficiency",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:48.716880+00:00"
+      },
+      {
+        "family_id": "facebook-cosmetics-posts",
+        "run_id": "205bacfad79659a49ecb47afcddc737cbd3f6701122dadd6d19fdfa0e20262e6",
+        "role": "confirmation",
+        "created_at": "2026-09-30T01:08:25.964792+00:00"
+      },
+      {
+        "family_id": "forest-fires-montesinho",
+        "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+        "role": "confirmation",
+        "created_at": "2026-09-28T01:38:21.294153+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "11d2a3f3d445692a65f4bea67e61c9e14c9b7b085c658168291d01e3895d6b6f",
+        "role": "development",
+        "created_at": "2026-09-30T19:52:03.492436+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:27.349190+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.274808+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "23af63399977aa8783458992e2eac99a67dd0355fc249cb43a3a11c246e79e88",
+        "role": "development",
+        "created_at": "2026-10-03T02:52:11.673619+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:06.405585+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.137742+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:00.953898+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "7bf61e7cf3f0c03687d21bfb072f1054f9df4d9f1ee8f1c2969fa45b8d357bad",
+        "role": "development",
+        "created_at": "2026-09-17T06:51:55.935561+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.245561+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:40.382260+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "ab421a05619154e95c3adcede7cbc1e0c4f80b441c9ff67801ada72ddcface36",
+        "role": "development",
+        "created_at": "2026-09-30T14:28:33.739742+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "b75e94b7e74c0b95fd38a4f237ac3a31b3e9894166a27c70f85423fd4982fefd",
+        "role": "development",
+        "created_at": "2026-09-24T02:04:37.962546+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:12.522152+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:48.310127+00:00"
+      },
+      {
+        "family_id": "heart-failure-clinical",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:43.781894+00:00"
+      },
+      {
+        "family_id": "indian-liver-patients",
+        "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+        "role": "confirmation",
+        "created_at": "2026-09-28T01:38:21.766292+00:00"
+      },
+      {
+        "family_id": "infrared-oral-temperature",
+        "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+        "role": "confirmation",
+        "created_at": "2026-09-28T01:38:21.402442+00:00"
+      },
+      {
+        "family_id": "ionosphere-radar",
+        "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+        "role": "confirmation",
+        "created_at": "2026-09-28T01:38:21.936026+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "11d2a3f3d445692a65f4bea67e61c9e14c9b7b085c658168291d01e3895d6b6f",
+        "role": "development",
+        "created_at": "2026-09-30T20:00:27.703681+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "12de448078245ea61495c6e442b7f81d9e6907edbc0c15b553448004ba9ebda3",
+        "role": "development",
+        "created_at": "2026-09-20T08:52:54.782252+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:27.523781+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.375148+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "23af63399977aa8783458992e2eac99a67dd0355fc249cb43a3a11c246e79e88",
+        "role": "development",
+        "created_at": "2026-10-03T02:56:46.018726+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:06.549907+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.289717+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.057339+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.345665+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:40.531157+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "ab421a05619154e95c3adcede7cbc1e0c4f80b441c9ff67801ada72ddcface36",
+        "role": "development",
+        "created_at": "2026-09-30T14:36:42.288556+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:12.622127+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:48.412439+00:00"
+      },
+      {
+        "family_id": "personality-drug-consumption",
+        "run_id": "205bacfad79659a49ecb47afcddc737cbd3f6701122dadd6d19fdfa0e20262e6",
+        "role": "confirmation",
+        "created_at": "2026-09-30T01:08:27.258967+00:00"
+      },
+      {
+        "family_id": "real-estate-sindian",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.931755+00:00"
+      },
+      {
+        "family_id": "real-estate-sindian",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.597870+00:00"
+      },
+      {
+        "family_id": "real-estate-sindian",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.364126+00:00"
+      },
+      {
+        "family_id": "real-estate-sindian",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.654644+00:00"
+      },
+      {
+        "family_id": "real-estate-sindian",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.909251+00:00"
+      },
+      {
+        "family_id": "real-estate-sindian",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.554520+00:00"
+      },
+      {
+        "family_id": "real-estate-sindian",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:13.193460+00:00"
+      },
+      {
+        "family_id": "real-estate-sindian",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:48.983932+00:00"
+      },
+      {
+        "family_id": "seoul-bike",
+        "run_id": "37b08f9e0d0c0482c06a31727c593d3c24c7a69a859891dfcd592ca31617ea1c",
+        "role": "development",
+        "created_at": "2026-09-20T10:09:12.059098+00:00"
+      },
+      {
+        "family_id": "spambase",
+        "run_id": "11d2a3f3d445692a65f4bea67e61c9e14c9b7b085c658168291d01e3895d6b6f",
+        "role": "development",
+        "created_at": "2026-09-30T20:09:47.470923+00:00"
+      },
+      {
+        "family_id": "spambase",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.791233+00:00"
+      },
+      {
+        "family_id": "spambase",
+        "run_id": "23af63399977aa8783458992e2eac99a67dd0355fc249cb43a3a11c246e79e88",
+        "role": "development",
+        "created_at": "2026-10-03T03:02:02.375500+00:00"
+      },
+      {
+        "family_id": "spambase",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.306397+00:00"
+      },
+      {
+        "family_id": "spambase",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.068277+00:00"
+      },
+      {
+        "family_id": "spambase",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.504887+00:00"
+      },
+      {
+        "family_id": "spambase",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.772491+00:00"
+      },
+      {
+        "family_id": "spambase",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.274182+00:00"
+      },
+      {
+        "family_id": "spambase",
+        "run_id": "ab421a05619154e95c3adcede7cbc1e0c4f80b441c9ff67801ada72ddcface36",
+        "role": "development",
+        "created_at": "2026-09-30T14:45:49.212781+00:00"
+      },
+      {
+        "family_id": "spambase",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:13.049823+00:00"
+      },
+      {
+        "family_id": "spambase",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:48.841265+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "11d2a3f3d445692a65f4bea67e61c9e14c9b7b085c658168291d01e3895d6b6f",
+        "role": "development",
+        "created_at": "2026-09-30T20:22:31.863280+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:27.990273+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.598695+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "23af63399977aa8783458992e2eac99a67dd0355fc249cb43a3a11c246e79e88",
+        "role": "development",
+        "created_at": "2026-10-03T03:09:48.830220+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:06.873999+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.625443+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.293853+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.576893+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:40.855516+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "ab421a05619154e95c3adcede7cbc1e0c4f80b441c9ff67801ada72ddcface36",
+        "role": "development",
+        "created_at": "2026-09-30T14:58:10.226547+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:12.857768+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:48.641715+00:00"
+      },
+      {
+        "family_id": "student-performance",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:45.017687+00:00"
+      },
+      {
+        "family_id": "tabarena-46904",
+        "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+        "role": "confirmation",
+        "created_at": "2026-09-20T10:14:48.511575+00:00"
+      },
+      {
+        "family_id": "tabarena-46907",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:46.824642+00:00"
+      },
+      {
+        "family_id": "tabarena-46913",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:45.259114+00:00"
+      },
+      {
+        "family_id": "tabarena-46916",
+        "run_id": "fbfa458ef79c8fae0ed44da73fcb1ada89468d3c7ea5b7aadc12d3ecda99c581",
+        "role": "confirmation",
+        "created_at": "2026-09-20T21:42:54.263178+00:00"
+      },
+      {
+        "family_id": "tabarena-46930",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:47.358962+00:00"
+      },
+      {
+        "family_id": "tabarena-46937",
+        "run_id": "fbfa458ef79c8fae0ed44da73fcb1ada89468d3c7ea5b7aadc12d3ecda99c581",
+        "role": "confirmation",
+        "created_at": "2026-09-20T21:42:57.385423+00:00"
+      },
+      {
+        "family_id": "tabarena-46941",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:44.921408+00:00"
+      },
+      {
+        "family_id": "tabarena-46949",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:55.236359+00:00"
+      },
+      {
+        "family_id": "tabarena-46950",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:56.541063+00:00"
+      },
+      {
+        "family_id": "tabarena-46954",
+        "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+        "role": "confirmation",
+        "created_at": "2026-09-20T10:15:10.740949+00:00"
+      },
+      {
+        "family_id": "tabarena-46956",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:57.110080+00:00"
+      },
+      {
+        "family_id": "tabarena-46958",
+        "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+        "role": "confirmation",
+        "created_at": "2026-09-20T10:15:15.995406+00:00"
+      },
+      {
+        "family_id": "tabarena-46960",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:46.410078+00:00"
+      },
+      {
+        "family_id": "tabarena-46962",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:58.913018+00:00"
+      },
+      {
+        "family_id": "tabarena-46963",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:47.689276+00:00"
+      },
+      {
+        "family_id": "tabarena-46969",
+        "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+        "role": "confirmation",
+        "created_at": "2026-09-20T10:15:24.009024+00:00"
+      },
+      {
+        "family_id": "vertebral-column",
+        "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+        "role": "confirmation",
+        "created_at": "2026-09-28T01:38:22.292973+00:00"
+      },
+      {
+        "family_id": "wall-following-robot",
+        "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+        "role": "confirmation",
+        "created_at": "2026-09-28T01:38:22.785467+00:00"
+      },
+      {
+        "family_id": "wine-quality",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:28.244611+00:00"
+      },
+      {
+        "family_id": "wine-quality",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:57.100621+00:00"
+      },
+      {
+        "family_id": "wine-quality",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.816767+00:00"
+      },
+      {
+        "family_id": "wine-quality",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.587084+00:00"
+      },
+      {
+        "family_id": "wine-quality",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.824897+00:00"
+      },
+      {
+        "family_id": "wine-quality",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:40.074131+00:00"
+      },
+      {
+        "family_id": "wine-quality",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.756758+00:00"
+      },
+      {
+        "family_id": "wine-quality",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:13.355445+00:00"
+      },
+      {
+        "family_id": "wine-quality",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:49.148966+00:00"
+      },
+      {
+        "family_id": "wisconsin-diagnostic",
+        "run_id": "11d2a3f3d445692a65f4bea67e61c9e14c9b7b085c658168291d01e3895d6b6f",
+        "role": "development",
+        "created_at": "2026-09-30T20:38:52.148267+00:00"
+      },
+      {
+        "family_id": "wisconsin-diagnostic",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:57.069462+00:00"
+      },
+      {
+        "family_id": "wisconsin-diagnostic",
+        "run_id": "23af63399977aa8783458992e2eac99a67dd0355fc249cb43a3a11c246e79e88",
+        "role": "development",
+        "created_at": "2026-10-03T03:21:14.315936+00:00"
+      },
+      {
+        "family_id": "wisconsin-diagnostic",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.134785+00:00"
+      },
+      {
+        "family_id": "wisconsin-diagnostic",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.892925+00:00"
+      },
+      {
+        "family_id": "wisconsin-diagnostic",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.791228+00:00"
+      },
+      {
+        "family_id": "wisconsin-diagnostic",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:40.042228+00:00"
+      },
+      {
+        "family_id": "wisconsin-diagnostic",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.110435+00:00"
+      },
+      {
+        "family_id": "wisconsin-diagnostic",
+        "run_id": "ab421a05619154e95c3adcede7cbc1e0c4f80b441c9ff67801ada72ddcface36",
+        "role": "development",
+        "created_at": "2026-09-30T15:13:26.274406+00:00"
+      },
+      {
+        "family_id": "wisconsin-diagnostic",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:13.321931+00:00"
+      },
+      {
+        "family_id": "wisconsin-diagnostic",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:49.116535+00:00"
+      }
+    ],
+    "selected_family_matches": [],
+    "historical_identity_checks": [
+      {
+        "path": "benchmarks/simple_models/SIMPLE_MODELS_CACHE.json",
+        "sha256": "77d41190780af6414ba81c8c29bfa95baaccc6af209154aaccbebd660d599141",
+        "dataset_identifiers": [
+          "abalone",
+          "albert",
+          "allstate_claims",
+          "bank_marketing",
+          "bike_sharing",
+          "bike_sharing_inria",
+          "bioresponse",
+          "brazilian_houses",
+          "california",
+          "complex_classification",
+          "complex_regression",
+          "covertype",
+          "covertype_cat",
+          "cpu_act",
+          "credit",
+          "credit_card_fraud",
+          "credit_risk",
+          "customer_churn",
+          "customer_support",
+          "delays_zurich",
+          "diabetes",
+          "diamonds",
+          "ecommerce_product",
+          "electricity",
+          "elevators",
+          "employee_attrition",
+          "eye_movements",
+          "fake_news",
+          "higgs",
+          "house_prices",
+          "house_sales",
+          "houses",
+          "insurance_claims",
+          "interaction_classification",
+          "jannis",
+          "job_postings",
+          "magic_telescope",
+          "medical_diagnosis",
+          "medical_notes",
+          "mercedes_benz",
+          "miami_housing",
+          "miniboone",
+          "news_classification",
+          "nonlinear_regression",
+          "nyc_taxi",
+          "pairwise_product_regression",
+          "polynomial_classification",
+          "polynomial_regression",
+          "product_reviews",
+          "quadratic_heavy_regression",
+          "ratio_regression",
+          "retail_demand",
+          "road_safety",
+          "sensor_anomaly",
+          "server_latency",
+          "spotify_tracks",
+          "sqrt_log_regression",
+          "superconduct",
+          "titanic",
+          "triple_interaction_regression",
+          "wine_quality",
+          "xor_classification",
+          "xor_regression"
+        ]
+      },
+      {
+        "path": "benchmarks/simple_models/SIMPLE_MODELS_CACHE_LLM.json",
+        "sha256": "f34f28b7d96bbac7eaa1173649629d90997997094dda329209c0ac40add4d538",
+        "dataset_identifiers": [
+          "abalone",
+          "albert",
+          "allstate_claims",
+          "bank_marketing",
+          "bike_sharing",
+          "bike_sharing_inria",
+          "bioresponse",
+          "brazilian_houses",
+          "california",
+          "complex_classification",
+          "complex_regression",
+          "covertype",
+          "covertype_cat",
+          "cpu_act",
+          "credit",
+          "credit_card_fraud",
+          "credit_risk",
+          "customer_churn",
+          "customer_support",
+          "delays_zurich",
+          "diabetes",
+          "diamonds",
+          "ecommerce_product",
+          "electricity",
+          "elevators",
+          "employee_attrition",
+          "eye_movements",
+          "fake_news",
+          "higgs",
+          "house_prices",
+          "house_sales",
+          "houses",
+          "insurance_claims",
+          "interaction_classification",
+          "jannis",
+          "job_postings",
+          "magic_telescope",
+          "medical_diagnosis",
+          "medical_notes",
+          "mercedes_benz",
+          "miami_housing",
+          "miniboone",
+          "news_classification",
+          "nonlinear_regression",
+          "nyc_taxi",
+          "pairwise_product_regression",
+          "polynomial_classification",
+          "polynomial_regression",
+          "product_reviews",
+          "quadratic_heavy_regression",
+          "ratio_regression",
+          "retail_demand",
+          "road_safety",
+          "sensor_anomaly",
+          "server_latency",
+          "spotify_tracks",
+          "sqrt_log_regression",
+          "superconduct",
+          "titanic",
+          "triple_interaction_regression",
+          "wine_quality",
+          "xor_classification",
+          "xor_regression"
+        ]
+      }
+    ],
+    "prior_canonical_audit": "standard_iid_entity_reservation_audit_20261003.json#/exposure_audit",
+    "scope_limit": "Recorded-project model exposure only. Entity mapping and clinical independence remain unverified; no guarantee about public pretraining."
+  },
+  "source_metadata_reviews": [
+    {
+      "family_id": "haberman-survival",
+      "uci_id": 43,
+      "rows": 306,
+      "predictors": 3,
+      "target": "survival_status",
+      "categorical": [],
+      "drop_columns": [],
+      "class_counts": {
+        "1": 225,
+        "2": 81
+      },
+      "metadata_minimum_class_count": 81,
+      "expected_three_fold_minimum_test_count": 27,
+      "prediction_time": "Retrospective postsurgical five-year survival-status classification. Preserve age at operation, operation year and positive axillary-node count. Status1 means survived five years or longer; status2 means died within five years. This is not a preoperative prognostic model, alternative time horizon or censoring-adjusted survival analysis.",
+      "unresolved_entity_mapping": "The source describes surgical patient cases but does not verify a one-patient/one-index-operation mapping. Operation year remains a descriptive predictor, not proof of temporal generalization or a supplied longitudinal group index.",
+      "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=43",
+      "metadata_sha256": "7133a77e8b17048df2b3c1e545ccb5684232934556dcc2d290a10ad26637e2cd",
+      "primary_rights_url": "https://archive.ics.uci.edu/dataset/43/haberman+s+survival",
+      "primary_rights_sha256": "83085ed6aae540f84988c0b085c3a9677006b420d8b329d4ee395309dfe550b9",
+      "actual_payload_verified": false,
+      "patient_entity_mapping_verified": false
+    },
+    {
+      "family_id": "mammographic-mass",
+      "uci_id": 161,
+      "rows": 961,
+      "predictors": 4,
+      "target": "Severity",
+      "categorical": [
+        "Shape",
+        "Margin"
+      ],
+      "drop_columns": [
+        "BI-RADS"
+      ],
+      "class_counts": {
+        "0": 516,
+        "1": 445
+      },
+      "metadata_minimum_class_count": 445,
+      "expected_three_fold_minimum_test_count": 148,
+      "prediction_time": "Retrospective benign/malignant mass-lesion annotation using Age, Shape, Margin and Density. Primary source explicitly marks the radiologist BI-RADS assessment non-predictive; it is excluded. No prospective cancer-onset, independent-patient diagnostic performance or clinical deployment claim.",
+      "unresolved_entity_mapping": "The source counts961 masses, not verified961 distinct patients. Lesion-to-patient and repeated-mass mapping remain unavailable; the new tier does not resolve or certify that mapping.",
+      "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=161",
+      "metadata_sha256": "cdbdc05919f35d1873959b6343b4a4dd6153f14ec43b54f6d5cd7594dcee4850",
+      "primary_rights_url": "https://archive.ics.uci.edu/dataset/161/mammographic+mass",
+      "primary_rights_sha256": "d73abcb19f6a53b6f2ec2f310630fcac556b29c2661c1b3ff5f36dba11d9f1e3",
+      "actual_payload_verified": false,
+      "patient_entity_mapping_verified": false
+    }
+  ],
+  "registry_transition": {
+    "before_sha256": "106e3b1cc3cc86a76edadc8edc6053fa592bb2500bff13aeb13b7fa91dc30001",
+    "before": {
+      "haberman-survival": {
+        "family_id": "haberman-survival",
+        "aliases": [
+          "haberman",
+          "habermans-survival"
+        ],
+        "source_ids": [
+          "uci:43",
+          "openml:43",
+          "openml-task:42"
+        ],
+        "upstream_origin": "Haberman survival surgical-case study at University of Chicago Billings Hospital,1958-1970; distinct from previous source cohorts.",
+        "role": "inventory",
+        "prior_exposure": "unknown",
+        "evaluation_tier": "standard_iid_unverified_entity",
+        "claim_boundary": {
+          "evaluation_tier": "standard_iid_unverified_entity",
+          "claim_scope": "Row-level standard public IID benchmark evidence only, under explicitly unresolved patient/entity mapping.",
+          "patient_entity_independence_verified": false,
+          "patient_entity_disjoint_claims_allowed": false,
+          "clinical_generalization_claims_allowed": false,
+          "pool_with_verified_entity_cohorts": false,
+          "prospective_clinical_decision_use_authorized": false,
+          "known_group_time_constraints_must_be_preserved": true,
+          "future_confirmation_requires_explicit_tier_binding": true,
+          "limits": "This is not a waiver for known repeat-entity or temporal leakage. If later evidence identifies available group IDs, repeated-entity links or mandatory temporal boundaries, stop and review; do not drop or ignore them to preserve IID eligibility."
+        },
+        "exposure_review": {
+          "status": "no_recorded_project_model_match",
+          "scope": "Metadata-only history review; not audited_unexposed or a public-pretraining guarantee.",
+          "evidence": [
+            "benchmarks/suites/standard_iid_entity_reservation_audit_20261003.json#/exposure_audit"
+          ]
+        },
+        "reservation": {
+          "id": "standard-iid-entity-reservation-20261003",
+          "status": "active",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-10-03",
+          "evaluation_tier": "standard_iid_unverified_entity",
+          "manifest": "benchmarks/suites/standard_iid_entity_reservation_20261003.json",
+          "audit": "benchmarks/suites/standard_iid_entity_reservation_audit_20261003.json",
+          "release_requirement": "Explicit parent freeze and new recorded-exposure/rights audit, with confirmation role confined to standard_iid_unverified_entity claims and no pooling with verified-entity cohorts. No models or acquisition now."
+        }
+      },
+      "mammographic-mass": {
+        "family_id": "mammographic-mass",
+        "aliases": [
+          "mammographic-masses",
+          "mammographic_mass"
+        ],
+        "source_ids": [
+          "uci:161"
+        ],
+        "upstream_origin": "UCI Mammographic Mass961-lesion Erlangen radiology collection; not Wisconsin diagnostic, prognostic or original-breast-cancer collections.",
+        "role": "inventory",
+        "prior_exposure": "unknown",
+        "evaluation_tier": "standard_iid_unverified_entity",
+        "claim_boundary": {
+          "evaluation_tier": "standard_iid_unverified_entity",
+          "claim_scope": "Row-level standard public IID benchmark evidence only, under explicitly unresolved patient/entity mapping.",
+          "patient_entity_independence_verified": false,
+          "patient_entity_disjoint_claims_allowed": false,
+          "clinical_generalization_claims_allowed": false,
+          "pool_with_verified_entity_cohorts": false,
+          "prospective_clinical_decision_use_authorized": false,
+          "known_group_time_constraints_must_be_preserved": true,
+          "future_confirmation_requires_explicit_tier_binding": true,
+          "limits": "This is not a waiver for known repeat-entity or temporal leakage. If later evidence identifies available group IDs, repeated-entity links or mandatory temporal boundaries, stop and review; do not drop or ignore them to preserve IID eligibility."
+        },
+        "exposure_review": {
+          "status": "no_recorded_project_model_match",
+          "scope": "Metadata-only history review; not audited_unexposed or a public-pretraining guarantee.",
+          "evidence": [
+            "benchmarks/suites/standard_iid_entity_reservation_audit_20261003.json#/exposure_audit"
+          ]
+        },
+        "reservation": {
+          "id": "standard-iid-entity-reservation-20261003",
+          "status": "active",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-10-03",
+          "evaluation_tier": "standard_iid_unverified_entity",
+          "manifest": "benchmarks/suites/standard_iid_entity_reservation_20261003.json",
+          "audit": "benchmarks/suites/standard_iid_entity_reservation_audit_20261003.json",
+          "release_requirement": "Explicit parent freeze and new recorded-exposure/rights audit, with confirmation role confined to standard_iid_unverified_entity claims and no pooling with verified-entity cohorts. No models or acquisition now."
+        }
+      }
+    },
+    "after": {
+      "haberman-survival": {
+        "family_id": "haberman-survival",
+        "aliases": [
+          "haberman",
+          "habermans-survival"
+        ],
+        "source_ids": [
+          "uci:43",
+          "openml:43",
+          "openml-task:42"
+        ],
+        "upstream_origin": "Haberman survival surgical-case study at University of Chicago Billings Hospital,1958-1970; distinct from previous source cohorts.",
+        "role": "confirmation",
+        "prior_exposure": "audited_unexposed",
+        "evaluation_tier": "standard_iid_unverified_entity",
+        "claim_boundary": {
+          "evaluation_tier": "standard_iid_unverified_entity",
+          "claim_scope": "Row-level standard public IID benchmark evidence only, under explicitly unresolved patient/entity mapping.",
+          "patient_entity_independence_verified": false,
+          "patient_entity_disjoint_claims_allowed": false,
+          "clinical_generalization_claims_allowed": false,
+          "pool_with_verified_entity_cohorts": false,
+          "prospective_clinical_decision_use_authorized": false,
+          "known_group_time_constraints_must_be_preserved": true,
+          "future_confirmation_requires_explicit_tier_binding": true,
+          "limits": "This is not a waiver for known repeat-entity or temporal leakage. If later evidence identifies available group IDs, repeated-entity links or mandatory temporal boundaries, stop and review; do not drop or ignore them to preserve IID eligibility."
+        },
+        "exposure_review": {
+          "status": "no_recorded_project_model_match",
+          "scope": "Metadata-only history review; not audited_unexposed or a public-pretraining guarantee.",
+          "evidence": [
+            "benchmarks/suites/standard_iid_entity_reservation_audit_20261003.json#/exposure_audit"
+          ]
+        },
+        "reservation": {
+          "id": "standard-iid-entity-reservation-20261003",
+          "status": "released",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-10-03",
+          "evaluation_tier": "standard_iid_unverified_entity",
+          "manifest": "benchmarks/suites/standard_iid_entity_reservation_20261003.json",
+          "audit": "benchmarks/suites/standard_iid_entity_reservation_audit_20261003.json",
+          "release_requirement": "Explicit parent freeze and new recorded-exposure/rights audit, with confirmation role confined to standard_iid_unverified_entity claims and no pooling with verified-entity cohorts. No models or acquisition now.",
+          "released_on": "2026-10-03",
+          "authorized_by": "Parent instruction2026-10-03T19:36:35.966+08:00, conditional on strict controller/tier binding readiness",
+          "released_suite": "benchmarks/suites/standard_iid_policy_confirmation_20261003.json",
+          "release_evidence": "benchmarks/suites/standard_iid_policy_confirmation_release_20261003.json"
+        },
+        "exposure_audit": {
+          "status": "complete",
+          "audited_on": "2026-10-03",
+          "scope": "Recorded-project model exposure within the explicitly restricted standard-IID tier only. Unknown patient mapping remains unresolved; no clinical/entity-independent or pretraining-unexposed guarantee.",
+          "evidence": [
+            "benchmarks/suites/standard_iid_policy_confirmation_release_20261003.json#/exposure_check",
+            "benchmarks/suites/standard_iid_entity_reservation_audit_20261003.json#/exposure_audit"
+          ]
+        }
+      },
+      "mammographic-mass": {
+        "family_id": "mammographic-mass",
+        "aliases": [
+          "mammographic-masses",
+          "mammographic_mass"
+        ],
+        "source_ids": [
+          "uci:161"
+        ],
+        "upstream_origin": "UCI Mammographic Mass961-lesion Erlangen radiology collection; not Wisconsin diagnostic, prognostic or original-breast-cancer collections.",
+        "role": "confirmation",
+        "prior_exposure": "audited_unexposed",
+        "evaluation_tier": "standard_iid_unverified_entity",
+        "claim_boundary": {
+          "evaluation_tier": "standard_iid_unverified_entity",
+          "claim_scope": "Row-level standard public IID benchmark evidence only, under explicitly unresolved patient/entity mapping.",
+          "patient_entity_independence_verified": false,
+          "patient_entity_disjoint_claims_allowed": false,
+          "clinical_generalization_claims_allowed": false,
+          "pool_with_verified_entity_cohorts": false,
+          "prospective_clinical_decision_use_authorized": false,
+          "known_group_time_constraints_must_be_preserved": true,
+          "future_confirmation_requires_explicit_tier_binding": true,
+          "limits": "This is not a waiver for known repeat-entity or temporal leakage. If later evidence identifies available group IDs, repeated-entity links or mandatory temporal boundaries, stop and review; do not drop or ignore them to preserve IID eligibility."
+        },
+        "exposure_review": {
+          "status": "no_recorded_project_model_match",
+          "scope": "Metadata-only history review; not audited_unexposed or a public-pretraining guarantee.",
+          "evidence": [
+            "benchmarks/suites/standard_iid_entity_reservation_audit_20261003.json#/exposure_audit"
+          ]
+        },
+        "reservation": {
+          "id": "standard-iid-entity-reservation-20261003",
+          "status": "released",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-10-03",
+          "evaluation_tier": "standard_iid_unverified_entity",
+          "manifest": "benchmarks/suites/standard_iid_entity_reservation_20261003.json",
+          "audit": "benchmarks/suites/standard_iid_entity_reservation_audit_20261003.json",
+          "release_requirement": "Explicit parent freeze and new recorded-exposure/rights audit, with confirmation role confined to standard_iid_unverified_entity claims and no pooling with verified-entity cohorts. No models or acquisition now.",
+          "released_on": "2026-10-03",
+          "authorized_by": "Parent instruction2026-10-03T19:36:35.966+08:00, conditional on strict controller/tier binding readiness",
+          "released_suite": "benchmarks/suites/standard_iid_policy_confirmation_20261003.json",
+          "release_evidence": "benchmarks/suites/standard_iid_policy_confirmation_release_20261003.json"
+        },
+        "exposure_audit": {
+          "status": "complete",
+          "audited_on": "2026-10-03",
+          "scope": "Recorded-project model exposure within the explicitly restricted standard-IID tier only. Unknown patient mapping remains unresolved; no clinical/entity-independent or pretraining-unexposed guarantee.",
+          "evidence": [
+            "benchmarks/suites/standard_iid_policy_confirmation_release_20261003.json#/exposure_check",
+            "benchmarks/suites/standard_iid_entity_reservation_audit_20261003.json#/exposure_audit"
+          ]
+        }
+      }
+    },
+    "changed_family_ids": [
+      "haberman-survival",
+      "mammographic-mass"
+    ],
+    "allowed_fields": [
+      "role",
+      "prior_exposure",
+      "reservation",
+      "exposure_audit"
+    ],
+    "tier_and_claim_boundary_unchanged": true,
+    "nonselected_records_changed": false,
+    "after_sha256": "c80a7879114602c5df5883fedbaede128608f9f71c1a0b1a761c5cd3ce9b4454"
+  },
+  "preserved_prior_manifest_sha256": {
+    "confirmation_candidate_reservation_20260923.json": "c7ad92d890362d82bdb6f8e75d1024c9500f4c956aae56fb861015c559c73547",
+    "confirmation_candidate_reservation_audit_20260923.json": "43f9a662bfa51c8eec94db4df3b305d8e316b717cf8b9d80878acea6b231827a",
+    "cycle2_origin_reservation_20260929.json": "3e35dacd0c0a9e946240081dc403dcdb538e775da775f9da76485bef88f03ca1",
+    "cycle2_origin_reservation_audit_20260929.json": "0ecb15a705db9d088b503e80a23126e20d8a58357bf6c79e3d6ddec8c07c5230",
+    "cycle2_robust_confirmation_20260930.json": "9994cccd58c88ad8e1aa3226562939a1499348e7eb5f1e151bc523e3d278cc14",
+    "cycle2_robust_confirmation_release_20260930.json": "b55390a6c11b47c8d6ccce5edd71839fbe196b0cc0cd9b8d0333acd28fadf860",
+    "development_expansion_20260922.json": "49a8d02f411d456abe4747026ec26762648fceefc03a722a1fc47ac3cadb4969",
+    "development_expansion_audit_20260922.json": "6782e17e825319394f4885137bc6e6832155317a12f4223b27ca8df722c150b6",
+    "efficiency_development_replay_20260924.json": "b5e691e270f0fd7209f1f09c4a4c2020300883d114fea6b2a6a40e545c07b480",
+    "final_reserved_confirmation_20260924.json": "6e7f603655e624ae18c3949c7a73dace77f1da513200cb41a4e13c63f33e7f78",
+    "final_reserved_confirmation_audit_20260924.json": "39e98397a3901063057e8bffd00b1e7dbaa51b32393bc8dc531424f2433ed93a",
+    "final_reserved_confirmation_draft_20260924.json": "90da2bbc93900155aee2dffd09bbbeb057bed541fe366dcc500a57adc433fa6e",
+    "final_reserved_confirmation_release_20260924.json": "c3ecbba219c1f840b1e7f721285eb7767c24a79a2851d443187cb20883d92eee",
+    "frequency_development_replay_20260924.json": "1f7d95ba7ada0bbd188d575756dc7ce6a8da8d55d1fb1963a1bcc222df7d0d84",
+    "frequency_fresh_confirmation_blocked_audit_20260924.json": "c48f7829337ee6d31dd9fd4a95b199b8ef47d705ce3501093d7a6acba7c16a9e",
+    "frequency_fresh_confirmation_iid_20260928.json": "ecabf7db78b914bc100e7bd1c8179cf98f709f6973279b48b44f6cbd7ec4240b",
+    "frequency_fresh_confirmation_iid_release_20260928.json": "e437580a21894aa9f675fa0648d58e8d198f4f94840c276916114dcf0ac160fb",
+    "fresh_origin_reservation_20260924.json": "3b4d567eba819cc9875c1ba525abaeb421763ed2a995a1300c1ea07232935e0f",
+    "fresh_origin_reservation_audit_20260924.json": "a6188bf87c976de7c7e52dfeb1e0d9f8854cc3a1bd3ffd1ad0cf2f5932bcb836",
+    "seoul_development.json": "eb949eb6de7a77d39e5dbf4d2026cad6163d47f4fd837e686310bd2f2b1b3f48",
+    "seoul_inventory.json": "8f861070d84577f8a77d6135c61980d6bd24be4eb7f3099dda6256bc22ec5dd5",
+    "standard_iid_entity_reservation_20261003.json": "8ec10104d8391f5d6c8ebe1413af7980c6e4a82a8d517f17e012873c317fab53",
+    "standard_iid_entity_reservation_audit_20261003.json": "d21501f5651d051a76a93b24eae0116bf12dfc588b04e01ca4a476d196b6d0b8",
+    "tabarena_confirmation_candidates_20260920.json": "db4bafa21d2697c4b19955e031440b55fdd33bd068fd08866cee70e5943d9b00",
+    "tabarena_confirmation_completion_repair_20260921.json": "85035ccd8290a105d87b05e2aebc8cd0193a9c81776a9e367f0d4cba9fe0253b",
+    "tabarena_v01_audit_20260920.json": "6a4f6f2c9dbaf222dd3b991fbef291e88d2a30833da4f4e86b1d7cfbe65063c9",
+    "tabarena_v01_inventory.json": "92dc0e6e58e09422104735cbe049dd42eca559acca3808a6abee55e9cf870243",
+    "uci_development.json": "72b5257603de43b1653c00449f0dfd3279a7dea3fa53c5f036d70e5e3443ee7d"
+  },
+  "strict_blocked_audit_sha256": "44af91a0354bca23571dd75527e223a4e4e07a83624641cccfb38ab58c0c7c97",
+  "protocol_summary": {
+    "families": 2,
+    "outer_folds": 3,
+    "learners": 2,
+    "outcomes_per_case": 8,
+    "physical_jobs_per_case": 6,
+    "expected_cells": 96,
+    "expected_physical_jobs": 72,
+    "seed": 2030,
+    "sample_seed": 2026,
+    "ensemble_sampling": "subsample85",
+    "ensemble_members": 3,
+    "training_fraction": 0.85,
+    "calibrated_views_diagnostic_only": true,
+    "primary_method_by_learner": {
+      "linear": "featcopilot-frequency-aligned-robust",
+      "lightgbm": "featcopilot-ensemble-robust"
+    },
+    "class_margins": {
+      "min_total": 30,
+      "min_outer_train": 20,
+      "min_outer_test": 10
+    },
+    "total_seconds_ceiling": 36000
+  },
+  "reporting_and_acceptance": {
+    "evaluation_tier": "standard_iid_unverified_entity",
+    "frozen_primary_method_by_learner": {
+      "linear": "featcopilot-frequency-aligned-robust",
+      "lightgbm": "featcopilot-ensemble-robust"
+    },
+    "policy_selection": "Linear always uses single FE; LightGBM always uses plain85% FE ensemble. No task/dataset switches and no choosing from sigmoid-calibrated views.",
+    "primary_loss": "log_loss",
+    "primary_raw_comparators": [
+      "baseline-robust",
+      "baseline-ensemble-robust"
+    ],
+    "native_fe_comparators": [
+      "openfe-inductive-native-robust",
+      "autofeat-native-robust"
+    ],
+    "counterfactual_limit": "Native FE references are single-procedure native-generation methods with final training-support clipping, not native FE ensembles; do not describe them as ensemble-matched counterfactuals.",
+    "complete_pairing": "For each family/learner/method require all3 scheduled outer folds before a family mean loss is complete. Do not average only successful folds or omit failed families.",
+    "aggregation": "Compute family-mean losses first. Paired relative improvement is1-L(policy)/L(reference); report both families separately plus equal-family mean/median by learner.",
+    "acceptance": {
+      "positive_vs_each_raw_control": "For each learner, equal-family mean relative improvement must be strictly positive versus BOTH raw single and plain85 raw ensemble.",
+      "family_harm": "No family/learner loss increase above5% versus either raw control.",
+      "native_reference_gate": "For each learner, mean paired relative improvement >=0 against EACH completely paired clipped native FE reference. No post-outcome reference selection.",
+      "coverage": "All96 outcomes and all72 scheduled physical jobs must be present; any unsuccessful/nonfinite/missing outcome or incomplete pair blocks broad positive claims. Retain failures/timeouts/RSS/budget skips.",
+      "zero_reference_loss": "Do not substitute epsilons or delete a family; undefined relative gains block automatic acceptance and require explicit absolute-loss reporting.",
+      "automatic_sota": false,
+      "automatic_default_promotion": false
+    },
+    "win_tie_loss": "Per family/learner/comparator: >1% relative improvement is win; <-1% loss; otherwise tie.",
+    "intervals": "Descriptive paired family-block intervals only. With two small source families, no population-level, patient-level, clinical or general SOTA inference is warranted; folds/views are not independent families.",
+    "tier_reporting": "Every prediction row, report and aggregate must retain the same qualified evaluation_tier and claim boundary. Do not pool with verified-entity cohorts or earlier confirmation results.",
+    "calibration_reporting": "Sigmoid arms are diagnostic-only within subsample85, never eligible primary policy variants. Show calibration contrasts separately with no post-outcome policy switch.",
+    "resources": "Report outcomes96, physical jobs72, success/failure and fully paired coverage, wall/RSS/timeouts and actual cumulative controller time. Shared fitting time is charged once per physical job, not summed across two prediction views."
+  },
+  "no_payload_reads": true,
+  "no_models": true,
+  "no_llm_calls": true,
+  "no_ledger_writes": true,
+  "runtime_changes_by_catalog_owner": false,
+  "datasets": [
+    {
+      "name": "haberman-survival",
+      "family_id": "haberman-survival",
+      "provider": "uci",
+      "task": "classification",
+      "role": "inventory",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "standard-iid-entity-reservation-20261003",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "evaluation_tier": "standard_iid_unverified_entity",
+      "claim_boundary": {
+        "evaluation_tier": "standard_iid_unverified_entity",
+        "claim_scope": "Row-level standard public IID benchmark evidence only, under explicitly unresolved patient/entity mapping.",
+        "patient_entity_independence_verified": false,
+        "patient_entity_disjoint_claims_allowed": false,
+        "clinical_generalization_claims_allowed": false,
+        "pool_with_verified_entity_cohorts": false,
+        "prospective_clinical_decision_use_authorized": false,
+        "known_group_time_constraints_must_be_preserved": true,
+        "future_confirmation_requires_explicit_tier_binding": true,
+        "limits": "This is not a waiver for known repeat-entity or temporal leakage. If later evidence identifies available group IDs, repeated-entity links or mandatory temporal boundaries, stop and review; do not drop or ignore them to preserve IID eligibility."
+      },
+      "target": "survival_status",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "iid",
+      "prediction_time": "Retrospective postsurgical five-year survival-status classification. Preserve age at operation, operation year and positive axillary-node count. Status1 means survived five years or longer; status2 means died within five years. This is not a preoperative prognostic model, alternative time horizon or censoring-adjusted survival analysis.",
+      "unresolved_entity_mapping": "The source describes surgical patient cases but does not verify a one-patient/one-index-operation mapping. Operation year remains a descriptive predictor, not proof of temporal generalization or a supplied longitudinal group index.",
+      "schema_review_notes": "The three original native UCI predictors remain numerical with their original meanings. No label transformation, patient ID inference or outcome-history feature is added.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reverified explicit original UCI dataset grant. This tier amendment changes permissible benchmark claim scope only; it does not alter licensing or expand deployment/sharing permission.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/43/haberman+s+survival",
+          "https://archive.ics.uci.edu/api/dataset?id=43"
+        ],
+        "primary_page_sha256": "83085ed6aae540f84988c0b085c3a9677006b420d8b329d4ee395309dfe550b9",
+        "reviewed_on": "2026-10-03",
+        "scope": "Metadata reservation only now; later local scientific benchmark processing requires explicit restricted-tier freeze/release. No hosted row sharing, reidentification, clinical use or additional redistribution permission.",
+        "obligations": "Credit original contributors/UCI, retain license notices and prominently disclose unresolved entity mapping and retrospective endpoint limits."
+      },
+      "source": {
+        "uci_id": 43,
+        "data_url": "https://archive.ics.uci.edu/static/public/43/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=43",
+        "metadata_sha256": "7133a77e8b17048df2b3c1e545ccb5684232934556dcc2d290a10ad26637e2cd",
+        "schema_reviewed": true,
+        "columns": [
+          "age",
+          "operation_year",
+          "positive_auxillary_nodes",
+          "survival_status"
+        ],
+        "target_columns": [
+          "survival_status"
+        ],
+        "expected_rows": 306,
+        "na_values": [
+          "?"
+        ],
+        "label_meanings": {
+          "1": "survived five years or longer",
+          "2": "died within five years"
+        },
+        "payload_integrity_status": "Not acquired; no actual payload checksum or row-level duplicate/split checks have been performed."
+      },
+      "metadata_profile": {
+        "rows": 306,
+        "predictors": 3,
+        "class_counts": {
+          "1": 225,
+          "2": 81
+        },
+        "minimum_class_count": 81,
+        "payload_verified": false,
+        "entity_independence_verified": false,
+        "reported_counts_not_recomputed": true
+      }
+    },
+    {
+      "name": "mammographic-mass",
+      "family_id": "mammographic-mass",
+      "provider": "uci",
+      "task": "classification",
+      "role": "inventory",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "standard-iid-entity-reservation-20261003",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "evaluation_tier": "standard_iid_unverified_entity",
+      "claim_boundary": {
+        "evaluation_tier": "standard_iid_unverified_entity",
+        "claim_scope": "Row-level standard public IID benchmark evidence only, under explicitly unresolved patient/entity mapping.",
+        "patient_entity_independence_verified": false,
+        "patient_entity_disjoint_claims_allowed": false,
+        "clinical_generalization_claims_allowed": false,
+        "pool_with_verified_entity_cohorts": false,
+        "prospective_clinical_decision_use_authorized": false,
+        "known_group_time_constraints_must_be_preserved": true,
+        "future_confirmation_requires_explicit_tier_binding": true,
+        "limits": "This is not a waiver for known repeat-entity or temporal leakage. If later evidence identifies available group IDs, repeated-entity links or mandatory temporal boundaries, stop and review; do not drop or ignore them to preserve IID eligibility."
+      },
+      "target": "Severity",
+      "target_transform": "identity",
+      "categorical": [
+        "Shape",
+        "Margin"
+      ],
+      "drop_columns": [
+        "BI-RADS"
+      ],
+      "split_policy": "iid",
+      "prediction_time": "Retrospective benign/malignant mass-lesion annotation using Age, Shape, Margin and Density. Primary source explicitly marks the radiologist BI-RADS assessment non-predictive; it is excluded. No prospective cancer-onset, independent-patient diagnostic performance or clinical deployment claim.",
+      "unresolved_entity_mapping": "The source counts961 masses, not verified961 distinct patients. Lesion-to-patient and repeated-mass mapping remain unavailable; the new tier does not resolve or certify that mapping.",
+      "schema_review_notes": "Primary variable notes call Shape and Margin nominal despite integer storage; Density remains its original ordinal code and Age numeric. BI-RADS is excluded, not imputed as a feature or used as a predictor.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reverified explicit original UCI dataset grant. This tier amendment changes permissible benchmark claim scope only; it does not alter licensing or expand deployment/sharing permission.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/161/mammographic+mass",
+          "https://archive.ics.uci.edu/api/dataset?id=161"
+        ],
+        "primary_page_sha256": "d73abcb19f6a53b6f2ec2f310630fcac556b29c2661c1b3ff5f36dba11d9f1e3",
+        "reviewed_on": "2026-10-03",
+        "scope": "Metadata reservation only now; later local scientific benchmark processing requires explicit restricted-tier freeze/release. No hosted row sharing, reidentification, clinical use or additional redistribution permission.",
+        "obligations": "Credit original contributors/UCI, retain license notices and prominently disclose unresolved entity mapping and retrospective endpoint limits."
+      },
+      "source": {
+        "uci_id": 161,
+        "data_url": "https://archive.ics.uci.edu/static/public/161/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=161",
+        "metadata_sha256": "cdbdc05919f35d1873959b6343b4a4dd6153f14ec43b54f6d5cd7594dcee4850",
+        "schema_reviewed": true,
+        "columns": [
+          "BI-RADS",
+          "Age",
+          "Shape",
+          "Margin",
+          "Density",
+          "Severity"
+        ],
+        "target_columns": [
+          "Severity"
+        ],
+        "expected_rows": 961,
+        "na_values": [
+          "?"
+        ],
+        "label_meanings": {
+          "0": "benign",
+          "1": "malignant"
+        },
+        "payload_integrity_status": "Not acquired; no actual payload checksum or row-level duplicate/split checks have been performed."
+      },
+      "metadata_profile": {
+        "rows": 961,
+        "predictors": 4,
+        "class_counts": {
+          "0": 516,
+          "1": 445
+        },
+        "minimum_class_count": 445,
+        "payload_verified": false,
+        "entity_independence_verified": false,
+        "reported_counts_not_recomputed": true
+      }
+    }
+  ],
+  "runtime_source_sha256": {
+    "featcopilot/__init__.py": "d7a20f170237e49f2212cf89f4500a2fffe8e435f070c22ac3520bce87e1a7d5",
+    "featcopilot/__main__.py": "c611ec939f2980817f48ade768a985c27df0de80c01cdab119d0b414d4dcf167",
+    "featcopilot/cli.py": "86e739577f4e9a58c0e5b0b8d06479fa6a102b72482c40021f2dd770ed871f0e",
+    "featcopilot/core/__init__.py": "afff319cc8b291957eda39510c6aebce34c67cb93352a079465779c39b9df22b",
+    "featcopilot/core/base.py": "a1d6df6996292527fd2ca940a81799d0c34ae2760c619b2d639d8be0b2b99fb5",
+    "featcopilot/core/feature.py": "13dd58a1d567979bc73ce0a5eaf190a1c188f1be54043f610d54193d468dab0f",
+    "featcopilot/core/fitted_rule.py": "281be32c8f7dcce8aee5788267d39276d7bdda52036a2a9134c8f206fce21d9d",
+    "featcopilot/core/registry.py": "e026486bc99a966d74131bebb0a8d62bd0ac3c07f1fa26546a97a7bbe68a43c1",
+    "featcopilot/core/transform_rule.py": "776eee162114f706613ebe022dcdadbba2d4e9ba39099675500bf7b31c18d913",
+    "featcopilot/engines/__init__.py": "811e0a1ba61df8511828bfe7e5153beafc08e4e3bcd03d630d9df798c00b2381",
+    "featcopilot/engines/fitted_rules.py": "40451f8871ae22cd217739bf92eed4a4d7b4b1764205bc0eb76cb7eb54420288",
+    "featcopilot/engines/point_in_time.py": "41fbebbc3578cc3d699dd16d87e5f80b31c96d9e4ff924c01ce41f10cd5c582b",
+    "featcopilot/engines/predictive.py": "46eeb9d38ce01715fcc1d0a4dbb838b74ad9a1ed4ba728d8f6c322c69c168ccd",
+    "featcopilot/engines/relational.py": "3c392671967698ea79eafb20efa50be2074d7e4d42248d10e1982053932c811f",
+    "featcopilot/engines/tabular.py": "4a1caa090bd35c90c71f18f00976f47cfcdcd92cb0c7f43b36eec106e0ed6b0e",
+    "featcopilot/engines/text.py": "1c31bdfb2d953bc4ad8a0e8c3ec11d4e78942267e4439619f1adc7cbc59e59e5",
+    "featcopilot/engines/timeseries.py": "0b2e92f03606ce631ea58bde943673c398e8def9b3672c18babae189e456ee65",
+    "featcopilot/llm/__init__.py": "bae86974c22ebec8268f79ca8749c50dc724b0d12e132774c1371f1280a33e80",
+    "featcopilot/llm/_execution.py": "a0e4691d717fcef5c03bcc184a7d4db6c6a5af2b5153a603b519667b64e53d18",
+    "featcopilot/llm/_types.py": "9e5719defc338ebb582ae3126dbb9e6e3d276610b7a2e3e15b3c77483ac18486",
+    "featcopilot/llm/code_generator.py": "ba99a61a4c8f144ce21f984dc0b2010e3a7ad6646e764b2a7fc35b7ae9829675",
+    "featcopilot/llm/copilot_client.py": "77d60a0b87e3ae679188155640fa01644942b768108077c73b925bbf1b300f2b",
+    "featcopilot/llm/explainer.py": "6880369af84b1cd7893681e5a91816f3bc516efdb5698d16350c0cbec97c31c6",
+    "featcopilot/llm/litellm_client.py": "424cbcb9be402ee4cff839d7f53145ea7c93bbabc7f606284162db64ee631a69",
+    "featcopilot/llm/openai_client.py": "510fd8fd7049ffb0c38baa3ad05458034b7e50eedfa4c47fd135c6af09fd3676",
+    "featcopilot/llm/plan_generator.py": "0d85a2176c675339bb45fca12f85c034fd93cfcdf7356ddd0b21edd451676465",
+    "featcopilot/llm/semantic_engine.py": "79db9ec29f08f42dc643d990db0323ad80979b2efa4f592b7ac19feaa6657b6c",
+    "featcopilot/llm/transform_rule_generator.py": "ece5130c613d30e7394271df2dc980ffad4bdaf896c59a14617e825196d3757f",
+    "featcopilot/selection/__init__.py": "269ab639757058cf8af0cee964144f241743ee71436169b7e70f8422e4fd1d79",
+    "featcopilot/selection/importance.py": "cbda4b90067fadf18bbef88bbc0a7ab4e1db9af206dbb4d271a9f95602df4181",
+    "featcopilot/selection/redundancy.py": "14a1c25e1e4a1fd5b67647289a367e2553c694825d238bef51d159b5f3d7102e",
+    "featcopilot/selection/statistical.py": "efef08c1dea38e9f8b3fd8d92e43b5b9714a4e5a1846fb9e9ea687103f0a5e96",
+    "featcopilot/selection/unified.py": "a36cbad3b3a7c837c29d72005808bae8a2879dd011990d37fd029ee5593ca520",
+    "featcopilot/stores/__init__.py": "96017014a618189b3bdf6eae7ef11afcf37d2420b14f291a91db41e51079a751",
+    "featcopilot/stores/base.py": "037668ab4c8dc92a053e2fb1b5e43faf451331f06fc701cfa64595cc5b1f45f8",
+    "featcopilot/stores/feast_store.py": "10e80625b4e834d2028e59a62493d45b2f600fdacea944eb53a92aa1d79374c6",
+    "featcopilot/stores/rule_store.py": "455c856e9e12dab1e803d435a307ae0de4415eac5a289ee855c5be0fca01b9f9",
+    "featcopilot/transformers/__init__.py": "269bcf042502acb8cfacb1b670d70379e86bba67131229e13ba1a80b5bc637a5",
+    "featcopilot/transformers/sklearn_compat.py": "b9c7efc0b802099c21597566f19270ef4eaa64a836f70af84439bd6e715eff19",
+    "featcopilot/utils/__init__.py": "26b35e639d160f644b105f5b4b115b71a80fa3f51802248d816bf2d8ccd1b8fc",
+    "featcopilot/utils/cache.py": "17f4a2fc4b0e732cad1be10f913a98c47a0d9e609399be10066f5699e158fd9f",
+    "featcopilot/utils/frequency.py": "27a68a81d0f0e13023def4f4312cb1230d01f1bd9ee6ff9dfb2faf3b34d179d9",
+    "featcopilot/utils/logger.py": "60f51f751fd21794adad07285be920e92223f5885bd8ca11349946ec770d7415",
+    "featcopilot/utils/models.py": "b72ce17e9556aa568cdf705a3b763545bca97dd29809af90e310a5a3e6d89c74",
+    "featcopilot/utils/numeric_clipping.py": "2ed05255ca5a9f56f1c8682ecc2841c7c30d0f5d84347413264439c4fa5ce79e",
+    "featcopilot/utils/parallel.py": "5246d5e602ac743b2dbc3f30cb194e01d2361b6a14e456109d8f141cb6b7bbae",
+    "featcopilot/utils/splitting.py": "43681cc65f66fb2a88db7df3b4f3e6f971e4c44fb8ca0bbc7a28a3e24c060da2",
+    "featcopilot/utils/task.py": "b030483443c02bb2cc46af4a665eb7c95819521166f12898d0b72a2579f7cee8",
+    "featcopilot/utils/validation.py": "c2430609c4fd5e79f3e1aab5264bf199873dce266d91694fdfef2b4c8b084388",
+    "benchmarks/__init__.py": "1ba21c47ac8237196be2ff71c8776fcd26f817a43f034f65af3b09d91e58d4be",
+    "benchmarks/automl/__init__.py": "cbf999ebf261a1387cae444d49eef8f79cfb547fa05b7f920ba158dae40997d7",
+    "benchmarks/automl/run_automl_benchmark.py": "3772de2657cf5df5e8bf77d3a76177117b722209f2e36bef88ad438e3bde77c2",
+    "benchmarks/calibration_evaluation.py": "55a4991602ac7c68bc18bd3c7d0ed7e034b8ec0e120f09c1d31396312552131d",
+    "benchmarks/catalog.py": "04858a8e592b78d9dc6ebab8d251bcc36b05f72f8dd630134d3bec724dd17ca0",
+    "benchmarks/compare_tools/__init__.py": "922af2170bdae14582492ae2e40877e109d8b9e14fb400e78b31e0cd4913370c",
+    "benchmarks/compare_tools/run_fe_tools_comparison.py": "290e1b02f2f29bdcc11d8056e86b5cfecd18bb544a38d7044ba0601682289e84",
+    "benchmarks/datasets.py": "c9558c81f8243459099b50ad11234a7d05d28c8f964ddacdb446e4e42c7171dc",
+    "benchmarks/execution.py": "8611bcb7569ae626038f7eb2109a658146a3255f1f5ea5c64450e69c43a24dd2",
+    "benchmarks/feature_cache.py": "5b20d04de56cf620953a909b3623e4df494a996bbb1bbda306ba008fced10269",
+    "benchmarks/llm_evaluation.py": "54ff2b1335f41b14533be833ebda697e2796a72333f2dab11a676757580c1e20",
+    "benchmarks/plan_validation.py": "769dfbe67d3a5b4f16d5d9d50ec0c7a68b360b4ad577309b58e5400cb83f15ea",
+    "benchmarks/prediction_ensemble.py": "4264a4009f745b5d760024ce4b216c4be7cd38904f38c1e0896b1e0202d92301",
+    "benchmarks/reference_methods.py": "577e817b8f83cd31f9ceb81183ac8e8e28cd773353084643055f9c37f26623ea",
+    "benchmarks/relational_evaluation.py": "3734c206faea8f3e94552dc015959740d9161722f92ee6a69ec458e40b873fcf",
+    "benchmarks/run_state.py": "71d7d2c7f0be47b6d285c8263e28231e390c0e306d4dd469e13c969f159e6de6",
+    "benchmarks/simple_models/__init__.py": "93d1432d55cb479a52aeaf56371a67beb0e51c6a79710166cd0dfdc2207959bd",
+    "benchmarks/simple_models/run_simple_models_benchmark.py": "40c79959151ee2bf773f8c73a6575e50d95fcf5dffe25e5cacea04d38507df76",
+    "benchmarks/splits.py": "45e1854861bbf9eceb1bf162f5e92287028ada2399881c5eac735902bb3cc642",
+    "benchmarks/tabular.py": "4fc06f87c3aff49069b2441a65dc0b60768c4157d44360b6bcd944f859dbfda1",
+    "benchmarks/tabular_openfe.py": "1077d5690bdbf4238775733f145d5f313b6b7affede99f11c87f559aa12d6b66",
+    "benchmarks/use_cases/run_auto_feature_engineering_benchmark.py": "cb30c170d74761533553b41d25966baaf147abcfd8db557c61f7c914b1221885"
+  },
+  "strict_controller_binding_verified": true
+}

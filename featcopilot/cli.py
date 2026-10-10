@@ -312,6 +312,14 @@ _KNOWN_CONFIG_KEYS = frozenset(
         "correlation_threshold",
         "leakage_guard",
         "gate_n_jobs",
+        "task",
+        "selection_strategy",
+        "max_candidates",
+        "random_state",
+        "stability_repeats",
+        "screening",
+        "selection_rule",
+        "candidate_set",
         "llm_config",
         "verbose",
         "explain_sample_size",
@@ -446,12 +454,24 @@ def _build_engineer(args: argparse.Namespace, *, include_selection_config: bool 
             ["mutual_info", "importance"],
         )
         correlation_threshold = pick(getattr(args, "correlation_threshold", None), "correlation_threshold", 0.85)
+        selection_strategy = pick(getattr(args, "selection_strategy", None), "selection_strategy", "legacy")
+        max_candidates = pick(getattr(args, "max_candidates", None), "max_candidates", 1000)
+        random_state = pick(getattr(args, "random_state", None), "random_state", 42)
+        stability_repeats = pick(getattr(args, "stability_repeats", None), "stability_repeats", 3)
+        screening = pick(getattr(args, "screening", None), "screening", "auto")
+        selection_rule = pick(getattr(args, "selection_rule", None), "selection_rule", "one_se")
+        candidate_set = pick(getattr(args, "candidate_set", None), "candidate_set", "standard")
     else:
         selection_methods = ["mutual_info", "importance"]
         correlation_threshold = 0.85
+        selection_strategy, max_candidates, random_state = "legacy", 1000, 42
+        stability_repeats, screening = 3, "auto"
+        selection_rule = "one_se"
+        candidate_set = "standard"
     max_features = pick(args.max_features, "max_features", None)
     leakage_guard = pick(args.leakage_guard, "leakage_guard", "warn")
     gate_n_jobs = pick(args.gate_n_jobs, "gate_n_jobs", 1)
+    task = pick(getattr(args, "task", None), "task", "auto")
 
     # Type-check scalar config fields here so the CLI surfaces a clean
     # exit-2 error instead of a downstream ``TypeError`` (e.g. from
@@ -462,6 +482,14 @@ def _build_engineer(args: argparse.Namespace, *, include_selection_config: bool 
     _check_scalar_type("correlation_threshold", correlation_threshold, (int, float), allow_bool=False)
     _check_scalar_type("gate_n_jobs", gate_n_jobs, (int,), allow_bool=False)
     _check_scalar_type("leakage_guard", leakage_guard, (str,))
+    _check_scalar_type("task", task, (str,))
+    _check_scalar_type("selection_strategy", selection_strategy, (str,))
+    _check_scalar_type("max_candidates", max_candidates, (int,), allow_bool=False)
+    _check_scalar_type("random_state", random_state, (int,), allow_bool=False)
+    _check_scalar_type("stability_repeats", stability_repeats, (int,), allow_bool=False)
+    _check_scalar_type("screening", screening, (str,))
+    _check_scalar_type("selection_rule", selection_rule, (str,))
+    _check_scalar_type("candidate_set", candidate_set, (str,))
 
     # Range-check ``correlation_threshold``: it's only meaningful in
     # ``[0.0, 1.0]``. Values above 1 silently disable redundancy
@@ -521,6 +549,14 @@ def _build_engineer(args: argparse.Namespace, *, include_selection_config: bool 
         verbose=verbose,
         leakage_guard=leakage_guard,
         gate_n_jobs=gate_n_jobs,
+        task=task,
+        selection_strategy=selection_strategy,
+        max_candidates=max_candidates,
+        random_state=random_state,
+        stability_repeats=stability_repeats,
+        screening=screening,
+        selection_rule=selection_rule,
+        candidate_set=candidate_set,
     )
 
 
@@ -556,6 +592,8 @@ def _cmd_info(args: argparse.Namespace) -> int:
         "supported_engines": sorted(AutoFeatureEngineer.SUPPORTED_ENGINES),
         "supported_selection_methods": sorted(AutoFeatureEngineer.SUPPORTED_SELECTION_METHODS),
         "supported_leakage_guards": sorted(AutoFeatureEngineer.SUPPORTED_LEAKAGE_GUARDS),
+        "supported_tasks": sorted(AutoFeatureEngineer.SUPPORTED_TASKS),
+        "supported_selection_strategies": sorted(AutoFeatureEngineer.SUPPORTED_SELECTION_STRATEGIES),
         "supported_input_formats": input_formats,
         "supported_output_formats": output_formats,
         "parquet_available": parquet_ok,
@@ -735,7 +773,7 @@ class _ThreadCaptureState:
         is no concurrent reader of the same record's attributes.
         """
         cached = getattr(record, "_featcopilot_capture_target", self._UNCACHED)
-        if cached is not self._UNCACHED:
+        if cached is None or isinstance(cached, list):
             return cached
         target = self.get_for_llm_record(threading.get_ident(), record.name)
         record._featcopilot_capture_target = target
@@ -977,6 +1015,19 @@ def _cmd_transform(args: argparse.Namespace) -> int:
         # surfaces a precise exit-2 error here rather than down the wrong
         # ``--target is required`` rabbit hole.
         engineer = _build_engineer(args)
+        fit_metadata = {}
+        for argument, key in (
+            ("group_column", "groups"),
+            ("time_column", "timestamps"),
+            ("label_end_column", "label_end_times"),
+        ):
+            column = getattr(args, argument, None)
+            if column is not None:
+                if column not in X:
+                    raise ValueError(f"--{argument.replace('_', '-')} column {column!r} is absent or is the target")
+                fit_metadata[key] = X.pop(column)
+        if engineer.selection_strategy == "predictive" and args.target is None:
+            raise ValueError("--target is required for the predictive selection strategy")
 
         # Selection requires a target column to fit against. ``AutoFeatureEngineer``
         # only actually fits a selector when ``y is not None`` AND ``max_features``
@@ -1002,6 +1053,7 @@ def _cmd_transform(args: argparse.Namespace) -> int:
             task_description=args.task_description or "prediction task",
             target_name=args.target,
             apply_selection=not args.no_selection,
+            **fit_metadata,
         )
 
         if args.include_target and y is not None:
@@ -1040,7 +1092,10 @@ def _cmd_transform(args: argparse.Namespace) -> int:
         "selection_methods": list(engineer.selection_methods),
         "max_features": engineer.max_features,
         "target": args.target,
-        "selection_applied": engineer._selector is not None,
+        "selection_applied": engineer._selector is not None or engineer.selection_report_ is not None,
+        "task": engineer.task,
+        "selection_strategy": engineer.selection_strategy,
+        "selection_report": engineer.selection_report_,
         "warnings": captured_warnings,
     }
     _emit(payload, as_json=args.json)
@@ -1341,6 +1396,15 @@ def _add_io_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("--input-format", choices=SUPPORTED_INPUT_FORMATS, help="Override input format detection.")
     p.add_argument("--output-format", choices=SUPPORTED_OUTPUT_FORMATS, help="Override output format detection.")
     p.add_argument(
+        "--group-column", help="Group identifier for leakage-safe predictive selection; excluded from model features."
+    )
+    p.add_argument(
+        "--time-column", help="Timestamp/order column for forward predictive selection; excluded from model features."
+    )
+    p.add_argument(
+        "--label-end-column", help="Label availability/end time for purged temporal selection; requires --time-column."
+    )
+    p.add_argument(
         "--target",
         "-t",
         help="Target column name. Required when feature selection is applied "
@@ -1382,6 +1446,29 @@ def _add_engineer_args(p: argparse.ArgumentParser, *, include_selection_args: bo
     )
     if include_selection_args:
         p.add_argument(
+            "--selection-strategy",
+            choices=sorted(AutoFeatureEngineer.SUPPORTED_SELECTION_STRATEGIES),
+            help="Selection strategy (default: legacy; predictive is opt-in and tabular-only).",
+        )
+        p.add_argument("--max-candidates", type=int, help="Predictive candidate budget (default: 1000).")
+        p.add_argument("--random-state", type=int, help="Predictive selection seed (default: 42).")
+        p.add_argument("--stability-repeats", type=int, help="Internal predictive selection repeats (default: 3).")
+        p.add_argument(
+            "--screening",
+            choices=["auto", "linear", "tree"],
+            help="Predictive residual screening model (default: auto).",
+        )
+        p.add_argument(
+            "--selection-rule",
+            choices=["one_se", "paired_gain"],
+            help="Predictive subset rule (default: one_se; paired_gain is experimental).",
+        )
+        p.add_argument(
+            "--candidate-set",
+            choices=["standard", "extended"],
+            help="Predictive candidate vocabulary (default: standard; extended is opt-in).",
+        )
+        p.add_argument(
             "--selection-methods",
             nargs="+",
             choices=sorted(AutoFeatureEngineer.SUPPORTED_SELECTION_METHODS),
@@ -1392,6 +1479,11 @@ def _add_engineer_args(p: argparse.ArgumentParser, *, include_selection_args: bo
             type=float,
             help="Maximum pairwise correlation in redundancy elimination (default: 0.85).",
         )
+    p.add_argument(
+        "--task",
+        choices=sorted(AutoFeatureEngineer.SUPPORTED_TASKS),
+        help="Task override; use regression for integer-valued regression targets (default: auto).",
+    )
     p.add_argument(
         "--leakage-guard",
         choices=sorted(AutoFeatureEngineer.SUPPORTED_LEAKAGE_GUARDS),
@@ -1448,7 +1540,7 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     try:
-        return args.func(args)
+        return int(args.func(args))
     except (FileNotFoundError, ValueError) as exc:
         # User-facing input/config errors: print a clean message to stderr
         # without a traceback so agents can parse the failure.

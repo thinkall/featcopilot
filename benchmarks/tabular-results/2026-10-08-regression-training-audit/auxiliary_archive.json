@@ -1,0 +1,15 @@
+{
+  "format": "bounded-lossless-artifacts-v1",
+  "files": [
+    {
+      "name": "source.zip",
+      "compression": "none",
+      "parts": [
+        "source.zip.part1",
+        "source.zip.part2",
+        "source.zip.part3"
+      ],
+      "sha256": "0f4b4b509dd39f64f0b3ecbd475588d9210d7c527e6fa8b29a0e2a4d76ddadfa"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "promote": false,
+  "sota_demonstrated": false,
+  "decision": "Fixed averaging replicated positive development gains with less than1% worst family harm at every declared seed. Expose only as explicit experimental mode; new independent confirmation is still required.",
+  "comparisons": [
+    {
+      "seed": 42,
+      "families": 9,
+      "mean_gain": 0.07675782404317294,
+      "worst_gain": -0.009170621544770441,
+      "harms_over_5_percent": []
+    },
+    {
+      "seed": 137,
+      "families": 9,
+      "mean_gain": 0.0612194921406845,
+      "worst_gain": -5.957876195128442e-05,
+      "harms_over_5_percent": []
+    },
+    {
+      "seed": 2029,
+      "families": 9,
+      "mean_gain": 0.05885897189275705,
+      "worst_gain": -0.007671206190955404,
+      "harms_over_5_percent": []
+    },
+    {
+      "seed": null,
+      "families": 9,
+      "mean_gain": 0.068175223566769,
+      "worst_gain": -0.0025925766788394977,
+      "harms_over_5_percent": []
+    }
+  ]
+}

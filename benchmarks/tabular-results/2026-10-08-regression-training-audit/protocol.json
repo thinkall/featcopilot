@@ -1,0 +1,51 @@
+{
+  "protocol": "regression_train_only_numerical_audit_v1",
+  "declared_on": "2026-10-08",
+  "role": "retrospective_training_diagnostic",
+  "not_confirmation": true,
+  "not_scored_evaluation": true,
+  "dataset": "computer-hardware-performance",
+  "family_id": "computer-hardware-performance",
+  "seeds": [42, 137, 2029],
+  "official_folds": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  "expected_jobs": 30,
+  "learner": "linear",
+  "component_methods": ["baseline-robust", "featcopilot-frequency-aligned-robust"],
+  "selection_policy": "All ten official hardware outer-TRAIN partitions at all three previously measured seeds, without selecting only failed folds.",
+  "worker_data_boundary": "Controller extracts original outer-TRAIN X/y in original order and writes a checksummed training-only payload. Workers never receive outer-test rows, labels, predictions or test scores.",
+  "algorithm_policy": "Reproduce unchanged canonical 75/25 inner tuning and final full-TRAIN refit for raw and aligned FE. No changed estimator parameters, feature operators, subset gates, mixture weights or selection rules.",
+  "reference_parity_fields": ["parameters", "inner_losses", "outer_feature_names_sha256", "n_output_features"],
+  "diagnostics": [
+    "Winning inner and final ordered selected feature-name identities and turnover",
+    "Scaled training design singular values, numerical rank and conditioning status",
+    "Ridge coefficient L2/Linf norms",
+    "In-sample training residual RMSE, explicitly not an evaluation score",
+    "Train-fitted numeric clipping boundary counts with constant/undefined cases separate"
+  ],
+  "diagnostic_limitations": [
+    "Retrospective dataset choice follows exposed failures; this is not independently selected evidence.",
+    "Conditioning and coefficient magnitude alone do not establish causality or a safe selection threshold.",
+    "Training residual RMSE is not outer-test performance and must not be combined with benchmark scores.",
+    "Training min/max saturation counts describe observed boundaries; they are not future clipping or extrapolation rates.",
+    "No clinical, generalization, no-harm, default-promotion or SOTA claim is authorized."
+  ],
+  "reference_runs": {
+    "42": "2026-10-08-regression-average-development",
+    "137": "2026-10-08-regression-policy-replication",
+    "2029": "2026-10-08-regression-policy-replication"
+  },
+  "threads": 8,
+  "case_timeout_seconds": 180,
+  "memory_limit_mb": 4096,
+  "combined_ceiling_seconds": 3600,
+  "publication_reserve_seconds": 120,
+  "max_candidates": 1000,
+  "max_added_features": 50,
+  "stability_repeats": 3,
+  "numeric_clip_quantiles": [0.0, 1.0],
+  "categorical_encoding": "one_hot",
+  "target_transform": "identity",
+  "prior_cycle_used_hours": 69.96195105372222,
+  "cycle_total_hours": 72,
+  "new_llm_calls": 0
+}

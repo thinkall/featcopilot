@@ -1,0 +1,2773 @@
+{
+  "schema_version": 1,
+  "name": "final-reserved-confirmation-release-20260924",
+  "family_registry": "../families.json",
+  "purpose": "Append-only evidence of explicit parent release, not a new algorithm/dataset selection or an execution result.",
+  "authorization": {
+    "status": "explicit_parent_authorized",
+    "instruction_timestamp": "2026-09-24T04:41:33.178+08:00",
+    "family_ids": [
+      "heart-failure-clinical",
+      "tabarena-46941",
+      "student-performance",
+      "tabarena-46913",
+      "tabarena-46960",
+      "tabarena-46907",
+      "tabarena-46930",
+      "tabarena-46963",
+      "tabarena-46949",
+      "tabarena-46950",
+      "tabarena-46956",
+      "tabarena-46962"
+    ],
+    "executable_suite": "final_reserved_confirmation_20260924.json",
+    "scope": "Exactly the reviewed draft's 12 families and unchanged protocol. No payload/model/LLM calls or ledger writes occurred during release."
+  },
+  "exposure_check": {
+    "source": "benchmarks/.cache/exposure.sqlite",
+    "access": "SQLite URI mode=ro; no writes",
+    "query": "SELECT family_id,run_id,role,created_at FROM exposure ORDER BY family_id,run_id",
+    "row_count": 71,
+    "logical_rows_sha256": "cd99e7ef281fa178961b4d9ef8580ff76c706d15a787cdb25953cd9e686b8ea1",
+    "logical_hash_encoding": "SHA-256 of UTF-8 compact JSON for query rows in query order.",
+    "rows": [
+      {
+        "family_id": "adult",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:27.167775+00:00"
+      },
+      {
+        "family_id": "adult",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:06.294233+00:00"
+      },
+      {
+        "family_id": "adult",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.023155+00:00"
+      },
+      {
+        "family_id": "adult",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:40.271692+00:00"
+      },
+      {
+        "family_id": "auto-mpg",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.773312+00:00"
+      },
+      {
+        "family_id": "auto-mpg",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.545256+00:00"
+      },
+      {
+        "family_id": "auto-mpg",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.714926+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.408141+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.174076+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.375998+00:00"
+      },
+      {
+        "family_id": "california-housing",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:28.301260+00:00"
+      },
+      {
+        "family_id": "california-housing",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.873285+00:00"
+      },
+      {
+        "family_id": "california-housing",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.640344+00:00"
+      },
+      {
+        "family_id": "california-housing",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.809720+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.692856+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.454403+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.643585+00:00"
+      },
+      {
+        "family_id": "combined-cycle-power",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.510790+00:00"
+      },
+      {
+        "family_id": "combined-cycle-power",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.274612+00:00"
+      },
+      {
+        "family_id": "combined-cycle-power",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.471117+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "12de448078245ea61495c6e442b7f81d9e6907edbc0c15b553448004ba9ebda3",
+        "role": "development",
+        "created_at": "2026-09-20T08:52:54.881121+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:28.075106+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:06.960342+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.711007+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "7bf61e7cf3f0c03687d21bfb072f1054f9df4d9f1ee8f1c2969fa45b8d357bad",
+        "role": "development",
+        "created_at": "2026-09-17T06:51:56.088888+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:40.938193+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "a5c05d09c00626a942851f70d680f8a121cb0c6f5840c2e8a7715db4cdbf30ec",
+        "role": "development",
+        "created_at": "2026-09-17T07:23:12.228125+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "f1113556c7db1d80a1b00fd28f006515bf715c8a9af875df1d517ea2f03af17b",
+        "role": "development",
+        "created_at": "2026-09-17T07:19:07.259838+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:27.795029+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:06.749764+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.497413+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "7bf61e7cf3f0c03687d21bfb072f1054f9df4d9f1ee8f1c2969fa45b8d357bad",
+        "role": "development",
+        "created_at": "2026-09-17T06:51:56.059433+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:40.728420+00:00"
+      },
+      {
+        "family_id": "energy-efficiency",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:28.176485+00:00"
+      },
+      {
+        "family_id": "energy-efficiency",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.037263+00:00"
+      },
+      {
+        "family_id": "energy-efficiency",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.789596+00:00"
+      },
+      {
+        "family_id": "energy-efficiency",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.016341+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:27.349190+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:06.405585+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.137742+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "7bf61e7cf3f0c03687d21bfb072f1054f9df4d9f1ee8f1c2969fa45b8d357bad",
+        "role": "development",
+        "created_at": "2026-09-17T06:51:55.935561+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:40.382260+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "12de448078245ea61495c6e442b7f81d9e6907edbc0c15b553448004ba9ebda3",
+        "role": "development",
+        "created_at": "2026-09-20T08:52:54.782252+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:27.523781+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:06.549907+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.289717+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:40.531157+00:00"
+      },
+      {
+        "family_id": "real-estate-sindian",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.597870+00:00"
+      },
+      {
+        "family_id": "real-estate-sindian",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.364126+00:00"
+      },
+      {
+        "family_id": "real-estate-sindian",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.554520+00:00"
+      },
+      {
+        "family_id": "seoul-bike",
+        "run_id": "37b08f9e0d0c0482c06a31727c593d3c24c7a69a859891dfcd592ca31617ea1c",
+        "role": "development",
+        "created_at": "2026-09-20T10:09:12.059098+00:00"
+      },
+      {
+        "family_id": "spambase",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.306397+00:00"
+      },
+      {
+        "family_id": "spambase",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.068277+00:00"
+      },
+      {
+        "family_id": "spambase",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.274182+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:27.990273+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:06.873999+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.625443+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:40.855516+00:00"
+      },
+      {
+        "family_id": "tabarena-46904",
+        "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+        "role": "confirmation",
+        "created_at": "2026-09-20T10:14:48.511575+00:00"
+      },
+      {
+        "family_id": "tabarena-46916",
+        "run_id": "fbfa458ef79c8fae0ed44da73fcb1ada89468d3c7ea5b7aadc12d3ecda99c581",
+        "role": "confirmation",
+        "created_at": "2026-09-20T21:42:54.263178+00:00"
+      },
+      {
+        "family_id": "tabarena-46937",
+        "run_id": "fbfa458ef79c8fae0ed44da73fcb1ada89468d3c7ea5b7aadc12d3ecda99c581",
+        "role": "confirmation",
+        "created_at": "2026-09-20T21:42:57.385423+00:00"
+      },
+      {
+        "family_id": "tabarena-46954",
+        "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+        "role": "confirmation",
+        "created_at": "2026-09-20T10:15:10.740949+00:00"
+      },
+      {
+        "family_id": "tabarena-46958",
+        "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+        "role": "confirmation",
+        "created_at": "2026-09-20T10:15:15.995406+00:00"
+      },
+      {
+        "family_id": "tabarena-46969",
+        "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+        "role": "confirmation",
+        "created_at": "2026-09-20T10:15:24.009024+00:00"
+      },
+      {
+        "family_id": "wine-quality",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:28.244611+00:00"
+      },
+      {
+        "family_id": "wine-quality",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.816767+00:00"
+      },
+      {
+        "family_id": "wine-quality",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.587084+00:00"
+      },
+      {
+        "family_id": "wine-quality",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.756758+00:00"
+      },
+      {
+        "family_id": "wisconsin-diagnostic",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.134785+00:00"
+      },
+      {
+        "family_id": "wisconsin-diagnostic",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.892925+00:00"
+      },
+      {
+        "family_id": "wisconsin-diagnostic",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.110435+00:00"
+      }
+    ],
+    "selected_family_matches": [],
+    "result": "No selected family is present; any match would have refused release.",
+    "scope_limit": "Project model-exposure history, not proof of absence from public pretraining or prior raw metadata inspection."
+  },
+  "registry_transition": {
+    "before_sha256": "562a5b742a97a14123eb638f51b065fe93b200ccc856926ac18cd908ce8c2249",
+    "after_sha256": "5e90597a252668aff2152e49979f65ba22bc74b195658f798b578b67d0ced6f4",
+    "changed_family_ids": [
+      "heart-failure-clinical",
+      "tabarena-46941",
+      "student-performance",
+      "tabarena-46913",
+      "tabarena-46960",
+      "tabarena-46907",
+      "tabarena-46930",
+      "tabarena-46963",
+      "tabarena-46949",
+      "tabarena-46950",
+      "tabarena-46956",
+      "tabarena-46962"
+    ],
+    "allowed_changed_fields": [
+      "reservation",
+      "prior_exposure",
+      "role",
+      "exposure_audit"
+    ],
+    "before": {
+      "heart-failure-clinical": {
+        "family_id": "heart-failure-clinical",
+        "aliases": [
+          "uci-519"
+        ],
+        "source_ids": [
+          "uci:519"
+        ],
+        "upstream_origin": "https://archive.ics.uci.edu/dataset/519/heart+failure+clinical+records",
+        "prior_exposure": "unknown",
+        "role": "development",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "exposure_note": "No unexposed/fresh certification is made; assigned development before models.",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "active",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning."
+        }
+      },
+      "tabarena-46941": {
+        "family_id": "tabarena-46941",
+        "aliases": [],
+        "source_ids": [
+          "openml:46941",
+          "openml-task:363685",
+          "uci:863"
+        ],
+        "upstream_origin": "https://doi.org/10.24432/C5DP5D",
+        "prior_exposure": "metadata_only",
+        "role": "development",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "active",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning."
+        }
+      },
+      "student-performance": {
+        "family_id": "student-performance",
+        "aliases": [
+          "uci-320"
+        ],
+        "source_ids": [
+          "uci:320"
+        ],
+        "upstream_origin": "https://archive.ics.uci.edu/dataset/320/student+performance",
+        "prior_exposure": "unknown",
+        "role": "development",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "exposure_note": "No unexposed/fresh certification is made; assigned development before models.",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "active",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning."
+        }
+      },
+      "tabarena-46913": {
+        "family_id": "tabarena-46913",
+        "aliases": [],
+        "source_ids": [
+          "openml:46913",
+          "openml-task:363621",
+          "uci:176"
+        ],
+        "upstream_origin": "https://doi.org/10.24432/C5GS39",
+        "prior_exposure": "metadata_only",
+        "role": "development",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "active",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning."
+        }
+      },
+      "tabarena-46960": {
+        "family_id": "tabarena-46960",
+        "aliases": [],
+        "source_ids": [
+          "openml:46960",
+          "openml-task:363704",
+          "uci:697"
+        ],
+        "upstream_origin": "https://doi.org/10.24432/C5MC89",
+        "prior_exposure": "metadata_only",
+        "role": "development",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "active",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning."
+        }
+      },
+      "tabarena-46907": {
+        "family_id": "tabarena-46907",
+        "aliases": [],
+        "source_ids": [
+          "openml:46907",
+          "openml-task:363615",
+          "kaggle:paolocons/another-fiat-500-dataset-1538-rows"
+        ],
+        "upstream_origin": "https://www.kaggle.com/datasets/paolocons/another-fiat-500-dataset-1538-rows",
+        "prior_exposure": "metadata_only",
+        "role": "development",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "active",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning."
+        }
+      },
+      "tabarena-46930": {
+        "family_id": "tabarena-46930",
+        "aliases": [],
+        "source_ids": [
+          "openml:46930",
+          "openml-task:363674",
+          "openml:45538"
+        ],
+        "upstream_origin": "https://www.openml.org/d/45538",
+        "prior_exposure": "metadata_only",
+        "role": "development",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "active",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning."
+        }
+      },
+      "tabarena-46963": {
+        "family_id": "tabarena-46963",
+        "aliases": [],
+        "source_ids": [
+          "openml:46963",
+          "openml-task:363707",
+          "uci:379"
+        ],
+        "upstream_origin": "https://doi.org/10.24432/C5B301",
+        "prior_exposure": "metadata_only",
+        "role": "development",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "active",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning."
+        }
+      },
+      "tabarena-46949": {
+        "family_id": "tabarena-46949",
+        "aliases": [],
+        "source_ids": [
+          "openml:46949",
+          "openml-task:363693",
+          "uci:265"
+        ],
+        "upstream_origin": "https://doi.org/10.24432/C5QW3H",
+        "prior_exposure": "metadata_only",
+        "role": "development",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "active",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning."
+        }
+      },
+      "tabarena-46950": {
+        "family_id": "tabarena-46950",
+        "aliases": [],
+        "source_ids": [
+          "openml:46950",
+          "openml-task:363694",
+          "uci:365"
+        ],
+        "upstream_origin": "https://doi.org/10.24432/C5F600",
+        "prior_exposure": "metadata_only",
+        "role": "development",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "active",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning."
+        }
+      },
+      "tabarena-46956": {
+        "family_id": "tabarena-46956",
+        "aliases": [],
+        "source_ids": [
+          "openml:46956",
+          "openml-task:363700",
+          "uci:266"
+        ],
+        "upstream_origin": "https://doi.org/10.24432/C5W902",
+        "prior_exposure": "metadata_only",
+        "role": "development",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "active",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning."
+        }
+      },
+      "tabarena-46962": {
+        "family_id": "tabarena-46962",
+        "aliases": [],
+        "source_ids": [
+          "openml:46962",
+          "openml-task:363706",
+          "uci:572"
+        ],
+        "upstream_origin": "https://doi.org/10.24432/C5004D",
+        "prior_exposure": "metadata_only",
+        "role": "development",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "active",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning."
+        }
+      }
+    },
+    "after": {
+      "heart-failure-clinical": {
+        "family_id": "heart-failure-clinical",
+        "aliases": [
+          "uci-519"
+        ],
+        "source_ids": [
+          "uci:519"
+        ],
+        "upstream_origin": "https://archive.ics.uci.edu/dataset/519/heart+failure+clinical+records",
+        "prior_exposure": "audited_unexposed",
+        "role": "confirmation",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "exposure_note": "No unexposed/fresh certification is made; assigned development before models.",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "released",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning.",
+          "released_on": "2026-09-24",
+          "authorized_by": "Explicit parent authorization in the 2026-09-24T04:41:33.178+08:00 instruction",
+          "released_suite": "benchmarks/suites/final_reserved_confirmation_20260924.json",
+          "release_evidence": "benchmarks/suites/final_reserved_confirmation_release_20260924.json"
+        },
+        "exposure_audit": {
+          "status": "complete",
+          "audited_on": "2026-09-24",
+          "scope": "Recorded project model exposure only; prior approved acquisition/metadata inspection and public model pretraining are not claimed absent.",
+          "evidence": [
+            "benchmarks/suites/final_reserved_confirmation_release_20260924.json#/exposure_check",
+            "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json#/exposure_proof",
+            "benchmarks/suites/final_reserved_confirmation_audit_20260924.json#/evidence"
+          ]
+        }
+      },
+      "tabarena-46941": {
+        "family_id": "tabarena-46941",
+        "aliases": [],
+        "source_ids": [
+          "openml:46941",
+          "openml-task:363685",
+          "uci:863"
+        ],
+        "upstream_origin": "https://doi.org/10.24432/C5DP5D",
+        "prior_exposure": "audited_unexposed",
+        "role": "confirmation",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "released",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning.",
+          "released_on": "2026-09-24",
+          "authorized_by": "Explicit parent authorization in the 2026-09-24T04:41:33.178+08:00 instruction",
+          "released_suite": "benchmarks/suites/final_reserved_confirmation_20260924.json",
+          "release_evidence": "benchmarks/suites/final_reserved_confirmation_release_20260924.json"
+        },
+        "exposure_audit": {
+          "status": "complete",
+          "audited_on": "2026-09-24",
+          "scope": "Recorded project model exposure only; prior approved acquisition/metadata inspection and public model pretraining are not claimed absent.",
+          "evidence": [
+            "benchmarks/suites/final_reserved_confirmation_release_20260924.json#/exposure_check",
+            "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json#/exposure_proof",
+            "benchmarks/suites/final_reserved_confirmation_audit_20260924.json#/evidence"
+          ]
+        }
+      },
+      "student-performance": {
+        "family_id": "student-performance",
+        "aliases": [
+          "uci-320"
+        ],
+        "source_ids": [
+          "uci:320"
+        ],
+        "upstream_origin": "https://archive.ics.uci.edu/dataset/320/student+performance",
+        "prior_exposure": "audited_unexposed",
+        "role": "confirmation",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "exposure_note": "No unexposed/fresh certification is made; assigned development before models.",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "released",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning.",
+          "released_on": "2026-09-24",
+          "authorized_by": "Explicit parent authorization in the 2026-09-24T04:41:33.178+08:00 instruction",
+          "released_suite": "benchmarks/suites/final_reserved_confirmation_20260924.json",
+          "release_evidence": "benchmarks/suites/final_reserved_confirmation_release_20260924.json"
+        },
+        "exposure_audit": {
+          "status": "complete",
+          "audited_on": "2026-09-24",
+          "scope": "Recorded project model exposure only; prior approved acquisition/metadata inspection and public model pretraining are not claimed absent.",
+          "evidence": [
+            "benchmarks/suites/final_reserved_confirmation_release_20260924.json#/exposure_check",
+            "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json#/exposure_proof",
+            "benchmarks/suites/final_reserved_confirmation_audit_20260924.json#/evidence"
+          ]
+        }
+      },
+      "tabarena-46913": {
+        "family_id": "tabarena-46913",
+        "aliases": [],
+        "source_ids": [
+          "openml:46913",
+          "openml-task:363621",
+          "uci:176"
+        ],
+        "upstream_origin": "https://doi.org/10.24432/C5GS39",
+        "prior_exposure": "audited_unexposed",
+        "role": "confirmation",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "released",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning.",
+          "released_on": "2026-09-24",
+          "authorized_by": "Explicit parent authorization in the 2026-09-24T04:41:33.178+08:00 instruction",
+          "released_suite": "benchmarks/suites/final_reserved_confirmation_20260924.json",
+          "release_evidence": "benchmarks/suites/final_reserved_confirmation_release_20260924.json"
+        },
+        "exposure_audit": {
+          "status": "complete",
+          "audited_on": "2026-09-24",
+          "scope": "Recorded project model exposure only; prior approved acquisition/metadata inspection and public model pretraining are not claimed absent.",
+          "evidence": [
+            "benchmarks/suites/final_reserved_confirmation_release_20260924.json#/exposure_check",
+            "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json#/exposure_proof",
+            "benchmarks/suites/final_reserved_confirmation_audit_20260924.json#/evidence"
+          ]
+        }
+      },
+      "tabarena-46960": {
+        "family_id": "tabarena-46960",
+        "aliases": [],
+        "source_ids": [
+          "openml:46960",
+          "openml-task:363704",
+          "uci:697"
+        ],
+        "upstream_origin": "https://doi.org/10.24432/C5MC89",
+        "prior_exposure": "audited_unexposed",
+        "role": "confirmation",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "released",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning.",
+          "released_on": "2026-09-24",
+          "authorized_by": "Explicit parent authorization in the 2026-09-24T04:41:33.178+08:00 instruction",
+          "released_suite": "benchmarks/suites/final_reserved_confirmation_20260924.json",
+          "release_evidence": "benchmarks/suites/final_reserved_confirmation_release_20260924.json"
+        },
+        "exposure_audit": {
+          "status": "complete",
+          "audited_on": "2026-09-24",
+          "scope": "Recorded project model exposure only; prior approved acquisition/metadata inspection and public model pretraining are not claimed absent.",
+          "evidence": [
+            "benchmarks/suites/final_reserved_confirmation_release_20260924.json#/exposure_check",
+            "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json#/exposure_proof",
+            "benchmarks/suites/final_reserved_confirmation_audit_20260924.json#/evidence"
+          ]
+        }
+      },
+      "tabarena-46907": {
+        "family_id": "tabarena-46907",
+        "aliases": [],
+        "source_ids": [
+          "openml:46907",
+          "openml-task:363615",
+          "kaggle:paolocons/another-fiat-500-dataset-1538-rows"
+        ],
+        "upstream_origin": "https://www.kaggle.com/datasets/paolocons/another-fiat-500-dataset-1538-rows",
+        "prior_exposure": "audited_unexposed",
+        "role": "confirmation",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "released",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning.",
+          "released_on": "2026-09-24",
+          "authorized_by": "Explicit parent authorization in the 2026-09-24T04:41:33.178+08:00 instruction",
+          "released_suite": "benchmarks/suites/final_reserved_confirmation_20260924.json",
+          "release_evidence": "benchmarks/suites/final_reserved_confirmation_release_20260924.json"
+        },
+        "exposure_audit": {
+          "status": "complete",
+          "audited_on": "2026-09-24",
+          "scope": "Recorded project model exposure only; prior approved acquisition/metadata inspection and public model pretraining are not claimed absent.",
+          "evidence": [
+            "benchmarks/suites/final_reserved_confirmation_release_20260924.json#/exposure_check",
+            "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json#/exposure_proof",
+            "benchmarks/suites/final_reserved_confirmation_audit_20260924.json#/evidence"
+          ]
+        }
+      },
+      "tabarena-46930": {
+        "family_id": "tabarena-46930",
+        "aliases": [],
+        "source_ids": [
+          "openml:46930",
+          "openml-task:363674",
+          "openml:45538"
+        ],
+        "upstream_origin": "https://www.openml.org/d/45538",
+        "prior_exposure": "audited_unexposed",
+        "role": "confirmation",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "released",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning.",
+          "released_on": "2026-09-24",
+          "authorized_by": "Explicit parent authorization in the 2026-09-24T04:41:33.178+08:00 instruction",
+          "released_suite": "benchmarks/suites/final_reserved_confirmation_20260924.json",
+          "release_evidence": "benchmarks/suites/final_reserved_confirmation_release_20260924.json"
+        },
+        "exposure_audit": {
+          "status": "complete",
+          "audited_on": "2026-09-24",
+          "scope": "Recorded project model exposure only; prior approved acquisition/metadata inspection and public model pretraining are not claimed absent.",
+          "evidence": [
+            "benchmarks/suites/final_reserved_confirmation_release_20260924.json#/exposure_check",
+            "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json#/exposure_proof",
+            "benchmarks/suites/final_reserved_confirmation_audit_20260924.json#/evidence"
+          ]
+        }
+      },
+      "tabarena-46963": {
+        "family_id": "tabarena-46963",
+        "aliases": [],
+        "source_ids": [
+          "openml:46963",
+          "openml-task:363707",
+          "uci:379"
+        ],
+        "upstream_origin": "https://doi.org/10.24432/C5B301",
+        "prior_exposure": "audited_unexposed",
+        "role": "confirmation",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "released",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning.",
+          "released_on": "2026-09-24",
+          "authorized_by": "Explicit parent authorization in the 2026-09-24T04:41:33.178+08:00 instruction",
+          "released_suite": "benchmarks/suites/final_reserved_confirmation_20260924.json",
+          "release_evidence": "benchmarks/suites/final_reserved_confirmation_release_20260924.json"
+        },
+        "exposure_audit": {
+          "status": "complete",
+          "audited_on": "2026-09-24",
+          "scope": "Recorded project model exposure only; prior approved acquisition/metadata inspection and public model pretraining are not claimed absent.",
+          "evidence": [
+            "benchmarks/suites/final_reserved_confirmation_release_20260924.json#/exposure_check",
+            "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json#/exposure_proof",
+            "benchmarks/suites/final_reserved_confirmation_audit_20260924.json#/evidence"
+          ]
+        }
+      },
+      "tabarena-46949": {
+        "family_id": "tabarena-46949",
+        "aliases": [],
+        "source_ids": [
+          "openml:46949",
+          "openml-task:363693",
+          "uci:265"
+        ],
+        "upstream_origin": "https://doi.org/10.24432/C5QW3H",
+        "prior_exposure": "audited_unexposed",
+        "role": "confirmation",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "released",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning.",
+          "released_on": "2026-09-24",
+          "authorized_by": "Explicit parent authorization in the 2026-09-24T04:41:33.178+08:00 instruction",
+          "released_suite": "benchmarks/suites/final_reserved_confirmation_20260924.json",
+          "release_evidence": "benchmarks/suites/final_reserved_confirmation_release_20260924.json"
+        },
+        "exposure_audit": {
+          "status": "complete",
+          "audited_on": "2026-09-24",
+          "scope": "Recorded project model exposure only; prior approved acquisition/metadata inspection and public model pretraining are not claimed absent.",
+          "evidence": [
+            "benchmarks/suites/final_reserved_confirmation_release_20260924.json#/exposure_check",
+            "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json#/exposure_proof",
+            "benchmarks/suites/final_reserved_confirmation_audit_20260924.json#/evidence"
+          ]
+        }
+      },
+      "tabarena-46950": {
+        "family_id": "tabarena-46950",
+        "aliases": [],
+        "source_ids": [
+          "openml:46950",
+          "openml-task:363694",
+          "uci:365"
+        ],
+        "upstream_origin": "https://doi.org/10.24432/C5F600",
+        "prior_exposure": "audited_unexposed",
+        "role": "confirmation",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "released",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning.",
+          "released_on": "2026-09-24",
+          "authorized_by": "Explicit parent authorization in the 2026-09-24T04:41:33.178+08:00 instruction",
+          "released_suite": "benchmarks/suites/final_reserved_confirmation_20260924.json",
+          "release_evidence": "benchmarks/suites/final_reserved_confirmation_release_20260924.json"
+        },
+        "exposure_audit": {
+          "status": "complete",
+          "audited_on": "2026-09-24",
+          "scope": "Recorded project model exposure only; prior approved acquisition/metadata inspection and public model pretraining are not claimed absent.",
+          "evidence": [
+            "benchmarks/suites/final_reserved_confirmation_release_20260924.json#/exposure_check",
+            "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json#/exposure_proof",
+            "benchmarks/suites/final_reserved_confirmation_audit_20260924.json#/evidence"
+          ]
+        }
+      },
+      "tabarena-46956": {
+        "family_id": "tabarena-46956",
+        "aliases": [],
+        "source_ids": [
+          "openml:46956",
+          "openml-task:363700",
+          "uci:266"
+        ],
+        "upstream_origin": "https://doi.org/10.24432/C5W902",
+        "prior_exposure": "audited_unexposed",
+        "role": "confirmation",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "released",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning.",
+          "released_on": "2026-09-24",
+          "authorized_by": "Explicit parent authorization in the 2026-09-24T04:41:33.178+08:00 instruction",
+          "released_suite": "benchmarks/suites/final_reserved_confirmation_20260924.json",
+          "release_evidence": "benchmarks/suites/final_reserved_confirmation_release_20260924.json"
+        },
+        "exposure_audit": {
+          "status": "complete",
+          "audited_on": "2026-09-24",
+          "scope": "Recorded project model exposure only; prior approved acquisition/metadata inspection and public model pretraining are not claimed absent.",
+          "evidence": [
+            "benchmarks/suites/final_reserved_confirmation_release_20260924.json#/exposure_check",
+            "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json#/exposure_proof",
+            "benchmarks/suites/final_reserved_confirmation_audit_20260924.json#/evidence"
+          ]
+        }
+      },
+      "tabarena-46962": {
+        "family_id": "tabarena-46962",
+        "aliases": [],
+        "source_ids": [
+          "openml:46962",
+          "openml-task:363706",
+          "uci:572"
+        ],
+        "upstream_origin": "https://doi.org/10.24432/C5004D",
+        "prior_exposure": "audited_unexposed",
+        "role": "confirmation",
+        "admission_review": "benchmarks/suites/development_expansion_audit_20260922.json",
+        "reservation": {
+          "id": "confirmation-candidate-reservation-20260923",
+          "status": "released",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-23",
+          "manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+          "audit": "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze and live exposure recheck. No automatic model access or development tuning.",
+          "released_on": "2026-09-24",
+          "authorized_by": "Explicit parent authorization in the 2026-09-24T04:41:33.178+08:00 instruction",
+          "released_suite": "benchmarks/suites/final_reserved_confirmation_20260924.json",
+          "release_evidence": "benchmarks/suites/final_reserved_confirmation_release_20260924.json"
+        },
+        "exposure_audit": {
+          "status": "complete",
+          "audited_on": "2026-09-24",
+          "scope": "Recorded project model exposure only; prior approved acquisition/metadata inspection and public model pretraining are not claimed absent.",
+          "evidence": [
+            "benchmarks/suites/final_reserved_confirmation_release_20260924.json#/exposure_check",
+            "benchmarks/suites/confirmation_candidate_reservation_audit_20260923.json#/exposure_proof",
+            "benchmarks/suites/final_reserved_confirmation_audit_20260924.json#/evidence"
+          ]
+        }
+      }
+    },
+    "nonselected_family_records_changed": false,
+    "registry_top_level_fields_changed": false
+  },
+  "protocol_preservation": {
+    "draft_manifest": "final_reserved_confirmation_draft_20260924.json",
+    "draft_sha256": "90da2bbc93900155aee2dffd09bbbeb057bed541fe366dcc500a57adc433fa6e",
+    "preregistration_unchanged": true,
+    "per_dataset_changed_fields": {
+      "heart-failure-clinical": [
+        "prior_exposure",
+        "protocol_state",
+        "role"
+      ],
+      "tabarena-46941": [
+        "prior_exposure",
+        "protocol_state",
+        "role"
+      ],
+      "student-performance": [
+        "prior_exposure",
+        "protocol_state",
+        "role"
+      ],
+      "tabarena-46913": [
+        "prior_exposure",
+        "protocol_state",
+        "role"
+      ],
+      "tabarena-46960": [
+        "prior_exposure",
+        "protocol_state",
+        "role"
+      ],
+      "tabarena-46907": [
+        "prior_exposure",
+        "protocol_state",
+        "role"
+      ],
+      "tabarena-46930": [
+        "prior_exposure",
+        "protocol_state",
+        "role"
+      ],
+      "tabarena-46963": [
+        "prior_exposure",
+        "protocol_state",
+        "role"
+      ],
+      "tabarena-46949": [
+        "prior_exposure",
+        "protocol_state",
+        "role"
+      ],
+      "tabarena-46950": [
+        "prior_exposure",
+        "protocol_state",
+        "role"
+      ],
+      "tabarena-46956": [
+        "prior_exposure",
+        "protocol_state",
+        "role"
+      ],
+      "tabarena-46962": [
+        "prior_exposure",
+        "protocol_state",
+        "role"
+      ]
+    },
+    "source_targets_features_rights_timing_unchanged": true,
+    "algorithm_or_runtime_code_changes": false,
+    "reserved_selection_order_unchanged": true,
+    "split_plan_unchanged": true,
+    "source_code_sha256": {
+      "featcopilot/__init__.py": "d7a20f170237e49f2212cf89f4500a2fffe8e435f070c22ac3520bce87e1a7d5",
+      "featcopilot/__main__.py": "c611ec939f2980817f48ade768a985c27df0de80c01cdab119d0b414d4dcf167",
+      "featcopilot/cli.py": "86e739577f4e9a58c0e5b0b8d06479fa6a102b72482c40021f2dd770ed871f0e",
+      "featcopilot/core/__init__.py": "afff319cc8b291957eda39510c6aebce34c67cb93352a079465779c39b9df22b",
+      "featcopilot/core/base.py": "a1d6df6996292527fd2ca940a81799d0c34ae2760c619b2d639d8be0b2b99fb5",
+      "featcopilot/core/feature.py": "13dd58a1d567979bc73ce0a5eaf190a1c188f1be54043f610d54193d468dab0f",
+      "featcopilot/core/fitted_rule.py": "281be32c8f7dcce8aee5788267d39276d7bdda52036a2a9134c8f206fce21d9d",
+      "featcopilot/core/registry.py": "c29e11714acf93b8d82c44c51d0030041c7bb27596a8aef01ecbdc2f86dd97c3",
+      "featcopilot/core/transform_rule.py": "776eee162114f706613ebe022dcdadbba2d4e9ba39099675500bf7b31c18d913",
+      "featcopilot/engines/__init__.py": "811e0a1ba61df8511828bfe7e5153beafc08e4e3bcd03d630d9df798c00b2381",
+      "featcopilot/engines/fitted_rules.py": "ba23e794b50703e068e4eb25bdc0213ce90a6cbdb34fc2b679ebcbbba47c2171",
+      "featcopilot/engines/point_in_time.py": "41fbebbc3578cc3d699dd16d87e5f80b31c96d9e4ff924c01ce41f10cd5c582b",
+      "featcopilot/engines/predictive.py": "043294b14ce1c7e888f1d40308b77848818e1fc25ac429546ae66e315a9a8b75",
+      "featcopilot/engines/relational.py": "3c392671967698ea79eafb20efa50be2074d7e4d42248d10e1982053932c811f",
+      "featcopilot/engines/tabular.py": "4a1caa090bd35c90c71f18f00976f47cfcdcd92cb0c7f43b36eec106e0ed6b0e",
+      "featcopilot/engines/text.py": "1c31bdfb2d953bc4ad8a0e8c3ec11d4e78942267e4439619f1adc7cbc59e59e5",
+      "featcopilot/engines/timeseries.py": "0b2e92f03606ce631ea58bde943673c398e8def9b3672c18babae189e456ee65",
+      "featcopilot/llm/__init__.py": "bae86974c22ebec8268f79ca8749c50dc724b0d12e132774c1371f1280a33e80",
+      "featcopilot/llm/_execution.py": "a0e4691d717fcef5c03bcc184a7d4db6c6a5af2b5153a603b519667b64e53d18",
+      "featcopilot/llm/_types.py": "9e5719defc338ebb582ae3126dbb9e6e3d276610b7a2e3e15b3c77483ac18486",
+      "featcopilot/llm/code_generator.py": "ba99a61a4c8f144ce21f984dc0b2010e3a7ad6646e764b2a7fc35b7ae9829675",
+      "featcopilot/llm/copilot_client.py": "77d60a0b87e3ae679188155640fa01644942b768108077c73b925bbf1b300f2b",
+      "featcopilot/llm/explainer.py": "6880369af84b1cd7893681e5a91816f3bc516efdb5698d16350c0cbec97c31c6",
+      "featcopilot/llm/litellm_client.py": "424cbcb9be402ee4cff839d7f53145ea7c93bbabc7f606284162db64ee631a69",
+      "featcopilot/llm/openai_client.py": "510fd8fd7049ffb0c38baa3ad05458034b7e50eedfa4c47fd135c6af09fd3676",
+      "featcopilot/llm/plan_generator.py": "0d85a2176c675339bb45fca12f85c034fd93cfcdf7356ddd0b21edd451676465",
+      "featcopilot/llm/semantic_engine.py": "79db9ec29f08f42dc643d990db0323ad80979b2efa4f592b7ac19feaa6657b6c",
+      "featcopilot/llm/transform_rule_generator.py": "ece5130c613d30e7394271df2dc980ffad4bdaf896c59a14617e825196d3757f",
+      "featcopilot/selection/__init__.py": "269ab639757058cf8af0cee964144f241743ee71436169b7e70f8422e4fd1d79",
+      "featcopilot/selection/importance.py": "cbda4b90067fadf18bbef88bbc0a7ab4e1db9af206dbb4d271a9f95602df4181",
+      "featcopilot/selection/redundancy.py": "14a1c25e1e4a1fd5b67647289a367e2553c694825d238bef51d159b5f3d7102e",
+      "featcopilot/selection/statistical.py": "efef08c1dea38e9f8b3fd8d92e43b5b9714a4e5a1846fb9e9ea687103f0a5e96",
+      "featcopilot/selection/unified.py": "a36cbad3b3a7c837c29d72005808bae8a2879dd011990d37fd029ee5593ca520",
+      "featcopilot/stores/__init__.py": "96017014a618189b3bdf6eae7ef11afcf37d2420b14f291a91db41e51079a751",
+      "featcopilot/stores/base.py": "037668ab4c8dc92a053e2fb1b5e43faf451331f06fc701cfa64595cc5b1f45f8",
+      "featcopilot/stores/feast_store.py": "10e80625b4e834d2028e59a62493d45b2f600fdacea944eb53a92aa1d79374c6",
+      "featcopilot/stores/rule_store.py": "455c856e9e12dab1e803d435a307ae0de4415eac5a289ee855c5be0fca01b9f9",
+      "featcopilot/transformers/__init__.py": "269bcf042502acb8cfacb1b670d70379e86bba67131229e13ba1a80b5bc637a5",
+      "featcopilot/transformers/sklearn_compat.py": "295b5b7831dd2295a4dd63e6a3fcd4203c27d833645ed490efefa8f7abcd978a",
+      "featcopilot/utils/__init__.py": "26b35e639d160f644b105f5b4b115b71a80fa3f51802248d816bf2d8ccd1b8fc",
+      "featcopilot/utils/cache.py": "17f4a2fc4b0e732cad1be10f913a98c47a0d9e609399be10066f5699e158fd9f",
+      "featcopilot/utils/logger.py": "60f51f751fd21794adad07285be920e92223f5885bd8ca11349946ec770d7415",
+      "featcopilot/utils/models.py": "b72ce17e9556aa568cdf705a3b763545bca97dd29809af90e310a5a3e6d89c74",
+      "featcopilot/utils/parallel.py": "5246d5e602ac743b2dbc3f30cb194e01d2361b6a14e456109d8f141cb6b7bbae",
+      "featcopilot/utils/splitting.py": "43681cc65f66fb2a88db7df3b4f3e6f971e4c44fb8ca0bbc7a28a3e24c060da2",
+      "featcopilot/utils/task.py": "b030483443c02bb2cc46af4a665eb7c95819521166f12898d0b72a2579f7cee8",
+      "featcopilot/utils/validation.py": "c2430609c4fd5e79f3e1aab5264bf199873dce266d91694fdfef2b4c8b084388",
+      "benchmarks/__init__.py": "1ba21c47ac8237196be2ff71c8776fcd26f817a43f034f65af3b09d91e58d4be",
+      "benchmarks/automl/__init__.py": "cbf999ebf261a1387cae444d49eef8f79cfb547fa05b7f920ba158dae40997d7",
+      "benchmarks/automl/run_automl_benchmark.py": "3772de2657cf5df5e8bf77d3a76177117b722209f2e36bef88ad438e3bde77c2",
+      "benchmarks/catalog.py": "04858a8e592b78d9dc6ebab8d251bcc36b05f72f8dd630134d3bec724dd17ca0",
+      "benchmarks/compare_tools/__init__.py": "922af2170bdae14582492ae2e40877e109d8b9e14fb400e78b31e0cd4913370c",
+      "benchmarks/compare_tools/run_fe_tools_comparison.py": "290e1b02f2f29bdcc11d8056e86b5cfecd18bb544a38d7044ba0601682289e84",
+      "benchmarks/datasets.py": "c9558c81f8243459099b50ad11234a7d05d28c8f964ddacdb446e4e42c7171dc",
+      "benchmarks/execution.py": "07542e3e372ae60a68d044d90128aa2507464d27781e74af6ec827fcc9691394",
+      "benchmarks/feature_cache.py": "5b20d04de56cf620953a909b3623e4df494a996bbb1bbda306ba008fced10269",
+      "benchmarks/llm_evaluation.py": "54ff2b1335f41b14533be833ebda697e2796a72333f2dab11a676757580c1e20",
+      "benchmarks/reference_methods.py": "577e817b8f83cd31f9ceb81183ac8e8e28cd773353084643055f9c37f26623ea",
+      "benchmarks/relational_evaluation.py": "3734c206faea8f3e94552dc015959740d9161722f92ee6a69ec458e40b873fcf",
+      "benchmarks/run_state.py": "71d7d2c7f0be47b6d285c8263e28231e390c0e306d4dd469e13c969f159e6de6",
+      "benchmarks/simple_models/__init__.py": "93d1432d55cb479a52aeaf56371a67beb0e51c6a79710166cd0dfdc2207959bd",
+      "benchmarks/simple_models/run_simple_models_benchmark.py": "40c79959151ee2bf773f8c73a6575e50d95fcf5dffe25e5cacea04d38507df76",
+      "benchmarks/splits.py": "45e1854861bbf9eceb1bf162f5e92287028ada2399881c5eac735902bb3cc642",
+      "benchmarks/tabular.py": "314638abf0d55d679a48fb927c322fd31e262b77a3d3ddee34d0b3ff8c4c9b91",
+      "benchmarks/tabular_openfe.py": "1077d5690bdbf4238775733f145d5f313b6b7affede99f11c87f559aa12d6b66",
+      "benchmarks/use_cases/run_auto_feature_engineering_benchmark.py": "cb30c170d74761533553b41d25966baaf147abcfd8db557c61f7c914b1221885"
+    },
+    "method_semantics": "Documentation only; no new override machinery or algorithm code was introduced."
+  },
+  "expected_workload": {
+    "families": 12,
+    "binary": 6,
+    "multiclass": 3,
+    "regression": 3,
+    "official_tasks": 10,
+    "iid_tasks": 2,
+    "selected_splits": 16,
+    "cells": 128,
+    "primary_observational_cells": 120,
+    "secondary_simulation_cells": 8,
+    "class_support": {
+      "min_total": 30,
+      "min_outer_train": 20,
+      "min_outer_test": 10
+    },
+    "case_timeout_seconds": 900,
+    "memory_limit_mb": 4096,
+    "threads": 8,
+    "total_active_seconds_ceiling": 136800
+  },
+  "preserved_prior_manifest_sha256": {
+    "confirmation_candidate_reservation_20260923.json": "c7ad92d890362d82bdb6f8e75d1024c9500f4c956aae56fb861015c559c73547",
+    "confirmation_candidate_reservation_audit_20260923.json": "43f9a662bfa51c8eec94db4df3b305d8e316b717cf8b9d80878acea6b231827a",
+    "development_expansion_20260922.json": "49a8d02f411d456abe4747026ec26762648fceefc03a722a1fc47ac3cadb4969",
+    "development_expansion_audit_20260922.json": "6782e17e825319394f4885137bc6e6832155317a12f4223b27ca8df722c150b6",
+    "final_reserved_confirmation_audit_20260924.json": "39e98397a3901063057e8bffd00b1e7dbaa51b32393bc8dc531424f2433ed93a",
+    "final_reserved_confirmation_draft_20260924.json": "90da2bbc93900155aee2dffd09bbbeb057bed541fe366dcc500a57adc433fa6e",
+    "seoul_development.json": "eb949eb6de7a77d39e5dbf4d2026cad6163d47f4fd837e686310bd2f2b1b3f48",
+    "seoul_inventory.json": "8f861070d84577f8a77d6135c61980d6bd24be4eb7f3099dda6256bc22ec5dd5",
+    "tabarena_confirmation_candidates_20260920.json": "db4bafa21d2697c4b19955e031440b55fdd33bd068fd08866cee70e5943d9b00",
+    "tabarena_confirmation_completion_repair_20260921.json": "85035ccd8290a105d87b05e2aebc8cd0193a9c81776a9e367f0d4cba9fe0253b",
+    "tabarena_v01_audit_20260920.json": "6a4f6f2c9dbaf222dd3b991fbef291e88d2a30833da4f4e86b1d7cfbe65063c9",
+    "tabarena_v01_inventory.json": "92dc0e6e58e09422104735cbe049dd42eca559acca3808a6abee55e9cf870243",
+    "uci_development.json": "72b5257603de43b1653c00449f0dfd3279a7dea3fa53c5f036d70e5e3443ee7d"
+  },
+  "no_payload_calls": true,
+  "no_model_calls": true,
+  "no_llm_calls": true,
+  "no_ledger_writes": true,
+  "datasets": [
+    {
+      "name": "uci-heart-failure-clinical",
+      "family_id": "heart-failure-clinical",
+      "provider": "uci",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "target": "death_event",
+      "target_transform": "identity",
+      "categorical": [
+        "anaemia",
+        "diabetes",
+        "high_blood_pressure",
+        "sex",
+        "smoking"
+      ],
+      "drop_columns": [
+        "time"
+      ],
+      "split_policy": "iid",
+      "prediction_time": "Recorded death during the supplied follow-up from clinical measurements. Follow-up time is excluded as outcome-associated information; no uniform survival horizon or clinical deployment claim.",
+      "target_timing_review": {
+        "reviewed_on": "2026-09-24",
+        "task": "Retrospective classification of the supplied patient-record outcome, with follow-up duration excluded; NOT an all-fields outcome classifier or an established baseline prognostic model.",
+        "endpoint": "death_event=1 means death occurred during that patient's recorded follow-up; 0 means no recorded death during that observation period, not indefinite survival.",
+        "excluded_followup_column": "time",
+        "excluded_followup_units": "days",
+        "predictor_timing_limit": "The primary dataset describes records collected during follow-up. Removing time does not prove every remaining clinical predictor was available at a common baseline; no such availability is claimed.",
+        "survival_analysis_limit": "No fixed prediction horizon, common follow-up window, censoring adjustment or time-to-event model is defined by this binary classification recipe.",
+        "schema_changed": false,
+        "evidence": "https://archive.ics.uci.edu/api/dataset?id=519",
+        "metadata_sha256": "abb8ed505b926e5033e1adc6bbe5ab6658041ee065d8c181bf1dc16558264338"
+      },
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/519/heart+failure+clinical+records",
+          "https://archive.ics.uci.edu/api/dataset?id=519"
+        ],
+        "primary_page_sha256": "caa73aecc3ba74ec93c547aa360c69d5351d2561b1e31165342a06081ac43f39",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 519,
+        "data_url": "https://archive.ics.uci.edu/static/public/519/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=519",
+        "metadata_sha256": "abb8ed505b926e5033e1adc6bbe5ab6658041ee065d8c181bf1dc16558264338",
+        "schema_reviewed": true,
+        "columns": [
+          "age",
+          "anaemia",
+          "creatinine_phosphokinase",
+          "diabetes",
+          "ejection_fraction",
+          "high_blood_pressure",
+          "platelets",
+          "serum_creatinine",
+          "serum_sodium",
+          "sex",
+          "smoking",
+          "time",
+          "death_event"
+        ],
+        "target_columns": [
+          "death_event"
+        ],
+        "reported_rows": 299,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "54349729933cffdde5c92068572a89761bb53df50cc28250b0915fd18066976c",
+        "expected_rows": 299
+      },
+      "evaluation_track": "iid_development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 1,
+      "claim_track": "primary_observational_tabular_candidate",
+      "reservation_metadata": {
+        "rows": 299,
+        "predictors": 11,
+        "class_labels": [
+          0,
+          1
+        ],
+        "observed_class_counts": {
+          "0": 203,
+          "1": 96
+        },
+        "payload_sha256": "54349729933cffdde5c92068572a89761bb53df50cc28250b0915fd18066976c",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "release_evidence_only_not_executable"
+    },
+    {
+      "name": "tabarena-46941",
+      "display_name": "maternal_health_risk",
+      "family_id": "tabarena-46941",
+      "provider": "openml_task",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "target": "RiskLevel",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "The recorded low/mid/high maternal-risk annotation from contemporaneous vital measurements. An annotation/classification task, not a verified future clinical outcome or treatment recommendation.",
+      "variant": "pinned_official_representation",
+      "evaluation_notes": " by the TabArena team (for code see the [page of the study](https://tabarena.ai/data-tabular-ml-iid-study)):\n- Anomaly: the data has a lot of duplicates (55%).",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/863/maternal+health+risk",
+          "https://archive.ics.uci.edu/api/dataset?id=863"
+        ],
+        "primary_page_sha256": "9f76f92ef2c3ba763bf9927f63388c17cdb23658fb2904475b19ed8d9d29e2e8",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "dataset_id": 46941,
+        "task_id": 363685,
+        "dataset_version": 3,
+        "uci_id": 863,
+        "schema_reviewed": true,
+        "expected_rows": 1014,
+        "md5_checksum": "57d6f4b7e1f90a5012e264bd8e8ba970",
+        "columns": [
+          "Age",
+          "SystolicBP",
+          "DiastolicBP",
+          "BS",
+          "BodyTemp",
+          "HeartRate",
+          "RiskLevel"
+        ],
+        "target_columns": [
+          "RiskLevel"
+        ],
+        "official_split_dimensions": {
+          "repeats": 10,
+          "folds": 3,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=863",
+        "primary_metadata_sha256": "d808e8d35745c61b914853212482729ba81c41ea6be37f73570f946cfe92d2a3",
+        "openml_description_sha256": "c0d11a1f69566d87bd806e6bcdfdd9d414cd27205535a3fe9236a4f025ea016d",
+        "openml_features_sha256": "b63a0a250c73beec10ce67d35468d8a1b8abce08004ee4bf1e2fc391f1143bd5",
+        "openml_qualities_sha256": "823b50675ff9355a59d75bec550c3fc103d1de8d3238d200c8823613b816c7a2",
+        "openml_task_sha256": "a0f5f0f83bca48f510b6b5113a72ea662ea4ddcd7986fb4a2a19a1a506aadd79",
+        "categorical_schema_rule": "All non-excluded nominal AND string predictors from the official feature declarations.",
+        "sha256": "d1152b35892f1d5e4f940ad8043059de00c2abe2e2e2865df394d95e793af2a9",
+        "splits_sha256": "40cb502bf5c780c9a851c304dd75cdeac689aa1532a3820f44f44de442c3ad4c"
+      },
+      "evaluation_track": "official_iid_development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 2,
+      "claim_track": "primary_observational_tabular_candidate",
+      "reservation_metadata": {
+        "rows": 1014,
+        "predictors": 6,
+        "class_labels": [
+          "high risk",
+          "low risk",
+          "mid risk"
+        ],
+        "observed_class_counts": {
+          "high risk": 272,
+          "low risk": 406,
+          "mid risk": 336
+        },
+        "payload_sha256": "d1152b35892f1d5e4f940ad8043059de00c2abe2e2e2865df394d95e793af2a9",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "release_evidence_only_not_executable"
+    },
+    {
+      "name": "uci-student-performance",
+      "family_id": "student-performance",
+      "provider": "uci",
+      "task": "regression",
+      "role": "inventory",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "target": "G3",
+      "target_transform": "identity",
+      "categorical": [
+        "school",
+        "sex",
+        "address",
+        "famsize",
+        "Pstatus",
+        "Mjob",
+        "Fjob",
+        "reason",
+        "guardian",
+        "schoolsup",
+        "famsup",
+        "paid",
+        "activities",
+        "nursery",
+        "higher",
+        "internet",
+        "romantic"
+      ],
+      "drop_columns": [
+        "G1",
+        "G2"
+      ],
+      "split_policy": "iid",
+      "prediction_time": "Recorded final Portuguese-course grade from the school/questionnaire record; G1 and G2 are excluded as other targets. Retrospective association, not an asserted enrollment-time early-warning task.",
+      "target_timing_review": {
+        "reviewed_on": "2026-09-24",
+        "task": "Retrospective regression of the final Portuguese-course grade from the supplied school/questionnaire record, WITHOUT prior-period grade predictors.",
+        "endpoint": "G3 is the final-year grade issued at the third period, on the original 0-20 scale.",
+        "prior_grade_definitions": {
+          "G1": "first-period grade",
+          "G2": "second-period grade"
+        },
+        "prior_grade_predictors_included": false,
+        "excluded_prior_grade_columns": [
+          "G1",
+          "G2"
+        ],
+        "predictor_timing_limit": "Remaining predictors include recorded school absences and questionnaire/school attributes whose availability at enrollment or an earlier term is not established. No enrollment-time or pre-term early-warning claim is made.",
+        "schema_changed": false,
+        "evidence": "https://archive.ics.uci.edu/api/dataset?id=320",
+        "metadata_sha256": "cc52f5ef08ce63f13035d9290ba3c195b89e5bba33bece83288b0d97d421aaca"
+      },
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/320/student+performance",
+          "https://archive.ics.uci.edu/api/dataset?id=320"
+        ],
+        "primary_page_sha256": "c5ffc9d89828e9f667e7fbe695e122d4d3a93f0324a387f6f271049b819a8191",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 320,
+        "data_url": "https://archive.ics.uci.edu/static/public/320/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=320",
+        "metadata_sha256": "cc52f5ef08ce63f13035d9290ba3c195b89e5bba33bece83288b0d97d421aaca",
+        "schema_reviewed": true,
+        "columns": [
+          "school",
+          "sex",
+          "age",
+          "address",
+          "famsize",
+          "Pstatus",
+          "Medu",
+          "Fedu",
+          "Mjob",
+          "Fjob",
+          "reason",
+          "guardian",
+          "traveltime",
+          "studytime",
+          "failures",
+          "schoolsup",
+          "famsup",
+          "paid",
+          "activities",
+          "nursery",
+          "higher",
+          "internet",
+          "romantic",
+          "famrel",
+          "freetime",
+          "goout",
+          "Dalc",
+          "Walc",
+          "health",
+          "absences",
+          "G1",
+          "G2",
+          "G3"
+        ],
+        "target_columns": [
+          "G1",
+          "G2",
+          "G3"
+        ],
+        "reported_rows": 649,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "5be7b02f13f5800fddd66e2c8d834cd00ece14c552fb404def2397b31b63236b",
+        "expected_rows": 649
+      },
+      "evaluation_track": "iid_development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 3,
+      "claim_track": "primary_observational_tabular_candidate",
+      "reservation_metadata": {
+        "rows": 649,
+        "predictors": 30,
+        "class_labels": null,
+        "observed_class_counts": null,
+        "payload_sha256": "5be7b02f13f5800fddd66e2c8d834cd00ece14c552fb404def2397b31b63236b",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "release_evidence_only_not_executable"
+    },
+    {
+      "name": "tabarena-46913",
+      "display_name": "blood-transfusion-service-center",
+      "family_id": "tabarena-46913",
+      "provider": "openml_task",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "target": "DonatedBloodInMarch2007",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Static classification of the supplied March-2007 donation annotation from the published RFM snapshot. The source does not establish a prospective cutoff; this is not future-donation forecasting.",
+      "variant": "pinned_official_representation",
+      "evaluation_notes": " by the TabArena team (for code see the [page of the study](https://tabarena.ai/data-tabular-ml-iid-study)):\n- We made feature names more descriptive.\n- Anomaly: the data has a lot of duplicates (29%) and several duplicates with \n  different target values.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/176/blood+transfusion+service+center",
+          "https://archive.ics.uci.edu/api/dataset?id=176"
+        ],
+        "primary_page_sha256": "4620fd103accca27d4f6a5a85c6b18b77bd552f0bf737f0f4e3814e3c7bbb8b0",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "dataset_id": 46913,
+        "task_id": 363621,
+        "dataset_version": 2,
+        "uci_id": 176,
+        "schema_reviewed": true,
+        "expected_rows": 748,
+        "md5_checksum": "22bfec0eb6cceb5715439912fdcb2275",
+        "columns": [
+          "MonthsSinceLastDonation",
+          "NumberOfDonations",
+          "TotalBloodDonated",
+          "MonthsSinceFirstDonation",
+          "DonatedBloodInMarch2007"
+        ],
+        "target_columns": [
+          "DonatedBloodInMarch2007"
+        ],
+        "official_split_dimensions": {
+          "repeats": 10,
+          "folds": 3,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=176",
+        "primary_metadata_sha256": "f84e43cc4030af42274e24a1f7b3a26dd05dbd8dd0a848f7d78fe4861a98f7e2",
+        "openml_description_sha256": "4b922b3596aac64603c20a8c579b2139e3258c5fcec819037c9bda55f4652113",
+        "openml_features_sha256": "68b1424a0a46c91e2092c47073346ff0c1dc9d35d6e001fb58b3f59f3ed7d179",
+        "openml_qualities_sha256": "8d86b2530a9467ef5144c521bf9efad4cfc9135398376bb385635c8d07509f0b",
+        "openml_task_sha256": "c409777eae9e8bad2cdf1dc115421ba605e9a6bd1d5575c2ad104a91bc7dad61",
+        "categorical_schema_rule": "All non-excluded nominal AND string predictors from the official feature declarations.",
+        "sha256": "80945cb11b502743c86236bb60dce8ca5b6ec53732a2d3be59838eb3d3561488",
+        "splits_sha256": "ecef9dc7052aadb1152f5955d2750754f81bebd7b34085769d4efd71232ba876"
+      },
+      "evaluation_track": "official_iid_development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 4,
+      "claim_track": "primary_observational_tabular_candidate",
+      "reservation_metadata": {
+        "rows": 748,
+        "predictors": 4,
+        "class_labels": [
+          "No",
+          "Yes"
+        ],
+        "observed_class_counts": {
+          "No": 570,
+          "Yes": 178
+        },
+        "payload_sha256": "80945cb11b502743c86236bb60dce8ca5b6ec53732a2d3be59838eb3d3561488",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "release_evidence_only_not_executable"
+    },
+    {
+      "name": "tabarena-46960",
+      "display_name": "students_dropout_and_academic_success",
+      "family_id": "tabarena-46960",
+      "provider": "openml_task",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "target": "AcademicOutcome",
+      "target_transform": "identity",
+      "categorical": [
+        "Marital_status",
+        "Application_mode",
+        "Course",
+        "Daytimeevening_attendance",
+        "Previous_qualification",
+        "Nationality",
+        "Mothers_qualification",
+        "Fathers_qualification",
+        "Mothers_occupation",
+        "Fathers_occupation",
+        "Displaced",
+        "Educational_special_needs",
+        "Gender",
+        "International"
+      ],
+      "drop_columns": [
+        "Curricular_units_1st_sem_credited",
+        "Curricular_units_1st_sem_enrolled",
+        "Curricular_units_1st_sem_evaluations",
+        "Curricular_units_1st_sem_approved",
+        "Curricular_units_1st_sem_grade",
+        "Curricular_units_1st_sem_without_evaluations",
+        "Curricular_units_2nd_sem_credited",
+        "Curricular_units_2nd_sem_enrolled",
+        "Curricular_units_2nd_sem_evaluations",
+        "Curricular_units_2nd_sem_approved",
+        "Curricular_units_2nd_sem_grade",
+        "Curricular_units_2nd_sem_without_evaluations",
+        "Debtor",
+        "Tuition_fees_up_to_date",
+        "Scholarship_holder",
+        "Unemployment_rate",
+        "Inflation_rate",
+        "GDP"
+      ],
+      "split_policy": "official",
+      "prediction_time": "Recorded Dropout/Enrolled/Graduate status from a conservative enrollment-record variant. Semester outcomes and timing-ambiguous finance/scholarship/macro fields are excluded. Enrolled remains its original censored-status annotation, not an invented eventual outcome.",
+      "variant": "conservative_enrollment_record",
+      "evaluation_notes": " by the TabArena team (for code see the [page of the study](https://tabarena.ai/data-tabular-ml-iid-study)):\n- We renamed the target variable and fixed some typos in the feature names.\n- We reversed the ordinal encoding of all categorical features.\n- We removed whitespaces and special characters from the feature names.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/697/predict+students+dropout+and+academic+success",
+          "https://archive.ics.uci.edu/api/dataset?id=697"
+        ],
+        "primary_page_sha256": "dbaf9cf267f1200f153f430e71b5da1d2d50ea71be0ef56b70cfc345c6c9dcbf",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "dataset_id": 46960,
+        "task_id": 363704,
+        "dataset_version": 1,
+        "uci_id": 697,
+        "schema_reviewed": true,
+        "expected_rows": 4424,
+        "md5_checksum": "b4e170cbc7bb35aea529f7ece1d4d3d9",
+        "columns": [
+          "Marital_status",
+          "Application_mode",
+          "Application_order",
+          "Course",
+          "Daytimeevening_attendance",
+          "Previous_qualification",
+          "Previous_qualification_grade",
+          "Nationality",
+          "Mothers_qualification",
+          "Fathers_qualification",
+          "Mothers_occupation",
+          "Fathers_occupation",
+          "Admission_grade",
+          "Displaced",
+          "Educational_special_needs",
+          "Debtor",
+          "Tuition_fees_up_to_date",
+          "Gender",
+          "Scholarship_holder",
+          "Age_at_enrollment",
+          "International",
+          "Curricular_units_1st_sem_credited",
+          "Curricular_units_1st_sem_enrolled",
+          "Curricular_units_1st_sem_evaluations",
+          "Curricular_units_1st_sem_approved",
+          "Curricular_units_1st_sem_grade",
+          "Curricular_units_1st_sem_without_evaluations",
+          "Curricular_units_2nd_sem_credited",
+          "Curricular_units_2nd_sem_enrolled",
+          "Curricular_units_2nd_sem_evaluations",
+          "Curricular_units_2nd_sem_approved",
+          "Curricular_units_2nd_sem_grade",
+          "Curricular_units_2nd_sem_without_evaluations",
+          "Unemployment_rate",
+          "Inflation_rate",
+          "GDP",
+          "AcademicOutcome"
+        ],
+        "target_columns": [
+          "AcademicOutcome"
+        ],
+        "official_split_dimensions": {
+          "repeats": 10,
+          "folds": 3,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=697",
+        "primary_metadata_sha256": "c48a8f6303ccf2a5ade930fe6e85c53df209c2933f39910344c56a53a8641d5e",
+        "openml_description_sha256": "24e23b35b9e847d34e51c5ce3577d43452769229df838bda28180fdeec2f8b78",
+        "openml_features_sha256": "1e357584712d9f5186cc09759a6beffff7bc2d86db43c22fae48f8ae4b9138e9",
+        "openml_qualities_sha256": "3e12954dfbbcb1a9b7f06ff7d1b7c42492730a2478241d72a8f3cfa531fefd8c",
+        "openml_task_sha256": "712af4ba7fbba4060e7a10e39628119076f879ae915cdc344a0c5a95e0151c76",
+        "categorical_schema_rule": "All non-excluded nominal AND string predictors from the official feature declarations.",
+        "sha256": "70bfae55226591c3f2382326db09469eb9a7cfe9d20e9dd4f1711a66dae1a2d6",
+        "splits_sha256": "a5008b6d840b309c82cb7a8c5f246bd04567afad492f15594868055132dd44fe"
+      },
+      "evaluation_track": "official_iid_development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 5,
+      "claim_track": "primary_observational_tabular_candidate",
+      "reservation_metadata": {
+        "rows": 4424,
+        "predictors": 18,
+        "class_labels": [
+          "Dropout",
+          "Enrolled",
+          "Graduate"
+        ],
+        "observed_class_counts": {
+          "Dropout": 1421,
+          "Enrolled": 794,
+          "Graduate": 2209
+        },
+        "payload_sha256": "70bfae55226591c3f2382326db09469eb9a7cfe9d20e9dd4f1711a66dae1a2d6",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "release_evidence_only_not_executable"
+    },
+    {
+      "name": "tabarena-46907",
+      "display_name": "Another-Dataset-on-used-Fiat-500",
+      "family_id": "tabarena-46907",
+      "provider": "openml_task",
+      "task": "regression",
+      "role": "inventory",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "target": "price",
+      "target_transform": "identity",
+      "categorical": [
+        "model"
+      ],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Publisher's recorded used-Fiat-500 listing-price field from the listed vehicle specifications/age/mileage/location. Not verified closed-transaction prices, future-market forecasting, or unseen-vehicle generalization.",
+      "variant": "pinned_official_representation",
+      "evaluation_notes": " by the TabArena team (for code see the [page of the study](https://tabarena.ai/data-tabular-ml-iid-study)):\n- N/A",
+      "rights": {
+        "status": "approved",
+        "license": "CC0-1.0",
+        "access": "public",
+        "approval_basis": "The original dataset collector explicitly publishes this collected listing table under CC0 on Kaggle and invites regression research. This is a first-party publisher grant, not the TabArena badge alone.",
+        "evidence": [
+          "https://www.kaggle.com/datasets/paolocons/another-fiat-500-dataset-1538-rows",
+          "https://www.kaggle.com/api/v1/datasets/view/paolocons/another-fiat-500-dataset-1538-rows",
+          "https://creativecommons.org/publicdomain/zero/1.0/legalcode"
+        ],
+        "primary_metadata_sha256": "a1ec9d92040e61050fa6c75c6c74b9864998dbc1e2d893c258ca3097665c99ab",
+        "reviewed_on": "2026-09-22",
+        "scope": "Existing public table, local benchmarking only; no new listing-site scraping, seller reidentification, hosted row sharing or row redistribution is approved by this admission.",
+        "provenance_limit": "The collector describes querying a used-car website without naming it. The recorded grant is the collector's CC0 declaration for this table; no broader permission for the unnamed website is asserted.",
+        "obligations": "Retain collector and curated-task attribution for scientific provenance; report listing-price and origin limitations."
+      },
+      "source": {
+        "dataset_id": 46907,
+        "task_id": 363615,
+        "dataset_version": 1,
+        "schema_reviewed": true,
+        "expected_rows": 1538,
+        "md5_checksum": "b183f5dc9f223aa90af338beed7d2e08",
+        "columns": [
+          "model",
+          "engine_power",
+          "age_in_days",
+          "km",
+          "previous_owners",
+          "lat",
+          "lon",
+          "price"
+        ],
+        "target_columns": [
+          "price"
+        ],
+        "official_split_dimensions": {
+          "repeats": 10,
+          "folds": 3,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://www.kaggle.com/api/v1/datasets/view/paolocons/another-fiat-500-dataset-1538-rows",
+        "primary_metadata_sha256": "a1ec9d92040e61050fa6c75c6c74b9864998dbc1e2d893c258ca3097665c99ab",
+        "openml_description_sha256": "79b880e49658adcac52debae13d5214fbeae37de1cab4e6cfe871b11daa9eb9f",
+        "openml_features_sha256": "a474407d62a6a5510de34ca8ecf7bf154a26d1a0745c6d981649e23f5c74ce22",
+        "openml_qualities_sha256": "853c00ccbe9b697a6ae310bc3e28f969576ca30e2f561a465cd85c929425d08c",
+        "openml_task_sha256": "284552dc65f25719eb39b7f9fb66597711751ac40d37acd5477f9ab8b1103a17",
+        "categorical_schema_rule": "All non-excluded nominal AND string predictors from the official feature declarations.",
+        "sha256": "0302b2efcdb5cb359c2cdec34c4630264f26857599fbbe19082fe349b863783b",
+        "splits_sha256": "b32663476ec1c81af3acd74ca0a7da597d660ad28cbabb14a12dbaeeeed86539"
+      },
+      "evaluation_track": "official_iid_development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 6,
+      "claim_track": "primary_observational_tabular_candidate",
+      "reservation_metadata": {
+        "rows": 1538,
+        "predictors": 7,
+        "class_labels": null,
+        "observed_class_counts": null,
+        "payload_sha256": "0302b2efcdb5cb359c2cdec34c4630264f26857599fbbe19082fe349b863783b",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "release_evidence_only_not_executable"
+    },
+    {
+      "name": "tabarena-46930",
+      "display_name": "hazelnut-spread-contaminant-detection",
+      "family_id": "tabarena-46930",
+      "provider": "openml_task",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "target": "Contaminated",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Recorded contamination/no-contamination laboratory annotation from 30 measured microwave scattering parameters at 10 GHz. One controlled physical study, not five independent frequency datasets; no unseen-jar/batch or production-line prevalence claim.",
+      "variant": "pinned_official_representation",
+      "evaluation_notes": " by the TabArena team (for code see the [page of the study](https://tabarena.ai/data-tabular-ml-iid-study)):\n- We select a features from a single frequency (10 GHz) as the authors also only considered this frequency for the final experiments.\n- Anomaly: we use the publicly available dataset state, which is without preprocessing. Moreover, we were not able to inverse the original ordinal encoding of the label.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-SA (version unspecified by original donor)",
+        "access": "public",
+        "approval_basis": "Original study dataset 45538 is published with creator Luca Urbinati, the cited paper's author, and an express CC BY-SA grant. Approval is limited to local non-conveying research processing, a permission common to the named CC BY-SA licenses; no particular unrecorded license version or redistribution right is invented.",
+        "evidence": [
+          "https://www.openml.org/d/45538",
+          "https://www.openml.org/api/v1/json/data/45538",
+          "https://doi.org/10.1109/ISCAS45731.2020.9181293"
+        ],
+        "primary_metadata_sha256": "e6d147162b0e889ca7c8a5d43c517fe48db7dfe599d3e9f242aebeadc68e06d0",
+        "reviewed_on": "2026-09-22",
+        "scope": "Private local processing and aggregate scientific reporting only. Exact CC BY-SA version and redistribution obligations require clarification before conveying data/row derivatives.",
+        "obligations": "Retain Luca Urbinati and coauthors' attribution, original CC BY-SA declaration and citation. No hosted row sharing, new-frequency origin inflation or row-level redistribution is approved.",
+        "redistribution_approved": false
+      },
+      "source": {
+        "dataset_id": 46930,
+        "task_id": 363674,
+        "dataset_version": 1,
+        "schema_reviewed": true,
+        "expected_rows": 2400,
+        "md5_checksum": "ee22c35dc7f819618eab65c6360157ed",
+        "columns": [
+          "s12",
+          "s13",
+          "s14",
+          "s15",
+          "s16",
+          "s21",
+          "s23",
+          "s24",
+          "s25",
+          "s26",
+          "s31",
+          "s32",
+          "s34",
+          "s35",
+          "s36",
+          "s41",
+          "s42",
+          "s43",
+          "s45",
+          "s46",
+          "s51",
+          "s52",
+          "s53",
+          "s54",
+          "s56",
+          "s61",
+          "s62",
+          "s63",
+          "s64",
+          "s65",
+          "Contaminated"
+        ],
+        "target_columns": [
+          "Contaminated"
+        ],
+        "official_split_dimensions": {
+          "repeats": 10,
+          "folds": 3,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://www.openml.org/api/v1/json/data/45538",
+        "primary_metadata_sha256": "e6d147162b0e889ca7c8a5d43c517fe48db7dfe599d3e9f242aebeadc68e06d0",
+        "openml_description_sha256": "2f01d456beb7e08a34257c096411694618107885f2adafcbe7d9296746c86a89",
+        "openml_features_sha256": "edd5d447dadb565af3877f62ca6f13b2bdd3cf2128d08266369f92aca0e6d12c",
+        "openml_qualities_sha256": "20f76b9fcf7730e8f3cfd3af7913ddd3e0642deabdbcb0fd08645e17d09db734",
+        "openml_task_sha256": "d6a9c01e5bdec1fd35ca31c5f10b69545668129764c7b46c15b9e712cb223e57",
+        "categorical_schema_rule": "All non-excluded nominal AND string predictors from the official feature declarations.",
+        "sha256": "79b224319a1ca21284aae19a97c42adc1eccabf292c82c3b66f40f5d87028897",
+        "splits_sha256": "ada6a5b96eb8ba57039500a4ee68478527bec7b5609140f503936d58038346cb"
+      },
+      "evaluation_track": "official_iid_development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 7,
+      "claim_track": "primary_observational_tabular_candidate",
+      "reservation_metadata": {
+        "rows": 2400,
+        "predictors": 30,
+        "class_labels": [
+          "0",
+          "1"
+        ],
+        "observed_class_counts": {
+          "0": 1200,
+          "1": 1200
+        },
+        "payload_sha256": "79b224319a1ca21284aae19a97c42adc1eccabf292c82c3b66f40f5d87028897",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "release_evidence_only_not_executable"
+    },
+    {
+      "name": "tabarena-46963",
+      "display_name": "website_phishing",
+      "family_id": "tabarena-46963",
+      "provider": "openml_task",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "target": "WebsiteType",
+      "target_transform": "identity",
+      "categorical": [
+        "SFH",
+        "popUpWidnow",
+        "SSLfinal_State",
+        "Request_URL",
+        "URL_of_Anchor",
+        "web_traffic",
+        "URL_Length",
+        "age_of_domain",
+        "having_IP_Address"
+      ],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Original three-way website annotation: Legitimate, Phishy, Suspicious. Suspicious is an explicitly uncertain source label, not verified maliciousness. Static annotation classification; no novel-domain or live-safety claim.",
+      "variant": "pinned_official_representation",
+      "evaluation_notes": " by the TabArena team (for code see the [page of the study](https://tabarena.ai/data-tabular-ml-iid-study)):\n- We reversed the ordinal encoding of the original data.\n- We renamed the target feature to be more meaningful.\n- Anomaly: the data has many duplicates (~50%).",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/379/website+phishing",
+          "https://archive.ics.uci.edu/api/dataset?id=379"
+        ],
+        "primary_page_sha256": "8aa2c674699c9f9f054b048df6ea9792f5a0651dea468ff2cdb6b3636bee4294",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "dataset_id": 46963,
+        "task_id": 363707,
+        "dataset_version": 1,
+        "uci_id": 379,
+        "schema_reviewed": true,
+        "expected_rows": 1353,
+        "md5_checksum": "b167553818278383e4c2210cdbe3b1f6",
+        "columns": [
+          "SFH",
+          "popUpWidnow",
+          "SSLfinal_State",
+          "Request_URL",
+          "URL_of_Anchor",
+          "web_traffic",
+          "URL_Length",
+          "age_of_domain",
+          "having_IP_Address",
+          "WebsiteType"
+        ],
+        "target_columns": [
+          "WebsiteType"
+        ],
+        "official_split_dimensions": {
+          "repeats": 10,
+          "folds": 3,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=379",
+        "primary_metadata_sha256": "5d796a3f6ac414b78fe6837d07bdd3880366cdc7fd24bb947c8927426b3db918",
+        "openml_description_sha256": "8f712cb69e33e8e0c35ac69f922783b7efa6db5945901f7afd3f87d61edfb2d8",
+        "openml_features_sha256": "369aba0b9fcbd55be5b3da0e4fee885ee8e49b013135a01bb592f08e9ee7e4d4",
+        "openml_qualities_sha256": "052fe68529ba313c69eaca4f8bac70c9065b9b488abf3d5bb09ce47a1284caaa",
+        "openml_task_sha256": "c2a5f427a319523813b5218f5c0867b0a845f3f7e5d99450c92bfd77d2e7c874",
+        "categorical_schema_rule": "All non-excluded nominal AND string predictors from the official feature declarations.",
+        "sha256": "99b5d00d9cbe64b070d956c72c659d0fe2f61f9f247408209e614a6a704bf6bc",
+        "splits_sha256": "aef0c87787ad12fd6673925f56747396b8177c274850e5603b4c65071c44ee12"
+      },
+      "evaluation_track": "official_iid_development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 8,
+      "claim_track": "primary_observational_tabular_candidate",
+      "reservation_metadata": {
+        "rows": 1353,
+        "predictors": 9,
+        "class_labels": [
+          "Legitimate",
+          "Phishy",
+          "Suspicious"
+        ],
+        "observed_class_counts": {
+          "Legitimate": 548,
+          "Phishy": 702,
+          "Suspicious": 103
+        },
+        "payload_sha256": "99b5d00d9cbe64b070d956c72c659d0fe2f61f9f247408209e614a6a704bf6bc",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "release_evidence_only_not_executable"
+    },
+    {
+      "name": "tabarena-46949",
+      "display_name": "physiochemical_protein",
+      "family_id": "tabarena-46949",
+      "provider": "openml_task",
+      "task": "regression",
+      "role": "inventory",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "simulation",
+      "target": "ResidualSize",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "CASP decoy-structure residual-size/RMSD annotation from computed structural descriptors. Domain-simulation/decoy-quality task, reported separately from observational outcomes.",
+      "variant": "pinned_official_representation",
+      "evaluation_notes": " by the TabArena team (for code see the [page of the study](https://tabarena.ai/data-tabular-ml-iid-study)):\n- We renamed the features to be more semantic meaningful.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/265/physicochemical+properties+of+protein+tertiary+structure",
+          "https://archive.ics.uci.edu/api/dataset?id=265"
+        ],
+        "primary_page_sha256": "ad74cd89d4a60874e34bb58a8f7c4b5312d855119e5761c00cc4e872d650e258",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "dataset_id": 46949,
+        "task_id": 363693,
+        "dataset_version": 8,
+        "uci_id": 265,
+        "schema_reviewed": true,
+        "expected_rows": 45730,
+        "md5_checksum": "1854a08f8ac73d92950e85bf3a6a2bdc",
+        "columns": [
+          "ResidualSize",
+          "TotalSurfaceArea",
+          "NonPolarExposedArea",
+          "FracExposedNonPolarResidue",
+          "FracExposedNonPolarPart",
+          "MassWeightedExposedArea",
+          "AvgDeviationExposedArea",
+          "EuclideanDistance",
+          "SecondaryStructurePenalty",
+          "SpatialDistNK"
+        ],
+        "target_columns": [
+          "ResidualSize"
+        ],
+        "official_split_dimensions": {
+          "repeats": 10,
+          "folds": 3,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=265",
+        "primary_metadata_sha256": "a0fff8212d4fb3ad54b7568a3fab8036edb65dd32fedb5a2e5aa9752297bcb83",
+        "openml_description_sha256": "aa82a6f4893974b3e2e0f5fdf4ce997a783a0e95552dd1c74de76d8f23108763",
+        "openml_features_sha256": "28bcd457670a365477e802a1a75b55f58bd20895a7c1a945ba9daeac294bd458",
+        "openml_qualities_sha256": "f95ef7a0e0fefb70a0170a6793acaade2367491474dcb64c627acfe26464700f",
+        "openml_task_sha256": "18a42451d0493498ba73e3e4ee097e708018c5b44fa779d4ec805572af477664",
+        "categorical_schema_rule": "All non-excluded nominal AND string predictors from the official feature declarations.",
+        "sha256": "373254f68ef06d9332f8e88256818d055f55e086dfe544fa4b96aba529036b18",
+        "splits_sha256": "8a404621daffccdca9198dbc2b6bdedb081b175f42d1d0a6c9448d58c7487ac8"
+      },
+      "evaluation_track": "domain_simulation",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 9,
+      "claim_track": "secondary_domain_simulation",
+      "reservation_metadata": {
+        "rows": 45730,
+        "predictors": 9,
+        "class_labels": null,
+        "observed_class_counts": null,
+        "payload_sha256": "373254f68ef06d9332f8e88256818d055f55e086dfe544fa4b96aba529036b18",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "release_evidence_only_not_executable"
+    },
+    {
+      "name": "tabarena-46950",
+      "display_name": "polish_companies_bankruptcy",
+      "family_id": "tabarena-46950",
+      "provider": "openml_task",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "target": "company_bankrupt",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Recorded year-5 company's one-year bankruptcy-status annotation from the published accounting ratios. No unverified prospective reporting cutoff or company-disjoint claim.",
+      "variant": "pinned_official_representation",
+      "evaluation_notes": " by the TabArena team (for code see the [page of the study](https://tabarena.ai/data-tabular-ml-iid-study)):\n- We only use data from year 5, because it is the newest data and the target is bankruptcy status after only 1 year.\n- We created semantically meaningful feature names.\n- Anomaly: the data contains a lot of features created by feature engineering.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/365/polish+companies+bankruptcy+data",
+          "https://archive.ics.uci.edu/api/dataset?id=365"
+        ],
+        "primary_page_sha256": "a9fc2b3d6a67115707a09ee08325893fc7c7ae2fbbfaad84c8cf09bfda32eb06",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "dataset_id": 46950,
+        "task_id": 363694,
+        "dataset_version": 1,
+        "uci_id": 365,
+        "schema_reviewed": true,
+        "expected_rows": 5910,
+        "md5_checksum": "7bb8841d3c0426943845f6a7e1997e83",
+        "columns": [
+          "net_profit_to_total_assets",
+          "total_liabilities_to_total_assets",
+          "working_capital_to_total_assets",
+          "current_assets_to_short_term_liabilities",
+          "liquidity_days_ratio",
+          "retained_earnings_to_total_assets",
+          "ebit_to_total_assets",
+          "book_value_equity_to_total_liabilities",
+          "sales_to_total_assets",
+          "equity_to_total_assets",
+          "extended_profit_to_total_assets",
+          "gross_profit_to_short_term_liabilities",
+          "gross_profit_plus_depreciation_to_sales",
+          "gross_profit_plus_interest_to_total_assets",
+          "liabilities_days_ratio",
+          "gross_profit_plus_depreciation_to_total_liabilities",
+          "total_assets_to_total_liabilities",
+          "gross_profit_to_total_assets",
+          "gross_profit_to_sales",
+          "inventory_days_ratio",
+          "sales_growth_ratio",
+          "operating_profit_to_total_assets",
+          "net_profit_to_sales",
+          "three_year_gross_profit_to_total_assets",
+          "equity_minus_share_capital_to_total_assets",
+          "net_profit_plus_depreciation_to_total_liabilities",
+          "operating_profit_to_financial_expenses",
+          "working_capital_to_fixed_assets",
+          "log_total_assets",
+          "net_liabilities_to_sales",
+          "gross_profit_plus_interest_to_sales",
+          "current_liabilities_days_ratio",
+          "operating_expenses_to_short_term_liabilities",
+          "operating_expenses_to_total_liabilities",
+          "sales_profit_to_total_assets",
+          "total_sales_to_total_assets",
+          "current_assets_minus_inventories_to_long_term_liabilities",
+          "constant_capital_to_total_assets",
+          "sales_profit_to_sales",
+          "liquid_assets_to_short_term_liabilities",
+          "liabilities_to_adjusted_operating_profit",
+          "operating_profit_to_sales",
+          "receivables_plus_inventory_turnover_days",
+          "receivables_days_ratio",
+          "net_profit_to_inventory",
+          "current_assets_minus_inventory_to_short_term_liabilities",
+          "inventory_days_cost_ratio",
+          "ebitda_to_total_assets",
+          "ebitda_to_sales",
+          "current_assets_to_total_liabilities",
+          "short_term_liabilities_to_total_assets",
+          "short_term_liabilities_days_cost_ratio",
+          "equity_to_fixed_assets",
+          "constant_capital_to_fixed_assets",
+          "working_capital_absolute",
+          "gross_margin",
+          "adjusted_liquidity_ratio",
+          "total_costs_to_total_sales",
+          "long_term_liabilities_to_equity",
+          "inventory_turnover_ratio",
+          "receivables_turnover_ratio",
+          "short_term_liabilities_days_ratio",
+          "sales_to_short_term_liabilities",
+          "sales_to_fixed_assets",
+          "company_bankrupt"
+        ],
+        "target_columns": [
+          "company_bankrupt"
+        ],
+        "official_split_dimensions": {
+          "repeats": 10,
+          "folds": 3,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=365",
+        "primary_metadata_sha256": "6a2ee78e34e8317eac25882898f17c7a93a3dc6aec669d38ebc82af4e5b447f0",
+        "openml_description_sha256": "69c8399ab8d9eb626263a5ba76f99d0a18562341058646d5ae8997b507066fc1",
+        "openml_features_sha256": "e1f19cc6fdff9271567335287184d69d3e889c4d34702823132280538d21656c",
+        "openml_qualities_sha256": "a82c80b3acd2c7b4fc78a40c5c97aa7fa2804e2e825bd0b3bc8ede76d188f0fc",
+        "openml_task_sha256": "7486f9365f20f0ab8c24606d2d123b0896d1534af0a787d33616ebc724a7cfd4",
+        "categorical_schema_rule": "All non-excluded nominal AND string predictors from the official feature declarations.",
+        "sha256": "113352098b5c0285853cf983c940777e1893a87810111e9915ff744fbc5fcabc",
+        "splits_sha256": "b7a25dd575855d96d4359c8db09a339b6f675b2fd7cdc4dd4fd4bb79e5c34890"
+      },
+      "evaluation_track": "official_iid_development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 10,
+      "claim_track": "primary_observational_tabular_candidate",
+      "reservation_metadata": {
+        "rows": 5910,
+        "predictors": 64,
+        "class_labels": [
+          "No",
+          "Yes"
+        ],
+        "observed_class_counts": {
+          "No": 5500,
+          "Yes": 410
+        },
+        "payload_sha256": "113352098b5c0285853cf983c940777e1893a87810111e9915ff744fbc5fcabc",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "release_evidence_only_not_executable"
+    },
+    {
+      "name": "tabarena-46956",
+      "display_name": "seismic-bumps",
+      "family_id": "tabarena-46956",
+      "provider": "openml_task",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "target": "HighEnergySeismicBump",
+      "target_transform": "identity",
+      "categorical": [
+        "seismic",
+        "seismoacoustic",
+        "shift",
+        "ghazard"
+      ],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Retrospective classification of the recorded next-shift seismic-hazard annotation from supplied shift summaries. Official shuffled task is not evidence of forward mine forecasting or longwall-disjoint generalization.",
+      "variant": "pinned_official_representation",
+      "evaluation_notes": " by the TabArena team (for code see the [page of the study](https://tabarena.ai/data-tabular-ml-iid-study)):\n- We renamed the target feature and reversed the values' ordinal encoding.\n- We drop the constant columns \"nbumps6\", \"nbumps7\", and \"nbumps89\".",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/266/seismic+bumps",
+          "https://archive.ics.uci.edu/api/dataset?id=266"
+        ],
+        "primary_page_sha256": "52d155fab993770e2268017c63b489cbb9f5b5e656f2c998262f2a3b38c0e12a",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "dataset_id": 46956,
+        "task_id": 363700,
+        "dataset_version": 4,
+        "uci_id": 266,
+        "schema_reviewed": true,
+        "expected_rows": 2584,
+        "md5_checksum": "4eb73b1e0e9b5233d1b0b3f457af662b",
+        "columns": [
+          "seismic",
+          "seismoacoustic",
+          "shift",
+          "genergy",
+          "gpuls",
+          "gdenergy",
+          "gdpuls",
+          "ghazard",
+          "nbumps",
+          "nbumps2",
+          "nbumps3",
+          "nbumps4",
+          "nbumps5",
+          "energy",
+          "maxenergy",
+          "HighEnergySeismicBump"
+        ],
+        "target_columns": [
+          "HighEnergySeismicBump"
+        ],
+        "official_split_dimensions": {
+          "repeats": 10,
+          "folds": 3,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=266",
+        "primary_metadata_sha256": "7736813bd18f0b083af5d5e1c3a7ba9f8a7b8a1bcddbee489bbf4b8fc9d410d9",
+        "openml_description_sha256": "2a7845eb3012d65e19edbe4bfec65d6cab1d4cc2d897d8f460d74deb0fb7c1bd",
+        "openml_features_sha256": "1141eb38f2a40605c6d6a3de8abc045687dd9f6d4f91b00fc417c92f03c35d0b",
+        "openml_qualities_sha256": "97d54f4e40e63bfdc4e245d416777f7edd5c02bd7be0afbec232c1339e10b036",
+        "openml_task_sha256": "c70a8da2a74e01e9d4e1e80f5f923ac792c9e48f0fb521f4fd795c518a09b8f1",
+        "categorical_schema_rule": "All non-excluded nominal AND string predictors from the official feature declarations.",
+        "sha256": "457abff74c716dee5e9836f779874369bfb8b61091dae3f7b011beca10d6b25b",
+        "splits_sha256": "ad73cb9e0154acd1dec4746e44fc0c1789f50caec50497eeffe664f7d9020f2f"
+      },
+      "evaluation_track": "official_iid_development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 11,
+      "claim_track": "primary_observational_tabular_candidate",
+      "reservation_metadata": {
+        "rows": 2584,
+        "predictors": 15,
+        "class_labels": [
+          "No",
+          "Yes"
+        ],
+        "observed_class_counts": {
+          "No": 2414,
+          "Yes": 170
+        },
+        "payload_sha256": "457abff74c716dee5e9836f779874369bfb8b61091dae3f7b011beca10d6b25b",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "release_evidence_only_not_executable"
+    },
+    {
+      "name": "tabarena-46962",
+      "display_name": "taiwanese_bankruptcy_prediction",
+      "family_id": "tabarena-46962",
+      "provider": "openml_task",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "target": "Bankrupt",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Recorded company bankruptcy-status annotation from the published financial ratios. Retrospective accounting-record classification, not a claimed prospective investment/credit decision model.",
+      "variant": "pinned_official_representation",
+      "evaluation_notes": " by the TabArena team (for code see the [page of the study](https://tabarena.ai/data-tabular-ml-iid-study)):\n- We rename the features to be shorter and have no special characters.\n- We drop the constant column \"Net_Income_Flag\".\n- Anomaly: the paper introducing the dataset has more features, but these do not seem to be in the dataset. \n- Anomaly: the data is temporal but all features are time-invariant. This might still have a latent, non-verifiable temporal component, which we ignore for our predictive IID task.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/572/taiwanese+bankruptcy+prediction",
+          "https://archive.ics.uci.edu/api/dataset?id=572"
+        ],
+        "primary_page_sha256": "3ba63a7335b022f8acb940d29009b534e8122086ef3ef3a0736208e29d8af34a",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "dataset_id": 46962,
+        "task_id": 363706,
+        "dataset_version": 1,
+        "uci_id": 572,
+        "schema_reviewed": true,
+        "expected_rows": 6819,
+        "md5_checksum": "30a27e4516c9d069c4945857e7138f6c",
+        "columns": [
+          "Bankrupt",
+          "ROA_C_Before_Interest_Depreciation",
+          "ROA_A_Before_Interest_After_Tax",
+          "ROA_B_Before_Interest_Depreciation_After_Tax",
+          "Operating_Gross_Margin",
+          "Realized_Sales_Gross_Margin",
+          "Operating_Profit_Rate",
+          "PreTax_Net_Interest_Rate",
+          "AfterTax_Net_Interest_Rate",
+          "NonIndustry_Income_Expenditure_Revenue",
+          "Continuous_Interest_Rate_After_Tax",
+          "Operating_Expense_Rate",
+          "R&D_Expense_Rate",
+          "Cash_Flow_Rate",
+          "InterestBearing_Debt_Interest_Rate",
+          "Tax_Rate_A",
+          "Net_Value_Per_Share_B",
+          "Net_Value_Per_Share_A",
+          "Net_Value_Per_Share_C",
+          "Persistent_EPS_Last_4_Seasons",
+          "Cash_Flow_Per_Share",
+          "Revenue_Per_Share",
+          "Operating_Profit_Per_Share",
+          "Net_Profit_Before_Tax_Per_Share",
+          "Realized_Sales_Gross_Profit_Growth_Rate",
+          "Operating_Profit_Growth_Rate",
+          "AfterTax_Net_Profit_Growth_Rate",
+          "Regular_Net_Profit_Growth_Rate",
+          "Continuous_Net_Profit_Growth_Rate",
+          "Total_Asset_Growth_Rate",
+          "Net_Value_Growth_Rate",
+          "Total_Asset_Return_Growth_Rate",
+          "Cash_Reinvestment_Percent",
+          "Current_Ratio",
+          "Quick_Ratio",
+          "Interest_Expense_Ratio",
+          "Total_Debt_to_Net_Worth",
+          "Debt_Ratio_Percent",
+          "Net_Worth_to_Assets",
+          "LongTerm_Fund_Suitability_Ratio_A",
+          "Borrowing_Dependency",
+          "Contingent_Liabilities_to_Net_Worth",
+          "Operating_Profit_to_PaidIn_Capital",
+          "Net_Profit_Before_Tax_to_PaidIn_Capital",
+          "Inventory_Accounts_Receivable_to_Net_Value",
+          "Total_Asset_Turnover",
+          "Accounts_Receivable_Turnover",
+          "Average_Collection_Days",
+          "Inventory_Turnover_Rate",
+          "Fixed_Assets_Turnover_Frequency",
+          "Net_Worth_Turnover_Rate",
+          "Revenue_Per_Person",
+          "Operating_Profit_Per_Person",
+          "Allocation_Rate_Per_Person",
+          "Working_Capital_to_Total_Assets",
+          "Quick_Assets_to_Total_Assets",
+          "Current_Assets_to_Total_Assets",
+          "Cash_to_Total_Assets",
+          "Quick_Assets_to_Current_Liability",
+          "Cash_to_Current_Liability",
+          "Current_Liability_to_Assets",
+          "Operating_Funds_to_Liability",
+          "Inventory_to_Working_Capital",
+          "Inventory_to_Current_Liability",
+          "Current_Liabilities_to_Liability",
+          "Working_Capital_to_Equity",
+          "Current_Liabilities_to_Equity",
+          "LongTerm_Liability_to_Current_Assets",
+          "Retained_Earnings_to_Total_Assets",
+          "Total_Income_to_Total_Expense",
+          "Total_Expense_to_Assets",
+          "Current_Asset_Turnover_Rate",
+          "Quick_Asset_Turnover_Rate",
+          "Working_Capital_Turnover_Rate",
+          "Cash_Turnover_Rate",
+          "Cash_Flow_to_Sales",
+          "Fixed_Assets_to_Assets",
+          "Current_Liability_to_Liability",
+          "Current_Liability_to_Equity",
+          "Equity_to_LongTerm_Liability",
+          "Cash_Flow_to_Total_Assets",
+          "Cash_Flow_to_Liability",
+          "CFO_to_Assets",
+          "Cash_Flow_to_Equity",
+          "Current_Liability_to_Current_Assets",
+          "Liability_Assets_Flag",
+          "Net_Income_to_Total_Assets",
+          "Total_Assets_to_GNP_Price",
+          "NoCredit_Interval",
+          "Gross_Profit_to_Sales",
+          "Net_Income_to_Stockholders_Equity",
+          "Liability_to_Equity",
+          "DFL",
+          "Interest_Coverage_Ratio",
+          "Equity_to_Liability"
+        ],
+        "target_columns": [
+          "Bankrupt"
+        ],
+        "official_split_dimensions": {
+          "repeats": 10,
+          "folds": 3,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=572",
+        "primary_metadata_sha256": "b6d894c8110403d775eb42d52c523b133e0a101cc7a7e603927063403662ce28",
+        "openml_description_sha256": "7d36a4ec6bd13cd3ad9c24680b2e19b94bcb44a41289c7cea8f803ab8e44b1b7",
+        "openml_features_sha256": "21ed65bdc4eb5b9aeadea59360b909d6fa9759e63fc27e072ddf26a576c5897d",
+        "openml_qualities_sha256": "ba3dd8e06eab7ab2074359a1067f7cc83475afecfb358875519387349b396f8e",
+        "openml_task_sha256": "7675c5efb455cb0936653971e3bbc0ebfa652661910844b49962761a21a51eea",
+        "categorical_schema_rule": "All non-excluded nominal AND string predictors from the official feature declarations.",
+        "sha256": "e8c347eaef969f92b9ef19ab8f62b3ea53803ffa75d0f43c698114a4644e6c71",
+        "splits_sha256": "804e833ff8344336975f98066e95694de58891f91a84bea69ca6d1ebd08d6537"
+      },
+      "evaluation_track": "official_iid_development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 12,
+      "claim_track": "primary_observational_tabular_candidate",
+      "reservation_metadata": {
+        "rows": 6819,
+        "predictors": 94,
+        "class_labels": [
+          "No",
+          "Yes"
+        ],
+        "observed_class_counts": {
+          "No": 6599,
+          "Yes": 220
+        },
+        "payload_sha256": "e8c347eaef969f92b9ef19ab8f62b3ea53803ffa75d0f43c698114a4644e6c71",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "release_evidence_only_not_executable"
+    }
+  ]
+}

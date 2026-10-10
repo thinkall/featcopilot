@@ -1,0 +1,222 @@
+{
+  "schema_version": 1,
+  "name": "tabarena-confirmation-candidates-20260920",
+  "family_registry": "../families.json",
+  "purpose": "Six metadata-cleared, project-unexposed families locked before confirmation performance inspection. This is an audited subset, not eight invented approvals, forty cleared datasets, or official TabArena model reproduction.",
+  "cohort_status": "locked_candidates_pending_payload_integrity_and_live_exposure_checks",
+  "source": {
+    "suite_id": 457,
+    "revision": "f87f22d301b5985554c037c1bb1429ae6635dded",
+    "curated_metadata_url": "https://raw.githubusercontent.com/autogluon/tabarena/f87f22d301b5985554c037c1bb1429ae6635dded/packages/tabarena/src/tabarena/benchmark/task/metadata/data/curated_tabarena_dataset_metadata.csv",
+    "sha256": "c68918c9bd1d98cfe5b74d5f21eb360e14dbc1c31430e402fe01725a215f8753"
+  },
+  "exposure_audit": {
+    "status": "complete",
+    "audited_on": "2026-09-20",
+    "scope": "Recorded project model execution only. Metadata inspection is not predictive exposure; public foundation-model pretraining and unrecorded external work are not certified absent.",
+    "historical_inputs": [
+      {"path":"benchmarks/simple_models/SIMPLE_MODELS_CACHE.json","sha256":"77d41190780af6414ba81c8c29bfa95baaccc6af209154aaccbebd660d599141"},
+      {"path":"benchmarks/simple_models/SIMPLE_MODELS_CACHE_LLM.json","sha256":"f34f28b7d96bbac7eaa1173649629d90997997094dda329209c0ac40add4d538"},
+      {"path":"benchmarks/datasets.py","sha256":"c9558c81f8243459099b50ad11234a7d05d28c8f964ddacdb446e4e42c7171dc"},
+      {"path":"benchmarks/tabular_suite.json","sha256":"6046eb87f51ce42c6d0969a87cbbf368d0fba32b1ee7a4c4b2c43c066e8591e6"},
+      {"path":"benchmarks/suites/uci_development.json","sha256":"72b5257603de43b1653c00449f0dfd3279a7dea3fa53c5f036d70e5e3443ee7d"}
+    ],
+    "method": "Compared all historical dataset identifiers and explicit real/synthetic source labels with origin aliases, source IDs and the existing family registry. Searched benchmark/package/example/test Python source for the six origin names and aliases; no pre-existing loaders/runs were found. No result scores or confirmation payload rows were inspected.",
+    "ledger_snapshot": {
+      "path": "benchmarks/.cache/exposure.sqlite",
+      "access": "SQLite URI mode=ro; no writes",
+      "query": "SELECT family_id,run_id,role,created_at FROM exposure ORDER BY family_id,run_id",
+      "row_count": 14,
+      "logical_rows_sha256": "698e0eccaa64948f72754b27bf4030d7938eecc2644364a1974cd16836243e0c",
+      "logical_hash_encoding": "SHA-256 of UTF-8 json.dumps(rows,separators=(',',':'))",
+      "exposed_family_ids": ["adult","california-housing","concrete-strength","dry-bean","energy-efficiency","german-credit","online-shoppers","steel-faults","wine-quality"],
+      "selected_family_overlap": [],
+      "execution_requirement": "The runner must recheck its live RuntimeExposureLedger before any model run. This dated snapshot is not a bypass of later exposure."
+    }
+  },
+  "preregistration": {
+    "status": "locked_before_confirmation_model_execution",
+    "selection_basis": "Primary-source rights, reviewed native target availability, recorded project non-exposure, source diversity and class feasibility; never predictive performance.",
+    "family_ids": ["tabarena-46904","tabarena-46916","tabarena-46937","tabarena-46954","tabarena-46958","tabarena-46969"],
+    "independent_selected_families": 6,
+    "task_counts": {"regression":2,"binary":3,"multiclass":1},
+    "selection_parameters": {"stability_repeats":3,"screening":"auto","max_candidates":1000,"max_added_features":50},
+    "methods": ["baseline","featcopilot-predictive"],
+    "learners": ["linear","lightgbm","catboost","xgboost"],
+    "learner_search": {
+      "linear": {"regularization":[0.1,1.0,10.0],"selection_estimator_regularization":1.0},
+      "lightgbm": {"num_leaves":[7,15,31],"selection_estimator_num_leaves":15},
+      "catboost": {"depth":[3,6,9],"selection_estimator_depth":6},
+      "xgboost": {"depth":[3,6,9],"selection_estimator_depth":6},
+      "policy": "Matched training-only search spaces for raw and engineered methods; no outer-label selection. Existing runner middle-candidate selection estimators are fixed."
+    },
+    "seeds": [2026],
+    "sample_seed": 2026,
+    "max_rows": 0,
+    "threads": 8,
+    "case_timeout_seconds": 600,
+    "total_active_seconds_ceiling": 129600,
+    "resource_amendment_before_execution": {
+      "previous_case_timeout_seconds": 120,
+      "previous_total_active_seconds_ceiling": 164880,
+      "reason": "Development-only evidence shows CatBoost predictive cells averaging about 155 seconds. Use a realistic 600-second cell ceiling and reserve 9.8 hours of the remaining measurement allowance for temporal/LLM work.",
+      "performance_inspection": "No confirmation payloads, predictions or model scores have been inspected; cohort, methods, learners, seeds and search settings are unchanged."
+    },
+    "split_policy": "All task-provided repeats/folds/sample IDs; no replacement by shuffled CV, no lite selection after results.",
+    "expected_official_split_dimensions_per_task": {"repeats":10,"folds":3,"samples":1},
+    "expected_official_splits": 180,
+    "expected_cells": 1440,
+    "expected_cells_formula": "6 families * 30 official splits * 2 methods * 4 learners * 1 estimator seed",
+    "budget_note": "36 hours is a ceiling, not a completion prediction or authorization to consume other increments' budgets. 1440 cells at their full 600s timeout would exceed that ceiling; retain every unfinished cell in coverage and do not relax the cohort after inspecting performance.",
+    "classification_admission_margin": {"min_total":30,"min_outer_train":20,"min_outer_test":10},
+    "classification_margin_basis": "Guard the nested selection/screening pipeline against tiny class fragments. Anneal's metadata minority class has only eight rows and fails this predeclared cohort margin; this is not a claim that every possible Anneal protocol is impossible.",
+    "primary_metrics": {"classification":"log_loss","regression":"rmse"},
+    "reporting": "Family-level paired results, complete-pair coverage, failure/timeout denominator, worst-tail harm and uncertainty; binary ROC-AUC is secondary and not interchangeable with log loss.",
+    "promotion_gates": {"minimum_completion_fraction":0.95,"maximum_family_learner_primary_loss_worsening_fraction":0.05},
+    "restrictions": [
+      "No further cohort/parameter selection from confirmation performance.",
+      "No claim of forty cleared families, unseen public pretraining, entity-disjoint or future-period generalization.",
+      "No paid/hosted LLM calls or transfer of source rows to model providers.",
+      "Before execution, the parent runner must bind this preregistration and freeze code/dependency fingerprints; the catalog does not silently enforce CLI model settings.",
+      "Failed acquisition/schema/class-support checks are retained as admission failures, not replaced with another family."
+    ]
+  },
+  "dataset_defaults": {
+    "provider":"openml_task",
+    "role":"confirmation",
+    "prior_exposure":"audited_unexposed",
+    "origin_kind":"observational",
+    "split_policy":"official",
+    "target_transform":"identity",
+    "drop_columns":[]
+  },
+  "datasets": [
+    {
+      "name":"tabarena-46904","display_name":"airfoil_self_noise","family_id":"tabarena-46904","task":"regression","target":"scaled-sound-pressure",
+      "categorical":["attack-angle"],
+      "prediction_time":"Specified frequency, attack angle, chord, free-stream velocity and suction-side boundary-layer thickness predict measured scaled sound pressure in a controlled physical wind-tunnel experiment. No response-derived predictor.",
+      "evaluation_notes":"Curated attack-angle is nominal and is preserved as declared by OpenML, although UCI describes angle in degrees. Measured experiment, not domain simulation. IID operating-condition interpolation, not unseen airfoil geometry generalization.",
+      "rights":{"status":"approved","license":"CC-BY-4.0","access":"public","approval_basis":"Original UCI publication explicitly licenses this dataset under CC BY 4.0; approved scope is local benchmark acquisition and aggregate reporting under the user's roadmap.","evidence":["https://archive.ics.uci.edu/dataset/291/airfoil+self+noise","https://creativecommons.org/licenses/by/4.0/legalcode"],"primary_page_sha256":"cf8c3e900ea5506a32110d4784fda5e1e392c8ea6adcbcbadb813bc650a6f720","reviewed_on":"2026-09-20","obligations":"Credit the UCI dataset and original NASA/Brooks et al. source; identify curated transformations. No hosted row sharing is approved."},
+      "source":{
+        "dataset_id":46904,"task_id":363612,"dataset_version":9,"uci_id":291,"schema_reviewed":true,"expected_rows":1503,"md5_checksum":"0737b5bf94931984f808b9149fcbb3cd",
+        "columns":["frequency","attack-angle","chord-length","free-stream-velocity","suction-side-displacement-thickness","scaled-sound-pressure"],
+        "target_columns":["scaled-sound-pressure"],
+        "official_split_dimensions":{"repeats":10,"folds":3,"samples":1},
+        "primary_metadata_url":"https://archive.ics.uci.edu/api/dataset?id=291",
+        "primary_metadata_sha256":"d7c03bd60b461f8d1dcb103f4d735aee5ebf6bbc42fa4eff786f73c3819aea0f",
+        "openml_description_sha256":"4860ecb2528d55b04c440ac16f3d5f9c5a2b5912f1fd17bd422fbd2dc756f658",
+        "openml_features_sha256":"89f11443d2df54c867e42943ecde2d25e0c264da62451f653341ffe26d32980f",
+        "openml_qualities_url":"https://www.openml.org/api/v1/json/data/qualities/46904",
+        "openml_qualities_sha256":"1a47f29af61b5bcbaab87d679fea2ebb153036a3c0d41ae0c32e06d2ac0fefd5",
+        "openml_task_sha256":"c26d8e341657a760652396e218f49231e8dbed3ed04ec245d6fc958350598c9b"
+      }
+    },
+    {
+      "name":"tabarena-46916","display_name":"coil2000_insurance_policies","family_id":"tabarena-46916","task":"classification","target":"MobileHomePolicy",
+      "categorical":["customerSubtype","customerMainType","romanCatholic"],
+      "class_support":{"labels":["No","Yes"],"min_total":30,"min_outer_train":20,"min_outer_test":10},
+      "prediction_time":"Cross-sectional classification of existing mobile-home-policy presence from other product holdings and postcode-level demographic summaries. No mobile-home-policy contribution/count predictor is present; target is removed. Not a claim about future policy purchases.",
+      "evaluation_notes":"Primary UCI record explicitly lists TICTGTS2000.txt as publicly supplied evaluation targets. Curated training/evaluation merge has 9822 rows versus the UCI headline approximation of 9000; detailed original counts are 5822+4000. Minority count 586. About 15% duplicate profiles and shared postcode aggregates limit unseen-customer/area claims; official IID only.",
+      "rights":{"status":"approved","license":"CC-BY-4.0","access":"public","approval_basis":"Original UCI publication explicitly licenses the dataset under CC BY 4.0 and identifies the released evaluation-target file. Approval is local benchmarking, not recovering hidden competition labels.","evidence":["https://archive.ics.uci.edu/dataset/125/insurance+company+benchmark+coil+2000","https://archive.ics.uci.edu/api/dataset?id=125","https://creativecommons.org/licenses/by/4.0/legalcode"],"primary_page_sha256":"fe88a01c80bf3b519247771856d2280aa71cd9b9d47ea213b29811a67928d8aa","reviewed_on":"2026-09-20","obligations":"Credit van der Putten/van Someren and Sentient Machine Research/UCI; disclose the curated merge. No row redistribution or hosted row sharing is part of this approval."},
+      "source":{
+        "dataset_id":46916,"task_id":363624,"dataset_version":1,"uci_id":125,"schema_reviewed":true,"expected_rows":9822,"md5_checksum":"e4fd3362bf8126f724475ea2f318c123",
+        "columns":["customerSubtype","numberOfHouses","avgSizeHousehold","avgAge","customerMainType","romanCatholic","protestant","otherReligion","noReligion","married","livingTogether","otherRelation","singles","householdWithoutChildren","householdWithChildren","highLevelEducation","mediumLevelEducation","lowerLevelEducation","highStatus","entrepreneur","farmer","middleManagement","skilledLabourers","unskilledLabourers","socialClassA","socialClassB1","socialClassB2","socialClassC","socialClassD","rentedHouse","homeOwners","oneCar","twoCars","noCar","nationalHealthService","privateHealthInsurance","incomeLessThan30k","income30To45k","income45To75k","income75To122k","incomeAbove123k","averageIncome","purchasingPowerClass","contributionPrivateThirdPartyInsurance","contributionThirdPartyInsuranceFirms","contributionThirdPartyInsuranceAgriculture","contributionCarPolicies","contributionDeliveryVanPolicies","contributionMotorcycleScooterPolicies","contributionLorryPolicies","contributionTrailerPolicies","contributionTractorPolicies","contributionAgriculturalMachinesPolicies","contributionMopedPolicies","contributionLifeInsurances","contributionPrivateAccidentInsurancePolicies","contributionFamilyAccidentsInsurancePolicies","contributionDisabilityInsurancePolicies","contributionFirePolicies","contributionSurfboardPolicies","contributionBoatPolicies","contributionBicyclePolicies","contributionPropertyInsurancePolicies","contributionSocialSecurityInsurancePolicies","numberOfPrivateThirdPartyInsurance","numberOfThirdPartyInsuranceFirms","numberOfThirdPartyInsuranceAgriculture","numberOfCarPolicies","numberOfDeliveryVanPolicies","numberOfMotorcycleScooterPolicies","numberOfLorryPolicies","numberOfTrailerPolicies","numberOfTractorPolicies","numberOfAgriculturalMachinesPolicies","numberOfMopedPolicies","numberOfLifeInsurances","numberOfPrivateAccidentInsurancePolicies","numberOfFamilyAccidentsInsurancePolicies","numberOfDisabilityInsurancePolicies","numberOfFirePolicies","numberOfSurfboardPolicies","numberOfBoatPolicies","numberOfBicyclePolicies","numberOfPropertyInsurancePolicies","numberOfSocialSecurityInsurancePolicies","MobileHomePolicy"],
+        "target_columns":["MobileHomePolicy"],
+        "metadata_class_support":{"minority_class_size":586,"number_of_classes":2},
+        "official_split_dimensions":{"repeats":10,"folds":3,"samples":1},
+        "primary_metadata_url":"https://archive.ics.uci.edu/api/dataset?id=125",
+        "primary_metadata_sha256":"33dad0831d4f5698f20f5803022574037f60fbb9636415c7ac0e702d74d8cde5",
+        "openml_description_sha256":"277b0c91aa34902c7844918ab05e97c92e6210ea3665d7245f546a4a36d859ae",
+        "openml_features_sha256":"97664094042c0ffe290aa9181169a6f46bf4c64f12598bb8b197334dac71bac4",
+        "openml_qualities_url":"https://www.openml.org/api/v1/json/data/qualities/46916",
+        "openml_qualities_sha256":"56bf029cd4763be0475fa7ba328be7aa43203c2764371eb1f025da2f123f3ea4",
+        "openml_task_sha256":"db0ae2124d9923aa464d9e560841200db45bdbb1fcdc73f4f1e26f9c958b4f15"
+      }
+    },
+    {
+      "name":"tabarena-46937","display_name":"in_vehicle_coupon_recommendation","family_id":"tabarena-46937","task":"classification","target":"AcceptCoupon",
+      "categorical":["destination","passenger","weather","expiration","gender","age","maritalStatus","has_children","education","occupation","income","car","Bar","CoffeeHouse","CarryAway","RestaurantLessThan20","Restaurant20To50","toCoupon_GEQ15min","toCoupon_GEQ25min","direction_same","direction_opp"],
+      "class_support":{"labels":["No","Yes"],"min_total":30,"min_outer_train":20,"min_outer_test":10},
+      "prediction_time":"Driving scenario and respondent profile are presented before the survey answer about accepting a coupon. Predict the stated answer, not a realized purchase or actual coupon redemption.",
+      "evaluation_notes":"Survey-scenario IID benchmark. No respondent identifier supports an entity-disjoint claim; repeated-respondent independence is not asserted. Curated constant-column removal, time parsing, categorical bins and typo fixes are retained. Minority count 5474.",
+      "rights":{"status":"approved","license":"CC-BY-4.0","access":"public","approval_basis":"Original UCI publication explicitly grants CC BY 4.0, independently of the TabArena curator badge. Local benchmark scope only.","evidence":["https://archive.ics.uci.edu/dataset/603/in+vehicle+coupon+recommendation","https://jmlr.org/papers/volume18/16-003/16-003.pdf","https://creativecommons.org/licenses/by/4.0/legalcode"],"primary_page_sha256":"952b0451a0686e3652b2a677d1d0287dc4baa90d23d3b88d1b1548f07c554e9b","reviewed_on":"2026-09-20","obligations":"Credit Wang et al. (2017) and UCI; disclose stated-preference and row-IID limitations. No hosted row sharing."},
+      "source":{
+        "dataset_id":46937,"task_id":363681,"dataset_version":1,"uci_id":603,"schema_reviewed":true,"expected_rows":12684,"md5_checksum":"598027997d18534e3843587ce4b54edc",
+        "columns":["destination","passenger","weather","temperature","time","coupon","expiration","gender","age","maritalStatus","has_children","education","occupation","income","car","Bar","CoffeeHouse","CarryAway","RestaurantLessThan20","Restaurant20To50","toCoupon_GEQ15min","toCoupon_GEQ25min","direction_same","direction_opp","AcceptCoupon"],
+        "target_columns":["AcceptCoupon"],
+        "metadata_class_support":{"minority_class_size":5474,"number_of_classes":2},
+        "official_split_dimensions":{"repeats":10,"folds":3,"samples":1},
+        "primary_metadata_url":"https://archive.ics.uci.edu/api/dataset?id=603",
+        "primary_metadata_sha256":"fab393704cc3858e4cbe25461c4bc1b25e12e32b8c2ab250bc40a3ebc9684428",
+        "openml_description_sha256":"d32ccd8234bf688d19cb03499cf8af23138595d8a2429fb161b0b59124bdb6d9",
+        "openml_features_sha256":"3f872f4d3537ad6066387922bc38f87e04eb746603fcc82a14cb865c0f32cbaf",
+        "openml_qualities_url":"https://www.openml.org/api/v1/json/data/qualities/46937",
+        "openml_qualities_sha256":"5870e624bc918808b26f4fc1a01a4ddd569c47520cf0fc9602abb3dd60305c4d",
+        "openml_task_sha256":"84bcd33f27deea9d7a8eb9a3cd6967d876fce243d58be89ce899ba9ea964c245"
+      }
+    },
+    {
+      "name":"tabarena-46954","display_name":"QSAR_fish_toxicity","family_id":"tabarena-46954","task":"regression","target":"LC50","categorical":[],
+      "prediction_time":"Six molecular-structure descriptors predict experimentally measured acute fish toxicity. LC50 is already expressed as -LOG(mol/L) in the primary source; identity transform avoids a second logarithm.",
+      "evaluation_notes":"Pinned curated task has 907 rows; UCI reports 908 chemicals. The one-row difference is recorded without inventing a cause or claiming exact source replication. Curator reports 15% duplicate descriptor vectors; no chemical-identity-disjoint claim. QSAR biodegradation is excluded from this cohort pending chemical-origin overlap review.",
+      "rights":{"status":"approved","license":"CC-BY-4.0","access":"public","approval_basis":"Original UCI publication explicitly grants CC BY 4.0. Primary target/descriptor meanings, rather than only the curated badge, were reviewed.","evidence":["https://archive.ics.uci.edu/dataset/504/qsar+fish+toxicity","https://archive.ics.uci.edu/api/dataset?id=504","https://creativecommons.org/licenses/by/4.0/legalcode"],"primary_page_sha256":"a3d6dafca573de65e7f26fed6f8a8e6bc914f3da3de5ae97bb0914cbb82f933c","reviewed_on":"2026-09-20","obligations":"Credit Cassotti et al./UCI and describe the curated representation and existing log scale. No hosted row sharing."},
+      "source":{
+        "dataset_id":46954,"task_id":363698,"dataset_version":8,"uci_id":504,"schema_reviewed":true,"expected_rows":907,"md5_checksum":"bb9c18d28748120f7c115f80dcd376bb",
+        "columns":["CIC0","SM1_Dz(Z)","GATS1i","NdsCH","NdssC","MLOGP","LC50"],
+        "target_columns":["LC50"],"target_units":"-LOG(mol/L)","upstream_reported_rows":908,
+        "official_split_dimensions":{"repeats":10,"folds":3,"samples":1},
+        "primary_metadata_url":"https://archive.ics.uci.edu/api/dataset?id=504",
+        "primary_metadata_sha256":"e411831d820dc0ced3cf1e28e1f2bb104e7f23b6c3937d5fac1a2f00a4ad3867",
+        "openml_description_sha256":"b0ddbe580dc3a93774aad4e3ee14aa32821d048344be9201d7266af249928145",
+        "openml_features_sha256":"c7f2f193e51d9b125fb65836c7fdfa26a85c402e39b96f14d1992d36d3c85a7b",
+        "openml_qualities_url":"https://www.openml.org/api/v1/json/data/qualities/46954",
+        "openml_qualities_sha256":"b7b3506d3bc31ca5db2d21561b021e22b809bf294050a9a2636d576b18ed1772",
+        "openml_task_sha256":"a0602739499e635d5abf011973c87e647caa8d2d20452d72a52d7c74c7814a5a"
+      }
+    },
+    {
+      "name":"tabarena-46958","display_name":"splice","family_id":"tabarena-46958","task":"classification","target":"SiteType",
+      "categorical":["position_-30","position_-29","position_-28","position_-27","position_-26","position_-25","position_-24","position_-23","position_-22","position_-21","position_-20","position_-19","position_-18","position_-17","position_-16","position_-15","position_-14","position_-13","position_-12","position_-11","position_-10","position_-9","position_-8","position_-7","position_-6","position_-5","position_-4","position_-3","position_-2","position_-1","position_1","position_2","position_3","position_4","position_5","position_6","position_7","position_8","position_9","position_10","position_11","position_12","position_13","position_14","position_15","position_16","position_17","position_18","position_19","position_20","position_21","position_22","position_23","position_24","position_25","position_26","position_27","position_28","position_29","position_30"],
+      "class_support":{"labels":["EI","IE","N"],"min_total":30,"min_outer_train":20,"min_outer_test":10},
+      "prediction_time":"Observed 60-position DNA sequence predicts exon/intron boundary type. The native instance identifier was removed upstream; only nucleotides remain as predictors, and SiteType is excluded.",
+      "evaluation_notes":"Three classes, minority 767. Curation tabularizes the native DNA string, removes its instance ID and shuffles rows. IID sequence classification, not gene/species-disjoint biological generalization; all 60 predictors are categorical and numerical-only feature generators may retain raw features.",
+      "rights":{"status":"approved","license":"CC-BY-4.0","access":"public","approval_basis":"Original UCI splice-junction publication explicitly grants CC BY 4.0. Original class/instance-name/sequence layout was reviewed against the curated features.","evidence":["https://archive.ics.uci.edu/dataset/69/molecular+biology+splice+junction+gene+sequences","https://archive.ics.uci.edu/api/dataset?id=69","https://creativecommons.org/licenses/by/4.0/legalcode"],"primary_page_sha256":"f9e303d9adf2335af33eb8269179fb59327c35c33776ec4237af33d7495fdc28","reviewed_on":"2026-09-20","obligations":"Credit the UCI splice-junction dataset and its original contributors; disclose removed identifiers and IID scope. No hosted row sharing."},
+      "source":{
+        "dataset_id":46958,"task_id":363702,"dataset_version":4,"uci_id":69,"schema_reviewed":true,"expected_rows":3190,"md5_checksum":"79bfb5daaaf0ddf84e364d55c0496dc6",
+        "columns":["position_-30","position_-29","position_-28","position_-27","position_-26","position_-25","position_-24","position_-23","position_-22","position_-21","position_-20","position_-19","position_-18","position_-17","position_-16","position_-15","position_-14","position_-13","position_-12","position_-11","position_-10","position_-9","position_-8","position_-7","position_-6","position_-5","position_-4","position_-3","position_-2","position_-1","position_1","position_2","position_3","position_4","position_5","position_6","position_7","position_8","position_9","position_10","position_11","position_12","position_13","position_14","position_15","position_16","position_17","position_18","position_19","position_20","position_21","position_22","position_23","position_24","position_25","position_26","position_27","position_28","position_29","position_30","SiteType"],
+        "target_columns":["SiteType"],"native_id_removed_by_curator":true,
+        "metadata_class_support":{"minority_class_size":767,"number_of_classes":3},
+        "official_split_dimensions":{"repeats":10,"folds":3,"samples":1},
+        "primary_metadata_url":"https://archive.ics.uci.edu/api/dataset?id=69",
+        "primary_metadata_sha256":"a0dfb7df6970477c5fdc28e2c5e100307583bdcae0f3b3195b1d99db1260d303",
+        "openml_description_sha256":"106eeb1ca5a91a3cbe237a89d9da1ad0dfcf71056bf44fc39b71d37657624d27",
+        "openml_features_sha256":"8f56f648672e5727d6661bf0a9c40c7f991461806020501ecdf7dce151e6901c",
+        "openml_qualities_url":"https://www.openml.org/api/v1/json/data/qualities/46958",
+        "openml_qualities_sha256":"7c6b07d16c82317da765a301503f743cdda916a991af2807e42f92f40e4ab74e",
+        "openml_task_sha256":"36fc41e4788edad8b1a00ab21299f4d0fddb1dfa4e44b0108ce5edb1c178c6c0"
+      }
+    },
+    {
+      "name":"tabarena-46969","display_name":"NATICUSdroid","family_id":"tabarena-46969","task":"classification","target":"Malware",
+      "categorical":["android.permission.GET_ACCOUNTS","com.sonyericsson.home.permission.BROADCAST_BADGE","android.permission.READ_PROFILE","android.permission.MANAGE_ACCOUNTS","android.permission.WRITE_SYNC_SETTINGS","android.permission.READ_EXTERNAL_STORAGE","android.permission.RECEIVE_SMS","com.android.launcher.permission.READ_SETTINGS","android.permission.WRITE_SETTINGS","com.google.android.providers.gsf.permission.READ_GSERVICES","android.permission.DOWNLOAD_WITHOUT_NOTIFICATION","android.permission.GET_TASKS","android.permission.WRITE_EXTERNAL_STORAGE","android.permission.RECORD_AUDIO","com.huawei.android.launcher.permission.CHANGE_BADGE","com.oppo.launcher.permission.READ_SETTINGS","android.permission.CHANGE_NETWORK_STATE","com.android.launcher.permission.INSTALL_SHORTCUT","android.permission.android.permission.READ_PHONE_STATE","android.permission.CALL_PHONE","android.permission.WRITE_CONTACTS","android.permission.READ_PHONE_STATE","samsung.providers.context.WRITE_USE_APP_FEATURE_SURVEY","android.permission.MODIFY_AUDIO_SETTINGS","android.permission.ACCESS_LOCATION_EXTRA_COMMANDS","android.permission.INTERNET","android.permission.MOUNT_UNMOUNT_FILESYSTEMS","com.majeur.launcher.permission.UPDATE_BADGE","android.permission.AUTHENTICATE_ACCOUNTS","com.htc.launcher.permission.READ_SETTINGS","android.permission.ACCESS_WIFI_STATE","android.permission.FLASHLIGHT","android.permission.READ_APP_BADGE","android.permission.USE_CREDENTIALS","android.permission.CHANGE_CONFIGURATION","android.permission.READ_SYNC_SETTINGS","android.permission.BROADCAST_STICKY","com.anddoes.launcher.permission.UPDATE_COUNT","com.android.alarm.permission.SET_ALARM","com.google.android.c2dm.permission.RECEIVE","android.permission.KILL_BACKGROUND_PROCESSES","com.sonymobile.home.permission.PROVIDER_INSERT_BADGE","com.sec.android.provider.badge.permission.READ","android.permission.WRITE_CALENDAR","android.permission.SEND_SMS","com.huawei.android.launcher.permission.WRITE_SETTINGS","android.permission.REQUEST_INSTALL_PACKAGES","android.permission.SET_WALLPAPER_HINTS","android.permission.SET_WALLPAPER","com.oppo.launcher.permission.WRITE_SETTINGS","android.permission.RESTART_PACKAGES","me.everything.badger.permission.BADGE_COUNT_WRITE","android.permission.ACCESS_MOCK_LOCATION","android.permission.ACCESS_COARSE_LOCATION","android.permission.READ_LOGS","com.google.android.gms.permission.ACTIVITY_RECOGNITION","com.amazon.device.messaging.permission.RECEIVE","android.permission.SYSTEM_ALERT_WINDOW","android.permission.DISABLE_KEYGUARD","android.permission.USE_FINGERPRINT","me.everything.badger.permission.BADGE_COUNT_READ","android.permission.CHANGE_WIFI_STATE","android.permission.READ_CONTACTS","com.android.vending.BILLING","android.permission.READ_CALENDAR","android.permission.RECEIVE_BOOT_COMPLETED","android.permission.WAKE_LOCK","android.permission.ACCESS_FINE_LOCATION","android.permission.BLUETOOTH","android.permission.CAMERA","com.android.vending.CHECK_LICENSE","android.permission.FOREGROUND_SERVICE","android.permission.BLUETOOTH_ADMIN","android.permission.VIBRATE","android.permission.NFC","android.permission.RECEIVE_USER_PRESENT","android.permission.CLEAR_APP_CACHE","com.android.launcher.permission.UNINSTALL_SHORTCUT","com.sec.android.iap.permission.BILLING","com.htc.launcher.permission.UPDATE_SHORTCUT","com.sec.android.provider.badge.permission.WRITE","android.permission.ACCESS_NETWORK_STATE","google.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE","com.huawei.android.launcher.permission.READ_SETTINGS","android.permission.READ_SMS","android.permission.PROCESS_INCOMING_CALLS"],
+      "class_support":{"labels":["No","Yes"],"min_total":30,"min_outer_train":20,"min_outer_test":10},
+      "prediction_time":"Static permission-presence flags extracted from an application package predict its recorded malware label. No antivirus verdict, package identifier or target-derived field is a predictor.",
+      "evaluation_notes":"UCI describes applications released in 2010-2019. The curated 7491-row task removes exact full-row duplicates from the much larger original dataset and changes its original perfect class balance; minority 2624. This is the pinned deduplicated retrospective task, not prospective malware-family/version-disjoint detection or untouched natural imbalance. All 86 predictors are categorical.",
+      "rights":{"status":"approved","license":"CC-BY-4.0","access":"public","approval_basis":"Original UCI NATICUSdroid publication explicitly grants CC BY 4.0 for the tabular permission dataset. This does not authorize obtaining or executing malware binaries.","evidence":["https://archive.ics.uci.edu/dataset/722/naticusdroid+android+permissions+dataset","https://archive.ics.uci.edu/api/dataset?id=722","https://creativecommons.org/licenses/by/4.0/legalcode"],"primary_page_sha256":"c3abb114a7a5a453a0f2f3567787f5ae878c37c59678febea87364a7354c7867","reviewed_on":"2026-09-20","obligations":"Credit Mathur et al. (2021)/UCI; retain the exact curation and balance limitations. Tabular metadata/data only, no APKs, execution or hosted row sharing."},
+      "source":{
+        "dataset_id":46969,"task_id":363689,"dataset_version":3,"uci_id":722,"schema_reviewed":true,"expected_rows":7491,"md5_checksum":"7d290894bf8f7454baf61d6998aa2d56",
+        "columns":["android.permission.GET_ACCOUNTS","com.sonyericsson.home.permission.BROADCAST_BADGE","android.permission.READ_PROFILE","android.permission.MANAGE_ACCOUNTS","android.permission.WRITE_SYNC_SETTINGS","android.permission.READ_EXTERNAL_STORAGE","android.permission.RECEIVE_SMS","com.android.launcher.permission.READ_SETTINGS","android.permission.WRITE_SETTINGS","com.google.android.providers.gsf.permission.READ_GSERVICES","android.permission.DOWNLOAD_WITHOUT_NOTIFICATION","android.permission.GET_TASKS","android.permission.WRITE_EXTERNAL_STORAGE","android.permission.RECORD_AUDIO","com.huawei.android.launcher.permission.CHANGE_BADGE","com.oppo.launcher.permission.READ_SETTINGS","android.permission.CHANGE_NETWORK_STATE","com.android.launcher.permission.INSTALL_SHORTCUT","android.permission.android.permission.READ_PHONE_STATE","android.permission.CALL_PHONE","android.permission.WRITE_CONTACTS","android.permission.READ_PHONE_STATE","samsung.providers.context.WRITE_USE_APP_FEATURE_SURVEY","android.permission.MODIFY_AUDIO_SETTINGS","android.permission.ACCESS_LOCATION_EXTRA_COMMANDS","android.permission.INTERNET","android.permission.MOUNT_UNMOUNT_FILESYSTEMS","com.majeur.launcher.permission.UPDATE_BADGE","android.permission.AUTHENTICATE_ACCOUNTS","com.htc.launcher.permission.READ_SETTINGS","android.permission.ACCESS_WIFI_STATE","android.permission.FLASHLIGHT","android.permission.READ_APP_BADGE","android.permission.USE_CREDENTIALS","android.permission.CHANGE_CONFIGURATION","android.permission.READ_SYNC_SETTINGS","android.permission.BROADCAST_STICKY","com.anddoes.launcher.permission.UPDATE_COUNT","com.android.alarm.permission.SET_ALARM","com.google.android.c2dm.permission.RECEIVE","android.permission.KILL_BACKGROUND_PROCESSES","com.sonymobile.home.permission.PROVIDER_INSERT_BADGE","com.sec.android.provider.badge.permission.READ","android.permission.WRITE_CALENDAR","android.permission.SEND_SMS","com.huawei.android.launcher.permission.WRITE_SETTINGS","android.permission.REQUEST_INSTALL_PACKAGES","android.permission.SET_WALLPAPER_HINTS","android.permission.SET_WALLPAPER","com.oppo.launcher.permission.WRITE_SETTINGS","android.permission.RESTART_PACKAGES","me.everything.badger.permission.BADGE_COUNT_WRITE","android.permission.ACCESS_MOCK_LOCATION","android.permission.ACCESS_COARSE_LOCATION","android.permission.READ_LOGS","com.google.android.gms.permission.ACTIVITY_RECOGNITION","com.amazon.device.messaging.permission.RECEIVE","android.permission.SYSTEM_ALERT_WINDOW","android.permission.DISABLE_KEYGUARD","android.permission.USE_FINGERPRINT","me.everything.badger.permission.BADGE_COUNT_READ","android.permission.CHANGE_WIFI_STATE","android.permission.READ_CONTACTS","com.android.vending.BILLING","android.permission.READ_CALENDAR","android.permission.RECEIVE_BOOT_COMPLETED","android.permission.WAKE_LOCK","android.permission.ACCESS_FINE_LOCATION","android.permission.BLUETOOTH","android.permission.CAMERA","com.android.vending.CHECK_LICENSE","android.permission.FOREGROUND_SERVICE","android.permission.BLUETOOTH_ADMIN","android.permission.VIBRATE","android.permission.NFC","android.permission.RECEIVE_USER_PRESENT","android.permission.CLEAR_APP_CACHE","com.android.launcher.permission.UNINSTALL_SHORTCUT","com.sec.android.iap.permission.BILLING","com.htc.launcher.permission.UPDATE_SHORTCUT","com.sec.android.provider.badge.permission.WRITE","android.permission.ACCESS_NETWORK_STATE","google.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE","com.huawei.android.launcher.permission.READ_SETTINGS","android.permission.READ_SMS","android.permission.PROCESS_INCOMING_CALLS","Malware"],
+        "target_columns":["Malware"],"upstream_reported_rows":29333,
+        "metadata_class_support":{"minority_class_size":2624,"number_of_classes":2},
+        "official_split_dimensions":{"repeats":10,"folds":3,"samples":1},
+        "primary_metadata_url":"https://archive.ics.uci.edu/api/dataset?id=722",
+        "primary_metadata_sha256":"067080961f0058e05f84af9b67793fa03c40b4147faf648393d9e104cd18b2c8",
+        "openml_description_sha256":"7c8f782c13d83489aa01888f634e6ccc78c5308587b584755dec670e486fbf3d",
+        "openml_features_sha256":"ae19cbbbe7d4744825a3cfc3f8340135e3eff563daa21cb5533b82a4752c9057",
+        "openml_qualities_url":"https://www.openml.org/api/v1/json/data/qualities/46969",
+        "openml_qualities_sha256":"0641dcef9d4257301b3960bec08e2dc8cc17644ad339467e3eede6f169030e79",
+        "openml_task_sha256":"2e2bc4583afa00fe6ba7ee17ecc3ae9f680fa311d260d24953a57379248852ab"
+      }
+    }
+  ]
+}

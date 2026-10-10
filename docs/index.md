@@ -7,37 +7,19 @@
 
 ---
 
-## Benchmark Highlights
+## Reproducible Tabular Evaluation
 
-<div class="grid cards" markdown>
+The canonical benchmark compares FeatCopilot with raw features, polynomial
+features, AutoFeat and a rowwise-restricted OpenFE variant using matched, tuned
+linear, RandomForest and LightGBM models. Real-data results are separate from
+synthetic diagnostics, and failed cases remain visible.
 
--   :material-rocket-launch:{ .lg .middle } __+7.52% Avg Improvement__
+**Current evidence does not establish SOTA.** Previous composite rankings and
+mixed synthetic/real headline gains have been retired in favor of a fixed,
+versioned dataset protocol with train-only preprocessing and untouched outer
+test folds.
 
-    ---
-
-    Simple models benchmark across 63 datasets
-
--   :material-trophy:{ .lg .middle } __#1 FE Tool__
-
-    ---
-
-    80% win rate vs autofeat and featuretools
-
--   :material-scale-balance:{ .lg .middle } __90% AutoML Success__
-
-    ---
-
-    Improves 9/10 datasets with FLAML and AutoGluon
-
--   :material-speedometer:{ .lg .middle } __+144% Max Improvement__
-
-    ---
-
-    triple_interaction_regression dataset
-
-</div>
-
-[:octicons-arrow-right-24: View Full Benchmark Results](user-guide/benchmarks.md)
+[:octicons-arrow-right-24: Benchmark protocol and interpretation](user-guide/benchmarks.md)
 
 ---
 
@@ -45,7 +27,7 @@
 
 === "⚡ Fast Mode (Tabular Only)"
 
-    Sub-second feature engineering using rule-based transformations:
+    Feature engineering using rule-based transformations, without LLM calls:
 
     ```python
     from featcopilot import AutoFeatureEngineer
@@ -55,7 +37,7 @@
         engines=['tabular'],
         max_features=50
     )
-    X_transformed = engineer.fit_transform(X, y)  # <1 second
+    X_transformed = engineer.fit_transform(X, y)
     ```
 
     **Best for:** Production pipelines, real-time inference, reproducible results

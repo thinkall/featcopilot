@@ -1,6 +1,7 @@
 """Model utilities for Copilot client."""
 
 import asyncio
+from dataclasses import asdict, is_dataclass
 
 from featcopilot.utils.logger import get_logger
 
@@ -10,7 +11,7 @@ logger = get_logger(__name__)
 _cached_models: list[dict] | None = None
 
 # Default model
-DEFAULT_MODEL = "gpt-5.2"
+DEFAULT_MODEL = "gpt-5.6-sol"
 
 
 async def _fetch_models_from_copilot() -> list[dict]:
@@ -22,10 +23,12 @@ async def _fetch_models_from_copilot() -> list[dict]:
         await client.start()
 
         # Get available models from Copilot
-        models = await client.list_models()
-        await client.stop()
+        try:
+            models = await client.list_models()
+        finally:
+            await client.stop()
 
-        return models
+        return [_model_metadata(model) for model in models]
 
     except ImportError:
         logger.warning("copilot-sdk not installed. Cannot fetch models from Copilot.")
@@ -35,7 +38,16 @@ async def _fetch_models_from_copilot() -> list[dict]:
         return []
 
 
-def _get_event_loop():
+def _model_metadata(model: object) -> dict:
+    """Normalize SDK dataclasses and legacy dictionary model responses."""
+    if isinstance(model, dict):
+        return model
+    if is_dataclass(model) and not isinstance(model, type):
+        return asdict(model)
+    raise TypeError(f"Unsupported Copilot model metadata: {type(model).__name__}")
+
+
+def _get_event_loop() -> asyncio.AbstractEventLoop:
     """Get or create an event loop."""
     try:
         loop = asyncio.get_event_loop()
@@ -192,7 +204,7 @@ def get_default_model() -> str:
     --------
     >>> from featcopilot.utils import get_default_model
     >>> model = get_default_model()
-    >>> print(model)  # 'gpt-5.2'
+    >>> print(model)  # 'gpt-5.6-sol'
     """
     return DEFAULT_MODEL
 

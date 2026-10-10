@@ -1,0 +1,77 @@
+{
+  "format": "bounded-lossless-artifacts-v1",
+  "files": [
+    {
+      "name": "iid-linear/manifest.json",
+      "compression": "gzip",
+      "parts": [
+        "iid-linear.manifest.json.gz.part1"
+      ],
+      "sha256": "4c2a04928f3150c76af110ed3c8c90b265c98e38685ee50ec3a8c5ad8d1eb8f4"
+    },
+    {
+      "name": "iid-linear/source.zip",
+      "compression": "none",
+      "parts": [
+        "iid-linear.source.zip.part1",
+        "iid-linear.source.zip.part2",
+        "iid-linear.source.zip.part3"
+      ],
+      "sha256": "503db142009e97719b942423eb10383f13ae8b27a5ee2bf7c7913be6beb4d437"
+    },
+    {
+      "name": "iid-lightgbm/manifest.json",
+      "compression": "gzip",
+      "parts": [
+        "iid-lightgbm.manifest.json.gz.part1"
+      ],
+      "sha256": "02d1ecca1e77d37f44174aaf11c44d9a680aa504de92325e69c01f861c4695b9"
+    },
+    {
+      "name": "iid-lightgbm/source.zip",
+      "compression": "none",
+      "parts": [
+        "iid-lightgbm.source.zip.part1",
+        "iid-lightgbm.source.zip.part2",
+        "iid-lightgbm.source.zip.part3"
+      ],
+      "sha256": "67cdee9dea99344e3b9ae4eb6954b02e70f90b8bf62bebfe9748485abe005f66"
+    },
+    {
+      "name": "hardware-linear/manifest.json",
+      "compression": "gzip",
+      "parts": [
+        "hardware-linear.manifest.json.gz.part1"
+      ],
+      "sha256": "3fb0efe6d351ff443934258dbc25512d64f0915883ec90675d357052d40988f7"
+    },
+    {
+      "name": "hardware-linear/source.zip",
+      "compression": "none",
+      "parts": [
+        "hardware-linear.source.zip.part1",
+        "hardware-linear.source.zip.part2",
+        "hardware-linear.source.zip.part3"
+      ],
+      "sha256": "a3cabdd852203c8a9017a2405648525f82b6aa5325a6f3576aca8829f4e2a61a"
+    },
+    {
+      "name": "hardware-lightgbm/manifest.json",
+      "compression": "gzip",
+      "parts": [
+        "hardware-lightgbm.manifest.json.gz.part1"
+      ],
+      "sha256": "740ac3484074084f0794251331c88a88739b4993f2501bc8176ec88567076461"
+    },
+    {
+      "name": "hardware-lightgbm/source.zip",
+      "compression": "none",
+      "parts": [
+        "hardware-lightgbm.source.zip.part1",
+        "hardware-lightgbm.source.zip.part2",
+        "hardware-lightgbm.source.zip.part3"
+      ],
+      "sha256": "8ae6bf5cb12baf218c7a49330ec4bea2b730d09ea6477ddbba10ab6d9bffa5a1"
+    }
+  ]
+}

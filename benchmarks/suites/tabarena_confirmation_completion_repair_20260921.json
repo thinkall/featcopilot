@@ -1,0 +1,226 @@
+{
+  "schema_version": 1,
+  "name": "tabarena-confirmation-completion-repair-20260921",
+  "family_registry": "../families.json",
+  "purpose": "Completion-only, schema-declaration repair for exactly the two families that failed admission before any model call in the original six-family locked confirmation. Not a new cohort, family substitution, rerun of exposed families, or performance-based change.",
+  "cohort_status": "completion_only_repair_before_first_model_call_for_these_two_families",
+  "source": {
+    "suite_id": 457,
+    "revision": "f87f22d301b5985554c037c1bb1429ae6635dded",
+    "curated_metadata_url": "https://raw.githubusercontent.com/autogluon/tabarena/f87f22d301b5985554c037c1bb1429ae6635dded/packages/tabarena/src/tabarena/benchmark/task/metadata/data/curated_tabarena_dataset_metadata.csv",
+    "sha256": "c68918c9bd1d98cfe5b74d5f21eb360e14dbc1c31430e402fe01725a215f8753"
+  },
+  "repair": {
+    "registered_on": "2026-09-21",
+    "parent_run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+    "parent_run_manifest": "benchmarks/tabular-results/2026-09-20-locked-confirmation/manifest.json",
+    "parent_run_manifest_sha256": "1d6f6e8cb8d2aaf2170571009431b5e3be8c19b00bbf27144b782e36a5d4e0b4",
+    "original_suite": "benchmarks/suites/tabarena_confirmation_candidates_20260920.json",
+    "original_suite_sha256": "db4bafa21d2697c4b19955e031440b55fdd33bd068fd08866cee70e5943d9b00",
+    "frozen_runtime_source_sha256": "a158224255e32b9ee510fa86a199e55e9db0f813881900617a40c0d6e7853344",
+    "source_fingerprint_scope": "The runner hashes runtime Python, pyproject, the family registry and all suite JSONs. Restricting current inputs to the original archive's allowlisted paths reproduces the recorded parent fingerprint exactly. This new repair manifest and any separately added source files change the full aggregate; they do not authorize changes to the original evaluated pipeline.",
+    "parent_source_archive_sha256": "f39a1b0e013176966fe61262f2d6da46ee9463033cf1d7309571176c6150b192",
+    "catalog_python_sha256": "813d304e299d52ea31d5802d2d4975226d9eb006513bc8e9704baa1c441fb31a",
+    "runtime_python_changes": false,
+    "runtime_python_changes_scope": "This repair changes no runtime Python or original archived input. Separately added files are documented below and must not alter the original model paths.",
+    "concurrent_source_additions": [
+      {
+        "path":"benchmarks/relational_evaluation.py",
+        "scope":"Unrelated file appeared during final integrity checks; not inspected, modified or authorized for use by this repair.",
+        "execution_requirement":"The parent must freeze unrelated source work or otherwise preserve a stable execution snapshot before launching. The runner fingerprints every benchmark Python file, even files outside the selected model path."
+      }
+    ],
+    "diagnosis": "The original metadata audit included OpenML nominal predictors but mistakenly omitted predictors whose official data_type is string. The cached ARFF headers agree with the original official feature metadata. The provider correctly rejected undeclared nonnumeric predictors; no provider-code change, source drift, data filtering, feature selection or model change is required.",
+    "allowed_dataset_changes": ["categorical"],
+    "schema_rule": "Declare every reviewed non-target ARFF/OpenML nominal OR string field categorical; retain every numeric field as originally declared. This is source-schema interpretation, not a cardinality or performance heuristic.",
+    "repair_family_ids": ["tabarena-46916","tabarena-46937"],
+    "original_cohort_family_ids": ["tabarena-46904","tabarena-46916","tabarena-46937","tabarena-46954","tabarena-46958","tabarena-46969"],
+    "already_exposed_family_ids_not_to_rerun": ["tabarena-46904","tabarena-46954","tabarena-46958","tabarena-46969"],
+    "blinding": "Only run configuration, dataset-preparation error metadata, state record indexes and the 480 known dataset_error records for these two families were read. No REPORT.md, results.json, successful/model-attempt cell records, model predictions or score values were inspected.",
+    "preservation": "Keep the original suite, failed run, its 480 admission-error records and the four already-exposed families' existing results unchanged. Use a new repair output directory, never overwrite or resume the original run under changed metadata.",
+    "reporting": "Reconcile by original family/task/repeat/fold/method/learner/seed keys with an explicit schema-repair phase. Preserve the initial admission failures in the audit trail; do not count the two families twice or call the already-exposed four fresh.",
+    "failure_evidence": [
+      {
+        "family_id":"tabarena-46916",
+        "dataset_error":"AdmissionError: avgAge: nonnumeric predictor must be explicitly declared categorical",
+        "dataset_error_cells":240,
+        "worker_attempts":0,
+        "present_in_parent_prepared_datasets":false,
+        "failure_record_index_sha256":"d6982c98d9f2d42f0a4edbccc990cfcee8c75393391cb281293eb9819285281f"
+      },
+      {
+        "family_id":"tabarena-46937",
+        "dataset_error":"AdmissionError: coupon: nonnumeric predictor must be explicitly declared categorical",
+        "dataset_error_cells":240,
+        "worker_attempts":0,
+        "present_in_parent_prepared_datasets":false,
+        "failure_record_index_sha256":"49040b5ad8b739bb8e7efceeb075e2ff4ade47693abf7d6513c698723e9e1b64"
+      }
+    ],
+    "failure_proof_method": "For only these two dataset names, enumerate 30 folds x 2 methods x 4 learners at seed 2026 using RunState.cell_id. Verify each indexed record SHA-256, assert status=dataset_error and the recorded admission error, and assert no state.attempts entry. The proof hash covers the sorted {cell_id:{file,sha256}} index using compact JSON.",
+    "validation_before_models": {
+      "status":"passed",
+      "scope":"Admission/schema and split-protocol checks only, using the existing raw caches for these two failed families.",
+      "rows":{"tabarena-46916":9822,"tabarena-46937":12684},
+      "predictors":{"tabarena-46916":85,"tabarena-46937":24},
+      "categorical_predictors":{"tabarena-46916":5,"tabarena-46937":22},
+      "official_splits_per_task":30,
+      "payload_and_split_checksums_unchanged":true,
+      "runner_preregistration_binding_passed":true,
+      "runner_payload_class_support_checks_passed":true,
+      "admission_check_environment":{"pandas":"3.0.2","scikit-learn":"1.8.0"},
+      "frozen_model_environment_requirement":"The completion run must use every dependency version recorded in the parent run manifest, including pandas 2.3.3 and scikit-learn 1.7.2. The available development interpreter was used only for admission checks, not models; its differing versions are not an evaluation amendment.",
+      "model_calls":0,
+      "network_downloads":0,
+      "exposure_ledger_writes":0
+    },
+    "schema_corrections": [
+      {
+        "family_id":"tabarena-46916",
+        "dataset_id":46916,
+        "task_id":363624,
+        "dataset_version":1,
+        "original_categorical_count":3,
+        "corrected_categorical_count":5,
+        "added_categorical":["avgAge","contributionPrivateThirdPartyInsurance"],
+        "official_string_fields":["avgAge","contributionPrivateThirdPartyInsurance"],
+        "numeric_predictors_preserved":80,
+        "total_predictors_preserved":85,
+        "rows_preserved":9822,
+        "official_feature_metadata_url":"https://www.openml.org/api/v1/json/data/features/46916",
+        "official_feature_metadata_sha256":"97664094042c0ffe290aa9181169a6f46bf4c64f12598bb8b197334dac71bac4",
+        "arff_url":"https://openml.org/data/v1/download/22125227/coil2000_insurance_policies.arff",
+        "arff_sha256":"a541ed40161a5d07b2c3ca6badd6eb5711a37ed52f1720417d5d4d0274288947",
+        "official_splits_sha256":"2049b946c8bf721f13648788585a90a0e5d8ced04377c32a053e75c1145fd6fc",
+        "all_arff_attribute_types_match_official_metadata":true,
+        "all_numeric_predictor_columns_parse_numerically":true
+      },
+      {
+        "family_id":"tabarena-46937",
+        "dataset_id":46937,
+        "task_id":363681,
+        "dataset_version":1,
+        "original_categorical_count":21,
+        "corrected_categorical_count":22,
+        "added_categorical":["coupon"],
+        "official_string_fields":["coupon"],
+        "numeric_predictors_preserved":2,
+        "total_predictors_preserved":24,
+        "rows_preserved":12684,
+        "official_feature_metadata_url":"https://www.openml.org/api/v1/json/data/features/46937",
+        "official_feature_metadata_sha256":"3f872f4d3537ad6066387922bc38f87e04eb746603fcc82a14cb865c0f32cbaf",
+        "arff_url":"https://openml.org/data/v1/download/22125248/in_vehicle_coupon_recommendation.arff",
+        "arff_sha256":"a1f67b534b8e91e8b300e0b5350094dda0fa2f7c20382538bab201d1f163e261",
+        "official_splits_sha256":"a9c6a3170aaabae73b91ca31f2b38f3dc7ae9da2de9c6e2074c6eee8de2ae19e",
+        "all_arff_attribute_types_match_official_metadata":true,
+        "all_numeric_predictor_columns_parse_numerically":true
+      }
+    ]
+  },
+  "exposure_audit": {
+    "status":"complete",
+    "audited_on":"2026-09-21",
+    "scope":"Completion-repair eligibility of the two original families only; no new freshness claim for the six-family cohort.",
+    "ledger_path":"benchmarks/.cache/exposure.sqlite",
+    "ledger_access":"SQLite URI mode=ro; no writes",
+    "selected_family_model_admission_rows":0,
+    "other_original_family_admission_rows":4,
+    "other_original_family_run_id":"9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+    "conclusion":"COIL and Coupon failed preparation before ledger admission and any worker attempt. Airfoil, QSAR fish, Splice and NATICUSdroid are already exposed and excluded from this repair.",
+    "execution_requirement":"Recheck the live ledger before repair execution; the dated status-only audit does not bypass subsequent exposure."
+  },
+  "preregistration": {
+    "status":"locked_before_confirmation_model_execution",
+    "status_scope":"Before the first model call for these two previously admission-failed families; the other four original families have already been exposed and must not be rerun.",
+    "selection_basis":"Exactly the original cohort's two preparation failures, chosen without score inspection; no new datasets or performance-based selection.",
+    "family_ids":["tabarena-46916","tabarena-46937"],
+    "independent_selected_families":2,
+    "original_cohort_family_count":6,
+    "repair_family_count":2,
+    "task_counts":{"regression":0,"binary":2,"multiclass":0},
+    "selection_parameters":{"stability_repeats":3,"screening":"auto","max_candidates":1000,"max_added_features":50},
+    "methods":["baseline","featcopilot-predictive"],
+    "learners":["linear","lightgbm","catboost","xgboost"],
+    "learner_search":{
+      "linear":{"regularization":[0.1,1.0,10.0],"selection_estimator_regularization":1.0},
+      "lightgbm":{"num_leaves":[7,15,31],"selection_estimator_num_leaves":15},
+      "catboost":{"depth":[3,6,9],"selection_estimator_depth":6},
+      "xgboost":{"depth":[3,6,9],"selection_estimator_depth":6},
+      "policy":"Matched training-only search spaces for raw and engineered methods; no outer-label selection. Existing runner middle-candidate selection estimators are fixed."
+    },
+    "seeds":[2026],
+    "sample_seed":2026,
+    "max_rows":0,
+    "threads":8,
+    "case_timeout_seconds":600,
+    "total_active_seconds_ceiling":72000,
+    "split_policy":"All task-provided repeats/folds/sample IDs; no replacement by shuffled CV, no lite selection after results.",
+    "expected_official_split_dimensions_per_task":{"repeats":10,"folds":3,"samples":1},
+    "expected_official_splits":60,
+    "expected_cells":480,
+    "expected_cells_formula":"2 original admission-failed families * 30 official splits * 2 unchanged methods * 4 unchanged learners * seed 2026",
+    "budget_note":"Completion-only repair ceiling of 20 hours, at most 8 threads and 600 seconds per cell, under the remaining approximately 33.8 hours of the original total measurement allowance. A ceiling is not a completion guarantee; preserve budget-exhausted cells and do not retune or replace families.",
+    "classification_admission_margin":{"min_total":30,"min_outer_train":20,"min_outer_test":10},
+    "primary_metrics":{"classification":"log_loss","regression":"rmse"},
+    "reporting":"Use the original six-family paired analysis with explicit original-run/repair-run lineage; retain original admission failures separately and disclose that only categorical declarations were repaired before these two families' first model calls.",
+    "promotion_gates":{"minimum_completion_fraction":0.95,"maximum_family_learner_primary_loss_worsening_fraction":0.05},
+    "restrictions":[
+      "Runtime Python and the parent run's dependency versions, dataset bytes/versions, targets, feature membership/order, official splits, methods, learners, search, seeds and primary metrics must remain unchanged.",
+      "Only the three source-declared STRING fields are added to the categorical declarations. No value-based feature selection or alternate encoding experiment.",
+      "Do not rerun, tune or label fresh the four other original families; no substitutions.",
+      "Keep the original failed run and original suite immutable. This is a new output directory with explicit parent-run lineage, not an exact resume.",
+      "Do not inspect existing confirmation predictions or metric values to choose or alter this repair.",
+      "No paid/hosted model calls, and no transfer of source rows to model providers.",
+      "If further preparation checks fail, retain failures and request another explicit review; do not broaden this repair silently."
+    ]
+  },
+  "dataset_defaults":{
+    "provider":"openml_task","role":"confirmation","prior_exposure":"audited_unexposed","origin_kind":"observational","split_policy":"official","target_transform":"identity","drop_columns":[]
+  },
+  "datasets":[
+    {
+      "name":"tabarena-46916","display_name":"coil2000_insurance_policies","family_id":"tabarena-46916","task":"classification","target":"MobileHomePolicy",
+      "categorical":["customerSubtype","avgAge","customerMainType","romanCatholic","contributionPrivateThirdPartyInsurance"],
+      "class_support":{"labels":["No","Yes"],"min_total":30,"min_outer_train":20,"min_outer_test":10},
+      "prediction_time":"Cross-sectional classification of existing mobile-home-policy presence from other product holdings and postcode-level demographic summaries. No mobile-home-policy contribution/count predictor is present; target is removed. Not a claim about future policy purchases.",
+      "evaluation_notes":"Primary UCI record explicitly lists TICTGTS2000.txt as publicly supplied evaluation targets. Curated training/evaluation merge has 9822 rows versus the UCI headline approximation of 9000; detailed original counts are 5822+4000. Minority count 586. About 15% duplicate profiles and shared postcode aggregates limit unseen-customer/area claims; official IID only.",
+      "rights":{"status":"approved","license":"CC-BY-4.0","access":"public","approval_basis":"Original UCI publication explicitly licenses the dataset under CC BY 4.0 and identifies the released evaluation-target file. Approval is local benchmarking, not recovering hidden competition labels.","evidence":["https://archive.ics.uci.edu/dataset/125/insurance+company+benchmark+coil+2000","https://archive.ics.uci.edu/api/dataset?id=125","https://creativecommons.org/licenses/by/4.0/legalcode"],"primary_page_sha256":"fe88a01c80bf3b519247771856d2280aa71cd9b9d47ea213b29811a67928d8aa","reviewed_on":"2026-09-20","obligations":"Credit van der Putten/van Someren and Sentient Machine Research/UCI; disclose the curated merge. No row redistribution or hosted row sharing is part of this approval."},
+      "source":{
+        "dataset_id":46916,"task_id":363624,"dataset_version":1,"uci_id":125,"schema_reviewed":true,"expected_rows":9822,"md5_checksum":"e4fd3362bf8126f724475ea2f318c123",
+        "columns":["customerSubtype","numberOfHouses","avgSizeHousehold","avgAge","customerMainType","romanCatholic","protestant","otherReligion","noReligion","married","livingTogether","otherRelation","singles","householdWithoutChildren","householdWithChildren","highLevelEducation","mediumLevelEducation","lowerLevelEducation","highStatus","entrepreneur","farmer","middleManagement","skilledLabourers","unskilledLabourers","socialClassA","socialClassB1","socialClassB2","socialClassC","socialClassD","rentedHouse","homeOwners","oneCar","twoCars","noCar","nationalHealthService","privateHealthInsurance","incomeLessThan30k","income30To45k","income45To75k","income75To122k","incomeAbove123k","averageIncome","purchasingPowerClass","contributionPrivateThirdPartyInsurance","contributionThirdPartyInsuranceFirms","contributionThirdPartyInsuranceAgriculture","contributionCarPolicies","contributionDeliveryVanPolicies","contributionMotorcycleScooterPolicies","contributionLorryPolicies","contributionTrailerPolicies","contributionTractorPolicies","contributionAgriculturalMachinesPolicies","contributionMopedPolicies","contributionLifeInsurances","contributionPrivateAccidentInsurancePolicies","contributionFamilyAccidentsInsurancePolicies","contributionDisabilityInsurancePolicies","contributionFirePolicies","contributionSurfboardPolicies","contributionBoatPolicies","contributionBicyclePolicies","contributionPropertyInsurancePolicies","contributionSocialSecurityInsurancePolicies","numberOfPrivateThirdPartyInsurance","numberOfThirdPartyInsuranceFirms","numberOfThirdPartyInsuranceAgriculture","numberOfCarPolicies","numberOfDeliveryVanPolicies","numberOfMotorcycleScooterPolicies","numberOfLorryPolicies","numberOfTrailerPolicies","numberOfTractorPolicies","numberOfAgriculturalMachinesPolicies","numberOfMopedPolicies","numberOfLifeInsurances","numberOfPrivateAccidentInsurancePolicies","numberOfFamilyAccidentsInsurancePolicies","numberOfDisabilityInsurancePolicies","numberOfFirePolicies","numberOfSurfboardPolicies","numberOfBoatPolicies","numberOfBicyclePolicies","numberOfPropertyInsurancePolicies","numberOfSocialSecurityInsurancePolicies","MobileHomePolicy"],
+        "target_columns":["MobileHomePolicy"],
+        "metadata_class_support":{"minority_class_size":586,"number_of_classes":2},
+        "official_split_dimensions":{"repeats":10,"folds":3,"samples":1},
+        "primary_metadata_url":"https://archive.ics.uci.edu/api/dataset?id=125",
+        "primary_metadata_sha256":"33dad0831d4f5698f20f5803022574037f60fbb9636415c7ac0e702d74d8cde5",
+        "openml_description_sha256":"277b0c91aa34902c7844918ab05e97c92e6210ea3665d7245f546a4a36d859ae",
+        "openml_features_sha256":"97664094042c0ffe290aa9181169a6f46bf4c64f12598bb8b197334dac71bac4",
+        "openml_qualities_url":"https://www.openml.org/api/v1/json/data/qualities/46916",
+        "openml_qualities_sha256":"56bf029cd4763be0475fa7ba328be7aa43203c2764371eb1f025da2f123f3ea4",
+        "openml_task_sha256":"db0ae2124d9923aa464d9e560841200db45bdbb1fcdc73f4f1e26f9c958b4f15"
+      }
+    },
+    {
+      "name":"tabarena-46937","display_name":"in_vehicle_coupon_recommendation","family_id":"tabarena-46937","task":"classification","target":"AcceptCoupon",
+      "categorical":["destination","passenger","weather","coupon","expiration","gender","age","maritalStatus","has_children","education","occupation","income","car","Bar","CoffeeHouse","CarryAway","RestaurantLessThan20","Restaurant20To50","toCoupon_GEQ15min","toCoupon_GEQ25min","direction_same","direction_opp"],
+      "class_support":{"labels":["No","Yes"],"min_total":30,"min_outer_train":20,"min_outer_test":10},
+      "prediction_time":"Driving scenario and respondent profile are presented before the survey answer about accepting a coupon. Predict the stated answer, not a realized purchase or actual coupon redemption.",
+      "evaluation_notes":"Survey-scenario IID benchmark. No respondent identifier supports an entity-disjoint claim; repeated-respondent independence is not asserted. Curated constant-column removal, time parsing, categorical bins and typo fixes are retained. Minority count 5474.",
+      "rights":{"status":"approved","license":"CC-BY-4.0","access":"public","approval_basis":"Original UCI publication explicitly grants CC BY 4.0, independently of the TabArena curator badge. Local benchmark scope only.","evidence":["https://archive.ics.uci.edu/dataset/603/in+vehicle+coupon+recommendation","https://jmlr.org/papers/volume18/16-003/16-003.pdf","https://creativecommons.org/licenses/by/4.0/legalcode"],"primary_page_sha256":"952b0451a0686e3652b2a677d1d0287dc4baa90d23d3b88d1b1548f07c554e9b","reviewed_on":"2026-09-20","obligations":"Credit Wang et al. (2017) and UCI; disclose stated-preference and row-IID limitations. No hosted row sharing."},
+      "source":{
+        "dataset_id":46937,"task_id":363681,"dataset_version":1,"uci_id":603,"schema_reviewed":true,"expected_rows":12684,"md5_checksum":"598027997d18534e3843587ce4b54edc",
+        "columns":["destination","passenger","weather","temperature","time","coupon","expiration","gender","age","maritalStatus","has_children","education","occupation","income","car","Bar","CoffeeHouse","CarryAway","RestaurantLessThan20","Restaurant20To50","toCoupon_GEQ15min","toCoupon_GEQ25min","direction_same","direction_opp","AcceptCoupon"],
+        "target_columns":["AcceptCoupon"],
+        "metadata_class_support":{"minority_class_size":5474,"number_of_classes":2},
+        "official_split_dimensions":{"repeats":10,"folds":3,"samples":1},
+        "primary_metadata_url":"https://archive.ics.uci.edu/api/dataset?id=603",
+        "primary_metadata_sha256":"fab393704cc3858e4cbe25461c4bc1b25e12e32b8c2ab250bc40a3ebc9684428",
+        "openml_description_sha256":"d32ccd8234bf688d19cb03499cf8af23138595d8a2429fb161b0b59124bdb6d9",
+        "openml_features_sha256":"3f872f4d3537ad6066387922bc38f87e04eb746603fcc82a14cb865c0f32cbaf",
+        "openml_qualities_url":"https://www.openml.org/api/v1/json/data/qualities/46937",
+        "openml_qualities_sha256":"5870e624bc918808b26f4fc1a01a4ddd569c47520cf0fc9602abb3dd60305c4d",
+        "openml_task_sha256":"84bcd33f27deea9d7a8eb9a3cd6967d876fce243d58be89ce899ba9ea964c245"
+      }
+    }
+  ]
+}

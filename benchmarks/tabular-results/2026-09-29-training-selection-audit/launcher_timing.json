@@ -1,0 +1,10 @@
+{
+  "native_threads": 8,
+  "entire_audit_process_seconds": 263.4031827,
+  "exit_code": 0,
+  "started_utc": "2026-09-28T19:38:28.6167335+00:00",
+  "includes": "Process startup, six child launches, model execution, diagnostics and summary/artifact writing",
+  "finished_utc": "2026-09-28T19:42:52.0304299+00:00",
+  "ceiling_seconds": 3600,
+  "safety_test_process_seconds": 24.2764653
+}

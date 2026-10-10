@@ -1,0 +1,299 @@
+{
+  "promote": false,
+  "sota_demonstrated": false,
+  "reason": "Negative means, severe family harms, and incomplete strong-reference coverage violate preregistered gates.",
+  "observational_strata": [
+    {
+      "task": "classification",
+      "learner": "catboost",
+      "families": 6,
+      "mean": 0.052537424538572484,
+      "median": -0.008243865204633938,
+      "worst": -0.051963797182491556,
+      "positive_mean": true,
+      "no_harm_above_5_percent": false,
+      "harms_above_5_percent": [
+        {
+          "dataset": "vertebral-column",
+          "reduction": -0.051963797182491556,
+          "baseline_loss": 0.3581322557431403,
+          "candidate_loss": 0.37674216764508506
+        }
+      ],
+      "comparisons": [
+        {
+          "method": "openfe-inductive-native",
+          "families": 5,
+          "candidate_mean": -0.023092672137454695,
+          "reference_mean": -0.005229582215766704,
+          "not_worse": false,
+          "complete_coverage": false
+        },
+        {
+          "method": "autofeat-native",
+          "families": 4,
+          "candidate_mean": -0.017344433001444504,
+          "reference_mean": -0.02837621907701321,
+          "not_worse": true,
+          "complete_coverage": false
+        }
+      ]
+    },
+    {
+      "task": "classification",
+      "learner": "lightgbm",
+      "families": 6,
+      "mean": 0.0017963983127068928,
+      "median": 0.0,
+      "worst": -0.16315301200588195,
+      "positive_mean": true,
+      "no_harm_above_5_percent": false,
+      "harms_above_5_percent": [
+        {
+          "dataset": "vertebral-column",
+          "reduction": -0.16315301200588195,
+          "baseline_loss": 0.4742835440985551,
+          "candidate_loss": 0.5516643328630589
+        }
+      ],
+      "comparisons": [
+        {
+          "method": "openfe-inductive-native",
+          "families": 6,
+          "candidate_mean": 0.0017963983127068928,
+          "reference_mean": 0.09021580008903281,
+          "not_worse": false,
+          "complete_coverage": true
+        },
+        {
+          "method": "autofeat-native",
+          "families": 4,
+          "candidate_mean": -0.052087354209159276,
+          "reference_mean": -0.015103547716232402,
+          "not_worse": false,
+          "complete_coverage": false
+        }
+      ]
+    },
+    {
+      "task": "classification",
+      "learner": "linear",
+      "families": 6,
+      "mean": 0.1541160384656534,
+      "median": 0.027869965221104687,
+      "worst": -0.011978034941852789,
+      "positive_mean": true,
+      "no_harm_above_5_percent": true,
+      "harms_above_5_percent": [],
+      "comparisons": [
+        {
+          "method": "openfe-inductive-native",
+          "families": 6,
+          "candidate_mean": 0.1541160384656534,
+          "reference_mean": 0.07923941518017154,
+          "not_worse": true,
+          "complete_coverage": true
+        },
+        {
+          "method": "autofeat-native",
+          "families": 4,
+          "candidate_mean": 0.010940473875089146,
+          "reference_mean": -0.004733704477344669,
+          "not_worse": true,
+          "complete_coverage": false
+        }
+      ]
+    },
+    {
+      "task": "classification",
+      "learner": "xgboost",
+      "families": 6,
+      "mean": -0.060752726623606,
+      "median": -0.0004216119300152199,
+      "worst": -0.3093925371158277,
+      "positive_mean": false,
+      "no_harm_above_5_percent": false,
+      "harms_above_5_percent": [
+        {
+          "dataset": "vertebral-column",
+          "reduction": -0.06858384657076688,
+          "baseline_loss": 0.4739356785782624,
+          "candidate_loss": 0.5064400104422863
+        },
+        {
+          "dataset": "wall-following-robot",
+          "reduction": -0.3093925371158277,
+          "baseline_loss": 0.008296608072504723,
+          "candidate_loss": 0.010863516693512617
+        }
+      ],
+      "comparisons": [
+        {
+          "method": "openfe-inductive-native",
+          "families": 6,
+          "candidate_mean": -0.060752726623606,
+          "reference_mean": -0.00832611785091969,
+          "not_worse": false,
+          "complete_coverage": true
+        },
+        {
+          "method": "autofeat-native",
+          "families": 4,
+          "candidate_mean": -0.01357014969144446,
+          "reference_mean": 0.009664146912095856,
+          "not_worse": false,
+          "complete_coverage": false
+        }
+      ]
+    },
+    {
+      "task": "regression",
+      "learner": "catboost",
+      "families": 4,
+      "mean": -0.043150188981238596,
+      "median": -0.0252190624775096,
+      "worst": -0.1293583585043505,
+      "positive_mean": false,
+      "no_harm_above_5_percent": false,
+      "harms_above_5_percent": [
+        {
+          "dataset": "forest-fires-montesinho",
+          "reduction": -0.1293583585043505,
+          "baseline_loss": 61.32640253282026,
+          "candidate_loss": 69.25948529744294
+        }
+      ],
+      "comparisons": [
+        {
+          "method": "openfe-inductive-native",
+          "families": 3,
+          "candidate_mean": -0.05577266175845889,
+          "reference_mean": -0.009981722723459097,
+          "not_worse": false,
+          "complete_coverage": false
+        },
+        {
+          "method": "autofeat-native",
+          "families": 3,
+          "candidate_mean": -0.05577266175845889,
+          "reference_mean": 0.0023873610792211806,
+          "not_worse": false,
+          "complete_coverage": false
+        }
+      ]
+    },
+    {
+      "task": "regression",
+      "learner": "lightgbm",
+      "families": 4,
+      "mean": 3.87892276821622e-05,
+      "median": -0.005841793615728785,
+      "worst": -0.017129995879077375,
+      "positive_mean": true,
+      "no_harm_above_5_percent": true,
+      "harms_above_5_percent": [],
+      "comparisons": [
+        {
+          "method": "openfe-inductive-native",
+          "families": 4,
+          "candidate_mean": 3.87892276821622e-05,
+          "reference_mean": 0.004998373716277732,
+          "not_worse": false,
+          "complete_coverage": true
+        },
+        {
+          "method": "autofeat-native",
+          "families": 3,
+          "candidate_mean": 0.0010137826009764355,
+          "reference_mean": -0.017570722984905474,
+          "not_worse": true,
+          "complete_coverage": false
+        }
+      ]
+    },
+    {
+      "task": "regression",
+      "learner": "linear",
+      "families": 4,
+      "mean": -0.26678662533186115,
+      "median": -0.2280365231047975,
+      "worst": -0.6125132379359555,
+      "positive_mean": false,
+      "no_harm_above_5_percent": false,
+      "harms_above_5_percent": [
+        {
+          "dataset": "computer-hardware-performance",
+          "reduction": -0.6125132379359555,
+          "baseline_loss": 75.13952601829007,
+          "candidate_loss": 121.16348039672589
+        },
+        {
+          "dataset": "infrared-oral-temperature",
+          "reduction": -0.456073046209595,
+          "baseline_loss": 0.28594642913681906,
+          "candidate_loss": 0.41635888812600425
+        }
+      ],
+      "comparisons": [
+        {
+          "method": "openfe-inductive-native",
+          "families": 4,
+          "candidate_mean": -0.26678662533186115,
+          "reference_mean": -0.20444824924050245,
+          "not_worse": false,
+          "complete_coverage": true
+        },
+        {
+          "method": "autofeat-native",
+          "families": 3,
+          "candidate_mean": -0.35619542804851684,
+          "reference_mean": -0.7345511385849705,
+          "not_worse": true,
+          "complete_coverage": false
+        }
+      ]
+    },
+    {
+      "task": "regression",
+      "learner": "xgboost",
+      "families": 4,
+      "mean": -0.10200402562964744,
+      "median": -0.032997164361496245,
+      "worst": -0.3413059560899856,
+      "positive_mean": false,
+      "no_harm_above_5_percent": false,
+      "harms_above_5_percent": [
+        {
+          "dataset": "computer-hardware-performance",
+          "reduction": -0.05618044061396388,
+          "baseline_loss": 59.372077383427516,
+          "candidate_loss": 62.707626850994835
+        },
+        {
+          "dataset": "forest-fires-montesinho",
+          "reduction": -0.3413059560899856,
+          "baseline_loss": 65.41286058557098,
+          "candidate_loss": 87.73865950831022
+        }
+      ],
+      "comparisons": [
+        {
+          "method": "openfe-inductive-native",
+          "families": 3,
+          "candidate_mean": -0.13576676160432602,
+          "reference_mean": -0.0070874210471236765,
+          "not_worse": false,
+          "complete_coverage": false
+        },
+        {
+          "method": "autofeat-native",
+          "families": 3,
+          "candidate_mean": -0.13576676160432602,
+          "reference_mean": -0.06644739217468114,
+          "not_worse": false,
+          "complete_coverage": false
+        }
+      ]
+    }
+  ]
+}

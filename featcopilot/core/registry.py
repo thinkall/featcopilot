@@ -31,6 +31,8 @@ class FeatureRegistry:
         """Initialize default transformation functions."""
         import numpy as np
 
+        from featcopilot.utils.frequency import apply_frequency_mapping
+
         self._transformations = {
             "log": lambda x: np.log1p(np.abs(x)),
             "log10": lambda x: np.log10(np.abs(x) + 1),
@@ -44,6 +46,7 @@ class FeatureRegistry:
             "sin": lambda x: np.sin(x),
             "cos": lambda x: np.cos(x),
             "tanh": lambda x: np.tanh(x),
+            "fitted_frequency_v1": apply_frequency_mapping,
         }
 
     def register_transformation(self, name: str, func: Callable) -> None:

@@ -1,0 +1,25 @@
+{
+  "family": "computer-hardware-performance",
+  "fold": 0,
+  "cache_path": "C:\\code\\featcopilot\\benchmarks\\tabular-results\\2026-09-28-frequency-iid-confirmation\\prepared\\computer-hardware-performance.pkl",
+  "prepared_sha256": "9b41a54261472f08dcc0d9996c7c8080d0bfb3f50923144c68ca71f2fc967f0c",
+  "split_hashes": [
+    "76c2a8534790486e207a876acdae20b8737b39af68c4be228108a22336e2049d",
+    "cd366aa7eab32cb4ae6ecb84b0c453e9e20f1f1f67f8cea9de816dce25114787",
+    "ce8ea987b6152bd5b68445cd36bf1e27e4fb83f9b836c792dfe3c6a82edef185"
+  ],
+  "source_sha256": "8199702864295cba90f75f7742aea16f56b087b21a1cf607e2937d4e229fb0c3",
+  "config": {
+    "seed": 2027,
+    "threads": 8,
+    "selection_learner": "linear",
+    "learners": [
+      "linear"
+    ],
+    "max_added_features": 50,
+    "max_candidates": 1000,
+    "stability_repeats": 3,
+    "screening": "importance",
+    "detailed_diagnostics": false
+  }
+}

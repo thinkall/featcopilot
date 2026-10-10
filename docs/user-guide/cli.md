@@ -69,6 +69,8 @@ Sample (truncated) output:
     "xgboost"
   ],
   "supported_leakage_guards": ["off", "raise", "warn"],
+  "supported_tasks": ["auto", "classification", "regression"],
+  "supported_selection_strategies": ["legacy", "predictive"],
   "supported_input_formats": ["csv", "json"],
   "supported_output_formats": ["csv", "json"],
   "parquet_available": false
@@ -109,6 +111,17 @@ Common flags:
 | `--max-features N` | Cap on engine output / selection. Forwarded both to engine constructors and to the selector. |
 | `--no-selection` | Skip feature selection entirely (raw feature generation). |
 | `--selection-methods` | Override the default `mutual_info importance` selection set. |
+| `--task` | `auto` (default), `classification`, or `regression`. Explicit regression avoids integer-target classification heuristics. |
+| `--selection-strategy` | `legacy` (default) or opt-in `predictive`. Predictive currently requires tabular-only engines and a target. |
+| `--max-candidates` | Candidate budget for predictive selection (default 1000). |
+| `--random-state` | Seed for predictive selection (default 42). |
+| `--stability-repeats` | Predictive training-only validation repeats (default 3, at most 10). |
+| `--screening` | `auto`, `linear`, or `tree`. Joint `importance` screening requires a Python-supplied compatible estimator and is not offered by this CLI. |
+| `--selection-rule` | `one_se` (default) or experimental training-only `paired_gain`. |
+| `--candidate-set` | `standard` (default) or opt-in `extended` numeric/categorical candidate coverage. |
+| `--group-column` | Group identity for predictive selection; removed from the model input columns. |
+| `--time-column` | Timestamp/order for forward predictive selection; removed from model inputs. |
+| `--label-end-column` | Label availability/end time for purging unavailable training labels; requires `--time-column` and is removed from model inputs. |
 | `--leakage-guard` | How to handle suspicious column names: `warn` (default — log a warning and continue), `raise` (hard-fail with an error), or `off` (disable the check). |
 | `--include-target` | Re-attach the target column to the output file (collision-safe). |
 | `--task-description` | Free-form ML task description forwarded to LLM-aware engines. |
@@ -135,9 +148,29 @@ A successful `--json` run prints something like:
   "max_features": 50,
   "target": "label",
   "selection_applied": true,
+  "task": "auto",
+  "selection_strategy": "legacy",
+  "selection_report": null,
   "warnings": []
 }
 ```
+
+### Predictive tabular selection
+
+```powershell
+featcopilot transform --input data.csv --target count --output features.csv --task regression --selection-strategy predictive --max-candidates 1000 --max-features 50 --json
+```
+
+The JSON payload includes `selection_report` with internal selection diagnostics.
+The predictive strategy does not support `--no-selection`. `explain` continues
+to use unselected legacy generation and ignores selection-strategy settings in
+shared configuration files.
+
+Group/time metadata is honored throughout predictive selection. It is not
+supported by the legacy selector/gate, and combined group/time restrictions
+are currently rejected. Supply `--label-end-column` when labels extend into
+future periods; training labels must be available strictly before validation
+starts. Without that metadata, temporal ordering cannot infer label horizons.
 
 ## `featcopilot explain`
 

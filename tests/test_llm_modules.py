@@ -4,7 +4,9 @@ Tests FeatureCodeGenerator, FeatureExplainer, OpenAI/Copilot clients,
 SemanticEngine, and TransformRuleGenerator using mocking (no real API calls).
 """
 
-from unittest.mock import MagicMock
+import sys
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock
 
 import numpy as np
 import pandas as pd
@@ -23,6 +25,35 @@ from featcopilot.llm.transform_rule_generator import TransformRuleGenerator
 # ---------------------------------------------------------------------------
 # Shared fixtures
 # ---------------------------------------------------------------------------
+
+
+@pytest.fixture(autouse=True)
+def fake_provider_sdks(monkeypatch):
+    """Exercise client APIs without credentials, network calls, or mock fallbacks."""
+
+    async def complete(**kwargs):
+        content = OpenAIFeatureClient()._mock_response(kwargs["messages"][-1]["content"])
+        return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content=content))])
+
+    chat_provider = SimpleNamespace(
+        chat=SimpleNamespace(completions=SimpleNamespace(create=complete)), close=AsyncMock()
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "openai",
+        SimpleNamespace(AsyncOpenAI=lambda **kwargs: chat_provider, AsyncAzureOpenAI=lambda **kwargs: chat_provider),
+    )
+    monkeypatch.setitem(sys.modules, "litellm", SimpleNamespace(acompletion=complete))
+
+    async def send_and_wait(prompt, **kwargs):
+        return SimpleNamespace(data=SimpleNamespace(content=CopilotFeatureClient()._mock_response(prompt)))
+
+    session = SimpleNamespace(send_and_wait=send_and_wait, disconnect=AsyncMock())
+    provider = SimpleNamespace(start=AsyncMock(), create_session=AsyncMock(return_value=session), stop=AsyncMock())
+    monkeypatch.setitem(sys.modules, "copilot", SimpleNamespace(CopilotClient=lambda: provider))
+    monkeypatch.setitem(
+        sys.modules, "copilot.session", SimpleNamespace(PermissionHandler=SimpleNamespace(approve_all=object()))
+    )
 
 
 @pytest.fixture
@@ -96,7 +127,7 @@ class TestFeatureCodeGenerator:
 
     def test_init_defaults(self):
         gen = FeatureCodeGenerator()
-        assert gen.model == "gpt-5.2"
+        assert gen.model == "gpt-5.6-sol"
         assert gen.validate is True
         assert gen.verbose is False
 
@@ -236,8 +267,8 @@ class TestFeatureCodeGenerator:
         gen = FeatureCodeGenerator(validate=True, verbose=True)
         gen._client = mock_client
 
-        feature = gen.generate("ratio of age to income", column_info, sample_data=sample_df)
-        assert isinstance(feature, Feature)
+        with pytest.raises(ValueError, match="validation"):
+            gen.generate("ratio of age to income", column_info, sample_data=sample_df)
 
     # ---- generate_batch ------------------------------------------------------
 
@@ -421,7 +452,7 @@ class TestOpenAIClientConfig:
 
     def test_defaults(self):
         config = OpenAIClientConfig()
-        assert config.model == "gpt-4o"
+        assert config.model == "gpt-5.6-sol"
         assert config.temperature == 0.3
         assert config.max_tokens == 4096
         assert config.timeout == 60.0
@@ -533,7 +564,7 @@ class TestCopilotConfig:
 
     def test_defaults(self):
         config = CopilotConfig()
-        assert config.model == "gpt-5.2"
+        assert config.model == "gpt-5.6-sol"
         assert config.temperature == 0.3
         assert config.max_tokens == 4096
         assert config.timeout == 60.0
@@ -639,7 +670,7 @@ class TestSemanticEngineConfig:
     def test_defaults(self):
         config = SemanticEngineConfig()
         assert config.name == "SemanticEngine"
-        assert config.model == "gpt-5.2"
+        assert config.model == "gpt-5.6-sol"
         assert config.max_suggestions == 20
         assert config.validate_features is True
         assert config.domain is None
@@ -799,7 +830,7 @@ class TestTransformRuleGenerator:
 
     def test_init_defaults(self):
         gen = TransformRuleGenerator()
-        assert gen.model == "gpt-5.2"
+        assert gen.model == "gpt-5.6-sol"
         assert gen.validate is True
         assert gen.backend == "copilot"
         assert gen.store is None
@@ -1179,8 +1210,8 @@ class TestCopilotClientValidateEdgeCases:
             code="x = 42",
             sample_data={"a": [1, 2]},
         )
-        assert result["valid"] is True
-        assert any("result" in w for w in result["warnings"])
+        assert result["valid"] is False
+        assert "result" in result["error"]
         client.stop()
 
     def test_validate_without_sample_data(self):
@@ -1390,8 +1421,8 @@ class TestSyncOpenAIClientAllMethods:
             code="x = 42",
             sample_data={"a": [1, 2, 3]},
         )
-        assert result["valid"] is True
-        assert len(result["warnings"]) > 0
+        assert result["valid"] is False
+        assert "result" in result["error"]
         client.stop()
 
     def test_validate_runtime_error(self):
@@ -1424,7 +1455,7 @@ class TestLiteLLMConfig:
 
     def test_defaults(self):
         config = LiteLLMConfig()
-        assert config.model == "gpt-4o"
+        assert config.model == "gpt-5.6-sol"
         assert config.temperature == 0.3
         assert config.max_tokens == 4096
         assert config.timeout == 60.0
@@ -1638,8 +1669,8 @@ class TestSyncLiteLLMFeatureClient:
             code="x = 42",
             sample_data={"a": [1]},
         )
-        assert result["valid"] is True
-        assert any("result" in w for w in result["warnings"])
+        assert result["valid"] is False
+        assert "result" in result["error"]
         client.stop()
 
     def test_send_prompt_auto_start(self):
@@ -1721,8 +1752,8 @@ class TestSemanticEngineExtended:
         assert "age_squared" in result.columns
         assert (result["age_squared"] == sample_df["age"] ** 2).all()
 
-    def test_transform_feature_fails_gracefully(self, sample_df):
-        """Features with broken code should be silently skipped."""
+    def test_transform_feature_failure_is_explicit(self, sample_df):
+        """Broken fitted code must not silently change inference columns."""
         engine = SemanticEngine(validate_features=False, verbose=True)
         engine._is_fitted = True
         engine._text_features = []
@@ -1741,12 +1772,11 @@ class TestSemanticEngineExtended:
                 "source_columns": ["nonexistent_col"],
             },
         ]
-        result = engine.transform(sample_df)
-        assert "good_feature" in result.columns
-        assert "bad_feature" not in result.columns
+        with pytest.raises(ValueError, match="bad_feature"):
+            engine.transform(sample_df)
 
-    def test_transform_feature_no_code_skipped(self, sample_df):
-        """Features without code should be skipped."""
+    def test_transform_feature_no_code_raises(self, sample_df):
+        """Corrupted fitted rules without code are rejected."""
         engine = SemanticEngine(validate_features=False)
         engine._is_fitted = True
         engine._text_features = []
@@ -1754,8 +1784,8 @@ class TestSemanticEngineExtended:
         engine._suggested_features = [
             {"name": "no_code_feat", "code": "", "explanation": "empty", "source_columns": ["age"]},
         ]
-        result = engine.transform(sample_df)
-        assert "no_code_feat" not in result.columns
+        with pytest.raises(ValueError, match="no_code_feat"):
+            engine.transform(sample_df)
 
     def test_fit_with_validation(self, sample_df):
         """Test fit with validate_features=True."""
@@ -1925,8 +1955,8 @@ class TestSemanticEngineExtended:
         assert "text" not in result.columns
         assert "text_len" in result.columns
 
-    def test_transform_text_feature_fails_gracefully(self):
-        """Text features with broken code are skipped."""
+    def test_transform_text_feature_failure_is_explicit(self):
+        """Text features obey the same inference schema contract."""
         engine = SemanticEngine(validate_features=False, verbose=True)
         engine._is_fitted = True
         engine._text_columns = []
@@ -1941,11 +1971,11 @@ class TestSemanticEngineExtended:
             },
         ]
         df = pd.DataFrame({"num": [1, 2, 3]})
-        result = engine.transform(df)
-        assert "broken_text" not in result.columns
+        with pytest.raises(ValueError, match="broken_text"):
+            engine.transform(df)
 
-    def test_transform_text_feature_no_code_skipped(self):
-        """Text features without code are skipped."""
+    def test_transform_text_feature_no_code_raises(self):
+        """Corrupted fitted text rules without code are rejected."""
         engine = SemanticEngine(validate_features=False)
         engine._is_fitted = True
         engine._text_columns = []
@@ -1954,18 +1984,19 @@ class TestSemanticEngineExtended:
             {"name": "empty_code", "code": "", "explanation": "no code", "source_columns": [], "is_text_feature": True},
         ]
         df = pd.DataFrame({"a": [1, 2]})
-        result = engine.transform(df)
-        assert "empty_code" not in result.columns
+        with pytest.raises(ValueError, match="empty_code"):
+            engine.transform(df)
 
-    def test_fit_suggest_features_exception_handled(self, sample_df):
-        """When suggest_features raises, fit still completes."""
+    def test_fit_suggest_features_exception_propagates(self, sample_df):
+        """Provider errors must not be represented as a successful fit."""
         engine = SemanticEngine(validate_features=False, verbose=True)
         mock_cl = MagicMock()
         mock_cl.suggest_features.side_effect = RuntimeError("LLM failed")
         engine._client = mock_cl
 
-        engine.fit(sample_df, task_description="test")
-        assert engine._is_fitted is True
+        with pytest.raises(RuntimeError, match="LLM failed"):
+            engine.fit(sample_df, task_description="test")
+        assert engine._is_fitted is False
         assert engine._suggested_features == []
 
     def test_fit_with_column_descriptions(self, sample_df):
@@ -2547,8 +2578,8 @@ class TestCopilotClientSDKCompatibility:
 
         import asyncio
 
-        result = asyncio.run(client.send_prompt("hi"))
-        assert "timed out" in result.lower()
+        with pytest.raises(TimeoutError, match="timed out"):
+            asyncio.run(client.send_prompt("hi"))
 
     def test_send_prompt_handles_asyncio_timeout_error(self):
         """``send_prompt`` must also catch ``asyncio.TimeoutError`` — on
@@ -2572,8 +2603,8 @@ class TestCopilotClientSDKCompatibility:
         client._is_started = True
         client._copilot_available = True
 
-        result = asyncio.run(client.send_prompt("hi"))
-        assert "timed out" in result.lower()
+        with pytest.raises(TimeoutError, match="timed out"):
+            asyncio.run(client.send_prompt("hi"))
 
     def test_send_prompt_handles_concurrent_futures_timeout_error(self):
         """``concurrent.futures.TimeoutError`` is what some thread/process
@@ -2594,8 +2625,8 @@ class TestCopilotClientSDKCompatibility:
 
         import asyncio
 
-        result = asyncio.run(client.send_prompt("hi"))
-        assert "timed out" in result.lower()
+        with pytest.raises(TimeoutError, match="timed out"):
+            asyncio.run(client.send_prompt("hi"))
 
 
 # ---------------------------------------------------------------------------

@@ -224,7 +224,7 @@ class TimeSeriesEngine(BaseEngine):
 
     def _extract_basic_stats(self, series: np.ndarray, col: str) -> dict[str, float]:
         """Extract basic statistical features."""
-        features = {}
+        features: dict[str, float] = {}
         prefix = col
 
         if len(series) == 0:
@@ -252,7 +252,7 @@ class TimeSeriesEngine(BaseEngine):
         """Extract distribution-based features."""
         from scipy import stats
 
-        features = {}
+        features: dict[str, float] = {}
         prefix = col
 
         if len(series) < 4:
@@ -278,7 +278,7 @@ class TimeSeriesEngine(BaseEngine):
 
     def _extract_autocorrelation(self, series: np.ndarray, col: str) -> dict[str, float]:
         """Extract autocorrelation features."""
-        features = {}
+        features: dict[str, float] = {}
         prefix = col
 
         if len(series) < self.config.n_autocorr_lags + 1:
@@ -305,7 +305,7 @@ class TimeSeriesEngine(BaseEngine):
         """Extract peak and trough related features."""
         from scipy.signal import find_peaks
 
-        features = {}
+        features: dict[str, float] = {}
         prefix = col
 
         if len(series) < 3:
@@ -334,7 +334,7 @@ class TimeSeriesEngine(BaseEngine):
 
     def _extract_trends(self, series: np.ndarray, col: str) -> dict[str, float]:
         """Extract trend-related features."""
-        features = {}
+        features: dict[str, float] = {}
         prefix = col
 
         if len(series) < 2:
@@ -365,7 +365,7 @@ class TimeSeriesEngine(BaseEngine):
 
     def _extract_rolling(self, series: np.ndarray, col: str) -> dict[str, float]:
         """Extract rolling window features."""
-        features = {}
+        features: dict[str, float] = {}
         prefix = col
 
         series_clean = series[~np.isnan(series)]
@@ -386,7 +386,7 @@ class TimeSeriesEngine(BaseEngine):
 
     def _extract_fft(self, series: np.ndarray, col: str) -> dict[str, float]:
         """Extract FFT (frequency domain) features."""
-        features = {}
+        features: dict[str, float] = {}
         prefix = col
 
         series_clean = series[~np.isnan(series)]
@@ -414,7 +414,7 @@ class TimeSeriesEngine(BaseEngine):
 
     def _extract_entropy(self, series: np.ndarray, col: str) -> dict[str, float]:
         """Extract entropy-based features (tsfresh-inspired)."""
-        features = {}
+        features: dict[str, float] = {}
         prefix = col
 
         series_clean = series[~np.isnan(series)]
@@ -470,7 +470,7 @@ class TimeSeriesEngine(BaseEngine):
         if a == 0 or b == 0:
             return 0
 
-        return -np.log(b / a)
+        return float(-np.log(b / a))
 
     def _approximate_entropy(self, series: np.ndarray, m: int = 2, r: float = 0.2) -> float:
         """Compute approximate entropy of a time series."""
@@ -482,7 +482,7 @@ class TimeSeriesEngine(BaseEngine):
         if r == 0:
             return 0
 
-        def _phi(m_val):
+        def _phi(m_val: int) -> float:
             patterns = np.array([series[i : i + m_val] for i in range(n - m_val + 1)])
             counts = np.zeros(len(patterns))
             for i, pattern in enumerate(patterns):
@@ -490,13 +490,13 @@ class TimeSeriesEngine(BaseEngine):
                     if np.max(np.abs(pattern - other)) < r:
                         counts[i] += 1
             counts = counts / len(patterns)
-            return np.sum(np.log(counts + 1e-10)) / len(patterns)
+            return float(np.sum(np.log(counts + 1e-10)) / len(patterns))
 
         return _phi(m) - _phi(m + 1)
 
     def _extract_energy(self, series: np.ndarray, col: str) -> dict[str, float]:
         """Extract energy-based features (tsfresh-inspired)."""
-        features = {}
+        features: dict[str, float] = {}
         prefix = col
 
         series_clean = series[~np.isnan(series)]
@@ -526,7 +526,7 @@ class TimeSeriesEngine(BaseEngine):
 
     def _extract_complexity(self, series: np.ndarray, col: str) -> dict[str, float]:
         """Extract complexity features (tsfresh-inspired)."""
-        features = {}
+        features: dict[str, float] = {}
         prefix = col
 
         series_clean = series[~np.isnan(series)]
@@ -560,10 +560,12 @@ class TimeSeriesEngine(BaseEngine):
         # Sum of reoccurring values
         unique, counts = np.unique(series_clean, return_counts=True)
         reoccurring_mask = counts > 1
-        features[f"{prefix}_sum_reoccurring_values"] = np.sum(unique[reoccurring_mask] * counts[reoccurring_mask])
+        features[f"{prefix}_sum_reoccurring_values"] = float(
+            np.sum(unique[reoccurring_mask] * counts[reoccurring_mask])
+        )
 
         # Sum of reoccurring data points
-        features[f"{prefix}_sum_reoccurring_data_points"] = np.sum(counts[reoccurring_mask])
+        features[f"{prefix}_sum_reoccurring_data_points"] = float(np.sum(counts[reoccurring_mask]))
 
         # Percentage of reoccurring data points
         features[f"{prefix}_pct_reoccurring_data_points"] = np.sum(counts[reoccurring_mask]) / len(series_clean)
@@ -572,7 +574,7 @@ class TimeSeriesEngine(BaseEngine):
 
     def _extract_counts(self, series: np.ndarray, col: str) -> dict[str, float]:
         """Extract count-based features (tsfresh-inspired)."""
-        features = {}
+        features: dict[str, float] = {}
         prefix = col
 
         series_clean = series[~np.isnan(series)]

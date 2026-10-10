@@ -1,0 +1,187 @@
+{
+  "reference_results_sha256": "90f3fbb180391ee5c19ddf48fb1447c4680c79de5aa8a311e809e2b2fd1aaa05",
+  "reference_runtime_source_sha256": "6cdc6ab5021ca277e467b62183127f011b87229ffab8c540daf46d46d9986670",
+  "current_runtime_source_sha256": "480771e10faab397f544056737ec39a70828c4e4d1366527fd1a76d21a576ac0",
+  "identical_versions": true,
+  "checks": [
+    {
+      "dataset": "uci-chronic-kidney-disease",
+      "fold": 0,
+      "method": "featcopilot-importance-paired",
+      "different_fields": [],
+      "loss_difference": 0.0
+    },
+    {
+      "dataset": "uci-german-credit",
+      "fold": 0,
+      "method": "baseline",
+      "different_fields": [],
+      "loss_difference": 0.0
+    },
+    {
+      "dataset": "uci-german-credit",
+      "fold": 0,
+      "method": "featcopilot-importance-paired",
+      "different_fields": [],
+      "loss_difference": 0.0
+    },
+    {
+      "dataset": "uci-banknote-authentication",
+      "fold": 0,
+      "method": "baseline",
+      "different_fields": [],
+      "loss_difference": 0.0
+    },
+    {
+      "dataset": "uci-banknote-authentication",
+      "fold": 0,
+      "method": "featcopilot-importance-paired",
+      "different_fields": [],
+      "loss_difference": 0.0
+    },
+    {
+      "dataset": "uci-chronic-kidney-disease",
+      "fold": 0,
+      "method": "baseline",
+      "different_fields": [],
+      "loss_difference": 0.0
+    },
+    {
+      "dataset": "uci-banknote-authentication",
+      "fold": 1,
+      "method": "featcopilot-importance-paired",
+      "different_fields": [],
+      "loss_difference": 0.0
+    },
+    {
+      "dataset": "uci-chronic-kidney-disease",
+      "fold": 1,
+      "method": "featcopilot-importance-paired",
+      "different_fields": [],
+      "loss_difference": 0.0
+    },
+    {
+      "dataset": "uci-chronic-kidney-disease",
+      "fold": 1,
+      "method": "baseline",
+      "different_fields": [],
+      "loss_difference": 0.0
+    },
+    {
+      "dataset": "uci-german-credit",
+      "fold": 1,
+      "method": "baseline",
+      "different_fields": [],
+      "loss_difference": 0.0
+    },
+    {
+      "dataset": "uci-german-credit",
+      "fold": 1,
+      "method": "featcopilot-importance-paired",
+      "different_fields": [],
+      "loss_difference": 0.0
+    },
+    {
+      "dataset": "uci-banknote-authentication",
+      "fold": 1,
+      "method": "baseline",
+      "different_fields": [],
+      "loss_difference": 0.0
+    },
+    {
+      "dataset": "uci-chronic-kidney-disease",
+      "fold": 2,
+      "method": "baseline",
+      "different_fields": [],
+      "loss_difference": 0.0
+    },
+    {
+      "dataset": "uci-banknote-authentication",
+      "fold": 2,
+      "method": "baseline",
+      "different_fields": [],
+      "loss_difference": 0.0
+    },
+    {
+      "dataset": "uci-banknote-authentication",
+      "fold": 2,
+      "method": "featcopilot-importance-paired",
+      "different_fields": [],
+      "loss_difference": 0.0
+    },
+    {
+      "dataset": "uci-chronic-kidney-disease",
+      "fold": 2,
+      "method": "featcopilot-importance-paired",
+      "different_fields": [],
+      "loss_difference": 0.0
+    },
+    {
+      "dataset": "uci-german-credit",
+      "fold": 2,
+      "method": "baseline",
+      "different_fields": [],
+      "loss_difference": 0.0
+    },
+    {
+      "dataset": "uci-german-credit",
+      "fold": 2,
+      "method": "featcopilot-importance-paired",
+      "different_fields": [],
+      "loss_difference": 0.0
+    }
+  ],
+  "timings": [
+    {
+      "dataset": "uci-banknote-authentication",
+      "timing_seconds": {
+        "inner_fe_seconds": {
+          "before": 96.5801340000083,
+          "after": 1.7241945333080366
+        },
+        "outer_fe_seconds": {
+          "before": 0.7062878000239531,
+          "after": 0.5609601000323892
+        },
+        "pipeline_seconds": {
+          "before": 97.39025849996445,
+          "after": 2.3873363666546843
+        }
+      }
+    },
+    {
+      "dataset": "uci-chronic-kidney-disease",
+      "timing_seconds": {
+        "inner_fe_seconds": {
+          "before": 98.3817304999878,
+          "after": 3.415782833316674
+        },
+        "outer_fe_seconds": {
+          "before": 2.973764166701585,
+          "after": 2.3731527333147824
+        },
+        "pipeline_seconds": {
+          "before": 102.09293976674478,
+          "after": 6.515031233352299
+        }
+      }
+    },
+    {
+      "dataset": "uci-german-credit",
+      "timing_seconds": {
+        "inner_fe_seconds": {
+          "before": 99.68490259997391,
+          "after": 3.83536399997926
+        },
+        "outer_fe_seconds": {
+          "before": 3.6168562332944325,
+          "after": 3.0791847666647905
+        },
+        "pipeline_seconds": {
+          "before": 103.80101089994423,
+          "after": 7.406831766633938
+        }
+      }
+    }
+  ]
+}

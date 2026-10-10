@@ -142,6 +142,8 @@ class RedundancyEliminator(BaseSelector):
 
     def _find_redundant_features(self, columns: list[str], non_numeric_cols: list[str]) -> None:
         """Identify and mark redundant features for removal."""
+        if self._correlation_matrix is None:
+            raise RuntimeError("Correlations must be computed before finding redundant features")
         to_remove: set[str] = set()
         checked_pairs: set[tuple] = set()
 

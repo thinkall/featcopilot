@@ -1,0 +1,20 @@
+{
+  "name": "inria-tabular-development-v1",
+  "source": "https://huggingface.co/datasets/inria-soda/tabular-benchmark",
+  "revision": "8d0ff9103525b7e3579b180230fddb3186258301",
+  "purpose": "Fixed development subset, not the full published benchmark or a held-out SOTA evaluation.",
+  "datasets": [
+    {"name": "magic", "path": "clf_num/MagicTelescope.csv", "target": "class", "task": "classification", "openml_id": 44125, "categorical": []},
+    {"name": "bank", "path": "clf_num/bank-marketing.csv", "target": "Class", "task": "classification", "openml_id": 44126, "categorical": []},
+    {"name": "credit", "path": "clf_num/credit.csv", "target": "SeriousDlqin2yrs", "task": "classification", "openml_id": 44089, "categorical": []},
+    {"name": "heloc", "path": "clf_num/heloc.csv", "target": "RiskPerformance", "task": "classification", "openml_id": 45026, "categorical": []},
+    {"name": "credit_default", "path": "clf_num/default-of-credit-card-clients.csv", "target": "y", "task": "classification", "openml_id": 45020, "categorical": []},
+    {"name": "eye_movements", "path": "clf_cat/eye_movements.csv", "target": "label", "task": "classification", "openml_id": 44157, "categorical": ["P1stFixation", "P2stFixation", "nextWordRegress"]},
+    {"name": "cpu", "path": "reg_num/cpu_act.csv", "target": "usr", "task": "regression", "openml_id": 44132, "categorical": []},
+    {"name": "wine", "path": "reg_num/wine_quality.csv", "target": "quality", "task": "regression", "openml_id": 44136, "categorical": []},
+    {"name": "houses", "path": "reg_num/houses.csv", "target": "medianhousevalue", "task": "regression", "openml_id": 44138, "categorical": []},
+    {"name": "elevators", "path": "reg_num/elevators.csv", "target": "Goal", "task": "regression", "openml_id": 44134, "categorical": []},
+    {"name": "abalone", "path": "reg_cat/abalone.csv", "target": "Classnumberofrings", "task": "regression", "openml_id": 45042, "categorical": ["Sex"]},
+    {"name": "diamonds", "path": "reg_cat/diamonds.csv", "target": "price", "task": "regression", "openml_id": 44059, "categorical": ["cut", "color", "clarity"]}
+  ]
+}

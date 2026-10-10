@@ -1,5 +1,7 @@
 """Tests for feature selection."""
 
+import warnings
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -59,6 +61,19 @@ class TestStatisticalSelector:
         scores = selector.get_feature_scores()
         # Relevant features should have higher correlation
         assert scores["relevant1"] > scores["noise1"] or scores["relevant2"] > scores["noise2"]
+
+    def test_correlation_constant_data_has_zero_score_without_runtime_warning(self):
+        """Constant features or targets should produce zero instead of divide warnings."""
+        X = pd.DataFrame({"constant": np.zeros(20), "varying": np.arange(20, dtype=float)})
+        y = np.ones(20)
+        selector = StatisticalSelector(method="correlation")
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            selector.fit(X, y)
+
+        assert selector.get_feature_scores() == {"constant": 0.0, "varying": 0.0}
+        assert not [warning for warning in caught if issubclass(warning.category, RuntimeWarning)]
 
 
 class TestImportanceSelector:

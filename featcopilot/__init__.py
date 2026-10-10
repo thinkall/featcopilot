@@ -17,6 +17,7 @@ __author__ = "FeatCopilot Contributors"
 
 from featcopilot.core.base import BaseEngine, BaseSelector
 from featcopilot.core.feature import Feature, FeatureSet
+from featcopilot.core.fitted_rule import FittedRulePlan, FittedRuleSpec
 from featcopilot.core.transform_rule import TransformRule
 from featcopilot.llm.transform_rule_generator import TransformRuleGenerator
 from featcopilot.stores.rule_store import TransformRuleStore
@@ -33,6 +34,8 @@ __all__ = [
     "FeatureSet",
     # Transform Rules
     "TransformRule",
+    "FittedRuleSpec",
+    "FittedRulePlan",
     "TransformRuleStore",
     "TransformRuleGenerator",
     # Main API

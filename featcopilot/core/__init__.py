@@ -2,6 +2,7 @@
 
 from featcopilot.core.base import BaseEngine, BaseSelector
 from featcopilot.core.feature import Feature, FeatureSet
+from featcopilot.core.fitted_rule import FittedRulePlan, FittedRuleSpec
 from featcopilot.core.registry import FeatureRegistry
 from featcopilot.core.transform_rule import TransformRule
 
@@ -12,4 +13,6 @@ __all__ = [
     "FeatureSet",
     "FeatureRegistry",
     "TransformRule",
+    "FittedRuleSpec",
+    "FittedRulePlan",
 ]

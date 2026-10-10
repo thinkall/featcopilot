@@ -1,0 +1,11 @@
+{
+  "native_threads": 8,
+  "synthetic_safety_test_process_seconds": 29.5925588,
+  "entire_audit_process_seconds": 911.2343309,
+  "started_utc": "2026-09-29T08:24:33.7867883+00:00",
+  "whole_wall_ceiling_seconds": 1500,
+  "report_reserve_seconds": 60,
+  "exit_code": 0,
+  "finished_utc": "2026-09-29T08:39:45.0425160+00:00",
+  "includes": "Interpreter startup, preparation,24 requested benchmark cells,validation,summary and bounded archive writing"
+}

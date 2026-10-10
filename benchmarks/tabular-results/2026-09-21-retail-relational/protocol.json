@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "role": "development",
+  "dataset": "uci-online-retail-352",
+  "task": "next_7_day_net_line_item_spend_returning_customers",
+  "source": "https://archive.ics.uci.edu/dataset/352/online+retail",
+  "data_url": "https://archive.ics.uci.edu/static/public/352/data.csv",
+  "attribution": "Daqing Chen, Online Retail, UCI, DOI:10.24432/C5BW33",
+  "license": "CC BY 4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/legalcode",
+  "config": {
+    "customers": 200,
+    "threads": 8,
+    "case_timeout": 480.0,
+    "total_seconds": 7000.0,
+    "memory_limit_mb": 4096
+  },
+  "seed": 42,
+  "cohort": "Uniform seeded sample of sorted unique cleaned December 2010 CustomerIDs, no future filtering",
+  "cohort_start": "2010-12-01T00:00:00",
+  "cohort_end_exclusive": "2011-01-01T00:00:00",
+  "cutoffs": "Mondays 2011-01-03 through 2011-12-05, dropping label ends after coverage_end",
+  "coverage_end_exclusive": "2011-12-09T00:00:00",
+  "label": "Sum Quantity*UnitPrice in [cutoff, cutoff+7 days), zero if no recorded line items",
+  "availability": "Invoice-generated time assumed immediately available; no posting-delay metadata",
+  "clock": "Unshifted source wall clock; UTC normalization is arithmetic only, not a timezone claim",
+  "duplicates": "Retain all exact duplicate records; no source line-item key resolves legitimate repeats",
+  "refunds": "Keep signed Quantity including cancellations; do not flip signs using InvoiceNo",
+  "missing_history": "Empty count/sum = 0; other aggregates missing; train-only median/zero imputation",
+  "outer": "3 expanding forward folds via make_cv_splits; entire equal-time blocks retained",
+  "inner": "1 forward 25% holdout per outer train via make_holdout_splits; 3 HPO candidates",
+  "purge": "Training label_end_times must be strictly before validation cutoff; equality is purged",
+  "entity_scope": "Same-customer future-period prediction, not unseen-entity transfer",
+  "methods": [
+    "simple_history",
+    "expanded_pit"
+  ],
+  "method_description": "Fixed relational aggregation library; no learned feature or multi-hop discovery",
+  "precomputation": "Label-free PIT features are computed once; each query independently excludes all later rows",
+  "timing": "Shared PIT preparation counts toward the total budget; per-cell FE time measures only train-only imputation",
+  "windows_days": [
+    7,
+    30,
+    90
+  ],
+  "aggregations": [
+    "count",
+    "sum",
+    "mean",
+    "std",
+    "max",
+    "last"
+  ],
+  "std": "Population standard deviation (ddof=0)",
+  "last_ties": "Stable original CSV row order for equal invoice timestamps",
+  "learners": [
+    "linear",
+    "lightgbm"
+  ],
+  "candidate_parameters": {
+    "linear": [
+      {
+        "regularization": 0.1
+      },
+      {
+        "regularization": 1.0
+      },
+      {
+        "regularization": 10.0
+      }
+    ],
+    "lightgbm": [
+      {
+        "num_leaves": 7
+      },
+      {
+        "num_leaves": 15
+      },
+      {
+        "num_leaves": 31
+      }
+    ]
+  },
+  "primary_metric": "RMSE in recorded sterling net line-item spend (lower is better)",
+  "secondary_metrics": [
+    "MAE",
+    "R2"
+  ],
+  "expected_cells": 12,
+  "max_model_fits": 48,
+  "interpretation": [
+    "Recorded net spend is a proxy, not profit, invoice totals, or complete customer purchasing activity.",
+    "Zero means no qualifying recorded spend, not proof of no purchases.",
+    "Source coverage boundaries are provider dates, not inferred from sampled customer activity.",
+    "Historical prefix includes December 2010; early 90-day windows are necessarily left-truncated.",
+    "Known line items may update between query cutoffs within a held-out block; models do not refit.",
+    "One small preselected cohort, one seed, one source; no population or multi-dataset claims.",
+    "Repeated-customer/time errors are dependent; fold summaries are descriptive, not IID intervals."
+  ]
+}

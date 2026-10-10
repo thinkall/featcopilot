@@ -1,0 +1,4 @@
+# Benchmark provenance and archive reconstruction depend on exact file bytes.
+benchmarks/families.json -text
+benchmarks/suites/*.json -text
+benchmarks/tabular-results/** -text

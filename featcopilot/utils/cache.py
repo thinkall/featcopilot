@@ -228,7 +228,10 @@ class FeatureCache:
             if meta_path.exists():
                 try:
                     with open(meta_path) as f:
-                        return json.load(f)
+                        metadata = json.load(f)
+                    if not isinstance(metadata, dict):
+                        raise ValueError("Cache metadata must be a JSON object")
+                    return metadata
                 except Exception as exc:  # noqa: BLE001 - we re-surface via logger
                     # Same rationale as the cache-read path: a corrupted
                     # metadata file should fall back to "no metadata

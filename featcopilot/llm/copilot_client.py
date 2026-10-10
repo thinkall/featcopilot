@@ -4,17 +4,27 @@ Provides a simplified interface to the Copilot SDK specifically
 designed for feature engineering tasks.
 """
 
+from __future__ import annotations
+
 import asyncio
 import concurrent.futures
 import json
-from typing import Any
+from collections.abc import Coroutine
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from pydantic import BaseModel, Field
 
+from featcopilot.llm._execution import validate_feature_code
+from featcopilot.llm._types import feature_suggestions
 from featcopilot.utils.logger import get_logger
 from featcopilot.utils.models import DEFAULT_MODEL
 
+if TYPE_CHECKING:
+    from copilot import CopilotClient
+    from copilot.session import CopilotSession
+
 logger = get_logger(__name__)
+_T = TypeVar("_T")
 
 
 class CopilotConfig(BaseModel):
@@ -22,8 +32,8 @@ class CopilotConfig(BaseModel):
 
     model: str = Field(default=DEFAULT_MODEL, description="Model to use")
     temperature: float = Field(default=0.3, ge=0, le=1, description="Temperature for generation")
-    max_tokens: int = Field(default=4096, description="Maximum tokens in response")
-    timeout: float = Field(default=60.0, description="Timeout in seconds")
+    max_tokens: int = Field(default=4096, gt=0, description="Legacy setting; not supported by the SDK session API")
+    timeout: float = Field(default=60.0, gt=0, description="Timeout in seconds")
     streaming: bool = Field(default=False, description="Enable streaming responses")
 
 
@@ -58,12 +68,12 @@ class CopilotFeatureClient:
 
     def __init__(self, config: CopilotConfig | None = None, model: str = DEFAULT_MODEL, **kwargs):
         self.config = config or CopilotConfig(model=model, **kwargs)
-        self._client = None
-        self._session = None
+        self._client: CopilotClient | None = None
+        self._session: CopilotSession | None = None
         self._is_started = False
         self._copilot_available = False
 
-    async def start(self) -> "CopilotFeatureClient":
+    async def start(self) -> CopilotFeatureClient:
         """
         Start the Copilot client.
 
@@ -71,6 +81,10 @@ class CopilotFeatureClient:
         -------
         self : CopilotFeatureClient
         """
+        if self._is_started:
+            return self
+        if self.config.temperature != 0.3 or self.config.max_tokens != 4096:
+            logger.warning("Copilot SDK sessions do not support temperature or max_tokens; these settings are ignored")
         try:
             from copilot import CopilotClient
             from copilot.session import PermissionHandler
@@ -92,22 +106,25 @@ class CopilotFeatureClient:
             self._copilot_available = True
 
         except ImportError:
-            # Copilot SDK not installed - use mock mode
             self._copilot_available = False
-            self._is_started = True
-            logger.warning("copilot-sdk not installed. Using mock LLM responses.")
+            self._is_started = False
+            logger.error("Copilot SDK is unavailable. Install featcopilot[llm].")
+            raise
 
         except Exception as e:
-            # Copilot not available - use mock mode
             self._copilot_available = False
-            self._is_started = True
-            logger.warning(f"Could not connect to Copilot: {e}. Using mock LLM responses.")
+            self._is_started = False
+            logger.error(f"Could not connect to Copilot: {e}")
+            if self._client is not None:
+                await self._client.stop()
+                self._client = None
+            raise
 
         return self
 
     async def stop(self) -> None:
         """Stop the Copilot client."""
-        if self._session and self._copilot_available:
+        if self._session:
             # ``destroy()`` was renamed to ``disconnect()`` in the
             # Copilot SDK 0.3.x; ``destroy()`` still works but emits a
             # ``DeprecationWarning``. Prefer the new name with a fallback
@@ -117,9 +134,12 @@ class CopilotFeatureClient:
                 await disconnect()
             else:
                 await self._session.destroy()
-        if self._client and self._copilot_available:
+        if self._client:
             await self._client.stop()
         self._is_started = False
+        self._copilot_available = False
+        self._session = None
+        self._client = None
 
     async def send_prompt(self, prompt: str) -> str:
         """
@@ -138,8 +158,8 @@ class CopilotFeatureClient:
         if not self._is_started:
             await self.start()
 
-        if not self._copilot_available:
-            return self._mock_response(prompt)
+        if not self._copilot_available or self._session is None:
+            raise RuntimeError("Copilot client has no active session")
 
         # Use the SDK's ``send_and_wait`` helper which handles the
         # send-prompt → wait-for-session.idle → return-assistant-message
@@ -159,22 +179,20 @@ class CopilotFeatureClient:
         #   bridges surface; cheap to include.
         try:
             event = await self._session.send_and_wait(prompt, timeout=self.config.timeout)
-        except (TimeoutError, asyncio.TimeoutError, concurrent.futures.TimeoutError):
-            return "Error: Request timed out"
+        except (TimeoutError, asyncio.TimeoutError, concurrent.futures.TimeoutError) as error:
+            raise TimeoutError(f"Copilot request timed out after {self.config.timeout} seconds") from error
 
         if event is None:
-            return ""
-        # ``event.data`` is an ``AssistantMessageData`` with a ``content``
-        # attribute. Fall back to ``str(event.data)`` for unfamiliar
-        # event shapes (defensive — should never trigger in practice).
+            raise ValueError("Copilot returned an empty response")
+        # ``event.data`` is an ``AssistantMessageData`` with a text ``content`` attribute.
         data = getattr(event, "data", None)
         content = getattr(data, "content", None)
-        if content is None and data is not None:
-            content = str(data)
-        return content or ""
+        if not isinstance(content, str) or not content.strip():
+            raise ValueError("Copilot returned an empty or non-text response")
+        return content
 
     def _mock_response(self, prompt: str) -> str:
-        """Generate mock response when Copilot is unavailable."""
+        """Generate synthetic responses for explicit test doubles only."""
         # Extract column names from prompt if available
         import re
 
@@ -307,6 +325,10 @@ TASK: Suggest {max_suggestions} new features for the following machine learning 
 2. Provide Python code using pandas (assume df is the DataFrame)
 3. Explain why each feature might be useful
 4. Consider interactions, ratios, and domain-specific transformations
+5. Assign a one-dimensional result to `result`, retaining the input row index
+6. Use row-wise transformations only: do not recompute dataset/group statistics,
+   quantile bins, ranks, or learned mappings from the inference batch
+7. Do not mutate df; np and pd are available, without imports
 
 ## Output Format
 Return a JSON object with a "features" array, each element having:
@@ -342,7 +364,7 @@ Return ONLY the JSON object, no other text.
                 response = "\n".join(lines[1:-1])
 
             data = json.loads(response)
-            return data.get("features", [])
+            return feature_suggestions(data)
 
         except json.JSONDecodeError:
             # Try to extract JSON substring
@@ -352,10 +374,11 @@ Return ONLY the JSON object, no other text.
             if json_match:
                 try:
                     data = json.loads(json_match.group())
-                    return data.get("features", [])
+                    return feature_suggestions(data)
                 except json.JSONDecodeError:
                     pass
 
+            logger.warning("Copilot returned invalid feature suggestion JSON")
             return []
 
     async def explain_feature(
@@ -463,6 +486,8 @@ result = df['col1'] / (df['col2'] + 1e-8)
                     code_lines.append(line)
             code = "\n".join(code_lines)
 
+        if not code.strip():
+            raise ValueError("Copilot returned an empty code response")
         return code
 
     async def validate_feature_code(self, code: str, sample_data: dict[str, list] | None = None) -> dict[str, Any]:
@@ -481,116 +506,42 @@ result = df['col1'] / (df['col2'] + 1e-8)
         result : dict
             Validation result with 'valid', 'error', and 'warnings' keys
         """
-        import numpy as np
-        import pandas as pd
-
-        result = {"valid": True, "error": None, "warnings": []}
-
-        # Syntax check
-        try:
-            compile(code, "<string>", "exec")
-        except SyntaxError as e:
-            result["valid"] = False
-            result["error"] = f"Syntax error: {e}"
-            return result
-
-        # Runtime check with sample data
-        if sample_data:
-            try:
-                df = pd.DataFrame(sample_data)
-                local_vars = {"df": df, "np": np, "pd": pd}
-                exec(
-                    code,
-                    {
-                        "__builtins__": {
-                            "len": len,
-                            "sum": sum,
-                            "max": max,
-                            "min": min,
-                            "int": int,
-                            "float": float,
-                            "str": str,
-                            "bool": bool,
-                            "abs": abs,
-                            "round": round,
-                            "pow": pow,
-                            "range": range,
-                            "list": list,
-                            "dict": dict,
-                            "set": set,
-                            "tuple": tuple,
-                            "sorted": sorted,
-                            "reversed": reversed,
-                            "enumerate": enumerate,
-                            "zip": zip,
-                            "any": any,
-                            "all": all,
-                            "map": map,
-                            "filter": filter,
-                            "isinstance": isinstance,
-                            "hasattr": hasattr,
-                            "getattr": getattr,
-                        }
-                    },
-                    local_vars,
-                )
-
-                if "result" not in local_vars:
-                    result["warnings"].append("Code does not assign to 'result' variable")
-
-            except Exception as e:
-                result["valid"] = False
-                result["error"] = f"Runtime error: {e}"
-
-        return result
+        return validate_feature_code(code, sample_data)
 
 
 # Synchronous wrapper for non-async contexts
 class SyncCopilotFeatureClient:
     """Synchronous wrapper for CopilotFeatureClient."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         self._async_client = CopilotFeatureClient(**kwargs)
-        self._loop = None
+        self._loop: asyncio.AbstractEventLoop | None = None
 
-    def _get_or_create_loop(self):
+    def _get_or_create_loop(self) -> asyncio.AbstractEventLoop:
         """Get or create a persistent event loop for this client."""
         if self._loop is None or self._loop.is_closed():
             self._loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self._loop)
         return self._loop
 
-    def _run_async(self, coro):
+    def _run_async(self, coro: Coroutine[Any, Any, _T]) -> _T:
         """Run an async coroutine, handling various event loop scenarios."""
         try:
-            # First, try to get the running loop
-            try:
-                loop = asyncio.get_running_loop()
-                # We're in a running loop - use nest_asyncio if available
-                try:
-                    import nest_asyncio
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            return self._get_or_create_loop().run_until_complete(coro)
 
-                    nest_asyncio.apply()
-                    return loop.run_until_complete(coro)
-                except ImportError:
-                    # nest_asyncio not available, use thread pool
-                    import concurrent.futures
+        try:
+            import nest_asyncio
+        except ImportError:
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(self._run_in_new_loop, coro)
+                return future.result(timeout=120)
 
-                    with concurrent.futures.ThreadPoolExecutor() as executor:
-                        future = executor.submit(self._run_in_new_loop, coro)
-                        return future.result(timeout=120)
-            except RuntimeError:
-                # No running event loop - use our persistent loop
-                loop = self._get_or_create_loop()
-                return loop.run_until_complete(coro)
-        except Exception as e:
-            # Last resort - create a completely fresh loop
-            try:
-                return self._run_in_new_loop(coro)
-            except Exception:
-                raise e from None
+        nest_asyncio.apply()
+        return loop.run_until_complete(coro)
 
-    def _run_in_new_loop(self, coro):
+    def _run_in_new_loop(self, coro: Coroutine[Any, Any, _T]) -> _T:
         """Run coroutine in a fresh event loop."""
         loop = asyncio.new_event_loop()
         try:
@@ -599,28 +550,34 @@ class SyncCopilotFeatureClient:
         finally:
             loop.close()
 
-    def start(self):
+    def start(self) -> CopilotFeatureClient:
+        """Start the client."""
         return self._run_async(self._async_client.start())
 
-    def stop(self):
-        result = self._run_async(self._async_client.stop())
+    def stop(self) -> None:
+        """Stop the client and close its event loop."""
+        self._run_async(self._async_client.stop())
         # Close our loop if it exists
         if self._loop is not None and not self._loop.is_closed():
             self._loop.close()
             self._loop = None
-        return result
 
-    def suggest_features(self, **kwargs):
+    def suggest_features(self, **kwargs) -> list[dict[str, Any]]:
+        """Get feature suggestions."""
         return self._run_async(self._async_client.suggest_features(**kwargs))
 
-    def send_prompt(self, prompt: str):
+    def send_prompt(self, prompt: str) -> str:
+        """Send a prompt and get a response."""
         return self._run_async(self._async_client.send_prompt(prompt))
 
-    def explain_feature(self, **kwargs):
+    def explain_feature(self, **kwargs) -> str:
+        """Explain a feature."""
         return self._run_async(self._async_client.explain_feature(**kwargs))
 
-    def generate_feature_code(self, **kwargs):
+    def generate_feature_code(self, **kwargs) -> str:
+        """Generate feature code."""
         return self._run_async(self._async_client.generate_feature_code(**kwargs))
 
-    def validate_feature_code(self, code: str, sample_data=None):
+    def validate_feature_code(self, code: str, sample_data: dict[str, list] | None = None) -> dict[str, Any]:
+        """Validate feature code."""
         return self._run_async(self._async_client.validate_feature_code(code=code, sample_data=sample_data))

@@ -1,0 +1,126 @@
+{
+  "protocol": "regression_fixed_policy_replication_v1",
+  "declared_on": "2026-10-08",
+  "role": "development_replication",
+  "not_confirmation": true,
+  "primary_methods": {
+    "linear": "featcopilot-frequency-aligned-robust",
+    "lightgbm": "featcopilot-regression-average-robust"
+  },
+  "policy_selection": "Frozen after the seed42 development result: single FE dominated averaging on all nine linear family means; LightGBM averaging improved primary mean and family tails. This is a development-derived policy, not an independently confirmed default.",
+  "seeds": [137, 2029],
+  "primary_families": [
+    "concrete-strength",
+    "energy-efficiency",
+    "combined-cycle-power",
+    "real-estate-sindian",
+    "auto-mpg",
+    "wine-quality",
+    "california-housing"
+  ],
+  "stress_families": ["infrared-oral-temperature", "computer-hardware-performance"],
+  "stages": [
+    {
+      "name": "iid-linear",
+      "source_stage": "iid",
+      "datasets": [
+        "uci-concrete-strength", "uci-energy-efficiency", "uci-combined-cycle-power",
+        "uci-real-estate-sindian", "uci-auto-mpg", "wine", "houses", "infrared-oral-temperature"
+      ],
+      "learners": ["linear"],
+      "methods": ["baseline-robust", "featcopilot-frequency-aligned-robust"],
+      "folds": 3,
+      "split_policy": "iid",
+      "max_rows": 5000,
+      "budget_seconds": 6000,
+      "expected_cells": 96
+    },
+    {
+      "name": "iid-lightgbm",
+      "source_stage": "iid",
+      "datasets": [
+        "uci-concrete-strength", "uci-energy-efficiency", "uci-combined-cycle-power",
+        "uci-real-estate-sindian", "uci-auto-mpg", "wine", "houses", "infrared-oral-temperature"
+      ],
+      "learners": ["lightgbm"],
+      "methods": ["baseline-robust", "featcopilot-frequency-aligned-robust", "featcopilot-regression-average-robust"],
+      "folds": 3,
+      "split_policy": "iid",
+      "max_rows": 5000,
+      "budget_seconds": 12000,
+      "expected_cells": 144
+    },
+    {
+      "name": "hardware-linear",
+      "source_stage": "hardware-official",
+      "datasets": ["computer-hardware-performance"],
+      "learners": ["linear"],
+      "methods": ["baseline-robust", "featcopilot-frequency-aligned-robust"],
+      "folds": 10,
+      "split_policy": "official",
+      "max_rows": 0,
+      "budget_seconds": 3000,
+      "expected_cells": 40
+    },
+    {
+      "name": "hardware-lightgbm",
+      "source_stage": "hardware-official",
+      "datasets": ["computer-hardware-performance"],
+      "learners": ["lightgbm"],
+      "methods": ["baseline-robust", "featcopilot-frequency-aligned-robust", "featcopilot-regression-average-robust"],
+      "folds": 10,
+      "split_policy": "official",
+      "max_rows": 0,
+      "budget_seconds": 4200,
+      "expected_cells": 60
+    }
+  ],
+  "expected_cells": 340,
+  "expected_component_control_pairs": 136,
+  "threads": 8,
+  "case_timeout_seconds": 600,
+  "memory_limit_mb": 4096,
+  "max_candidates": 1000,
+  "max_added_features": 50,
+  "stability_repeats": 3,
+  "numeric_clip_quantiles": [0.0, 1.0],
+  "categorical_encoding": "one_hot",
+  "target_transform": "identity",
+  "weights": {"raw": 0.5, "fe": 0.5},
+  "combined_ceiling_seconds": 25200,
+  "prior_cycle_used_hours": 64.39349886077777,
+  "cycle_total_hours": 72,
+  "prior_llm_attempts": 96,
+  "new_llm_calls": 0,
+  "reference_run": "2026-10-08-regression-average-development",
+  "reference_source_sha256": "f94e23533f6b4e24a64542c6a307abaa09a0439ca084ad3632e07c4024c5a3f7",
+  "reference_source_archive_sha256": "9573260a69bad0703dee4f2290a93293320c3a7d4672de311982c0567905e8e9",
+  "allowed_added_source_files": ["benchmarks/suites/regression_policy_replication_20261008.json"],
+  "source_policy": "All prior source/archive members and dependency versions must match the seed42 study exactly; only this new protocol descriptor is added. Prepared data bytes must match the prior study. No algorithm, feature operator, cap, learner grid or weight change.",
+  "primary_metric": "RMSE",
+  "aggregation": "Report each seed and the two-seed pooled result. Average declared fold losses within each family before computing gains; keep primary and each stress family separate. Seeds/folds are not independent datasets.",
+  "required_parity_fields": [
+    "outer_prediction_sha256", "outer_feature_names_sha256", "parameters", "inner_losses",
+    "n_output_features", "loss", "r2", "mae"
+  ],
+  "followup_criteria": {
+    "complete_declared_coverage_required": true,
+    "component_control_parity_required": true,
+    "positive_primary_mean_gain_vs_raw_required_per_learner": true,
+    "maximum_family_relative_rmse_increase_vs_raw": 0.05,
+    "apply_to_each_seed_and_pooled": true,
+    "apply_harm_limit_to_each_stress_family_separately": true,
+    "individual_fold_harms_must_be_reported": true,
+    "automatic_default_promotion": false,
+    "sota_claim_authorized": false
+  },
+  "claim_boundaries": [
+    "All nine origins and source labels are exposed development evidence; replication is not fresh confirmation.",
+    "Hardware repeats the same ten official outer folds at two estimator/tuning seeds; this creates no new independent datasets or official splits.",
+    "Infrared supports contemporaneous measurement benchmarking only, not clinical, prospective or entity-disjoint generalization.",
+    "Energy retains its simulation designation. Houses/wine retain cached-only legacy-not-reviewed rights labels.",
+    "Primary and each selected stress family must be reported separately.",
+    "No native-reference superiority, no-harm guarantee or default promotion follows from this replication.",
+    "Stage ceilings share one seven-hour total within the remaining cycle allowance, including controller/startup time. No extra compute allocation or LLM attempts are implied."
+  ]
+}

@@ -1,0 +1,2321 @@
+{
+  "schema_version": 1,
+  "name": "frequency-development-replay-20260924",
+  "family_registry": "../families.json",
+  "purpose": "Exact original 14-UCI development replay for one unary-frequency ablation. The parent separately supplies cached legacy houses/wine to form the original 16-family panel. No new confirmation families, source-schema changes, or freshness claims.",
+  "replay_scope": {
+    "source_manifest": "development_expansion_20260922.json",
+    "source_manifest_sha256": "49a8d02f411d456abe4747026ec26762648fceefc03a722a1fc47ac3cadb4969",
+    "selected_dataset_names": [
+      "uci-adult",
+      "uci-german-credit",
+      "uci-online-shoppers",
+      "uci-dry-bean",
+      "uci-steel-faults",
+      "uci-concrete-strength",
+      "uci-energy-efficiency",
+      "uci-spambase",
+      "uci-banknote-authentication",
+      "uci-combined-cycle-power",
+      "uci-real-estate-sindian",
+      "uci-auto-mpg",
+      "uci-chronic-kidney-disease",
+      "uci-wisconsin-diagnostic"
+    ],
+    "dataset_entry_changes": [],
+    "selection_policy": "Predetermined original exposed-development panel; independent of new confirmation candidates and outcomes. Do not validate/relabel unrelated historical confirmation-family entries through the whole old development manifest.",
+    "expected_protocol": {
+      "status": "frozen_intent_descriptor_only_pending_frequency_method_implementation",
+      "methods": [
+        "baseline",
+        "featcopilot-importance-paired",
+        "featcopilot-frequency-paired",
+        "openfe-inductive"
+      ],
+      "learners": [
+        "linear",
+        "lightgbm"
+      ],
+      "folds": 3,
+      "seeds": [
+        42
+      ],
+      "max_rows": 5000,
+      "max_candidates": 1000,
+      "max_added_features": 50,
+      "stability_repeats": 3,
+      "threads": 8,
+      "case_timeout_seconds": 600,
+      "memory_limit_mb": 4096,
+      "total_active_seconds_ceiling": 43200,
+      "ceiling_hours": 12,
+      "uci_families_in_this_file": 14,
+      "external_cached_legacy_datasets": [
+        "houses",
+        "wine"
+      ],
+      "external_cached_legacy_family_ids": [
+        "california-housing",
+        "wine-quality"
+      ],
+      "complete_panel_families": 16,
+      "cells_for_this_uci_subset": 336,
+      "cells_for_external_legacy_subset": 48,
+      "expected_total_cells": 384,
+      "formula": "(14 UCI + 2 separately supplied legacy families) * 3 folds * 1 seed * 4 methods * 2 learners",
+      "reference_policy": "openfe-inductive is the existing width-matched reference with at most 50 native-ranked additions; not openfe-inductive-native.",
+      "new_method_policy": "featcopilot-frequency-paired is a pending implementation name and experiment descriptor only. This file does not implement, activate, validate or execute a new algorithm.",
+      "runtime_binding": "This descriptive development replay is not a confirmation preregistration or a new runtime configuration mechanism. Parent must pass and freeze the exact intended CLI/runtime settings before launch."
+    },
+    "exposure_policy": "Each full dataset entry is copied unchanged from the original expansion. Current registry normalization identifies all 14 as exposed development; no role, rights or exposure widening.",
+    "legacy_policy": "Houses/wine remain separate cached legacy inputs under their existing protocol/rights labeling. They are not added to this catalog dataset list or newly admitted by this document.",
+    "reservation_policy": "The ten active fresh-origin reservations are not included and are unchanged.",
+    "execution": "No payload acquisition, model calls or performance inspection occurred while creating this replay descriptor."
+  },
+  "datasets": [
+    {
+      "provider": "uci",
+      "role": "development",
+      "prior_exposure": "exposed",
+      "origin_kind": "observational",
+      "split_policy": "iid",
+      "target_transform": "identity",
+      "categorical": [
+        "workclass",
+        "education",
+        "marital-status",
+        "occupation",
+        "relationship",
+        "race",
+        "sex",
+        "native-country"
+      ],
+      "drop_columns": [
+        "fnlwgt"
+      ],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/2/adult",
+          "https://archive.ics.uci.edu/api/dataset?id=2"
+        ],
+        "primary_page_sha256": "22b3a1043b1f074d31413c60d89951e91f4f2375a31beae79ebfc6ec7cbadac5",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "uci-adult",
+      "family_id": "adult",
+      "task": "classification",
+      "target": "income",
+      "prediction_time": "Census record attributes predict annual income; survey weight fnlwgt is excluded, not used as a feature or loss weight.",
+      "evaluation_notes": "Development IID CV on the normalized full CSV, not reproduction of the original train/test evaluation. Audit duplicates before reporting.",
+      "original_split": {
+        "kind": "source_train_test_boundary",
+        "train_rows": 32561,
+        "test_rows": 16281,
+        "normalized_boundary_index": 32561,
+        "status": "source-reported boundary; normalized payload ordering must be verified before any official-split claim",
+        "evidence": [
+          "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.names"
+        ],
+        "evaluation_uses_boundary": false
+      },
+      "source": {
+        "uci_id": 2,
+        "data_url": "https://archive.ics.uci.edu/static/public/2/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=2",
+        "schema_reviewed": true,
+        "expected_rows": 48842,
+        "columns": [
+          "age",
+          "workclass",
+          "fnlwgt",
+          "education",
+          "education-num",
+          "marital-status",
+          "occupation",
+          "relationship",
+          "race",
+          "sex",
+          "capital-gain",
+          "capital-loss",
+          "hours-per-week",
+          "native-country",
+          "income"
+        ],
+        "target_columns": [
+          "income"
+        ],
+        "target_value_map": {
+          "<=50K": "<=50K",
+          ">50K": ">50K",
+          "<=50K.": "<=50K",
+          ">50K.": ">50K"
+        },
+        "na_values": [
+          "?"
+        ],
+        "skipinitialspace": true,
+        "sha256": "26b38f8623766396e2ba0d1a235a283db8ed993cc32bf32fc8aab09708c3bdf2"
+      },
+      "evaluation_track": "iid_development",
+      "admission_profile": {
+        "validated_on": "2026-09-22",
+        "raw_sha256": "26b38f8623766396e2ba0d1a235a283db8ed993cc32bf32fc8aab09708c3bdf2",
+        "shape": [
+          48842,
+          13
+        ],
+        "class_labels": [
+          "<=50K",
+          ">50K"
+        ],
+        "profile": {
+          "rows": 48842,
+          "features": 13,
+          "missingness": {
+            "age": 0.0,
+            "workclass": 0.05730723557593874,
+            "education": 0.0,
+            "education-num": 0.0,
+            "marital-status": 0.0,
+            "occupation": 0.05751197739650301,
+            "relationship": 0.0,
+            "race": 0.0,
+            "sex": 0.0,
+            "capital-gain": 0.0,
+            "capital-loss": 0.0,
+            "hours-per-week": 0.0,
+            "native-country": 0.017546374022357807
+          },
+          "cardinality": {
+            "age": 74,
+            "workclass": 9,
+            "education": 16,
+            "education-num": 16,
+            "marital-status": 7,
+            "occupation": 15,
+            "relationship": 6,
+            "race": 5,
+            "sex": 2,
+            "capital-gain": 123,
+            "capital-loss": 99,
+            "hours-per-week": 96,
+            "native-country": 42
+          },
+          "duplicate_feature_rows": 7403,
+          "class_counts": {
+            "0": 37155,
+            "1": 11687
+          },
+          "class_prevalence": {
+            "0": 0.7607182343065395,
+            "1": 0.23928176569346055
+          },
+          "n_classes": 2
+        },
+        "split_support": {
+          "outer_splits": 3,
+          "official": false,
+          "all_rows_retained": true,
+          "minimum_outer_train_class_count": 7791,
+          "minimum_outer_test_class_count": 3895,
+          "nested_split_check": {
+            "policy": "3-fold outer or all official folds; one tuning holdout, 3 stability holdouts, 3 screening folds and 2 residual folds; seed 2026. Structural feasibility only, no model evaluation.",
+            "failing_outer_folds": 0,
+            "errors": []
+          }
+        },
+        "groups": null,
+        "time_buckets": null,
+        "model_calls": 0,
+        "observed_class_counts": {
+          "<=50K": 37155,
+          ">50K": 11687
+        },
+        "prevalence_scope": "Pinned source/curated distribution after documented target normalization, without catalog resampling. This is not an upstream population-rate claim; curator sampling/deduplication remains disclosed.",
+        "missingness_scope": "Parsed missing values only. Original categorical placeholders such as Diabetes130US '?' and NULL codes may remain distinct source categories; curation notes disclose this.",
+        "duplicate_scope": "Duplicate reviewed predictor vectors after declared exclusions, not proof of duplicate entities. No additional deduplication or row deletion was performed.",
+        "split_check_limitations": "Structural reference check at seed 2026 only, not a guarantee for every learner/tuning seed or nested pipeline. No estimators, predictions or evaluation scores were computed."
+      }
+    },
+    {
+      "provider": "uci",
+      "role": "development",
+      "prior_exposure": "exposed",
+      "origin_kind": "observational",
+      "split_policy": "iid",
+      "target_transform": "identity",
+      "categorical": [
+        "Attribute1",
+        "Attribute3",
+        "Attribute4",
+        "Attribute6",
+        "Attribute7",
+        "Attribute9",
+        "Attribute10",
+        "Attribute12",
+        "Attribute14",
+        "Attribute15",
+        "Attribute17",
+        "Attribute19",
+        "Attribute20"
+      ],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/144/statlog+german+credit+data",
+          "https://archive.ics.uci.edu/api/dataset?id=144"
+        ],
+        "primary_page_sha256": "ce366571de03f3ece443fe364196baf0ca8625ac86328c2124f87d4f058b2cce",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "uci-german-credit",
+      "family_id": "german-credit",
+      "task": "classification",
+      "target": "class",
+      "prediction_time": "Credit application attributes predict good/bad credit risk; no outcomes are predictors.",
+      "evaluation_notes": "Use repeated stratification for low-N development. Native class 1=good, 2=bad; numeric recoding is not a second family.",
+      "source": {
+        "uci_id": 144,
+        "data_url": "https://archive.ics.uci.edu/static/public/144/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=144",
+        "schema_reviewed": true,
+        "expected_rows": 1000,
+        "columns": [
+          "Attribute1",
+          "Attribute2",
+          "Attribute3",
+          "Attribute4",
+          "Attribute5",
+          "Attribute6",
+          "Attribute7",
+          "Attribute8",
+          "Attribute9",
+          "Attribute10",
+          "Attribute11",
+          "Attribute12",
+          "Attribute13",
+          "Attribute14",
+          "Attribute15",
+          "Attribute16",
+          "Attribute17",
+          "Attribute18",
+          "Attribute19",
+          "Attribute20",
+          "class"
+        ],
+        "target_columns": [
+          "class"
+        ],
+        "feature_descriptions": {
+          "Attribute1": "Status of existing checking account",
+          "Attribute2": "Duration in months",
+          "Attribute3": "Credit history",
+          "Attribute4": "Purpose",
+          "Attribute5": "Credit amount",
+          "Attribute6": "Savings account/bonds",
+          "Attribute7": "Present employment since",
+          "Attribute8": "Installment rate as percent of disposable income",
+          "Attribute9": "Personal status and sex",
+          "Attribute10": "Other debtors/guarantors",
+          "Attribute11": "Present residence since",
+          "Attribute12": "Property",
+          "Attribute13": "Age in years",
+          "Attribute14": "Other installment plans",
+          "Attribute15": "Housing",
+          "Attribute16": "Number of existing credits at this bank",
+          "Attribute17": "Job",
+          "Attribute18": "Number of people liable to provide maintenance for",
+          "Attribute19": "Telephone",
+          "Attribute20": "Foreign worker"
+        },
+        "label_meanings": {
+          "1": "good",
+          "2": "bad"
+        },
+        "sha256": "f985b42636c9e28ce4fb3913738d1ebfd0f7947fda8d4406fe2ded5d84295acb"
+      },
+      "evaluation_track": "iid_development",
+      "admission_profile": {
+        "validated_on": "2026-09-22",
+        "raw_sha256": "f985b42636c9e28ce4fb3913738d1ebfd0f7947fda8d4406fe2ded5d84295acb",
+        "shape": [
+          1000,
+          20
+        ],
+        "class_labels": [
+          1,
+          2
+        ],
+        "profile": {
+          "rows": 1000,
+          "features": 20,
+          "missingness": {
+            "Attribute1": 0.0,
+            "Attribute2": 0.0,
+            "Attribute3": 0.0,
+            "Attribute4": 0.0,
+            "Attribute5": 0.0,
+            "Attribute6": 0.0,
+            "Attribute7": 0.0,
+            "Attribute8": 0.0,
+            "Attribute9": 0.0,
+            "Attribute10": 0.0,
+            "Attribute11": 0.0,
+            "Attribute12": 0.0,
+            "Attribute13": 0.0,
+            "Attribute14": 0.0,
+            "Attribute15": 0.0,
+            "Attribute16": 0.0,
+            "Attribute17": 0.0,
+            "Attribute18": 0.0,
+            "Attribute19": 0.0,
+            "Attribute20": 0.0
+          },
+          "cardinality": {
+            "Attribute1": 4,
+            "Attribute2": 33,
+            "Attribute3": 5,
+            "Attribute4": 10,
+            "Attribute5": 921,
+            "Attribute6": 5,
+            "Attribute7": 5,
+            "Attribute8": 4,
+            "Attribute9": 4,
+            "Attribute10": 3,
+            "Attribute11": 4,
+            "Attribute12": 4,
+            "Attribute13": 53,
+            "Attribute14": 3,
+            "Attribute15": 3,
+            "Attribute16": 4,
+            "Attribute17": 4,
+            "Attribute18": 2,
+            "Attribute19": 2,
+            "Attribute20": 2
+          },
+          "duplicate_feature_rows": 0,
+          "class_counts": {
+            "0": 700,
+            "1": 300
+          },
+          "class_prevalence": {
+            "0": 0.7,
+            "1": 0.3
+          },
+          "n_classes": 2
+        },
+        "split_support": {
+          "outer_splits": 3,
+          "official": false,
+          "all_rows_retained": true,
+          "minimum_outer_train_class_count": 200,
+          "minimum_outer_test_class_count": 100,
+          "nested_split_check": {
+            "policy": "3-fold outer or all official folds; one tuning holdout, 3 stability holdouts, 3 screening folds and 2 residual folds; seed 2026. Structural feasibility only, no model evaluation.",
+            "failing_outer_folds": 0,
+            "errors": []
+          }
+        },
+        "groups": null,
+        "time_buckets": null,
+        "model_calls": 0,
+        "observed_class_counts": {
+          "1": 700,
+          "2": 300
+        },
+        "prevalence_scope": "Pinned source/curated distribution after documented target normalization, without catalog resampling. This is not an upstream population-rate claim; curator sampling/deduplication remains disclosed.",
+        "missingness_scope": "Parsed missing values only. Original categorical placeholders such as Diabetes130US '?' and NULL codes may remain distinct source categories; curation notes disclose this.",
+        "duplicate_scope": "Duplicate reviewed predictor vectors after declared exclusions, not proof of duplicate entities. No additional deduplication or row deletion was performed.",
+        "split_check_limitations": "Structural reference check at seed 2026 only, not a guarantee for every learner/tuning seed or nested pipeline. No estimators, predictions or evaluation scores were computed."
+      }
+    },
+    {
+      "provider": "uci",
+      "role": "development",
+      "prior_exposure": "exposed",
+      "origin_kind": "observational",
+      "split_policy": "iid",
+      "target_transform": "identity",
+      "categorical": [
+        "Month",
+        "OperatingSystems",
+        "Browser",
+        "Region",
+        "TrafficType",
+        "VisitorType",
+        "Weekend"
+      ],
+      "drop_columns": [
+        "PageValues",
+        "Administrative_Duration",
+        "Informational_Duration",
+        "ProductRelated_Duration",
+        "BounceRates",
+        "ExitRates"
+      ],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/468/online+shoppers+purchasing+intention+dataset",
+          "https://archive.ics.uci.edu/api/dataset?id=468"
+        ],
+        "primary_page_sha256": "45ba681bb9ba8d233613f575f9a83c533686d4f25ceb705440f373c4c9192422",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "uci-online-shoppers",
+      "family_id": "online-shoppers",
+      "task": "classification",
+      "target": "Revenue",
+      "prediction_time": "Retrospective completed-session classification, not early conversion or chronological forecasting. PageValues, aggregate bounce/exit metrics and durations excluded conservatively; page counts describe the completed session.",
+      "evaluation_notes": "Curated conservative feature subset, not all-17-feature paper replication. Month is not a timestamp. Preserve natural imbalance.",
+      "source": {
+        "uci_id": 468,
+        "data_url": "https://archive.ics.uci.edu/static/public/468/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=468",
+        "schema_reviewed": true,
+        "expected_rows": 12330,
+        "columns": [
+          "Administrative",
+          "Administrative_Duration",
+          "Informational",
+          "Informational_Duration",
+          "ProductRelated",
+          "ProductRelated_Duration",
+          "BounceRates",
+          "ExitRates",
+          "PageValues",
+          "SpecialDay",
+          "Month",
+          "OperatingSystems",
+          "Browser",
+          "Region",
+          "TrafficType",
+          "VisitorType",
+          "Weekend",
+          "Revenue"
+        ],
+        "target_columns": [
+          "Revenue"
+        ],
+        "sha256": "b3055ee355f59134d851d32641183cb4a8b45def7124d2f50442a042f358e0d9"
+      },
+      "evaluation_track": "iid_development",
+      "admission_profile": {
+        "validated_on": "2026-09-22",
+        "raw_sha256": "b3055ee355f59134d851d32641183cb4a8b45def7124d2f50442a042f358e0d9",
+        "shape": [
+          12330,
+          11
+        ],
+        "class_labels": [
+          false,
+          true
+        ],
+        "profile": {
+          "rows": 12330,
+          "features": 11,
+          "missingness": {
+            "Administrative": 0.0,
+            "Informational": 0.0,
+            "ProductRelated": 0.0,
+            "SpecialDay": 0.0,
+            "Month": 0.0,
+            "OperatingSystems": 0.0,
+            "Browser": 0.0,
+            "Region": 0.0,
+            "TrafficType": 0.0,
+            "VisitorType": 0.0,
+            "Weekend": 0.0
+          },
+          "cardinality": {
+            "Administrative": 27,
+            "Informational": 17,
+            "ProductRelated": 311,
+            "SpecialDay": 6,
+            "Month": 10,
+            "OperatingSystems": 8,
+            "Browser": 13,
+            "Region": 9,
+            "TrafficType": 20,
+            "VisitorType": 3,
+            "Weekend": 2
+          },
+          "duplicate_feature_rows": 475,
+          "class_counts": {
+            "0": 10422,
+            "1": 1908
+          },
+          "class_prevalence": {
+            "0": 0.8452554744525548,
+            "1": 0.15474452554744525
+          },
+          "n_classes": 2
+        },
+        "split_support": {
+          "outer_splits": 3,
+          "official": false,
+          "all_rows_retained": true,
+          "minimum_outer_train_class_count": 1272,
+          "minimum_outer_test_class_count": 636,
+          "nested_split_check": {
+            "policy": "3-fold outer or all official folds; one tuning holdout, 3 stability holdouts, 3 screening folds and 2 residual folds; seed 2026. Structural feasibility only, no model evaluation.",
+            "failing_outer_folds": 0,
+            "errors": []
+          }
+        },
+        "groups": null,
+        "time_buckets": null,
+        "model_calls": 0,
+        "observed_class_counts": {
+          "False": 10422,
+          "True": 1908
+        },
+        "prevalence_scope": "Pinned source/curated distribution after documented target normalization, without catalog resampling. This is not an upstream population-rate claim; curator sampling/deduplication remains disclosed.",
+        "missingness_scope": "Parsed missing values only. Original categorical placeholders such as Diabetes130US '?' and NULL codes may remain distinct source categories; curation notes disclose this.",
+        "duplicate_scope": "Duplicate reviewed predictor vectors after declared exclusions, not proof of duplicate entities. No additional deduplication or row deletion was performed.",
+        "split_check_limitations": "Structural reference check at seed 2026 only, not a guarantee for every learner/tuning seed or nested pipeline. No estimators, predictions or evaluation scores were computed."
+      }
+    },
+    {
+      "provider": "uci",
+      "role": "development",
+      "prior_exposure": "exposed",
+      "origin_kind": "observational",
+      "split_policy": "iid",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/602/dry+bean+dataset",
+          "https://archive.ics.uci.edu/api/dataset?id=602"
+        ],
+        "primary_page_sha256": "17cef7a06891f4a52225fe30149704d50a57aa1a591c426d290df1c74365b317",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "uci-dry-bean",
+      "family_id": "dry-bean",
+      "task": "classification",
+      "target": "Class",
+      "prediction_time": "Image-derived grain shape measurements predict bean variety.",
+      "evaluation_notes": "Seven-class stratified evaluation; report macro/per-class metrics and duplicate counts.",
+      "source": {
+        "uci_id": 602,
+        "data_url": "https://archive.ics.uci.edu/static/public/602/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=602",
+        "schema_reviewed": true,
+        "expected_rows": 13611,
+        "columns": [
+          "Area",
+          "Perimeter",
+          "MajorAxisLength",
+          "MinorAxisLength",
+          "AspectRatio",
+          "Eccentricity",
+          "ConvexArea",
+          "EquivDiameter",
+          "Extent",
+          "Solidity",
+          "Roundness",
+          "Compactness",
+          "ShapeFactor1",
+          "ShapeFactor2",
+          "ShapeFactor3",
+          "ShapeFactor4",
+          "Class"
+        ],
+        "target_columns": [
+          "Class"
+        ],
+        "sha256": "c91a086bb4357e69409d23287ec22be1be9512145cead1d8ca988c918be38fcb"
+      },
+      "evaluation_track": "iid_development",
+      "admission_profile": {
+        "validated_on": "2026-09-22",
+        "raw_sha256": "c91a086bb4357e69409d23287ec22be1be9512145cead1d8ca988c918be38fcb",
+        "shape": [
+          13611,
+          16
+        ],
+        "class_labels": [
+          "BARBUNYA",
+          "BOMBAY",
+          "CALI",
+          "DERMASON",
+          "HOROZ",
+          "SEKER",
+          "SIRA"
+        ],
+        "profile": {
+          "rows": 13611,
+          "features": 16,
+          "missingness": {
+            "Area": 0.0,
+            "Perimeter": 0.0,
+            "MajorAxisLength": 0.0,
+            "MinorAxisLength": 0.0,
+            "AspectRatio": 0.0,
+            "Eccentricity": 0.0,
+            "ConvexArea": 0.0,
+            "EquivDiameter": 0.0,
+            "Extent": 0.0,
+            "Solidity": 0.0,
+            "Roundness": 0.0,
+            "Compactness": 0.0,
+            "ShapeFactor1": 0.0,
+            "ShapeFactor2": 0.0,
+            "ShapeFactor3": 0.0,
+            "ShapeFactor4": 0.0
+          },
+          "cardinality": {
+            "Area": 12011,
+            "Perimeter": 13351,
+            "MajorAxisLength": 13543,
+            "MinorAxisLength": 13543,
+            "AspectRatio": 13543,
+            "Eccentricity": 13543,
+            "ConvexArea": 12066,
+            "EquivDiameter": 12011,
+            "Extent": 13535,
+            "Solidity": 13522,
+            "Roundness": 13540,
+            "Compactness": 13543,
+            "ShapeFactor1": 13521,
+            "ShapeFactor2": 13506,
+            "ShapeFactor3": 13543,
+            "ShapeFactor4": 13532
+          },
+          "duplicate_feature_rows": 68,
+          "class_counts": {
+            "3": 3546,
+            "6": 2636,
+            "5": 2027,
+            "4": 1928,
+            "2": 1630,
+            "0": 1322,
+            "1": 522
+          },
+          "class_prevalence": {
+            "3": 0.2605245757108221,
+            "6": 0.19366688707662919,
+            "5": 0.148923664682977,
+            "4": 0.1416501359194769,
+            "2": 0.11975607964146646,
+            "0": 0.09712732348835501,
+            "1": 0.03835133348027331
+          },
+          "n_classes": 7
+        },
+        "split_support": {
+          "outer_splits": 3,
+          "official": false,
+          "all_rows_retained": true,
+          "minimum_outer_train_class_count": 348,
+          "minimum_outer_test_class_count": 174,
+          "nested_split_check": {
+            "policy": "3-fold outer or all official folds; one tuning holdout, 3 stability holdouts, 3 screening folds and 2 residual folds; seed 2026. Structural feasibility only, no model evaluation.",
+            "failing_outer_folds": 0,
+            "errors": []
+          }
+        },
+        "groups": null,
+        "time_buckets": null,
+        "model_calls": 0,
+        "observed_class_counts": {
+          "BARBUNYA": 1322,
+          "BOMBAY": 522,
+          "CALI": 1630,
+          "DERMASON": 3546,
+          "HOROZ": 1928,
+          "SEKER": 2027,
+          "SIRA": 2636
+        },
+        "prevalence_scope": "Pinned source/curated distribution after documented target normalization, without catalog resampling. This is not an upstream population-rate claim; curator sampling/deduplication remains disclosed.",
+        "missingness_scope": "Parsed missing values only. Original categorical placeholders such as Diabetes130US '?' and NULL codes may remain distinct source categories; curation notes disclose this.",
+        "duplicate_scope": "Duplicate reviewed predictor vectors after declared exclusions, not proof of duplicate entities. No additional deduplication or row deletion was performed.",
+        "split_check_limitations": "Structural reference check at seed 2026 only, not a guarantee for every learner/tuning seed or nested pipeline. No estimators, predictions or evaluation scores were computed."
+      }
+    },
+    {
+      "provider": "uci",
+      "role": "development",
+      "prior_exposure": "exposed",
+      "origin_kind": "observational",
+      "split_policy": "iid",
+      "target_transform": "one_hot",
+      "categorical": [
+        "TypeOfSteel_A300",
+        "TypeOfSteel_A400"
+      ],
+      "drop_columns": [
+        "Pastry",
+        "Z_Scratch",
+        "K_Scratch",
+        "Stains",
+        "Dirtiness",
+        "Bumps",
+        "Other_Faults"
+      ],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/198/steel+plates+faults",
+          "https://archive.ics.uci.edu/api/dataset?id=198"
+        ],
+        "primary_page_sha256": "e2e18004f8ce11c4d23b93b20e5c6f21d2a439d7f305019c1d6edebd9137ee55",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "uci-steel-faults",
+      "family_id": "steel-faults",
+      "task": "classification",
+      "target": "fault_type",
+      "prediction_time": "Measured steel-plate attributes predict defect class; all seven fault indicators excluded from predictors.",
+      "evaluation_notes": "Reject payloads unless all seven labels are binary and each row has exactly one active label.",
+      "source": {
+        "uci_id": 198,
+        "data_url": "https://archive.ics.uci.edu/static/public/198/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=198",
+        "schema_reviewed": true,
+        "expected_rows": 1941,
+        "columns": [
+          "X_Minimum",
+          "X_Maximum",
+          "Y_Minimum",
+          "Y_Maximum",
+          "Pixels_Areas",
+          "X_Perimeter",
+          "Y_Perimeter",
+          "Sum_of_Luminosity",
+          "Minimum_of_Luminosity",
+          "Maximum_of_Luminosity",
+          "Length_of_Conveyer",
+          "TypeOfSteel_A300",
+          "TypeOfSteel_A400",
+          "Steel_Plate_Thickness",
+          "Edges_Index",
+          "Empty_Index",
+          "Square_Index",
+          "Outside_X_Index",
+          "Edges_X_Index",
+          "Edges_Y_Index",
+          "Outside_Global_Index",
+          "LogOfAreas",
+          "Log_X_Index",
+          "Log_Y_Index",
+          "Orientation_Index",
+          "Luminosity_Index",
+          "SigmoidOfAreas",
+          "Pastry",
+          "Z_Scratch",
+          "K_Scratch",
+          "Stains",
+          "Dirtiness",
+          "Bumps",
+          "Other_Faults"
+        ],
+        "target_columns": [
+          "Pastry",
+          "Z_Scratch",
+          "K_Scratch",
+          "Stains",
+          "Dirtiness",
+          "Bumps",
+          "Other_Faults"
+        ],
+        "sha256": "883ed09b2a46fcde7144dd173092c645aacb45499dea703d00228d3ddc3c60de"
+      },
+      "evaluation_track": "iid_development",
+      "admission_profile": {
+        "validated_on": "2026-09-22",
+        "raw_sha256": "883ed09b2a46fcde7144dd173092c645aacb45499dea703d00228d3ddc3c60de",
+        "shape": [
+          1941,
+          27
+        ],
+        "class_labels": [
+          "Bumps",
+          "Dirtiness",
+          "K_Scratch",
+          "Other_Faults",
+          "Pastry",
+          "Stains",
+          "Z_Scratch"
+        ],
+        "profile": {
+          "rows": 1941,
+          "features": 27,
+          "missingness": {
+            "X_Minimum": 0.0,
+            "X_Maximum": 0.0,
+            "Y_Minimum": 0.0,
+            "Y_Maximum": 0.0,
+            "Pixels_Areas": 0.0,
+            "X_Perimeter": 0.0,
+            "Y_Perimeter": 0.0,
+            "Sum_of_Luminosity": 0.0,
+            "Minimum_of_Luminosity": 0.0,
+            "Maximum_of_Luminosity": 0.0,
+            "Length_of_Conveyer": 0.0,
+            "TypeOfSteel_A300": 0.0,
+            "TypeOfSteel_A400": 0.0,
+            "Steel_Plate_Thickness": 0.0,
+            "Edges_Index": 0.0,
+            "Empty_Index": 0.0,
+            "Square_Index": 0.0,
+            "Outside_X_Index": 0.0,
+            "Edges_X_Index": 0.0,
+            "Edges_Y_Index": 0.0,
+            "Outside_Global_Index": 0.0,
+            "LogOfAreas": 0.0,
+            "Log_X_Index": 0.0,
+            "Log_Y_Index": 0.0,
+            "Orientation_Index": 0.0,
+            "Luminosity_Index": 0.0,
+            "SigmoidOfAreas": 0.0
+          },
+          "cardinality": {
+            "X_Minimum": 962,
+            "X_Maximum": 994,
+            "Y_Minimum": 1939,
+            "Y_Maximum": 1940,
+            "Pixels_Areas": 920,
+            "X_Perimeter": 399,
+            "Y_Perimeter": 317,
+            "Sum_of_Luminosity": 1909,
+            "Minimum_of_Luminosity": 161,
+            "Maximum_of_Luminosity": 100,
+            "Length_of_Conveyer": 84,
+            "TypeOfSteel_A300": 2,
+            "TypeOfSteel_A400": 2,
+            "Steel_Plate_Thickness": 24,
+            "Edges_Index": 1387,
+            "Empty_Index": 1338,
+            "Square_Index": 770,
+            "Outside_X_Index": 454,
+            "Edges_X_Index": 818,
+            "Edges_Y_Index": 648,
+            "Outside_Global_Index": 3,
+            "LogOfAreas": 914,
+            "Log_X_Index": 183,
+            "Log_Y_Index": 217,
+            "Orientation_Index": 918,
+            "Luminosity_Index": 1522,
+            "SigmoidOfAreas": 388
+          },
+          "duplicate_feature_rows": 0,
+          "class_counts": {
+            "3": 673,
+            "0": 402,
+            "2": 391,
+            "6": 190,
+            "4": 158,
+            "5": 72,
+            "1": 55
+          },
+          "class_prevalence": {
+            "3": 0.3467284904688305,
+            "0": 0.2071097372488408,
+            "2": 0.20144255538382277,
+            "6": 0.09788768675940238,
+            "4": 0.08140133951571354,
+            "5": 0.03709428129829984,
+            "1": 0.02833590932509016
+          },
+          "n_classes": 7
+        },
+        "split_support": {
+          "outer_splits": 3,
+          "official": false,
+          "all_rows_retained": true,
+          "minimum_outer_train_class_count": 36,
+          "minimum_outer_test_class_count": 18,
+          "nested_split_check": {
+            "policy": "3-fold outer or all official folds; one tuning holdout, 3 stability holdouts, 3 screening folds and 2 residual folds; seed 2026. Structural feasibility only, no model evaluation.",
+            "failing_outer_folds": 0,
+            "errors": []
+          }
+        },
+        "groups": null,
+        "time_buckets": null,
+        "model_calls": 0,
+        "observed_class_counts": {
+          "Bumps": 402,
+          "Dirtiness": 55,
+          "K_Scratch": 391,
+          "Other_Faults": 673,
+          "Pastry": 158,
+          "Stains": 72,
+          "Z_Scratch": 190
+        },
+        "prevalence_scope": "Pinned source/curated distribution after documented target normalization, without catalog resampling. This is not an upstream population-rate claim; curator sampling/deduplication remains disclosed.",
+        "missingness_scope": "Parsed missing values only. Original categorical placeholders such as Diabetes130US '?' and NULL codes may remain distinct source categories; curation notes disclose this.",
+        "duplicate_scope": "Duplicate reviewed predictor vectors after declared exclusions, not proof of duplicate entities. No additional deduplication or row deletion was performed.",
+        "split_check_limitations": "Structural reference check at seed 2026 only, not a guarantee for every learner/tuning seed or nested pipeline. No estimators, predictions or evaluation scores were computed."
+      }
+    },
+    {
+      "provider": "uci",
+      "role": "development",
+      "prior_exposure": "exposed",
+      "origin_kind": "observational",
+      "split_policy": "iid",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/165/concrete+compressive+strength",
+          "https://archive.ics.uci.edu/api/dataset?id=165"
+        ],
+        "primary_page_sha256": "cdae5493cbed8b90020a9b898301e498656e5944cdcf4ca1e9c5b2ef0a20428b",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "uci-concrete-strength",
+      "family_id": "concrete-strength",
+      "task": "regression",
+      "target": "Concrete compressive strength",
+      "prediction_time": "Mixture ingredients and declared curing age predict measured compressive strength in MPa.",
+      "evaluation_notes": "IID interpolation only. Composition-grouped generalization across curing ages requires a separate grouped protocol.",
+      "source": {
+        "uci_id": 165,
+        "data_url": "https://archive.ics.uci.edu/static/public/165/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=165",
+        "schema_reviewed": true,
+        "expected_rows": 1030,
+        "columns": [
+          "Cement",
+          "Blast Furnace Slag",
+          "Fly Ash",
+          "Water",
+          "Superplasticizer",
+          "Coarse Aggregate",
+          "Fine Aggregate",
+          "Age",
+          "Concrete compressive strength"
+        ],
+        "target_columns": [
+          "Concrete compressive strength"
+        ],
+        "sha256": "8d4b15b6fc68cd932d745cbd663d5ceae66dd54422e99c1e4865f2936ab7e2af"
+      },
+      "evaluation_track": "iid_development",
+      "admission_profile": {
+        "validated_on": "2026-09-22",
+        "raw_sha256": "8d4b15b6fc68cd932d745cbd663d5ceae66dd54422e99c1e4865f2936ab7e2af",
+        "shape": [
+          1030,
+          8
+        ],
+        "class_labels": null,
+        "profile": {
+          "rows": 1030,
+          "features": 8,
+          "missingness": {
+            "Cement": 0.0,
+            "Blast Furnace Slag": 0.0,
+            "Fly Ash": 0.0,
+            "Water": 0.0,
+            "Superplasticizer": 0.0,
+            "Coarse Aggregate": 0.0,
+            "Fine Aggregate": 0.0,
+            "Age": 0.0
+          },
+          "cardinality": {
+            "Cement": 278,
+            "Blast Furnace Slag": 185,
+            "Fly Ash": 156,
+            "Water": 195,
+            "Superplasticizer": 111,
+            "Coarse Aggregate": 284,
+            "Fine Aggregate": 302,
+            "Age": 14
+          },
+          "duplicate_feature_rows": 38
+        },
+        "split_support": {
+          "outer_splits": 3,
+          "official": false,
+          "all_rows_retained": true,
+          "nested_split_check": {
+            "policy": "3-fold outer or all official folds; one tuning holdout, 3 stability holdouts, 3 screening folds and 2 residual folds; seed 2026. Structural feasibility only, no model evaluation.",
+            "failing_outer_folds": 0,
+            "errors": []
+          }
+        },
+        "groups": null,
+        "time_buckets": null,
+        "model_calls": 0,
+        "prevalence_scope": "Pinned source/curated distribution after documented target normalization, without catalog resampling. This is not an upstream population-rate claim; curator sampling/deduplication remains disclosed.",
+        "missingness_scope": "Parsed missing values only. Original categorical placeholders such as Diabetes130US '?' and NULL codes may remain distinct source categories; curation notes disclose this.",
+        "duplicate_scope": "Duplicate reviewed predictor vectors after declared exclusions, not proof of duplicate entities. No additional deduplication or row deletion was performed.",
+        "split_check_limitations": "Structural reference check at seed 2026 only, not a guarantee for every learner/tuning seed or nested pipeline. No estimators, predictions or evaluation scores were computed."
+      }
+    },
+    {
+      "provider": "uci",
+      "role": "development",
+      "prior_exposure": "exposed",
+      "origin_kind": "simulation",
+      "split_policy": "iid",
+      "target_transform": "identity",
+      "categorical": [
+        "X6",
+        "X8"
+      ],
+      "drop_columns": [
+        "Y2"
+      ],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/242/energy+efficiency",
+          "https://archive.ics.uci.edu/api/dataset?id=242"
+        ],
+        "primary_page_sha256": "8ef77d96b3cc9bb25d61b1328946e352bb5af21c5d0c865fb832fb9ecdef3b89",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "uci-energy-efficiency",
+      "family_id": "energy-efficiency",
+      "task": "regression",
+      "target": "Y1",
+      "prediction_time": "Building geometry/design predicts simulated heating load; cooling load Y2 is unavailable as a predictor.",
+      "evaluation_notes": "Primary Y1 only. IID design interpolation, not observational evidence or held-out-geometry generalization. Y2 is the same family.",
+      "source": {
+        "uci_id": 242,
+        "data_url": "https://archive.ics.uci.edu/static/public/242/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=242",
+        "schema_reviewed": true,
+        "expected_rows": 768,
+        "columns": [
+          "X1",
+          "X2",
+          "X3",
+          "X4",
+          "X5",
+          "X6",
+          "X7",
+          "X8",
+          "Y1",
+          "Y2"
+        ],
+        "target_columns": [
+          "Y1",
+          "Y2"
+        ],
+        "feature_descriptions": {
+          "X1": "Relative compactness",
+          "X2": "Surface area",
+          "X3": "Wall area",
+          "X4": "Roof area",
+          "X5": "Overall height",
+          "X6": "Orientation",
+          "X7": "Glazing area",
+          "X8": "Glazing area distribution"
+        },
+        "label_meanings": {
+          "Y1": "Heating load",
+          "Y2": "Cooling load"
+        },
+        "sha256": "db44dbe453acd464b5cf65be2fb01a28aa9c5b2630300e65fbe28cde35f5d96f"
+      },
+      "evaluation_track": "domain_simulation",
+      "admission_profile": {
+        "validated_on": "2026-09-22",
+        "raw_sha256": "db44dbe453acd464b5cf65be2fb01a28aa9c5b2630300e65fbe28cde35f5d96f",
+        "shape": [
+          768,
+          8
+        ],
+        "class_labels": null,
+        "profile": {
+          "rows": 768,
+          "features": 8,
+          "missingness": {
+            "X1": 0.0,
+            "X2": 0.0,
+            "X3": 0.0,
+            "X4": 0.0,
+            "X5": 0.0,
+            "X6": 0.0,
+            "X7": 0.0,
+            "X8": 0.0
+          },
+          "cardinality": {
+            "X1": 12,
+            "X2": 12,
+            "X3": 7,
+            "X4": 4,
+            "X5": 2,
+            "X6": 4,
+            "X7": 4,
+            "X8": 6
+          },
+          "duplicate_feature_rows": 0
+        },
+        "split_support": {
+          "outer_splits": 3,
+          "official": false,
+          "all_rows_retained": true,
+          "nested_split_check": {
+            "policy": "3-fold outer or all official folds; one tuning holdout, 3 stability holdouts, 3 screening folds and 2 residual folds; seed 2026. Structural feasibility only, no model evaluation.",
+            "failing_outer_folds": 0,
+            "errors": []
+          }
+        },
+        "groups": null,
+        "time_buckets": null,
+        "model_calls": 0,
+        "prevalence_scope": "Pinned source/curated distribution after documented target normalization, without catalog resampling. This is not an upstream population-rate claim; curator sampling/deduplication remains disclosed.",
+        "missingness_scope": "Parsed missing values only. Original categorical placeholders such as Diabetes130US '?' and NULL codes may remain distinct source categories; curation notes disclose this.",
+        "duplicate_scope": "Duplicate reviewed predictor vectors after declared exclusions, not proof of duplicate entities. No additional deduplication or row deletion was performed.",
+        "split_check_limitations": "Structural reference check at seed 2026 only, not a guarantee for every learner/tuning seed or nested pipeline. No estimators, predictions or evaluation scores were computed."
+      }
+    },
+    {
+      "name": "uci-spambase",
+      "family_id": "spambase",
+      "provider": "uci",
+      "task": "classification",
+      "role": "development",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "Class",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "iid",
+      "prediction_time": "Recorded spam/non-spam annotation from email token/character statistics; historical mailbox corpus, not future-sender/general-domain performance.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/94/spambase",
+          "https://archive.ics.uci.edu/api/dataset?id=94"
+        ],
+        "primary_page_sha256": "3329d6901c49c333d51772236ad1f7ebcab66b026c05fe3f7c5f252a0fb81059",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 94,
+        "data_url": "https://archive.ics.uci.edu/static/public/94/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=94",
+        "metadata_sha256": "ed4b9c3f86284700629c350508f341a3690b4941768351956a41089d1ff793f2",
+        "schema_reviewed": true,
+        "columns": [
+          "word_freq_make",
+          "word_freq_address",
+          "word_freq_all",
+          "word_freq_3d",
+          "word_freq_our",
+          "word_freq_over",
+          "word_freq_remove",
+          "word_freq_internet",
+          "word_freq_order",
+          "word_freq_mail",
+          "word_freq_receive",
+          "word_freq_will",
+          "word_freq_people",
+          "word_freq_report",
+          "word_freq_addresses",
+          "word_freq_free",
+          "word_freq_business",
+          "word_freq_email",
+          "word_freq_you",
+          "word_freq_credit",
+          "word_freq_your",
+          "word_freq_font",
+          "word_freq_000",
+          "word_freq_money",
+          "word_freq_hp",
+          "word_freq_hpl",
+          "word_freq_george",
+          "word_freq_650",
+          "word_freq_lab",
+          "word_freq_labs",
+          "word_freq_telnet",
+          "word_freq_857",
+          "word_freq_data",
+          "word_freq_415",
+          "word_freq_85",
+          "word_freq_technology",
+          "word_freq_1999",
+          "word_freq_parts",
+          "word_freq_pm",
+          "word_freq_direct",
+          "word_freq_cs",
+          "word_freq_meeting",
+          "word_freq_original",
+          "word_freq_project",
+          "word_freq_re",
+          "word_freq_edu",
+          "word_freq_table",
+          "word_freq_conference",
+          "char_freq_;",
+          "char_freq_(",
+          "char_freq_[",
+          "char_freq_!",
+          "char_freq_$",
+          "char_freq_#",
+          "capital_run_length_average",
+          "capital_run_length_longest",
+          "capital_run_length_total",
+          "Class"
+        ],
+        "target_columns": [
+          "Class"
+        ],
+        "reported_rows": 4601,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "d86711ceadadd177f09ca816fffa79d82edf5007b585a836c112462e2c217c0d",
+        "expected_rows": 4601
+      },
+      "evaluation_track": "iid_development",
+      "admission_profile": {
+        "validated_on": "2026-09-22",
+        "raw_sha256": "d86711ceadadd177f09ca816fffa79d82edf5007b585a836c112462e2c217c0d",
+        "shape": [
+          4601,
+          57
+        ],
+        "class_labels": [
+          0,
+          1
+        ],
+        "profile": {
+          "rows": 4601,
+          "features": 57,
+          "missingness": {
+            "word_freq_make": 0.0,
+            "word_freq_address": 0.0,
+            "word_freq_all": 0.0,
+            "word_freq_3d": 0.0,
+            "word_freq_our": 0.0,
+            "word_freq_over": 0.0,
+            "word_freq_remove": 0.0,
+            "word_freq_internet": 0.0,
+            "word_freq_order": 0.0,
+            "word_freq_mail": 0.0,
+            "word_freq_receive": 0.0,
+            "word_freq_will": 0.0,
+            "word_freq_people": 0.0,
+            "word_freq_report": 0.0,
+            "word_freq_addresses": 0.0,
+            "word_freq_free": 0.0,
+            "word_freq_business": 0.0,
+            "word_freq_email": 0.0,
+            "word_freq_you": 0.0,
+            "word_freq_credit": 0.0,
+            "word_freq_your": 0.0,
+            "word_freq_font": 0.0,
+            "word_freq_000": 0.0,
+            "word_freq_money": 0.0,
+            "word_freq_hp": 0.0,
+            "word_freq_hpl": 0.0,
+            "word_freq_george": 0.0,
+            "word_freq_650": 0.0,
+            "word_freq_lab": 0.0,
+            "word_freq_labs": 0.0,
+            "word_freq_telnet": 0.0,
+            "word_freq_857": 0.0,
+            "word_freq_data": 0.0,
+            "word_freq_415": 0.0,
+            "word_freq_85": 0.0,
+            "word_freq_technology": 0.0,
+            "word_freq_1999": 0.0,
+            "word_freq_parts": 0.0,
+            "word_freq_pm": 0.0,
+            "word_freq_direct": 0.0,
+            "word_freq_cs": 0.0,
+            "word_freq_meeting": 0.0,
+            "word_freq_original": 0.0,
+            "word_freq_project": 0.0,
+            "word_freq_re": 0.0,
+            "word_freq_edu": 0.0,
+            "word_freq_table": 0.0,
+            "word_freq_conference": 0.0,
+            "char_freq_;": 0.0,
+            "char_freq_(": 0.0,
+            "char_freq_[": 0.0,
+            "char_freq_!": 0.0,
+            "char_freq_$": 0.0,
+            "char_freq_#": 0.0,
+            "capital_run_length_average": 0.0,
+            "capital_run_length_longest": 0.0,
+            "capital_run_length_total": 0.0
+          },
+          "cardinality": {
+            "word_freq_make": 142,
+            "word_freq_address": 171,
+            "word_freq_all": 214,
+            "word_freq_3d": 43,
+            "word_freq_our": 255,
+            "word_freq_over": 141,
+            "word_freq_remove": 173,
+            "word_freq_internet": 170,
+            "word_freq_order": 144,
+            "word_freq_mail": 245,
+            "word_freq_receive": 113,
+            "word_freq_will": 316,
+            "word_freq_people": 158,
+            "word_freq_report": 133,
+            "word_freq_addresses": 118,
+            "word_freq_free": 253,
+            "word_freq_business": 197,
+            "word_freq_email": 229,
+            "word_freq_you": 575,
+            "word_freq_credit": 148,
+            "word_freq_your": 401,
+            "word_freq_font": 99,
+            "word_freq_000": 164,
+            "word_freq_money": 143,
+            "word_freq_hp": 395,
+            "word_freq_hpl": 281,
+            "word_freq_george": 240,
+            "word_freq_650": 200,
+            "word_freq_lab": 156,
+            "word_freq_labs": 179,
+            "word_freq_telnet": 128,
+            "word_freq_857": 106,
+            "word_freq_data": 184,
+            "word_freq_415": 110,
+            "word_freq_85": 177,
+            "word_freq_technology": 159,
+            "word_freq_1999": 188,
+            "word_freq_parts": 53,
+            "word_freq_pm": 163,
+            "word_freq_direct": 125,
+            "word_freq_cs": 108,
+            "word_freq_meeting": 186,
+            "word_freq_original": 136,
+            "word_freq_project": 160,
+            "word_freq_re": 230,
+            "word_freq_edu": 227,
+            "word_freq_table": 38,
+            "word_freq_conference": 106,
+            "char_freq_;": 313,
+            "char_freq_(": 641,
+            "char_freq_[": 225,
+            "char_freq_!": 964,
+            "char_freq_$": 504,
+            "char_freq_#": 316,
+            "capital_run_length_average": 2161,
+            "capital_run_length_longest": 271,
+            "capital_run_length_total": 919
+          },
+          "duplicate_feature_rows": 394,
+          "class_counts": {
+            "0": 2788,
+            "1": 1813
+          },
+          "class_prevalence": {
+            "0": 0.6059552271245382,
+            "1": 0.39404477287546186
+          },
+          "n_classes": 2
+        },
+        "split_support": {
+          "outer_splits": 3,
+          "official": false,
+          "all_rows_retained": true,
+          "minimum_outer_train_class_count": 1208,
+          "minimum_outer_test_class_count": 604,
+          "nested_split_check": {
+            "policy": "3-fold outer or all official folds; one tuning holdout, 3 stability holdouts, 3 screening folds and 2 residual folds; seed 2026. Structural feasibility only, no model evaluation.",
+            "failing_outer_folds": 0,
+            "errors": []
+          }
+        },
+        "groups": null,
+        "time_buckets": null,
+        "model_calls": 0,
+        "observed_class_counts": {
+          "0": 2788,
+          "1": 1813
+        },
+        "prevalence_scope": "Pinned source/curated distribution after documented target normalization, without catalog resampling. This is not an upstream population-rate claim; curator sampling/deduplication remains disclosed.",
+        "missingness_scope": "Parsed missing values only. Original categorical placeholders such as Diabetes130US '?' and NULL codes may remain distinct source categories; curation notes disclose this.",
+        "duplicate_scope": "Duplicate reviewed predictor vectors after declared exclusions, not proof of duplicate entities. No additional deduplication or row deletion was performed.",
+        "split_check_limitations": "Structural reference check at seed 2026 only, not a guarantee for every learner/tuning seed or nested pipeline. No estimators, predictions or evaluation scores were computed."
+      }
+    },
+    {
+      "name": "uci-banknote-authentication",
+      "family_id": "banknote-authentication",
+      "provider": "uci",
+      "task": "classification",
+      "role": "development",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "class",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "iid",
+      "prediction_time": "Genuine/forged banknote-specimen annotation from measured image wavelet statistics. Real specimen measurements, not generated classification substitutes.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/267/banknote+authentication",
+          "https://archive.ics.uci.edu/api/dataset?id=267"
+        ],
+        "primary_page_sha256": "711135258ade545edd3b1faba0cc1e62d2554c31fdcf7b1da3b66753ba9dd75b",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 267,
+        "data_url": "https://archive.ics.uci.edu/static/public/267/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=267",
+        "metadata_sha256": "786ce14b24eb567f99ce77afe0525508ae351ae547d4beff72172849144cf63b",
+        "schema_reviewed": true,
+        "columns": [
+          "variance",
+          "skewness",
+          "curtosis",
+          "entropy",
+          "class"
+        ],
+        "target_columns": [
+          "class"
+        ],
+        "reported_rows": 1372,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "0787e50299c198e919276660edf98dd5dcb94951ad81435b3ab61afb666936c9",
+        "expected_rows": 1372
+      },
+      "evaluation_track": "iid_development",
+      "admission_profile": {
+        "validated_on": "2026-09-22",
+        "raw_sha256": "0787e50299c198e919276660edf98dd5dcb94951ad81435b3ab61afb666936c9",
+        "shape": [
+          1372,
+          4
+        ],
+        "class_labels": [
+          0,
+          1
+        ],
+        "profile": {
+          "rows": 1372,
+          "features": 4,
+          "missingness": {
+            "variance": 0.0,
+            "skewness": 0.0,
+            "curtosis": 0.0,
+            "entropy": 0.0
+          },
+          "cardinality": {
+            "variance": 1338,
+            "skewness": 1256,
+            "curtosis": 1270,
+            "entropy": 1156
+          },
+          "duplicate_feature_rows": 24,
+          "class_counts": {
+            "0": 762,
+            "1": 610
+          },
+          "class_prevalence": {
+            "0": 0.5553935860058309,
+            "1": 0.4446064139941691
+          },
+          "n_classes": 2
+        },
+        "split_support": {
+          "outer_splits": 3,
+          "official": false,
+          "all_rows_retained": true,
+          "minimum_outer_train_class_count": 406,
+          "minimum_outer_test_class_count": 203,
+          "nested_split_check": {
+            "policy": "3-fold outer or all official folds; one tuning holdout, 3 stability holdouts, 3 screening folds and 2 residual folds; seed 2026. Structural feasibility only, no model evaluation.",
+            "failing_outer_folds": 0,
+            "errors": []
+          }
+        },
+        "groups": null,
+        "time_buckets": null,
+        "model_calls": 0,
+        "observed_class_counts": {
+          "0": 762,
+          "1": 610
+        },
+        "prevalence_scope": "Pinned source/curated distribution after documented target normalization, without catalog resampling. This is not an upstream population-rate claim; curator sampling/deduplication remains disclosed.",
+        "missingness_scope": "Parsed missing values only. Original categorical placeholders such as Diabetes130US '?' and NULL codes may remain distinct source categories; curation notes disclose this.",
+        "duplicate_scope": "Duplicate reviewed predictor vectors after declared exclusions, not proof of duplicate entities. No additional deduplication or row deletion was performed.",
+        "split_check_limitations": "Structural reference check at seed 2026 only, not a guarantee for every learner/tuning seed or nested pipeline. No estimators, predictions or evaluation scores were computed."
+      }
+    },
+    {
+      "name": "uci-combined-cycle-power",
+      "family_id": "combined-cycle-power",
+      "provider": "uci",
+      "task": "regression",
+      "role": "development",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "PE",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "iid",
+      "prediction_time": "Measured contemporaneous full-load power output from ambient conditions and exhaust vacuum; static thermodynamic response, not ahead-of-weather forecasting.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/294/combined+cycle+power+plant",
+          "https://archive.ics.uci.edu/api/dataset?id=294"
+        ],
+        "primary_page_sha256": "e9577348193f7424973439278266ca60e6059afd3a1fdbda995c1bf302fa1ac6",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 294,
+        "data_url": "https://archive.ics.uci.edu/static/public/294/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=294",
+        "metadata_sha256": "5ba61595859018366941cdeaa75f8ccc496926590c91d0d30072efc8637a3b64",
+        "schema_reviewed": true,
+        "columns": [
+          "AT",
+          "V",
+          "AP",
+          "RH",
+          "PE"
+        ],
+        "target_columns": [
+          "PE"
+        ],
+        "reported_rows": 9568,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "3c1fc11025f8424f8d95802d8b7086dffd3f73a552c6dcab3d973620986194b2",
+        "expected_rows": 9568
+      },
+      "evaluation_track": "iid_development",
+      "admission_profile": {
+        "validated_on": "2026-09-22",
+        "raw_sha256": "3c1fc11025f8424f8d95802d8b7086dffd3f73a552c6dcab3d973620986194b2",
+        "shape": [
+          9568,
+          4
+        ],
+        "class_labels": null,
+        "profile": {
+          "rows": 9568,
+          "features": 4,
+          "missingness": {
+            "AT": 0.0,
+            "V": 0.0,
+            "AP": 0.0,
+            "RH": 0.0
+          },
+          "cardinality": {
+            "AT": 2773,
+            "V": 634,
+            "AP": 2517,
+            "RH": 4546
+          },
+          "duplicate_feature_rows": 41
+        },
+        "split_support": {
+          "outer_splits": 3,
+          "official": false,
+          "all_rows_retained": true,
+          "nested_split_check": {
+            "policy": "3-fold outer or all official folds; one tuning holdout, 3 stability holdouts, 3 screening folds and 2 residual folds; seed 2026. Structural feasibility only, no model evaluation.",
+            "failing_outer_folds": 0,
+            "errors": []
+          }
+        },
+        "groups": null,
+        "time_buckets": null,
+        "model_calls": 0,
+        "prevalence_scope": "Pinned source/curated distribution after documented target normalization, without catalog resampling. This is not an upstream population-rate claim; curator sampling/deduplication remains disclosed.",
+        "missingness_scope": "Parsed missing values only. Original categorical placeholders such as Diabetes130US '?' and NULL codes may remain distinct source categories; curation notes disclose this.",
+        "duplicate_scope": "Duplicate reviewed predictor vectors after declared exclusions, not proof of duplicate entities. No additional deduplication or row deletion was performed.",
+        "split_check_limitations": "Structural reference check at seed 2026 only, not a guarantee for every learner/tuning seed or nested pipeline. No estimators, predictions or evaluation scores were computed."
+      }
+    },
+    {
+      "name": "uci-real-estate-sindian",
+      "family_id": "real-estate-sindian",
+      "provider": "uci",
+      "task": "regression",
+      "role": "development",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "Y house price of unit area",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [
+        "No"
+      ],
+      "split_policy": "iid",
+      "prediction_time": "Recorded Sindian transaction unit price from supplied property/location/date descriptors. Record ID excluded; retrospective appraisal, not future-market or unseen-building performance.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/477/real+estate+valuation+data+set",
+          "https://archive.ics.uci.edu/api/dataset?id=477"
+        ],
+        "primary_page_sha256": "00635fb538eccd2b3f7814a4c66411fcfbec7662278cdf16f8ca30df04190e63",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 477,
+        "data_url": "https://archive.ics.uci.edu/static/public/477/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=477",
+        "metadata_sha256": "fd8824fc1e6a17472c35d59d00e7b0845304eb394d5772be363f5925ff3f9c54",
+        "schema_reviewed": true,
+        "columns": [
+          "No",
+          "X1 transaction date",
+          "X2 house age",
+          "X3 distance to the nearest MRT station",
+          "X4 number of convenience stores",
+          "X5 latitude",
+          "X6 longitude",
+          "Y house price of unit area"
+        ],
+        "target_columns": [
+          "Y house price of unit area"
+        ],
+        "reported_rows": 414,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "0730a5687ec285a3c2f9921a808855bd1bde21fc53e6377561cbdce2dda9cbb1",
+        "expected_rows": 414
+      },
+      "evaluation_track": "iid_development",
+      "admission_profile": {
+        "validated_on": "2026-09-22",
+        "raw_sha256": "0730a5687ec285a3c2f9921a808855bd1bde21fc53e6377561cbdce2dda9cbb1",
+        "shape": [
+          414,
+          6
+        ],
+        "class_labels": null,
+        "profile": {
+          "rows": 414,
+          "features": 6,
+          "missingness": {
+            "X1 transaction date": 0.0,
+            "X2 house age": 0.0,
+            "X3 distance to the nearest MRT station": 0.0,
+            "X4 number of convenience stores": 0.0,
+            "X5 latitude": 0.0,
+            "X6 longitude": 0.0
+          },
+          "cardinality": {
+            "X1 transaction date": 12,
+            "X2 house age": 236,
+            "X3 distance to the nearest MRT station": 259,
+            "X4 number of convenience stores": 11,
+            "X5 latitude": 234,
+            "X6 longitude": 232
+          },
+          "duplicate_feature_rows": 20
+        },
+        "split_support": {
+          "outer_splits": 3,
+          "official": false,
+          "all_rows_retained": true,
+          "nested_split_check": {
+            "policy": "3-fold outer or all official folds; one tuning holdout, 3 stability holdouts, 3 screening folds and 2 residual folds; seed 2026. Structural feasibility only, no model evaluation.",
+            "failing_outer_folds": 0,
+            "errors": []
+          }
+        },
+        "groups": null,
+        "time_buckets": null,
+        "model_calls": 0,
+        "prevalence_scope": "Pinned source/curated distribution after documented target normalization, without catalog resampling. This is not an upstream population-rate claim; curator sampling/deduplication remains disclosed.",
+        "missingness_scope": "Parsed missing values only. Original categorical placeholders such as Diabetes130US '?' and NULL codes may remain distinct source categories; curation notes disclose this.",
+        "duplicate_scope": "Duplicate reviewed predictor vectors after declared exclusions, not proof of duplicate entities. No additional deduplication or row deletion was performed.",
+        "split_check_limitations": "Structural reference check at seed 2026 only, not a guarantee for every learner/tuning seed or nested pipeline. No estimators, predictions or evaluation scores were computed."
+      }
+    },
+    {
+      "name": "uci-auto-mpg",
+      "family_id": "auto-mpg",
+      "provider": "uci",
+      "task": "regression",
+      "role": "development",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "mpg",
+      "target_transform": "identity",
+      "categorical": [
+        "origin"
+      ],
+      "drop_columns": [
+        "car_name"
+      ],
+      "split_policy": "iid",
+      "prediction_time": "Measured city-cycle fuel consumption from vehicle specifications. Car-name identifier excluded; historical conditional estimation, not new-model/year generalization.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/9/auto+mpg",
+          "https://archive.ics.uci.edu/api/dataset?id=9"
+        ],
+        "primary_page_sha256": "2f6d657c61d53af832c50d409640493646a43a54972271b7c1822e56207cdccd",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 9,
+        "data_url": "https://archive.ics.uci.edu/static/public/9/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=9",
+        "metadata_sha256": "5d4ea416900f9ef70cf22f4afda4fdb55b187bc2c0e4ba6179a1219f61196f11",
+        "schema_reviewed": true,
+        "columns": [
+          "car_name",
+          "cylinders",
+          "displacement",
+          "horsepower",
+          "weight",
+          "acceleration",
+          "model_year",
+          "origin",
+          "mpg"
+        ],
+        "target_columns": [
+          "mpg"
+        ],
+        "reported_rows": 398,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "240f4657d747fe105f3c992251daba65f926ef54c4dec3cde34e398e8cf5da9c",
+        "expected_rows": 398
+      },
+      "evaluation_track": "iid_development",
+      "admission_profile": {
+        "validated_on": "2026-09-22",
+        "raw_sha256": "240f4657d747fe105f3c992251daba65f926ef54c4dec3cde34e398e8cf5da9c",
+        "shape": [
+          398,
+          7
+        ],
+        "class_labels": null,
+        "profile": {
+          "rows": 398,
+          "features": 7,
+          "missingness": {
+            "cylinders": 0.0,
+            "displacement": 0.0,
+            "horsepower": 0.01507537688442211,
+            "weight": 0.0,
+            "acceleration": 0.0,
+            "model_year": 0.0,
+            "origin": 0.0
+          },
+          "cardinality": {
+            "cylinders": 5,
+            "displacement": 82,
+            "horsepower": 94,
+            "weight": 351,
+            "acceleration": 95,
+            "model_year": 13,
+            "origin": 3
+          },
+          "duplicate_feature_rows": 0
+        },
+        "split_support": {
+          "outer_splits": 3,
+          "official": false,
+          "all_rows_retained": true,
+          "nested_split_check": {
+            "policy": "3-fold outer or all official folds; one tuning holdout, 3 stability holdouts, 3 screening folds and 2 residual folds; seed 2026. Structural feasibility only, no model evaluation.",
+            "failing_outer_folds": 0,
+            "errors": []
+          }
+        },
+        "groups": null,
+        "time_buckets": null,
+        "model_calls": 0,
+        "prevalence_scope": "Pinned source/curated distribution after documented target normalization, without catalog resampling. This is not an upstream population-rate claim; curator sampling/deduplication remains disclosed.",
+        "missingness_scope": "Parsed missing values only. Original categorical placeholders such as Diabetes130US '?' and NULL codes may remain distinct source categories; curation notes disclose this.",
+        "duplicate_scope": "Duplicate reviewed predictor vectors after declared exclusions, not proof of duplicate entities. No additional deduplication or row deletion was performed.",
+        "split_check_limitations": "Structural reference check at seed 2026 only, not a guarantee for every learner/tuning seed or nested pipeline. No estimators, predictions or evaluation scores were computed."
+      }
+    },
+    {
+      "name": "uci-chronic-kidney-disease",
+      "family_id": "chronic-kidney-disease",
+      "provider": "uci",
+      "task": "classification",
+      "role": "development",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "class",
+      "target_transform": "identity",
+      "categorical": [
+        "sg",
+        "al",
+        "su",
+        "rbc",
+        "pc",
+        "pcc",
+        "ba",
+        "htn",
+        "dm",
+        "cad",
+        "appet",
+        "pe",
+        "ane"
+      ],
+      "drop_columns": [],
+      "split_policy": "iid",
+      "prediction_time": "Recorded CKD/non-CKD diagnosis from the supplied clinical measurements and symptom annotations. Static diagnosis classification, not future disease onset.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/336/chronic+kidney+disease",
+          "https://archive.ics.uci.edu/api/dataset?id=336"
+        ],
+        "primary_page_sha256": "d96e8235774d28897d6e1fae3ac435a88356fe98c8e21d806447e28affa0fe49",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 336,
+        "data_url": "https://archive.ics.uci.edu/static/public/336/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=336",
+        "metadata_sha256": "e30f1f6e3dae91c6924c6b2cdbdc9bda213680e552adc16146c72f9fd2bd7522",
+        "schema_reviewed": true,
+        "columns": [
+          "age",
+          "bp",
+          "sg",
+          "al",
+          "su",
+          "rbc",
+          "pc",
+          "pcc",
+          "ba",
+          "bgr",
+          "bu",
+          "sc",
+          "sod",
+          "pot",
+          "hemo",
+          "pcv",
+          "wbcc",
+          "rbcc",
+          "htn",
+          "dm",
+          "cad",
+          "appet",
+          "pe",
+          "ane",
+          "class"
+        ],
+        "target_columns": [
+          "class"
+        ],
+        "reported_rows": 400,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "target_value_map": {
+          "ckd": "ckd",
+          "ckd\t": "ckd",
+          "notckd": "notckd"
+        },
+        "sha256": "0eeea8d17f5ad8792d854999d6ddf1602ec4e116616f6ccdfdaef0ba8109e694",
+        "expected_rows": 400
+      },
+      "evaluation_track": "iid_development",
+      "admission_profile": {
+        "validated_on": "2026-09-22",
+        "raw_sha256": "0eeea8d17f5ad8792d854999d6ddf1602ec4e116616f6ccdfdaef0ba8109e694",
+        "shape": [
+          400,
+          24
+        ],
+        "class_labels": [
+          "ckd",
+          "notckd"
+        ],
+        "profile": {
+          "rows": 400,
+          "features": 24,
+          "missingness": {
+            "age": 0.0225,
+            "bp": 0.03,
+            "sg": 0.1175,
+            "al": 0.115,
+            "su": 0.1225,
+            "rbc": 0.38,
+            "pc": 0.1625,
+            "pcc": 0.01,
+            "ba": 0.01,
+            "bgr": 0.11,
+            "bu": 0.0475,
+            "sc": 0.0425,
+            "sod": 0.2175,
+            "pot": 0.22,
+            "hemo": 0.13,
+            "pcv": 0.1775,
+            "wbcc": 0.265,
+            "rbcc": 0.3275,
+            "htn": 0.005,
+            "dm": 0.005,
+            "cad": 0.005,
+            "appet": 0.0025,
+            "pe": 0.0025,
+            "ane": 0.0025
+          },
+          "cardinality": {
+            "age": 77,
+            "bp": 11,
+            "sg": 6,
+            "al": 7,
+            "su": 7,
+            "rbc": 3,
+            "pc": 3,
+            "pcc": 3,
+            "ba": 3,
+            "bgr": 147,
+            "bu": 119,
+            "sc": 85,
+            "sod": 35,
+            "pot": 41,
+            "hemo": 116,
+            "pcv": 43,
+            "wbcc": 90,
+            "rbcc": 46,
+            "htn": 3,
+            "dm": 4,
+            "cad": 3,
+            "appet": 3,
+            "pe": 3,
+            "ane": 3
+          },
+          "duplicate_feature_rows": 0,
+          "class_counts": {
+            "0": 250,
+            "1": 150
+          },
+          "class_prevalence": {
+            "0": 0.625,
+            "1": 0.375
+          },
+          "n_classes": 2
+        },
+        "split_support": {
+          "outer_splits": 3,
+          "official": false,
+          "all_rows_retained": true,
+          "minimum_outer_train_class_count": 100,
+          "minimum_outer_test_class_count": 50,
+          "nested_split_check": {
+            "policy": "3-fold outer or all official folds; one tuning holdout, 3 stability holdouts, 3 screening folds and 2 residual folds; seed 2026. Structural feasibility only, no model evaluation.",
+            "failing_outer_folds": 0,
+            "errors": []
+          }
+        },
+        "groups": null,
+        "time_buckets": null,
+        "model_calls": 0,
+        "observed_class_counts": {
+          "ckd": 250,
+          "notckd": 150
+        },
+        "prevalence_scope": "Pinned source/curated distribution after documented target normalization, without catalog resampling. This is not an upstream population-rate claim; curator sampling/deduplication remains disclosed.",
+        "missingness_scope": "Parsed missing values only. Original categorical placeholders such as Diabetes130US '?' and NULL codes may remain distinct source categories; curation notes disclose this.",
+        "duplicate_scope": "Duplicate reviewed predictor vectors after declared exclusions, not proof of duplicate entities. No additional deduplication or row deletion was performed.",
+        "split_check_limitations": "Structural reference check at seed 2026 only, not a guarantee for every learner/tuning seed or nested pipeline. No estimators, predictions or evaluation scores were computed."
+      }
+    },
+    {
+      "name": "uci-wisconsin-diagnostic",
+      "family_id": "wisconsin-diagnostic",
+      "provider": "uci",
+      "task": "classification",
+      "role": "development",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "Diagnosis",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [
+        "ID"
+      ],
+      "split_policy": "iid",
+      "prediction_time": "Diagnostic breast-mass annotation from digitized FNA nuclear measurements; patient ID excluded. Static diagnosis classification, not future cancer onset.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic",
+          "https://archive.ics.uci.edu/api/dataset?id=17"
+        ],
+        "primary_page_sha256": "bd0bac0e365edac633d8891b71bb65f26afc413a251746bd29c821e10474703c",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 17,
+        "data_url": "https://archive.ics.uci.edu/static/public/17/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=17",
+        "metadata_sha256": "c129484733a4d262158c583e69afba393e0e5909b9e7dad228c438a7b62830f9",
+        "schema_reviewed": true,
+        "columns": [
+          "ID",
+          "radius1",
+          "texture1",
+          "perimeter1",
+          "area1",
+          "smoothness1",
+          "compactness1",
+          "concavity1",
+          "concave_points1",
+          "symmetry1",
+          "fractal_dimension1",
+          "radius2",
+          "texture2",
+          "perimeter2",
+          "area2",
+          "smoothness2",
+          "compactness2",
+          "concavity2",
+          "concave_points2",
+          "symmetry2",
+          "fractal_dimension2",
+          "radius3",
+          "texture3",
+          "perimeter3",
+          "area3",
+          "smoothness3",
+          "compactness3",
+          "concavity3",
+          "concave_points3",
+          "symmetry3",
+          "fractal_dimension3",
+          "Diagnosis"
+        ],
+        "target_columns": [
+          "Diagnosis"
+        ],
+        "reported_rows": 569,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "3487b754ff02c93cdc8a18afafe223961d9cfbfdb932e57483e52581042767d7",
+        "expected_rows": 569
+      },
+      "evaluation_track": "iid_development",
+      "admission_profile": {
+        "validated_on": "2026-09-22",
+        "raw_sha256": "3487b754ff02c93cdc8a18afafe223961d9cfbfdb932e57483e52581042767d7",
+        "shape": [
+          569,
+          30
+        ],
+        "class_labels": [
+          "B",
+          "M"
+        ],
+        "profile": {
+          "rows": 569,
+          "features": 30,
+          "missingness": {
+            "radius1": 0.0,
+            "texture1": 0.0,
+            "perimeter1": 0.0,
+            "area1": 0.0,
+            "smoothness1": 0.0,
+            "compactness1": 0.0,
+            "concavity1": 0.0,
+            "concave_points1": 0.0,
+            "symmetry1": 0.0,
+            "fractal_dimension1": 0.0,
+            "radius2": 0.0,
+            "texture2": 0.0,
+            "perimeter2": 0.0,
+            "area2": 0.0,
+            "smoothness2": 0.0,
+            "compactness2": 0.0,
+            "concavity2": 0.0,
+            "concave_points2": 0.0,
+            "symmetry2": 0.0,
+            "fractal_dimension2": 0.0,
+            "radius3": 0.0,
+            "texture3": 0.0,
+            "perimeter3": 0.0,
+            "area3": 0.0,
+            "smoothness3": 0.0,
+            "compactness3": 0.0,
+            "concavity3": 0.0,
+            "concave_points3": 0.0,
+            "symmetry3": 0.0,
+            "fractal_dimension3": 0.0
+          },
+          "cardinality": {
+            "radius1": 456,
+            "texture1": 479,
+            "perimeter1": 522,
+            "area1": 539,
+            "smoothness1": 474,
+            "compactness1": 537,
+            "concavity1": 537,
+            "concave_points1": 542,
+            "symmetry1": 432,
+            "fractal_dimension1": 499,
+            "radius2": 540,
+            "texture2": 519,
+            "perimeter2": 533,
+            "area2": 528,
+            "smoothness2": 547,
+            "compactness2": 541,
+            "concavity2": 533,
+            "concave_points2": 507,
+            "symmetry2": 498,
+            "fractal_dimension2": 545,
+            "radius3": 457,
+            "texture3": 511,
+            "perimeter3": 514,
+            "area3": 544,
+            "smoothness3": 411,
+            "compactness3": 529,
+            "concavity3": 539,
+            "concave_points3": 492,
+            "symmetry3": 500,
+            "fractal_dimension3": 535
+          },
+          "duplicate_feature_rows": 0,
+          "class_counts": {
+            "0": 357,
+            "1": 212
+          },
+          "class_prevalence": {
+            "0": 0.6274165202108963,
+            "1": 0.37258347978910367
+          },
+          "n_classes": 2
+        },
+        "split_support": {
+          "outer_splits": 3,
+          "official": false,
+          "all_rows_retained": true,
+          "minimum_outer_train_class_count": 141,
+          "minimum_outer_test_class_count": 70,
+          "nested_split_check": {
+            "policy": "3-fold outer or all official folds; one tuning holdout, 3 stability holdouts, 3 screening folds and 2 residual folds; seed 2026. Structural feasibility only, no model evaluation.",
+            "failing_outer_folds": 0,
+            "errors": []
+          }
+        },
+        "groups": null,
+        "time_buckets": null,
+        "model_calls": 0,
+        "observed_class_counts": {
+          "B": 357,
+          "M": 212
+        },
+        "prevalence_scope": "Pinned source/curated distribution after documented target normalization, without catalog resampling. This is not an upstream population-rate claim; curator sampling/deduplication remains disclosed.",
+        "missingness_scope": "Parsed missing values only. Original categorical placeholders such as Diabetes130US '?' and NULL codes may remain distinct source categories; curation notes disclose this.",
+        "duplicate_scope": "Duplicate reviewed predictor vectors after declared exclusions, not proof of duplicate entities. No additional deduplication or row deletion was performed.",
+        "split_check_limitations": "Structural reference check at seed 2026 only, not a guarantee for every learner/tuning seed or nested pipeline. No estimators, predictions or evaluation scores were computed."
+      }
+    }
+  ]
+}

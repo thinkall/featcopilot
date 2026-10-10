@@ -78,6 +78,7 @@ class TestTabularEngine:
         # Should not have power features
         power_features = [c for c in result.columns if "_pow" in c]
         assert len(power_features) == 0
+        assert not any(column.endswith(("_log1p", "_sqrt", "_sq")) for column in result.columns)
 
 
 class TestTimeSeriesEngine:
@@ -245,6 +246,46 @@ class TestTabularEngineExtended:
 
         assert "cat_medium_target_encoded" in result.columns
 
+    def test_categorical_target_encoding_cross_fits_training_rows(self):
+        """Training rows must not be encoded from their own targets."""
+        n = 20
+        df = pd.DataFrame({"category": [f"category_{i}" for i in range(n)]})
+        y = pd.Series(np.arange(n, dtype=float))
+        engine = TabularEngine(
+            polynomial_degree=1,
+            include_transforms=[],
+            onehot_ratio_threshold=0.0,
+            target_encode_ratio_threshold=1.0,
+            target_encode_cv=5,
+            min_samples_per_category=1,
+        )
+
+        training_result = engine.fit_transform(df, y=y)
+        inference_result = engine.transform(df)
+
+        assert not np.allclose(training_result["category_target_encoded"], y)
+        assert np.allclose(inference_result["category_target_encoded"], y)
+
+    def test_categorical_target_encoding_aligns_target_by_position(self):
+        """A target Series index must not change row-to-target alignment."""
+        df = pd.DataFrame(
+            {"category": ["a", "a", "b", "b", "c", "c"]},
+            index=[10, 20, 30, 40, 50, 60],
+        )
+        y = pd.Series([1.0, 3.0, 10.0, 14.0, 100.0, 200.0])
+        engine = TabularEngine(
+            polynomial_degree=1,
+            include_transforms=[],
+            onehot_ratio_threshold=0.0,
+            target_encode_ratio_threshold=1.0,
+            min_samples_per_category=1,
+        )
+
+        engine.fit(df, y=y)
+        result = engine.transform(df)
+
+        assert result["category_target_encoded"].tolist() == [2.0, 2.0, 12.0, 12.0, 150.0, 150.0]
+
     def test_categorical_string_target_encoding(self):
         """Test target encoding with string target (lines 183-194 LabelEncoder path)."""
         np.random.seed(42)
@@ -391,6 +432,25 @@ class TestTabularEngineExtended:
         # Original categorical column should be dropped
         assert "cat1" not in result.columns
         assert "cat1_A" in result.columns
+
+    def test_keep_original_categorical_false_drops_unencoded_columns(self):
+        """High-cardinality categorical inputs should not leak through as strings."""
+        df = pd.DataFrame(
+            {
+                "numeric": np.arange(20, dtype=float),
+                "identifier": [f"id_{i}" for i in range(20)],
+            }
+        )
+        engine = TabularEngine(
+            polynomial_degree=1,
+            include_transforms=[],
+            keep_original_categorical=False,
+        )
+
+        result = engine.fit_transform(df)
+
+        assert "identifier" not in result.columns
+        assert all(pd.api.types.is_numeric_dtype(dtype) for dtype in result.dtypes)
 
     def test_categorical_column_missing_in_transform(self):
         """Test transform when a categorical column is missing (lines 411-412, 426-427)."""

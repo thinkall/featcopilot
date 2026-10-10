@@ -1,12 +1,22 @@
 """Model-based feature importance selection."""
 
+from typing import Protocol
+
 import numpy as np
 import pandas as pd
 
 from featcopilot.core.base import BaseSelector
 from featcopilot.utils.logger import get_logger
+from featcopilot.utils.task import prepare_target, validate_task
 
 logger = get_logger(__name__)
+
+
+class _ImportanceModel(Protocol):
+    @property
+    def feature_importances_(self) -> np.ndarray: ...
+
+    def fit(self, X: np.ndarray, y: np.ndarray) -> object: ...
 
 
 class ImportanceSelector(BaseSelector):
@@ -23,6 +33,10 @@ class ImportanceSelector(BaseSelector):
         Maximum features to select
     threshold : float, optional
         Minimum importance threshold
+    task : {'auto', 'classification', 'regression'}, default='auto'
+        Supervised task. Auto preserves the historical target heuristic.
+        Explicit regression requires finite numeric targets; classification
+        requires discrete labels.
 
     Examples
     --------
@@ -37,15 +51,18 @@ class ImportanceSelector(BaseSelector):
         threshold: float | None = None,
         n_estimators: int = 100,
         verbose: bool = False,
+        task: str = "auto",
         **kwargs,
     ):
         super().__init__(**kwargs)
+        validate_task(task)
         self.model_type = model
         self.max_features = max_features
         self.threshold = threshold
         self.n_estimators = n_estimators
         self.verbose = verbose
-        self._model = None
+        self.task = task
+        self._model: _ImportanceModel | None = None
 
     def fit(self, X: pd.DataFrame | np.ndarray, y: pd.Series | np.ndarray, **kwargs) -> "ImportanceSelector":
         """
@@ -64,8 +81,12 @@ class ImportanceSelector(BaseSelector):
         """
         from sklearn.preprocessing import LabelEncoder
 
+        self._is_fitted = False
+        self._model = None
+        self._feature_scores = {}
+        self._selected_features = []
         X = self._validate_input(X)
-        y = np.array(y)
+        y = prepare_target(y, self.task)
 
         # Encode string labels if needed
         y_encoded = y
@@ -80,6 +101,8 @@ class ImportanceSelector(BaseSelector):
             or y.dtype.kind in ("U", "S")
             or (pd.api.types.is_integer_dtype(y_encoded) and unique_y <= len(y_encoded) * 0.1)
         )
+        if self.task != "auto":
+            is_classification = self.task == "classification"
 
         # Create model
         self._model = self._create_model(is_classification)
@@ -114,27 +137,28 @@ class ImportanceSelector(BaseSelector):
         self._is_fitted = True
         return self
 
-    def _create_model(self, is_classification: bool):
+    def _create_model(self, is_classification: bool) -> _ImportanceModel:
         """Create the appropriate model."""
+        model: _ImportanceModel
         if self.model_type == "random_forest":
             if is_classification:
                 from sklearn.ensemble import RandomForestClassifier
 
-                return RandomForestClassifier(n_estimators=self.n_estimators, random_state=42, n_jobs=-1)
+                model = RandomForestClassifier(n_estimators=self.n_estimators, random_state=42, n_jobs=-1)
             else:
                 from sklearn.ensemble import RandomForestRegressor
 
-                return RandomForestRegressor(n_estimators=self.n_estimators, random_state=42, n_jobs=-1)
+                model = RandomForestRegressor(n_estimators=self.n_estimators, random_state=42, n_jobs=-1)
 
         elif self.model_type == "gradient_boosting":
             if is_classification:
                 from sklearn.ensemble import GradientBoostingClassifier
 
-                return GradientBoostingClassifier(n_estimators=self.n_estimators, random_state=42)
+                model = GradientBoostingClassifier(n_estimators=self.n_estimators, random_state=42)
             else:
                 from sklearn.ensemble import GradientBoostingRegressor
 
-                return GradientBoostingRegressor(n_estimators=self.n_estimators, random_state=42)
+                model = GradientBoostingRegressor(n_estimators=self.n_estimators, random_state=42)
 
         elif self.model_type == "xgboost":
             try:
@@ -152,16 +176,20 @@ class ImportanceSelector(BaseSelector):
         else:
             raise ValueError(f"Unknown model type: {self.model_type}")
 
-    def _create_model_fallback(self, is_classification: bool):
+        return model
+
+    def _create_model_fallback(self, is_classification: bool) -> _ImportanceModel:
         """Fallback to RandomForest."""
+        model: _ImportanceModel
         if is_classification:
             from sklearn.ensemble import RandomForestClassifier
 
-            return RandomForestClassifier(n_estimators=self.n_estimators, random_state=42)
+            model = RandomForestClassifier(n_estimators=self.n_estimators, random_state=42)
         else:
             from sklearn.ensemble import RandomForestRegressor
 
-            return RandomForestRegressor(n_estimators=self.n_estimators, random_state=42)
+            model = RandomForestRegressor(n_estimators=self.n_estimators, random_state=42)
+        return model
 
     def _select_features(self) -> None:
         """Select features based on importance."""

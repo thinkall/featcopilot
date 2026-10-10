@@ -182,6 +182,12 @@ class TransformRule(BaseModel):
         ------
         ValueError
             If required columns are missing or code execution fails
+
+        Notes
+        -----
+        Rules execute trusted Python code, not sandboxed code. A shared
+        namespace lets lambdas and nested functions resolve intermediate
+        variables and the supplied ``df``, ``np`` and ``pd`` bindings.
         """
         column_mapping = column_mapping or {}
 
@@ -195,10 +201,14 @@ class TransformRule(BaseModel):
                 if actual_col not in df.columns:
                     raise ValueError(f"Required column '{actual_col}' not found in DataFrame")
 
-        # Execute the code in a restricted environment
-        local_vars: dict[str, Any] = {"df": df, "np": np, "pd": pd}
+        local_vars: dict[str, Any] = {
+            "__builtins__": self._get_safe_builtins(),
+            "df": df,
+            "np": np,
+            "pd": pd,
+        }
         try:
-            exec(self._get_safe_code(code), {"__builtins__": self._get_safe_builtins()}, local_vars)
+            exec(self._get_safe_code(code), local_vars)
 
             if "result" not in local_vars:
                 raise ValueError("Code did not produce a 'result' variable")

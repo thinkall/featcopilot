@@ -1,0 +1,55 @@
+{
+  "promote": false,
+  "sota_demonstrated": false,
+  "decision": "Overall three-seed means/tails improve but per-seed CKD harms persist. Freeze subsample85 as a candidate for two-origin qualified-standard-IID confirmation only; linear single policy unchanged, sigmoid not selected.",
+  "comparisons": [
+    {
+      "seed": 42,
+      "families": 9,
+      "matched_mean": 0.1054638276716578,
+      "matched_worst": -0.0032253386163627606,
+      "single_raw_mean": 0.08413822535139791,
+      "single_raw_worst": -0.037226106557326055,
+      "matched_harms_above_5_percent": [],
+      "single_raw_harms_above_5_percent": []
+    },
+    {
+      "seed": 137,
+      "families": 9,
+      "matched_mean": 0.040229114417028505,
+      "matched_worst": -0.08531673313737564,
+      "single_raw_mean": 0.04874397508953621,
+      "single_raw_worst": -0.16881077260854305,
+      "matched_harms_above_5_percent": [
+        "uci-chronic-kidney-disease"
+      ],
+      "single_raw_harms_above_5_percent": [
+        "uci-chronic-kidney-disease"
+      ]
+    },
+    {
+      "seed": 2029,
+      "families": 9,
+      "matched_mean": 0.0610277639852297,
+      "matched_worst": -0.28970233676083157,
+      "single_raw_mean": 0.07304137526770421,
+      "single_raw_worst": -0.22502274644280895,
+      "matched_harms_above_5_percent": [
+        "uci-chronic-kidney-disease"
+      ],
+      "single_raw_harms_above_5_percent": [
+        "uci-chronic-kidney-disease"
+      ]
+    },
+    {
+      "seed": null,
+      "families": 9,
+      "matched_mean": 0.07595490008791173,
+      "matched_worst": -0.025879129361257913,
+      "single_raw_mean": 0.0730996587143105,
+      "single_raw_worst": -0.04952117529447686,
+      "matched_harms_above_5_percent": [],
+      "single_raw_harms_above_5_percent": []
+    }
+  ]
+}

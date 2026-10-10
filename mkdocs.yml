@@ -79,6 +79,7 @@ nav:
     - Engines: user-guide/engines.md
     - LLM Features: user-guide/llm-features.md
     - Feature Selection: user-guide/selection.md
+    - Experimental Classification: user-guide/classification.md
     - Feature Stores: user-guide/feature-stores.md
     - Command-Line Interface: user-guide/cli.md
     - Benchmarks: user-guide/benchmarks.md

@@ -3,11 +3,12 @@
 Generates human-readable explanations for features.
 """
 
-from typing import Any, Literal
+from typing import Literal
 
 import pandas as pd
 
 from featcopilot.core.feature import Feature, FeatureSet
+from featcopilot.llm._types import FeatureClient
 from featcopilot.utils.logger import get_logger
 from featcopilot.utils.models import DEFAULT_MODEL
 
@@ -52,9 +53,9 @@ class FeatureExplainer:
         self.backend = backend
         self.api_key = api_key
         self.api_base = api_base
-        self._client: Any | None = None
+        self._client: FeatureClient | None = None
 
-    def _ensure_client(self) -> None:
+    def _ensure_client(self) -> FeatureClient:
         """Ensure client is initialized."""
         if self._client is None:
             if self.backend == "openai":
@@ -70,6 +71,7 @@ class FeatureExplainer:
 
                 self._client = SyncCopilotFeatureClient(model=self.model)
             self._client.start()
+        return self._client
 
     def explain_feature(
         self,
@@ -94,9 +96,9 @@ class FeatureExplainer:
         explanation : str
             Human-readable explanation
         """
-        self._ensure_client()
+        client = self._ensure_client()
 
-        explanation = self._client.explain_feature(
+        explanation = client.explain_feature(
             feature_name=feature.name,
             feature_code=feature.code or feature.transformation,
             column_descriptions=column_descriptions,
@@ -188,7 +190,7 @@ class FeatureExplainer:
 
         # Summary by origin
         report += "## Features by Origin\n\n"
-        origins = {}
+        origins: dict[str, int] = {}
         for feature in features:
             origin = feature.origin.value
             origins[origin] = origins.get(origin, 0) + 1

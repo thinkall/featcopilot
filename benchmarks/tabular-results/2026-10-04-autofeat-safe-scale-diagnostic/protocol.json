@@ -1,0 +1,122 @@
+{
+  "protocol": "autofeat_safe_scale_retrospective_v1",
+  "method": "autofeat-native-safe-scale-v1-robust",
+  "not_confirmation": true,
+  "original_confirmation_decision": "blocked",
+  "original_run_id": "38f7c2db70ea316a7ead0bf306695b45b5aa84b35ef1bbcc9f7449df908388c1",
+  "original_artifact_sha256": {
+    "results.json": "4e5ae41a54e77f7c4fd1926fe4621e6fd6737ad3d1cb364c8f143bf2e2f7e92a",
+    "manifest.json": "99475fab6026e5872d033312a321bd9cd90eb753aa18d1e2175af9ecbb5d94b1"
+  },
+  "prepared_sha256": "02b89bb73f26d82fae8073cddbe3a9e1d58bc8fcfd1304a1ad09eeef3a63113a",
+  "evaluation_tier": "standard_iid_unverified_entity",
+  "claim_boundary": {
+    "evaluation_tier": "standard_iid_unverified_entity",
+    "claim_scope": "Row-level standard public IID benchmark evidence only, under explicitly unresolved patient/entity mapping.",
+    "patient_entity_independence_verified": false,
+    "patient_entity_disjoint_claims_allowed": false,
+    "clinical_generalization_claims_allowed": false,
+    "pool_with_verified_entity_cohorts": false,
+    "prospective_clinical_decision_use_authorized": false,
+    "known_group_time_constraints_must_be_preserved": true,
+    "future_confirmation_requires_explicit_tier_binding": true,
+    "limits": "This is not a waiver for known repeat-entity or temporal leakage. If later evidence identifies available group IDs, repeated-entity links or mandatory temporal boundaries, stop and review; do not drop or ignore them to preserve IID eligibility."
+  },
+  "config": {
+    "suite": "C:\\code\\featcopilot\\benchmarks\\suites\\thoracic_fixed_average_confirmation_20261004.json",
+    "datasets": [
+      "thoracic-surgery"
+    ],
+    "methods": [
+      "autofeat-native-safe-scale-v1-robust"
+    ],
+    "learners": [
+      "lightgbm"
+    ],
+    "seed": 2031,
+    "folds": 3,
+    "max_rows": 0,
+    "max_candidates": 1000,
+    "max_added_features": 50,
+    "stability_repeats": 3,
+    "threads": 8,
+    "memory_limit_mb": 4096,
+    "case_timeout": 900.0,
+    "blend_mode": "fixed_average",
+    "categorical_encoding": "one_hot",
+    "numeric_clip_quantiles": [
+      0.0,
+      1.0
+    ],
+    "target_transform": "identity",
+    "allow_confirmation": false,
+    "seeds": [
+      2031
+    ],
+    "evaluation_tier": "standard_iid_unverified_entity",
+    "claim_boundary": {
+      "evaluation_tier": "standard_iid_unverified_entity",
+      "claim_scope": "Row-level standard public IID benchmark evidence only, under explicitly unresolved patient/entity mapping.",
+      "patient_entity_independence_verified": false,
+      "patient_entity_disjoint_claims_allowed": false,
+      "clinical_generalization_claims_allowed": false,
+      "pool_with_verified_entity_cohorts": false,
+      "prospective_clinical_decision_use_authorized": false,
+      "known_group_time_constraints_must_be_preserved": true,
+      "future_confirmation_requires_explicit_tier_binding": true,
+      "limits": "This is not a waiver for known repeat-entity or temporal leakage. If later evidence identifies available group IDs, repeated-entity links or mandatory temporal boundaries, stop and review; do not drop or ignore them to preserve IID eligibility."
+    },
+    "synthetic": false,
+    "screening": "auto"
+  },
+  "splits": [
+    {
+      "dataset": "thoracic-surgery",
+      "seed": 2031,
+      "fold": 0,
+      "sha256": "7f1f64554a3ff1bf3c7f68cc432d082a6b94cdd8ffe41e175a9da8413e34a714"
+    },
+    {
+      "dataset": "thoracic-surgery",
+      "seed": 2031,
+      "fold": 1,
+      "sha256": "43a535e035c81a540ba476b80d882ee2ad92e7639fb053a0c6d05ea9cbd4f3c0"
+    },
+    {
+      "dataset": "thoracic-surgery",
+      "seed": 2031,
+      "fold": 2,
+      "sha256": "994ba2b2a8bfd8f2578f27e53a0d0d257a1dbc1529159da0793cf6ba663d515d"
+    }
+  ],
+  "expected_cells": 3,
+  "total_seconds": 3600.0,
+  "source_sha256": "489c114e8b36609a602bd77ecd54e86b99ed53d23f75700cfa81b5efcb82a36b",
+  "versions": {
+    "featcopilot": "0.4.0",
+    "numpy": "2.4.4",
+    "pandas": "2.3.3",
+    "scipy": "1.17.1",
+    "scikit-learn": "1.7.2",
+    "lightgbm": "4.6.0",
+    "catboost": "1.2.10",
+    "xgboost": "3.3.0",
+    "openfe": "0.0.12",
+    "autofeat": "2.1.1",
+    "openml": "0.15.1",
+    "psutil": "7.2.2",
+    "joblib": "1.3.2",
+    "threadpoolctl": "3.6.0",
+    "pydantic": "2.13.3",
+    "sympy": "1.14.0",
+    "numba": "0.65.1"
+  },
+  "runner_sha256": "e6903b693fcb0427ebbdf6e774d482e1e914da93ae06b8b393a43c4975ffacae",
+  "started_utc": "2026-10-04T09:08:06.059583+00:00",
+  "source_archive_sha256": "da153e42890965501169ac321004c25ecd3e8721df5cfa4254017c6cb3fd5dac",
+  "source_sha256_at_finish": "489c114e8b36609a602bd77ecd54e86b99ed53d23f75700cfa81b5efcb82a36b",
+  "source_changed": false,
+  "original_artifacts_unchanged": true,
+  "finished_utc": "2026-10-04T09:14:57.575577+00:00",
+  "active_seconds": 447.19636770011857
+}

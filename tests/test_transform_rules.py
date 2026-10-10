@@ -91,6 +91,19 @@ class TestTransformRule:
 
         assert list(result) == pytest.approx([10.0, 10.0, 10.0], rel=1e-5)
 
+    def test_generated_lambda_resolves_numpy_and_intermediate_variables(self):
+        rule = TransformRule(
+            name="shifted_log",
+            description="Apply a rowwise transform using a local helper",
+            input_columns=["value"],
+            code="offset = 2\nfn = lambda value: np.log1p(value + offset)\nresult = df['value'].map(fn)",
+        )
+        df = pd.DataFrame({"value": [1.0, 2.0]}, index=[10, 20])
+        result = rule.apply(df)
+        assert result.index.equals(df.index)
+        assert result.tolist() == pytest.approx([1.3862943611, 1.6094379124])
+        assert rule.usage_count == 1
+
     def test_rule_matches_columns_exact(self):
         """Test exact column matching."""
         rule = TransformRule(
@@ -341,7 +354,7 @@ class TestTransformRuleGenerator:
         """Test generator creation."""
         generator = TransformRuleGenerator()
 
-        assert generator.model == "gpt-5.2"
+        assert generator.model == "gpt-5.6-sol"
         assert generator.validate is True
 
     def test_generator_with_store(self):

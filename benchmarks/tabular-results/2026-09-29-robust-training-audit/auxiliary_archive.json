@@ -1,0 +1,110 @@
+{
+  "format": "bounded-lossless-artifacts-v1",
+  "files": [
+    {
+      "name": "cells/infrared-oral-temperature-fold-0-featcopilot-frequency-aligned/result.json",
+      "compression": "gzip",
+      "parts": [
+        "cell-result-d6ba4e02614fca77.json.gz.part1"
+      ],
+      "sha256": "5dcf8afa89aa589f7f561a3205bf1f54d669e51342811daae66875191c8a11ac"
+    },
+    {
+      "name": "cells/infrared-oral-temperature-fold-0-featcopilot-frequency-aligned-robust/result.json",
+      "compression": "gzip",
+      "parts": [
+        "cell-result-a2564da3eccb3538.json.gz.part1"
+      ],
+      "sha256": "7985f2a3da2b487193d12d749003dd378f7d14bc1214cb50cc23d9989e457d17"
+    },
+    {
+      "name": "cells/infrared-oral-temperature-fold-1-featcopilot-frequency-aligned/result.json",
+      "compression": "gzip",
+      "parts": [
+        "cell-result-39654003d9fa21f3.json.gz.part1"
+      ],
+      "sha256": "474d99dd2c53239901c661f305d91f64d1220a04d110e0f91d850dc3a0fbf970"
+    },
+    {
+      "name": "cells/infrared-oral-temperature-fold-1-featcopilot-frequency-aligned-robust/result.json",
+      "compression": "gzip",
+      "parts": [
+        "cell-result-d63937f4f0e17b7d.json.gz.part1"
+      ],
+      "sha256": "240738d03857d6d03ec15cbd22f45ba8ca3a2f4e9cd4422356d5424b8300fb1e"
+    },
+    {
+      "name": "cells/infrared-oral-temperature-fold-2-featcopilot-frequency-aligned/result.json",
+      "compression": "gzip",
+      "parts": [
+        "cell-result-c086fa2e4eb5e5fc.json.gz.part1"
+      ],
+      "sha256": "8168e843ae74094530b776ce9c0a2624899ccbf0d9db0ebc18d76e7b51d448f0"
+    },
+    {
+      "name": "cells/infrared-oral-temperature-fold-2-featcopilot-frequency-aligned-robust/result.json",
+      "compression": "gzip",
+      "parts": [
+        "cell-result-eadf65150811a129.json.gz.part1"
+      ],
+      "sha256": "f09fa8f228c7f4fe7571feb09be73479f5da50d7ea7c5add807c2fd0e0cde1a8"
+    },
+    {
+      "name": "record-14.json",
+      "compression": "gzip",
+      "parts": [
+        "record-14.json.gz.part1"
+      ],
+      "sha256": "71ab3bfea44c67555329c9539efd774f068a86eb873de0bec95ee4fa56b09637"
+    },
+    {
+      "name": "record-15.json",
+      "compression": "gzip",
+      "parts": [
+        "record-15.json.gz.part1"
+      ],
+      "sha256": "ea2a74a8136ee31414e16244a7aff58e6eba2c98f1b986bdbc394ea6d6579b29"
+    },
+    {
+      "name": "record-18.json",
+      "compression": "gzip",
+      "parts": [
+        "record-18.json.gz.part1"
+      ],
+      "sha256": "727a4b1b545b8826fc2e09c69b5438af98b1c556b84dc64d9ea733d3f5c3f7de"
+    },
+    {
+      "name": "record-19.json",
+      "compression": "gzip",
+      "parts": [
+        "record-19.json.gz.part1"
+      ],
+      "sha256": "94c80bd229e9f93fe26313d4f0f6b7b7c13b22d8f3004effbf594f46a128b196"
+    },
+    {
+      "name": "record-22.json",
+      "compression": "gzip",
+      "parts": [
+        "record-22.json.gz.part1"
+      ],
+      "sha256": "cca360d8f39b978a6ff3576e3d5015daba0c5d135909796365ce4bf0ead56074"
+    },
+    {
+      "name": "record-23.json",
+      "compression": "gzip",
+      "parts": [
+        "record-23.json.gz.part1"
+      ],
+      "sha256": "4feadae4fc1bc76adbc6d0626455f268377190821d70b076138e7435567ba4cb"
+    },
+    {
+      "name": "source.zip",
+      "compression": "none",
+      "parts": [
+        "source.zip.part1",
+        "source.zip.part2"
+      ],
+      "sha256": "d8243b1b81df4e6ca8cb7b0ba162a2cd1199c9d45db4f808b7f84236525b117c"
+    }
+  ]
+}

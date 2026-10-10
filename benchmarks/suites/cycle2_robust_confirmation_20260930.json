@@ -1,0 +1,691 @@
+{
+  "schema_version": 1,
+  "name": "cycle2-robust-confirmation-20260930",
+  "family_registry": "../families.json",
+  "purpose": "Explicitly authorized, fixed four-origin independent confirmation of the existing single-importance frequency-aligned robust incumbent with final-clipping-matched robust raw/native references. Not bagged, not plan-gated, not a new algorithm search.",
+  "release_state": {
+    "status": "authorized_after_metadata_audit_and_locked_binding",
+    "model_execution_authorized": true,
+    "actual_payload_and_split_checks_required": true,
+    "release_audit": "cycle2_robust_confirmation_release_20260930.json"
+  },
+  "lineage": {
+    "reservation": "cycle2_origin_reservation_20260929.json",
+    "reservation_sha256": "3e35dacd0c0a9e946240081dc403dcdb538e775da775f9da76485bef88f03ca1",
+    "reservation_audit": "cycle2_origin_reservation_audit_20260929.json",
+    "reservation_audit_sha256": "0ecb15a705db9d088b503e80a23126e20d8a58357bf6c79e3d6ddec8c07c5230",
+    "scope": "No source, target, predictor, rights, provider-policy or candidate-cohort substitution."
+  },
+  "preregistration": {
+    "status": "locked_before_confirmation_model_execution",
+    "family_ids": [
+      "facebook-cosmetics-posts",
+      "differentiated-thyroid-recurrence",
+      "assam-medical-entrance",
+      "personality-drug-consumption"
+    ],
+    "independent_selected_families": 4,
+    "methods": [
+      "baseline-robust",
+      "featcopilot-frequency-aligned-robust",
+      "openfe-inductive-native-robust",
+      "autofeat-native-robust"
+    ],
+    "learners": [
+      "linear",
+      "lightgbm",
+      "catboost",
+      "xgboost"
+    ],
+    "learner_search": {
+      "linear": {
+        "regularization": [
+          0.1,
+          1.0,
+          10.0
+        ],
+        "selection_estimator_regularization": 1.0
+      },
+      "lightgbm": {
+        "num_leaves": [
+          7,
+          15,
+          31
+        ],
+        "selection_estimator_num_leaves": 15
+      },
+      "catboost": {
+        "depth": [
+          3,
+          6,
+          9
+        ],
+        "selection_estimator_depth": 6
+      },
+      "xgboost": {
+        "depth": [
+          3,
+          6,
+          9
+        ],
+        "selection_estimator_depth": 6
+      }
+    },
+    "selection_parameters": {
+      "max_candidates": 1000,
+      "max_added_features": 50,
+      "stability_repeats": 3,
+      "screening": "auto"
+    },
+    "resplit_official_as_iid": true,
+    "split_plan": {
+      "facebook-cosmetics-posts": {
+        "policy": "iid",
+        "folds": 3
+      },
+      "differentiated-thyroid-recurrence": {
+        "policy": "iid",
+        "folds": 3
+      },
+      "assam-medical-entrance": {
+        "policy": "iid",
+        "folds": 3
+      },
+      "personality-drug-consumption": {
+        "policy": "iid",
+        "folds": 3
+      }
+    },
+    "seeds": [
+      2028
+    ],
+    "sample_seed": 2026,
+    "folds": 3,
+    "max_rows": 0,
+    "threads": 8,
+    "memory_limit_mb": 4096,
+    "case_timeout_seconds": 900,
+    "total_active_seconds_ceiling": 43200,
+    "expected_total_splits": 12,
+    "expected_cells": 192,
+    "expected_cells_formula": "4 unchanged families * 3 IID folds * 4 methods * 4 learners * seed2028",
+    "classification_admission_margin": {
+      "min_total": 30,
+      "min_outer_train": 20,
+      "min_outer_test": 10
+    },
+    "metadata_eligibility": "The prior reserved pool required reported class minimum>=60; this metadata recheck retains that criterion. Actual post-release payload/generated-split admission still enforces the unchanged30/20/10 runtime margins.",
+    "live_llm": false,
+    "synthetic": false,
+    "llm_ledger": null,
+    "method_semantics_documentation_only": {
+      "interpretation": "Documentation only, not a method-overrides runtime schema. Exact registered method names and frozen source/config/manifest identities bind the actual implementations.",
+      "all_final_learners": {
+        "numeric_clip_quantiles": [
+          0.0,
+          1.0
+        ],
+        "policy": "Same training-support NumericQuantileClipper for all four method final learner pipelines. Numeric bounds are fitted on the current training partition only, before downstream imputation/scaling/native handling; no held-out quantiles."
+      },
+      "baseline-robust": {
+        "feature_generation": false,
+        "description": "Reviewed raw predictors with the same final training-support clipping as all three engineered methods."
+      },
+      "featcopilot-frequency-aligned-robust": {
+        "candidate_set": "extended",
+        "include_frequency": true,
+        "screening": "importance",
+        "importance_resamples": 1,
+        "selection_rule": "paired_gain",
+        "numeric_clip_quantiles": [
+          0.0,
+          1.0
+        ],
+        "aligned_search": "Existing aligned path evaluates FE+learner pipelines for each of the same three settings, and refits selected features using the chosen training-only setting. Not a permanently middle-setting selector.",
+        "not_used": [
+          "five-bag importance aggregation",
+          "plan-gated discovery/refit protocol",
+          "new candidate operators",
+          "dataset/learner-specific method switches"
+        ]
+      },
+      "openfe-inductive-native-robust": {
+        "generation_adapter": "openfe-inductive",
+        "native_package": "OpenFE0.0.12",
+        "generation": "Identical existing first-order full numeric/categorical candidate generation, training-only inductive DAG transforms and native selected width. Existing training-median generation preparation; original numeric missingness restored afterward.",
+        "max_added_features": null,
+        "clipping_scope": "final_matched_learner_only",
+        "internal_ranking_clipping": false,
+        "not_claimed": "No clipping retrofit into OpenFE internal ranking, no stock transductive transform, no new operator filtering."
+      },
+      "autofeat-native-robust": {
+        "generation_adapter": "autofeat-native",
+        "native_package": "AutoFeat2.1.1",
+        "generation": "Identical existing native generation/selection and train-fitted one-hot adapter; original numeric missingness restored before the matched final learner.",
+        "feateng_steps": 2,
+        "featsel_runs": 5,
+        "max_gb": null,
+        "max_added_features": null,
+        "clipping_scope": "final_matched_learner_only",
+        "internal_ranking_clipping": false
+      },
+      "catboost_representation_caveat": "The existing candidate-selection CatBoost estimator drops cat_features and is evaluated through numeric candidate-engine preprocessing. Final CatBoost retains native categorical handling with the shared final clipper. This known mismatch is disclosed; no runtime rewrite or categorical conversion experiment.",
+      "failure_policy": "No native-reference error-to-baseline substitution, narrowing of feature output, retries with easier algorithms, or outcome-based dataset replacement."
+    },
+    "decision_and_reporting_plan": {
+      "candidate": "featcopilot-frequency-aligned-robust",
+      "raw_control": "baseline-robust",
+      "strong_references": [
+        "openfe-inductive-native-robust",
+        "autofeat-native-robust"
+      ],
+      "primary_family_ids": [
+        "facebook-cosmetics-posts",
+        "differentiated-thyroid-recurrence",
+        "assam-medical-entrance",
+        "personality-drug-consumption"
+      ],
+      "classification_family_ids": [
+        "differentiated-thyroid-recurrence",
+        "assam-medical-entrance",
+        "personality-drug-consumption"
+      ],
+      "regression_family_ids": [
+        "facebook-cosmetics-posts"
+      ],
+      "family_loss": "Arithmetic mean primary loss over ALL three preregistered splits for each family/method/learner; any missing/nonfinite split makes that paired family-method loss incomplete.",
+      "primary_metrics": {
+        "classification": "log_loss",
+        "regression": "rmse"
+      },
+      "relative_gain": "G(f,r,l)=1-L(f,candidate,l)/L(f,reference,l); use family-mean losses before ratios.",
+      "aggregation": "Equal-family mean/median relative gains per classification/regression x learner stratum; report family raw losses separately. Do not pool unscaled losses across tasks.",
+      "positive_vs_raw": "Strictly positive mean G versus baseline-robust in EACH of eight task/learner strata.",
+      "family_harm": "No family/learner loss worsening above5% relative to baseline-robust.",
+      "reference_gate": "Mean G >=0 against EACH of the two complete paired robust native references in EACH task/learner stratum; no selecting the easier reference after results.",
+      "numeric_gate": {
+        "raw_mean_gain_threshold": 0.0,
+        "raw_mean_comparison": "strictly_greater",
+        "maximum_raw_family_harm": 0.05,
+        "reference_mean_gain_threshold": 0.0,
+        "reference_mean_comparison": "greater_than_or_equal",
+        "required_complete_cells": 192,
+        "required_completion_fraction": 1.0
+      },
+      "failure_gate": "Failures, RSS kills, timeouts, incomplete pairs, unsupported tasks, budget skips and missing/nonfinite losses block broad claims. Report all planned denominators; no successful-case-only promotion.",
+      "zero_denominator": "No artificial epsilon or family deletion. Zero/nonfinite reference losses make the relative gate indeterminate; report absolute losses and block automatic passage.",
+      "win_tie_loss": "Per family/learner/reference: win if G>1%, loss if G<-1%, tie otherwise.",
+      "intervals": {
+        "method": "Descriptive paired family-block percentile intervals, seed2028,10000 resamples,95% level.",
+        "limits": "Only three classification families and one regression family. No between-family regression confidence interval can be estimated from one family; do not bootstrap folds as independent families or claim significance."
+      },
+      "scope": "Four predetermined observational source families, including ONE regression origin. This can only test a narrowly defined held-out cohort; it cannot establish broad SOTA, general regression superiority, cross-modality leadership or default promotion.",
+      "automatic_sota": false,
+      "automatic_promotion": false,
+      "resources": "Report expected/successful/failed cells and complete paired families per method/task/learner, elapsed active time, per-cell timing, peak RSS and remaining budget."
+    },
+    "source_split_policy": "Source policies remain iid for two UCI recipes and official for two OpenML recipes. Full source dimensions/IDs/hashes are validated/preserved, but explicit whole-cohort IID3 is the evaluation policy; no official-fold reproduction claim.",
+    "method_selection_basis": "The user selected one existing uniform incumbent using prior exposed-development work. No reserved-family outcomes, success rates, labels or payloads are used for candidate/task/learner selection.",
+    "budget_context": {
+      "new_cycle_allowance_hours": 72,
+      "parent_reported_actual_hours_before": 11.996735124,
+      "parent_reported_remaining_hours_approx": 60.0033,
+      "this_run_ceiling_hours": 12,
+      "maximum_cycle_hours_if_full_ceiling_used": 23.996735124,
+      "all_cells_at_900_seconds_hours": 48,
+      "policy": "The12h hard ceiling is not a completion guarantee. Jobs remain interleaved; unfinished/budget-skipped cells stay in coverage and claim accounting."
+    }
+  },
+  "datasets": [
+    {
+      "name": "facebook-cosmetics-posts",
+      "family_id": "facebook-cosmetics-posts",
+      "provider": "uci",
+      "task": "regression",
+      "role": "confirmation",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "cycle2-origin-reservation-20260929",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "target": "Total Interactions",
+      "target_transform": "identity",
+      "categorical": [
+        "Type",
+        "Category",
+        "Paid"
+      ],
+      "drop_columns": [
+        "Lifetime Post Total Reach",
+        "Lifetime Post Total Impressions",
+        "Lifetime Engaged Users",
+        "Lifetime Post Consumers",
+        "Lifetime Post Consumptions",
+        "Lifetime Post Impressions by people who have liked your Page",
+        "Lifetime Post reach by people who like your Page",
+        "Lifetime People who have liked your Page and engaged with your post",
+        "comment",
+        "like",
+        "share"
+      ],
+      "split_policy": "iid",
+      "prediction_time": "Recorded cumulative total interactions for the supplied Facebook posts, using only the seven variables documented as available before publication. Retrospective post-level response regression, not a fixed-horizon engagement forecast.",
+      "iid_suitability_review": {
+        "observation_unit_basis": "Primary metadata identifies rows as distinct posts from one known cosmetics page during2014. IID here is explicitly within that fixed page/year post-record population, conditional on the supplied calendar attributes; not independent brands, unseen pages or forward-time generalization.",
+        "target_timing": "All eleven other post-impact/engagement columns are excluded, including comment/like/share components of the target. No precise cumulative-observation horizon is invented.",
+        "not_claimed": "Unseen subjects/entities beyond the declared row unit, future-period transfer, causal effects or individual deployment."
+      },
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI publication explicitly grants CC-BY-4.0. OpenML badges are not used as a blanket data-use permission.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/368/facebook+metrics",
+          "https://archive.ics.uci.edu/api/dataset?id=368"
+        ],
+        "primary_page_sha256": "2cde9f5288853db46958792bc5cd7cc1a6968b9bece9471e64f27ccd965b6b89",
+        "reviewed_on": "2026-09-29",
+        "scope": "Metadata-only reservation now. Later local research only after explicit freeze/release; no hosted row sharing, reidentification, clinical/admissions/individual high-stakes deployment or additional redistribution approval.",
+        "obligations": "Retain source/contributor attribution and disclose sampling, timing, quantification, annotation and single-cohort limits."
+      },
+      "source": {
+        "uci_id": 368,
+        "data_url": "https://archive.ics.uci.edu/static/public/368/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=368",
+        "metadata_sha256": "495b11fd903a364ffb4f923b90ee133f6240ee73109b6cf12b7302f6de7f92a4",
+        "schema_reviewed": true,
+        "columns": [
+          "Page total likes",
+          "Type",
+          "Category",
+          "Post Month",
+          "Post Weekday",
+          "Post Hour",
+          "Paid",
+          "Lifetime Post Total Reach",
+          "Lifetime Post Total Impressions",
+          "Lifetime Engaged Users",
+          "Lifetime Post Consumers",
+          "Lifetime Post Consumptions",
+          "Lifetime Post Impressions by people who have liked your Page",
+          "Lifetime Post reach by people who like your Page",
+          "Lifetime People who have liked your Page and engaged with your post",
+          "comment",
+          "like",
+          "share",
+          "Total Interactions"
+        ],
+        "target_columns": [
+          "Total Interactions"
+        ],
+        "expected_rows": 500,
+        "payload_integrity": "Not acquired; no actual data SHA-256 or payload class/duplicate validation is claimed."
+      },
+      "metadata_profile": {
+        "stratum": "regression",
+        "rows": 500,
+        "predictors": 7,
+        "classes": null,
+        "minimum_class_count": null,
+        "class_counts": null,
+        "expected_three_fold_minimum_test_count": null,
+        "basis": "Official metadata/descriptive class-count tables only; not actual payload validation.",
+        "payload_checked": false,
+        "selected_fold_support_checked": false
+      }
+    },
+    {
+      "name": "differentiated-thyroid-recurrence",
+      "family_id": "differentiated-thyroid-recurrence",
+      "provider": "openml_task",
+      "task": "classification",
+      "role": "confirmation",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "cycle2-origin-reservation-20260929",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "target": "Recurred",
+      "target_transform": "identity",
+      "categorical": [
+        "Gender",
+        "Smoking",
+        "Hx Smoking",
+        "Hx Radiothreapy",
+        "Thyroid Function",
+        "Physical Examination",
+        "Adenopathy",
+        "Pathology",
+        "Focality",
+        "T",
+        "N",
+        "M",
+        "Stage"
+      ],
+      "drop_columns": [
+        "Response",
+        "Risk"
+      ],
+      "split_policy": "official",
+      "prediction_time": "Retrospective classification of the recorded Recurred annotation from the remaining clinical/pathology record. Response and Risk summaries are conservatively excluded; no uniform prediction horizon, baseline availability, causal risk or clinical deployment claim.",
+      "iid_suitability_review": {
+        "observation_unit_basis": "Primary metadata explicitly identifies instances as individual patients, each followed for at least10years. Patient-record IID evaluation within the source cohort is declared, not longitudinal visits treated as independent rows or future-era transportability.",
+        "target_timing": "A long follow-up cohort does not establish a common baseline for every predictor. Do not call this prospective prognosis; post-treatment response and risk-summary fields are excluded before any models.",
+        "not_claimed": "Unseen subjects/entities beyond the declared row unit, future-period transfer, causal effects or individual deployment."
+      },
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI publication explicitly grants CC-BY-4.0. OpenML badges are not used as a blanket data-use permission.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/915/differentiated+thyroid+cancer+recurrence",
+          "https://archive.ics.uci.edu/api/dataset?id=915"
+        ],
+        "primary_page_sha256": "06ee50ce30f22f8e295e37dc56b1db9cf97769ea29d0e9d60dc80718599283f4",
+        "reviewed_on": "2026-09-29",
+        "scope": "Metadata-only reservation now. Later local research only after explicit freeze/release; no hosted row sharing, reidentification, clinical/admissions/individual high-stakes deployment or additional redistribution approval.",
+        "obligations": "Retain source/contributor attribution and disclose sampling, timing, quantification, annotation and single-cohort limits."
+      },
+      "source": {
+        "uci_id": 915,
+        "dataset_id": 46605,
+        "dataset_version": 1,
+        "task_id": 363410,
+        "schema_reviewed": true,
+        "columns": [
+          "Age",
+          "Gender",
+          "Smoking",
+          "Hx Smoking",
+          "Hx Radiothreapy",
+          "Thyroid Function",
+          "Physical Examination",
+          "Adenopathy",
+          "Pathology",
+          "Focality",
+          "Risk",
+          "T",
+          "N",
+          "M",
+          "Stage",
+          "Response",
+          "Recurred"
+        ],
+        "target_columns": [
+          "Recurred"
+        ],
+        "expected_rows": 383,
+        "md5_checksum": "c07f07c281263f4b2408e4e356018107",
+        "official_split_dimensions": {
+          "repeats": 1,
+          "folds": 10,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=915",
+        "primary_metadata_sha256": "5f914b819a58761e8ddbe1ba49cd134e19e7d8472613ecd108872d7d5acd2664",
+        "openml_description_sha256": "eab8a3abb2774480b67ed1cd78b9ddac6846bc4193e36dc7edc84f7fa4ecbbae",
+        "openml_features_sha256": "76e2e55798725b1b3381dbef0109ddffa511fa5560d3c904111139e3a82c3fe4",
+        "openml_qualities_sha256": "516313828a3d79dbf245a43f8a823510069824ee35aeb9a85f28514aae37daa7",
+        "openml_task_sha256": "e75843d3e53030c5f73fd81e8cb10c9d116f36a356ab640226456f3fd7fd697f",
+        "categorical_rule": "All NOMINAL and STRING fields are categorical unless explicitly excluded.",
+        "payload_integrity": "Not acquired; publisher MD5 is a metadata pin only, not payload verification."
+      },
+      "metadata_profile": {
+        "stratum": "binary",
+        "rows": 383,
+        "predictors": 14,
+        "classes": 2,
+        "minimum_class_count": 108,
+        "class_counts": null,
+        "expected_three_fold_minimum_test_count": 36,
+        "basis": "Official metadata/descriptive class-count tables only; not actual payload validation.",
+        "payload_checked": false,
+        "selected_fold_support_checked": false
+      }
+    },
+    {
+      "name": "assam-medical-entrance",
+      "family_id": "assam-medical-entrance",
+      "provider": "openml_task",
+      "task": "classification",
+      "role": "confirmation",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "cycle2-origin-reservation-20260929",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "target": "Performance",
+      "target_transform": "identity",
+      "categorical": [
+        "Gender",
+        "Caste",
+        "coaching",
+        "Class_ten_education",
+        "twelve_education",
+        "medium",
+        "Class_X_Percentage",
+        "Class_XII_Percentage",
+        "Father_occupation",
+        "Mother_occupation"
+      ],
+      "drop_columns": [
+        "time"
+      ],
+      "split_policy": "official",
+      "prediction_time": "Recorded categorical Common Entrance Examination performance from demographic, schooling, coaching and prior Class X/XII grade bands. Retrospective qualified-candidate classification, not a recommendation for admissions decisions.",
+      "iid_suitability_review": {
+        "observation_unit_basis": "Primary metadata defines the unit as a candidate in one medical entrance examination/year, not multiple longitudinal exams or repeated course-evaluation rows. The qualified-only source population and its selection bias remain explicit.",
+        "target_timing": "The ambiguous time field is excluded. Class X/XII results precede the entrance examination; the selected endpoint is the later native Performance annotation. No thresholds or new outcome classes are invented.",
+        "not_claimed": "Unseen subjects/entities beyond the declared row unit, future-period transfer, causal effects or individual deployment."
+      },
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI publication explicitly grants CC-BY-4.0. OpenML badges are not used as a blanket data-use permission.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/582/student+performance+on+an+entrance+examination",
+          "https://archive.ics.uci.edu/api/dataset?id=582"
+        ],
+        "primary_page_sha256": "fe8c69ac33ebca6136ce4fa36e5c53d3158dcfe171c462a7eb0900756bfc394e",
+        "reviewed_on": "2026-09-29",
+        "scope": "Metadata-only reservation now. Later local research only after explicit freeze/release; no hosted row sharing, reidentification, clinical/admissions/individual high-stakes deployment or additional redistribution approval.",
+        "obligations": "Retain source/contributor attribution and disclose sampling, timing, quantification, annotation and single-cohort limits."
+      },
+      "source": {
+        "uci_id": 582,
+        "dataset_id": 46584,
+        "dataset_version": 1,
+        "task_id": 363402,
+        "schema_reviewed": true,
+        "columns": [
+          "Gender",
+          "Caste",
+          "coaching",
+          "Class_ten_education",
+          "twelve_education",
+          "medium",
+          "Class_X_Percentage",
+          "Class_XII_Percentage",
+          "Father_occupation",
+          "Mother_occupation",
+          "time",
+          "Performance"
+        ],
+        "target_columns": [
+          "Performance"
+        ],
+        "expected_rows": 666,
+        "md5_checksum": "20a17f6a2bec9b966f4dbc76141a14bb",
+        "official_split_dimensions": {
+          "repeats": 1,
+          "folds": 10,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=582",
+        "primary_metadata_sha256": "1e5c10e6f64bc90829b9b4841d05eb395340a6f607760db569205206b8fefd14",
+        "openml_description_sha256": "7f8c7fa3108613c530f7bf41d07c7f5f53153cd2719f996d81a82aef405f5976",
+        "openml_features_sha256": "edc039edd2beab6d94c7a8d87b69a703f899f27d0fe4360d806648ea9b20c08b",
+        "openml_qualities_sha256": "47b87138005edef8ef1224f089b3273f0cd8ed0642dfb44c40970364e9381166",
+        "openml_task_sha256": "6fbab3f467724e4ebcde1d1245ba89a34227176e62a1b0388b66dac669852547",
+        "categorical_rule": "All NOMINAL and STRING fields are categorical unless explicitly excluded.",
+        "payload_integrity": "Not acquired; publisher MD5 is a metadata pin only, not payload verification."
+      },
+      "metadata_profile": {
+        "stratum": "multiclass",
+        "rows": 666,
+        "predictors": 10,
+        "classes": 4,
+        "minimum_class_count": 101,
+        "class_counts": null,
+        "expected_three_fold_minimum_test_count": 33,
+        "basis": "Official metadata/descriptive class-count tables only; not actual payload validation.",
+        "payload_checked": false,
+        "selected_fold_support_checked": false
+      }
+    },
+    {
+      "name": "personality-drug-consumption",
+      "family_id": "personality-drug-consumption",
+      "provider": "uci",
+      "task": "classification",
+      "role": "confirmation",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "cycle2-origin-reservation-20260929",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "target": "cannabis",
+      "target_transform": "identity",
+      "categorical": [
+        "gender",
+        "country",
+        "ethnicity"
+      ],
+      "drop_columns": [
+        "id",
+        "alcohol",
+        "amphet",
+        "amyl",
+        "benzos",
+        "caff",
+        "choc",
+        "coke",
+        "crack",
+        "ecstasy",
+        "heroin",
+        "ketamine",
+        "legalh",
+        "lsd",
+        "meth",
+        "mushrooms",
+        "nicotine",
+        "semer",
+        "vsa"
+      ],
+      "split_policy": "iid",
+      "prediction_time": "Native seven-way self-reported cannabis recency annotation. Exclude every other drug-use outcome and the record identifier; no binary relabeling, diagnosis, future-use prediction or individual profiling.",
+      "iid_suitability_review": {
+        "observation_unit_basis": "The primary description states one record for each of1885 respondents with one questionnaire; the native id is reference-only and cannot identify participants. IID is respondent-level within this sampled survey, not a population-representative or causal claim.",
+        "target_timing": "Personality/demographic measurements and historical consumption are from the survey. Associations are retrospective, not a claim that the measurements predate reported drug use. Quantified source values are retained; gender/country/ethnicity remain nominal by their documented meanings.",
+        "not_claimed": "Unseen subjects/entities beyond the declared row unit, future-period transfer, causal effects or individual deployment."
+      },
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI publication explicitly grants CC-BY-4.0. OpenML badges are not used as a blanket data-use permission.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/373/drug+consumption+quantified",
+          "https://archive.ics.uci.edu/api/dataset?id=373"
+        ],
+        "primary_page_sha256": "efa13f4934924587a0e42496c3e7e20914cb0c023c7b2ab7d1a0e01eaa326dc7",
+        "reviewed_on": "2026-09-29",
+        "scope": "Metadata-only reservation now. Later local research only after explicit freeze/release; no hosted row sharing, reidentification, clinical/admissions/individual high-stakes deployment or additional redistribution approval.",
+        "obligations": "Retain source/contributor attribution and disclose sampling, timing, quantification, annotation and single-cohort limits."
+      },
+      "source": {
+        "uci_id": 373,
+        "data_url": "https://archive.ics.uci.edu/static/public/373/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=373",
+        "metadata_sha256": "f969924b97dde9b1c1fe88dcef52c2c210d8a970e8d3c45f8ccf0e27d36dd6b7",
+        "schema_reviewed": true,
+        "columns": [
+          "id",
+          "age",
+          "gender",
+          "education",
+          "country",
+          "ethnicity",
+          "nscore",
+          "escore",
+          "oscore",
+          "ascore",
+          "cscore",
+          "impuslive",
+          "ss",
+          "alcohol",
+          "amphet",
+          "amyl",
+          "benzos",
+          "caff",
+          "cannabis",
+          "choc",
+          "coke",
+          "crack",
+          "ecstasy",
+          "heroin",
+          "ketamine",
+          "legalh",
+          "lsd",
+          "meth",
+          "mushrooms",
+          "nicotine",
+          "semer",
+          "vsa"
+        ],
+        "target_columns": [
+          "alcohol",
+          "amphet",
+          "amyl",
+          "benzos",
+          "caff",
+          "cannabis",
+          "choc",
+          "coke",
+          "crack",
+          "ecstasy",
+          "heroin",
+          "ketamine",
+          "legalh",
+          "lsd",
+          "meth",
+          "mushrooms",
+          "nicotine",
+          "semer",
+          "vsa"
+        ],
+        "expected_rows": 1885,
+        "payload_integrity": "Not acquired; no actual data SHA-256 or payload class/duplicate validation is claimed."
+      },
+      "metadata_profile": {
+        "stratum": "multiclass",
+        "rows": 1885,
+        "predictors": 12,
+        "classes": 7,
+        "minimum_class_count": 140,
+        "class_counts": {
+          "CL0": 413,
+          "CL1": 207,
+          "CL2": 266,
+          "CL3": 211,
+          "CL4": 140,
+          "CL5": 185,
+          "CL6": 463
+        },
+        "expected_three_fold_minimum_test_count": 46,
+        "basis": "Official metadata/descriptive class-count tables only; not actual payload validation.",
+        "payload_checked": false,
+        "selected_fold_support_checked": false
+      }
+    }
+  ]
+}

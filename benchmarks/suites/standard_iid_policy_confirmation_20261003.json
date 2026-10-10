@@ -1,0 +1,373 @@
+{
+  "schema_version": 1,
+  "name": "standard-iid-policy-confirmation-20261003",
+  "family_registry": "../families.json",
+  "purpose": "Explicitly parent-authorized two-family learner-aware policy test confined to standard public IID with unresolved entity mappings. Not verified patient-independent, clinical, general-SOTA or default-promotion evidence.",
+  "evaluation_tier": "standard_iid_unverified_entity",
+  "claim_boundary": {
+    "evaluation_tier": "standard_iid_unverified_entity",
+    "claim_scope": "Row-level standard public IID benchmark evidence only, under explicitly unresolved patient/entity mapping.",
+    "patient_entity_independence_verified": false,
+    "patient_entity_disjoint_claims_allowed": false,
+    "clinical_generalization_claims_allowed": false,
+    "pool_with_verified_entity_cohorts": false,
+    "prospective_clinical_decision_use_authorized": false,
+    "known_group_time_constraints_must_be_preserved": true,
+    "future_confirmation_requires_explicit_tier_binding": true,
+    "limits": "This is not a waiver for known repeat-entity or temporal leakage. If later evidence identifies available group IDs, repeated-entity links or mandatory temporal boundaries, stop and review; do not drop or ignore them to preserve IID eligibility."
+  },
+  "release_state": {
+    "status": "authorized_only_after_controller_binding_ready",
+    "release_audit": "standard_iid_policy_confirmation_release_20261003.json"
+  },
+  "lineage": {
+    "reservation": "standard_iid_entity_reservation_20261003.json",
+    "reservation_sha256": "8ec10104d8391f5d6c8ebe1413af7980c6e4a82a8d517f17e012873c317fab53",
+    "strict_tier_audit": "binary_case_scope_audit_20261001.json",
+    "strict_tier_audit_sha256": "44af91a0354bca23571dd75527e223a4e4e07a83624641cccfb38ab58c0c7c97",
+    "scope": "Earlier strict-tier exclusions remain historical evidence. Only this separately qualified experiment is authorized."
+  },
+  "preregistration": {
+    "status": "locked_before_confirmation_model_execution",
+    "controller_protocol": "classification-qualified-confirmation-subsample85-v1",
+    "evaluation_tier": "standard_iid_unverified_entity",
+    "claim_boundary": {
+      "evaluation_tier": "standard_iid_unverified_entity",
+      "claim_scope": "Row-level standard public IID benchmark evidence only, under explicitly unresolved patient/entity mapping.",
+      "patient_entity_independence_verified": false,
+      "patient_entity_disjoint_claims_allowed": false,
+      "clinical_generalization_claims_allowed": false,
+      "pool_with_verified_entity_cohorts": false,
+      "prospective_clinical_decision_use_authorized": false,
+      "known_group_time_constraints_must_be_preserved": true,
+      "future_confirmation_requires_explicit_tier_binding": true,
+      "limits": "This is not a waiver for known repeat-entity or temporal leakage. If later evidence identifies available group IDs, repeated-entity links or mandatory temporal boundaries, stop and review; do not drop or ignore them to preserve IID eligibility."
+    },
+    "dataset_names": [
+      "haberman-survival",
+      "mammographic-mass"
+    ],
+    "family_ids": [
+      "haberman-survival",
+      "mammographic-mass"
+    ],
+    "methods": [
+      "baseline-robust",
+      "featcopilot-frequency-aligned-robust",
+      "baseline-ensemble-robust",
+      "baseline-calibrated-robust",
+      "featcopilot-ensemble-robust",
+      "featcopilot-calibrated-robust",
+      "openfe-inductive-native-robust",
+      "autofeat-native-robust"
+    ],
+    "learners": [
+      "linear",
+      "lightgbm"
+    ],
+    "learner_search": {
+      "linear": {
+        "regularization": [
+          0.1,
+          1.0,
+          10.0
+        ],
+        "selection_estimator_regularization": 1.0
+      },
+      "lightgbm": {
+        "num_leaves": [
+          7,
+          15,
+          31
+        ],
+        "selection_estimator_num_leaves": 15
+      }
+    },
+    "selection_parameters": {
+      "max_candidates": 1000,
+      "max_added_features": 50,
+      "stability_repeats": 3,
+      "screening": "auto",
+      "ensemble_sampling": "subsample85",
+      "numeric_clip_quantiles": [
+        0.0,
+        1.0
+      ]
+    },
+    "seeds": [
+      2030
+    ],
+    "sample_seed": 2026,
+    "folds": 3,
+    "max_rows": 0,
+    "resplit_official_as_iid": true,
+    "split_plan": {
+      "haberman-survival": {
+        "policy": "iid",
+        "folds": 3
+      },
+      "mammographic-mass": {
+        "policy": "iid",
+        "folds": 3
+      }
+    },
+    "threads": 8,
+    "memory_limit_mb": 4096,
+    "case_timeout_seconds": 900,
+    "total_active_seconds_ceiling": 36000,
+    "expected_cells": 96,
+    "expected_physical_jobs": 72,
+    "expected_counts_formula": "2 families *3outer folds *2learners =12 cases; each has8outcomes from6physical jobs, yielding96outcomes/72jobs.",
+    "classification_admission_margin": {
+      "min_total": 30,
+      "min_outer_train": 20,
+      "min_outer_test": 10
+    },
+    "primary_method_by_learner": {
+      "linear": "featcopilot-frequency-aligned-robust",
+      "lightgbm": "featcopilot-ensemble-robust"
+    },
+    "calibrated_outcomes_diagnostic_only": true,
+    "dataset_spec_sha256": {
+      "haberman-survival": "74dc45966a3d91372ff49a353aceb8eee88a4407be6c864cc4734b877fbbda6c",
+      "mammographic-mass": "09e966978ca581b5496610a028e2393ea644742eb5c0dc134e81707b971f2746"
+    },
+    "sampling_semantics": {
+      "mode": "subsample85",
+      "members": 3,
+      "training_fraction": 0.85,
+      "calibration_fraction": 0.15,
+      "rounding": "Each calibration holdout has ceil(0.15 * current fitting rows); training receives the complement.",
+      "selection": "Fixed repeated stratified subsamples; no outcome-based redraws, retries, deduplication or fraction search.",
+      "sharing": "Plain and sigmoid-calibrated views reuse the same three fitted base procedures for each raw or FE physical bundle.",
+      "diagnostic_only": [
+        "baseline-calibrated-robust",
+        "featcopilot-calibrated-robust"
+      ]
+    },
+    "reporting_and_acceptance": {
+      "evaluation_tier": "standard_iid_unverified_entity",
+      "frozen_primary_method_by_learner": {
+        "linear": "featcopilot-frequency-aligned-robust",
+        "lightgbm": "featcopilot-ensemble-robust"
+      },
+      "policy_selection": "Linear always uses single FE; LightGBM always uses plain85% FE ensemble. No task/dataset switches and no choosing from sigmoid-calibrated views.",
+      "primary_loss": "log_loss",
+      "primary_raw_comparators": [
+        "baseline-robust",
+        "baseline-ensemble-robust"
+      ],
+      "native_fe_comparators": [
+        "openfe-inductive-native-robust",
+        "autofeat-native-robust"
+      ],
+      "counterfactual_limit": "Native FE references are single-procedure native-generation methods with final training-support clipping, not native FE ensembles; do not describe them as ensemble-matched counterfactuals.",
+      "complete_pairing": "For each family/learner/method require all3 scheduled outer folds before a family mean loss is complete. Do not average only successful folds or omit failed families.",
+      "aggregation": "Compute family-mean losses first. Paired relative improvement is1-L(policy)/L(reference); report both families separately plus equal-family mean/median by learner.",
+      "acceptance": {
+        "positive_vs_each_raw_control": "For each learner, equal-family mean relative improvement must be strictly positive versus BOTH raw single and plain85 raw ensemble.",
+        "family_harm": "No family/learner loss increase above5% versus either raw control.",
+        "native_reference_gate": "For each learner, mean paired relative improvement >=0 against EACH completely paired clipped native FE reference. No post-outcome reference selection.",
+        "coverage": "All96 outcomes and all72 scheduled physical jobs must be present; any unsuccessful/nonfinite/missing outcome or incomplete pair blocks broad positive claims. Retain failures/timeouts/RSS/budget skips.",
+        "zero_reference_loss": "Do not substitute epsilons or delete a family; undefined relative gains block automatic acceptance and require explicit absolute-loss reporting.",
+        "automatic_sota": false,
+        "automatic_default_promotion": false
+      },
+      "win_tie_loss": "Per family/learner/comparator: >1% relative improvement is win; <-1% loss; otherwise tie.",
+      "intervals": "Descriptive paired family-block intervals only. With two small source families, no population-level, patient-level, clinical or general SOTA inference is warranted; folds/views are not independent families.",
+      "tier_reporting": "Every prediction row, report and aggregate must retain the same qualified evaluation_tier and claim boundary. Do not pool with verified-entity cohorts or earlier confirmation results.",
+      "calibration_reporting": "Sigmoid arms are diagnostic-only within subsample85, never eligible primary policy variants. Show calibration contrasts separately with no post-outcome policy switch.",
+      "resources": "Report outcomes96, physical jobs72, success/failure and fully paired coverage, wall/RSS/timeouts and actual cumulative controller time. Shared fitting time is charged once per physical job, not summed across two prediction views."
+    },
+    "method_semantics_documentation_only": {
+      "single_fe": "Existing single-importance frequency-aligned-robust pipeline; not bagged/gated feature selection.",
+      "bundles": "Three existing complete raw/FE fitting procedures on fixed85% training subsamples. Plain view averages member probabilities; sigmoid view reuses identical bases and is diagnostic-only.",
+      "native_references": "Unchanged OpenFE inductive/native and AutoFeat native generation/selection; no width truncation. Shared q0/1 clipping applies to the matched final learner, not upstream ranking. No native reference ensemble is fabricated.",
+      "clipping": "Training-support numeric clipping q=(0,1), trained only on each fitting partition; no test statistics.",
+      "binding_limit": "Descriptive text is not a new override mechanism. Exact controller protocol, source pins, sampling setting, method/learner policy and source hashes are the enforced identities."
+    },
+    "budget": {
+      "current_cycle_hours_used_parent_reported": 46.6255,
+      "remaining_hours_parent_reported": 25.3745,
+      "run_ceiling_hours": 10,
+      "maximum_cycle_usage_after_full_ceiling": 56.6255,
+      "worst_case_physical_timeout_hours": 18,
+      "note": "72 physical jobs *900s =18h worst-case, so10h ceiling can yield budget skips. Do not double-count shared plain/calibrated fits as96 physical jobs. Preserve every planned outcome and actual controller budget accounting."
+    }
+  },
+  "datasets": [
+    {
+      "name": "haberman-survival",
+      "family_id": "haberman-survival",
+      "provider": "uci",
+      "task": "classification",
+      "role": "confirmation",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "standard-iid-entity-reservation-20261003",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "evaluation_tier": "standard_iid_unverified_entity",
+      "claim_boundary": {
+        "evaluation_tier": "standard_iid_unverified_entity",
+        "claim_scope": "Row-level standard public IID benchmark evidence only, under explicitly unresolved patient/entity mapping.",
+        "patient_entity_independence_verified": false,
+        "patient_entity_disjoint_claims_allowed": false,
+        "clinical_generalization_claims_allowed": false,
+        "pool_with_verified_entity_cohorts": false,
+        "prospective_clinical_decision_use_authorized": false,
+        "known_group_time_constraints_must_be_preserved": true,
+        "future_confirmation_requires_explicit_tier_binding": true,
+        "limits": "This is not a waiver for known repeat-entity or temporal leakage. If later evidence identifies available group IDs, repeated-entity links or mandatory temporal boundaries, stop and review; do not drop or ignore them to preserve IID eligibility."
+      },
+      "target": "survival_status",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "iid",
+      "prediction_time": "Retrospective postsurgical five-year survival-status classification. Preserve age at operation, operation year and positive axillary-node count. Status1 means survived five years or longer; status2 means died within five years. This is not a preoperative prognostic model, alternative time horizon or censoring-adjusted survival analysis.",
+      "unresolved_entity_mapping": "The source describes surgical patient cases but does not verify a one-patient/one-index-operation mapping. Operation year remains a descriptive predictor, not proof of temporal generalization or a supplied longitudinal group index.",
+      "schema_review_notes": "The three original native UCI predictors remain numerical with their original meanings. No label transformation, patient ID inference or outcome-history feature is added.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reverified explicit original UCI dataset grant. This tier amendment changes permissible benchmark claim scope only; it does not alter licensing or expand deployment/sharing permission.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/43/haberman+s+survival",
+          "https://archive.ics.uci.edu/api/dataset?id=43"
+        ],
+        "primary_page_sha256": "83085ed6aae540f84988c0b085c3a9677006b420d8b329d4ee395309dfe550b9",
+        "reviewed_on": "2026-10-03",
+        "scope": "Metadata reservation only now; later local scientific benchmark processing requires explicit restricted-tier freeze/release. No hosted row sharing, reidentification, clinical use or additional redistribution permission.",
+        "obligations": "Credit original contributors/UCI, retain license notices and prominently disclose unresolved entity mapping and retrospective endpoint limits."
+      },
+      "source": {
+        "uci_id": 43,
+        "data_url": "https://archive.ics.uci.edu/static/public/43/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=43",
+        "metadata_sha256": "7133a77e8b17048df2b3c1e545ccb5684232934556dcc2d290a10ad26637e2cd",
+        "schema_reviewed": true,
+        "columns": [
+          "age",
+          "operation_year",
+          "positive_auxillary_nodes",
+          "survival_status"
+        ],
+        "target_columns": [
+          "survival_status"
+        ],
+        "expected_rows": 306,
+        "na_values": [
+          "?"
+        ],
+        "label_meanings": {
+          "1": "survived five years or longer",
+          "2": "died within five years"
+        },
+        "payload_integrity_status": "Not acquired; no actual payload checksum or row-level duplicate/split checks have been performed."
+      },
+      "metadata_profile": {
+        "rows": 306,
+        "predictors": 3,
+        "class_counts": {
+          "1": 225,
+          "2": 81
+        },
+        "minimum_class_count": 81,
+        "payload_verified": false,
+        "entity_independence_verified": false,
+        "reported_counts_not_recomputed": true
+      }
+    },
+    {
+      "name": "mammographic-mass",
+      "family_id": "mammographic-mass",
+      "provider": "uci",
+      "task": "classification",
+      "role": "confirmation",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "standard-iid-entity-reservation-20261003",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "evaluation_tier": "standard_iid_unverified_entity",
+      "claim_boundary": {
+        "evaluation_tier": "standard_iid_unverified_entity",
+        "claim_scope": "Row-level standard public IID benchmark evidence only, under explicitly unresolved patient/entity mapping.",
+        "patient_entity_independence_verified": false,
+        "patient_entity_disjoint_claims_allowed": false,
+        "clinical_generalization_claims_allowed": false,
+        "pool_with_verified_entity_cohorts": false,
+        "prospective_clinical_decision_use_authorized": false,
+        "known_group_time_constraints_must_be_preserved": true,
+        "future_confirmation_requires_explicit_tier_binding": true,
+        "limits": "This is not a waiver for known repeat-entity or temporal leakage. If later evidence identifies available group IDs, repeated-entity links or mandatory temporal boundaries, stop and review; do not drop or ignore them to preserve IID eligibility."
+      },
+      "target": "Severity",
+      "target_transform": "identity",
+      "categorical": [
+        "Shape",
+        "Margin"
+      ],
+      "drop_columns": [
+        "BI-RADS"
+      ],
+      "split_policy": "iid",
+      "prediction_time": "Retrospective benign/malignant mass-lesion annotation using Age, Shape, Margin and Density. Primary source explicitly marks the radiologist BI-RADS assessment non-predictive; it is excluded. No prospective cancer-onset, independent-patient diagnostic performance or clinical deployment claim.",
+      "unresolved_entity_mapping": "The source counts961 masses, not verified961 distinct patients. Lesion-to-patient and repeated-mass mapping remain unavailable; the new tier does not resolve or certify that mapping.",
+      "schema_review_notes": "Primary variable notes call Shape and Margin nominal despite integer storage; Density remains its original ordinal code and Age numeric. BI-RADS is excluded, not imputed as a feature or used as a predictor.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reverified explicit original UCI dataset grant. This tier amendment changes permissible benchmark claim scope only; it does not alter licensing or expand deployment/sharing permission.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/161/mammographic+mass",
+          "https://archive.ics.uci.edu/api/dataset?id=161"
+        ],
+        "primary_page_sha256": "d73abcb19f6a53b6f2ec2f310630fcac556b29c2661c1b3ff5f36dba11d9f1e3",
+        "reviewed_on": "2026-10-03",
+        "scope": "Metadata reservation only now; later local scientific benchmark processing requires explicit restricted-tier freeze/release. No hosted row sharing, reidentification, clinical use or additional redistribution permission.",
+        "obligations": "Credit original contributors/UCI, retain license notices and prominently disclose unresolved entity mapping and retrospective endpoint limits."
+      },
+      "source": {
+        "uci_id": 161,
+        "data_url": "https://archive.ics.uci.edu/static/public/161/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=161",
+        "metadata_sha256": "cdbdc05919f35d1873959b6343b4a4dd6153f14ec43b54f6d5cd7594dcee4850",
+        "schema_reviewed": true,
+        "columns": [
+          "BI-RADS",
+          "Age",
+          "Shape",
+          "Margin",
+          "Density",
+          "Severity"
+        ],
+        "target_columns": [
+          "Severity"
+        ],
+        "expected_rows": 961,
+        "na_values": [
+          "?"
+        ],
+        "label_meanings": {
+          "0": "benign",
+          "1": "malignant"
+        },
+        "payload_integrity_status": "Not acquired; no actual payload checksum or row-level duplicate/split checks have been performed."
+      },
+      "metadata_profile": {
+        "rows": 961,
+        "predictors": 4,
+        "class_counts": {
+          "0": 516,
+          "1": 445
+        },
+        "minimum_class_count": 445,
+        "payload_verified": false,
+        "entity_independence_verified": false,
+        "reported_counts_not_recomputed": true
+      }
+    }
+  ]
+}

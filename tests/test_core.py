@@ -545,6 +545,19 @@ class TestRegistryCreateFeature:
         assert feature.transformation == "sqrt"
         assert feature.origin == FeatureOrigin.POLYNOMIAL
 
+    def test_create_feature_can_compute_registered_transformation(self):
+        """Registry-created features should execute the registered callable."""
+        registry = FeatureRegistry()
+        feature = registry.create_feature(
+            name="col1_squared",
+            transformation="square",
+            source_columns=["col1"],
+        )
+
+        result = feature.compute(pd.DataFrame({"col1": [2, 3, 4]}))
+
+        assert result.tolist() == [4, 9, 16]
+
     def test_create_feature_unknown_transformation(self):
         """Test that unknown transformation raises ValueError."""
         registry = FeatureRegistry()

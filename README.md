@@ -11,40 +11,38 @@ FeatCopilot automatically generates, selects, and explains predictive features u
 
 [![FeatCopilot Introduction](https://img.youtube.com/vi/H7m50TLGHFk/0.jpg)](https://www.youtube.com/watch?v=H7m50TLGHFk)
 
-## 📊 Benchmark Highlights
+## 📊 Benchmarking
 
-### Simple Models Benchmark (63 Datasets)
+Our goal is strong, reproducible tabular feature engineering. **Current evidence
+does not establish SOTA or guarantee that engineered features improve every
+model.** The canonical benchmark uses a fixed, versioned real-data subset,
+training-only preprocessing, inner-validation model tuning, and identical outer
+folds for FeatCopilot, raw features, polynomial features, AutoFeat, and an explicitly
+rowwise-restricted OpenFE variant. Later studies also include inductive OpenFE
+and native-width AutoFeat references under separately recorded method identities.
 
-| Configuration | Improved | Avg Improvement | Best Improvement |
-|---------------|----------|-----------------|------------------|
-| **Tabular Engine** | 31 (49%) | **+7.52%** | +144% (triple_interaction) |
+Results are reported separately for linear models, RandomForest, and LightGBM,
+and for classification, regression, and synthetic diagnostics. Failures,
+timeouts, feature counts, runtime, and dataset-level uncertainty remain visible.
 
-Models: RandomForest (n_estimators=200, max_depth=20), LogisticRegression/Ridge
+[Protocol and improvement task list](benchmarks/TABULAR_PROTOCOL.md) ·
+[Running benchmarks](benchmarks/README.md) ·
+[Measured development baseline](benchmarks/tabular-results/2026-09-16/ANALYSIS.md) ·
+[Predictive-strategy follow-up](benchmarks/tabular-results/2026-09-16-predictive/ANALYSIS.md)
 
-### AutoML Benchmark (FLAML + AutoGluon, 120s budget)
+Older headline gains and composite rankings have been retired: the legacy
+experiments mixed synthetic diagnostics into summaries and included test-fold
+model selection or asymmetric preprocessing. Their historical reports remain
+available for traceability, not as current comparative evidence.
 
-| Framework | Datasets | Improved | Avg Improvement |
-|-----------|----------|----------|-----------------|
-| **FLAML** | 10 | 9 (90%) | **+1.85%** |
-| **AutoGluon** | 10 | 9 (90%) | **+1.55%** |
-
-### FE Tools Comparison (FeatCopilot vs autofeat vs featuretools)
-
-| Metric | FeatCopilot | autofeat | featuretools |
-|--------|-------------|----------|--------------|
-| **Win Rate** | **80%** 🏆 | 40% | 0% |
-| **Avg Improvement** | **+1.89%** 🏆 | +1.46% | -2.71% |
-| **Coverage** | **100%** 🏆 | 50% | 100% |
-| **Composite Score** | **0.606** 🥇 | 0.351 🥉 | 0.397 🥈 |
-
-### Key Results
-
-- 🔥 **+144% improvement** on triple_interaction_regression (tabular only)
-- 📈 **+104%** on xor_regression, **+70%** on pairwise_product_regression
-- 🏆 **#1 FE tool** — beats autofeat and featuretools across 10 datasets
-- 🚀 **90% AutoML improvement rate** across FLAML and AutoGluon
-
-[View Full Benchmark Results](https://thinkall.github.io/featcopilot/user-guide/benchmarks/)
+Recent **opt-in development** improvements are supported by complete paired
+measurements: [classifier averaging](benchmarks/tabular-results/2026-10-04-fixed-average-development/ANALYSIS.md)
+reduced mean log loss by 6.82% versus its raw control on the three-seed panel.
+[Regression replication](benchmarks/tabular-results/2026-10-08-regression-policy-replication/ANALYSIS.md)
+reduced primary-panel mean RMSE by 23.79% for linear single FE and 2.97% for
+LightGBM averaging. These exposed-panel results are not independent confirmation:
+individual hardware folds still suffered severe harm. Experimental modes remain
+explicit, legacy defaults are unchanged, and negative results stay published.
 
 ## Key Features
 
@@ -74,17 +72,59 @@ pip install featcopilot[full]
 ```python
 from featcopilot import AutoFeatureEngineer
 
-# Sub-second feature engineering
+# Feature engineering without LLM calls
 engineer = AutoFeatureEngineer(
     engines=['tabular'],
     max_features=50
 )
 
-X_transformed = engineer.fit_transform(X, y)  # <1 second
+X_transformed = engineer.fit_transform(X, y)
 print(f"Features: {X.shape[1]} -> {X_transformed.shape[1]}")
 ```
 
-### LLM Mode (With LiteLLM)
+### Predictive Tabular Selection (Opt-in)
+
+Use an explicit task for integer-valued regression targets. The predictive
+strategy compares feature subsets against a cloned learner on an internal
+training-only repeated validation procedure; existing legacy defaults are unchanged.
+
+```python
+from sklearn.linear_model import Ridge
+from featcopilot import AutoFeatureEngineer
+
+engineer = AutoFeatureEngineer(
+    engines=["tabular"],
+    task="regression",
+    selection_strategy="predictive",
+    selection_estimator=Ridge(alpha=1.0),
+    max_candidates=1000,
+    max_features=50,
+    stability_repeats=3,
+    screening="auto",
+)
+X_train_fe = engineer.fit_transform(X_train, y_train)
+X_test_fe = engineer.transform(X_test)
+print(engineer.selection_report_)
+```
+
+The output preserves original categorical columns. Use appropriate downstream
+encoding/imputation, and evaluate the entire pipeline inside cross-validation.
+Internal validation scores are selection diagnostics, not a SOTA claim.
+
+### Experimental engineered classifiers
+
+`featcopilot.classification.FeatureEnsembleClassifier` couples feature
+discovery with a supplied classifier using an explicit `single`,
+`subsample85`, or fixed `raw_fe_average` prediction mode. Members retain their own feature
+plans; predictions are averaged rather than exporting a fictitious shared
+feature matrix. It does not import benchmark runners or change existing
+`AutoFeatureEngineer` defaults.
+
+See the [experimental classification guide](docs/user-guide/classification.md)
+for matched raw controls, native estimator parameters, inference artifacts,
+and the limited scope of current evidence.
+
+### LLM Mode
 
 ```python
 from featcopilot import AutoFeatureEngineer
@@ -177,7 +217,7 @@ from featcopilot.llm import SemanticEngine
 
 # Default: GitHub Copilot SDK
 engine = SemanticEngine(
-    model='gpt-5.2',
+    model='gpt-5.6-sol',
     max_suggestions=20,
     validate_features=True
 )

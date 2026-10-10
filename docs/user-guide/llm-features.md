@@ -14,7 +14,7 @@ The LLM engine provides:
 
 ## LLM Backend Options
 
-FeatCopilot supports two LLM backends:
+FeatCopilot supports three LLM backends:
 
 1. **GitHub Copilot SDK** (default): Native integration with GitHub Copilot
 2. **LiteLLM**: Universal interface supporting 100+ providers including:
@@ -27,6 +27,13 @@ FeatCopilot supports two LLM backends:
    - AWS Bedrock
    - Ollama (local models)
    - And many more...
+3. **OpenAI SDK** (`backend='openai'`): Direct access to OpenAI-compatible endpoints.
+
+The shared project default is `gpt-5.6-sol`. This is a requested model identifier,
+not a guarantee that your provider or Copilot account supports it. Explicit model
+overrides are preserved. Authentication, provider, timeout, and empty-response
+failures raise errors; production clients never substitute fabricated mock features
+or silently select a different model.
 
 ## SemanticEngine
 
@@ -37,7 +44,7 @@ from featcopilot.llm import SemanticEngine
 
 # Using GitHub Copilot SDK (default)
 engine = SemanticEngine(
-    model='gpt-5.2',
+    model='gpt-5.6-sol',
     max_suggestions=20,
     validate_features=True,
     domain='healthcare',
@@ -64,6 +71,88 @@ X_features = engine.fit_transform(
     task_description='Predict Type 2 diabetes diagnosis'
 )
 ```
+
+### Fit/inference contract and limitations
+
+`fit` retains accepted feature code and names; `transform` executes those same rules
+without an LLM request. Refitting clears old rules, and serialized engines exclude
+live provider connections. With validation enabled, both text and general features
+are checked for executable code, a `result`, compatible row shape/index, and usable
+training output. Duplicate names and collisions with original columns are rejected.
+Invalid suggestions are logged and omitted during fitting. An empty accepted set
+is explicitly logged and adds no features. Inference execution errors raise rather
+than silently dropping fitted columns.
+
+Generated code runs in-process and should be reviewed before use; validation is
+not a security sandbox. Pandas and NumPy are supplied as `pd` and `np`, including
+inside lambdas and helper functions. Each rule must operate on original input
+columns, not another generated feature. `validate_features=False` skips execution
+checks during fitting, but does not suppress inference errors.
+
+**Statistical limitation:** The engine persists code, not learned statistical
+state. A generated `df['x'].mean()`, group mean, `qcut`, rank, or similar operation
+is recomputed on the inference batch. That can make predictions batch-dependent
+and introduce train/test leakage in evaluation. Prompts request row-wise rules,
+but validation does not prove batch invariance. Review generated code with
+`get_feature_code()` and use fitted tabular transformers for learned statistics;
+do not use such generated rules for held-out evaluation without an explicit
+training-only fit/transform implementation. Fit the LLM engine on training data
+only, never on concatenated train/test data.
+
+## Fitted statistical plans (opt-in)
+
+`feature_format="plan"` requests a typed operator plan instead of executing
+generated Python. The initial operator set is deliberately small:
+`standardize`, `clip`, `frequency`, `group_mean`, `target_mean`,
+`rare_category`, `multiply`, `divide`, and `log1p`. Each rule declares its name, operator, original source columns
+and validated parameters. It is not a general Python compiler.
+
+```python
+from featcopilot import AutoFeatureEngineer
+
+engineer = AutoFeatureEngineer(
+    engines=["llm"],
+    task="regression",
+    llm_config={
+        "feature_format": "plan",
+        "rules": [
+            {"name": "amount_scaled", "operator": "standardize", "columns": ["amount"]},
+            {"name": "group_frequency", "operator": "frequency", "columns": ["group"]},
+        ],
+    },
+)
+X_train_fe = engineer.fit_transform(X_train, y_train, apply_selection=False)
+X_test_fe = engineer.transform(X_test)
+fitted_state = engineer.get_fitted_rules()
+```
+
+Supplying `rules` uses no provider, including when the list is empty. Omit
+`rules` to request a bounded plan from the configured LLM; the project default
+remains `gpt-5.6-sol`. Plan mode does not run the legacy text/code feature
+generation path. Invalid or unsupported plans fail explicitly.
+
+All means, scales, bounds, category counts and group mappings are fitted on
+training data and frozen for inference. `target_mean` uses out-of-fold
+training encodings and full-training mappings only for later `transform`.
+Multiclass target means remain rejected rather than approximated by ordinal
+means. Group-disjoint or chronological target cross-fitting accepts `groups`,
+`timestamps`, and optional `label_end_times` at fit. No-history temporal prefix
+rows use an explicit fixed-zero prior, with a warning and serialized
+`cross_fit_report`; this is not a full-data-mean fallback. Invalid or fully
+purged folds raise. Combined group/time constraints remain unsupported.
+
+The three rowwise arithmetic operators require numeric inputs and empty
+parameters. `divide` uses numerator/denominator order and returns missing for
+zero denominators. `log1p` means `log1p(abs(x))`. Missing/nonfinite operands stay
+missing; finite-input overflow follows the fitted-rule engine's documented
+float64 saturation policy. No statistics are learned for these operations.
+
+For provider-independent use, import `FittedRuleEngine` from
+`featcopilot.engines`, or wrap it with
+`FeatureEngineerTransformer(engine="fitted_rules", rules=[...])`.
+`FittedRuleEngine.to_dict()` / `from_dict()` serialize and restore learned
+state without a provider connection. Treat that state as a training-derived
+artifact that may contain category values; do not publish it blindly.
 
 ## GitHub Models via LiteLLM
 
@@ -148,12 +237,14 @@ GitHub Copilot uses OAuth device flow:
 
 ```python
 llm_config = {
-    'model': 'gpt-5.2',           # Model: gpt-5.2, github/gpt-4o, github_copilot/gpt-4, etc.
-    'backend': 'copilot',         # Backend: 'copilot' or 'litellm'
+    'model': 'gpt-5.6-sol',       # Explicit provider-supported overrides are allowed
+    'backend': 'copilot',         # Backend: 'copilot', 'openai', or 'litellm'
     'max_suggestions': 20,        # Max features to suggest
     'domain': 'healthcare',       # Domain context
     'validate_features': True,    # Validate generated code
-    'temperature': 0.3,           # Generation temperature
+    'temperature': 0.3,           # OpenAI/LiteLLM generation temperature
+    'timeout': 60.0,              # Request timeout in seconds
+    'max_tokens': 4096,           # OpenAI/LiteLLM response token limit
     'api_key': None,              # API key (for litellm backend)
     'api_base': None,             # Custom API base URL (for litellm)
 }
@@ -164,9 +255,19 @@ engineer = AutoFeatureEngineer(
 )
 ```
 
+The Copilot SDK controls generation parameters itself: its session API does not
+expose temperature or response-token limits. `temperature` and `max_tokens` apply
+to the OpenAI/LiteLLM backends, not Copilot. `timeout` applies to all backends.
+Non-default unsupported provider settings emit a warning when the client starts.
+`api_key` and `api_base` apply to OpenAI/LiteLLM, and `api_version` applies only
+to the OpenAI backend; the Copilot backend uses its own authentication.
+`enable_text_features`, `keep_text_columns`, and `text_feature_types` configure text
+generation; the latter guides optional LLM suggestions, while built-in text
+length/count features remain available.
+
 ### Listing Available Models
 
-Use LiteLLM to discover supported models:
+Query the authenticated Copilot SDK to discover available Copilot models:
 
 ```python
 from featcopilot.utils import list_models, get_model_info, get_model_names
@@ -227,7 +328,7 @@ Common models supported through LiteLLM:
 ```python
 from featcopilot.utils import get_default_model, get_model_names
 
-# Use the default model (gpt-5.2)
+# Use the project default model (gpt-5.6-sol)
 llm_config = {'model': get_default_model()}
 
 # Or choose from available models
@@ -235,7 +336,7 @@ available = get_model_names()
 print(f"Available models: {available}")
 
 # Pick based on your needs:
-# - gpt-5.2: Best all-around choice (default)
+# - gpt-5.6-sol: Project default; verify account/provider availability
 # - gpt-5.1-codex: Best for code generation tasks
 # - claude-sonnet-4: Alternative with strong reasoning
 # - gpt-4.1 / claude-haiku-4.5: Faster, lower cost
@@ -366,7 +467,7 @@ Generate features from natural language:
 ```python
 from featcopilot.llm import FeatureCodeGenerator
 
-generator = FeatureCodeGenerator(model='gpt-5.2')
+generator = FeatureCodeGenerator(model='gpt-5.6-sol')
 
 # Generate single feature
 feature = generator.generate(
@@ -392,7 +493,7 @@ Generate reports:
 ```python
 from featcopilot.llm import FeatureExplainer
 
-explainer = FeatureExplainer(model='gpt-5.2')
+explainer = FeatureExplainer(model='gpt-5.6-sol')
 
 # Generate comprehensive report
 report = explainer.generate_feature_report(
@@ -449,15 +550,11 @@ more_features = engineer.generate_custom_features(
 )
 ```
 
-## Fallback Behavior
+## Unavailable Providers
 
-When LLM is unavailable:
+The LLM engine reports provider failures instead of inventing mock features.
+For offline feature engineering, explicitly omit the LLM engine:
 
 ```python
-# Without API key configured, mock responses are used
-engineer = AutoFeatureEngineer(engines=['llm'])
-# Warning: LLM not configured. Using mock responses.
-
-# Mock generates context-aware features based on column names
-# but without true semantic understanding
+engineer = AutoFeatureEngineer(engines=['tabular'])
 ```
