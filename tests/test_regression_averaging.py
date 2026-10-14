@@ -428,12 +428,15 @@ def small_native(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.mark.parametrize("learner", ["linear", "lightgbm"])
+@pytest.mark.parametrize("stage", [None, "locked-replication"])
 def test_canonical_dispatch_real_synthetic_models_match_direct_controls(
-    learner: str, small_native: None, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    learner: str, stage: str | None, small_native: None, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     if learner == "lightgbm":
         pytest.importorskip("lightgbm")
     case = _payload(learner)
+    if stage is not None:
+        case["stage"] = stage
     original = tabular.run_case
     calls = []
 
@@ -446,12 +449,14 @@ def test_canonical_dispatch_real_synthetic_models_match_direct_controls(
     assert calls == [averaging.METHOD, "baseline-robust", "featcopilot-frequency-aligned-robust"]
     row = rows[0]
     assert len(rows) == 1
+    assert row.get("stage") == stage
     direct = {}
     for role, method in averaging.COMPONENTS:
         capture: dict[str, np.ndarray] = {}
         component = original({**case, "method": method}, tmp_path, outer_predictions=capture)[0]
         direct[role] = capture[learner]
         nested = row["regression_average"]["components"][role]
+        assert nested.get("stage") == component.get("stage") == stage
         for key in (
             "loss",
             "mae",

@@ -71,6 +71,18 @@ def _classifier(
     )
 
 
+@pytest.mark.parametrize("classes", [2, 3])
+@pytest.mark.parametrize("engineered", [False, True])
+def test_target_encoded_classifier_accepts_missing_only_inference_batches(classes, engineered):
+    X, y = _data(classes)
+    classifier = _classifier(engineered=engineered).set_params(categorical_encoding="target").fit(X, y)
+    query = X.iloc[:3].copy()
+    query.loc[query.index[1], "category"] = None
+    whole = classifier.predict_proba(query)
+    singletons = np.vstack([classifier.predict_proba(query.iloc[[i]]) for i in range(len(query))])
+    np.testing.assert_array_equal(singletons, whole)
+
+
 @pytest.mark.parametrize("mode", ["single", "subsample85", "raw_fe_average"])
 @pytest.mark.parametrize("engineered", [False, True])
 @pytest.mark.parametrize("classes", [2, 3])
@@ -506,6 +518,34 @@ def test_private_opaque_parameter_report_never_calls_repr() -> None:
     assert "sensitive" not in json.dumps(result)
 
 
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
+def test_nonfinite_parameter_report_is_json_safe_without_changing_parameters(value: float) -> None:
+    parameters = {"missing": value, "limit": 2.5, "enabled": True, "count": 2, "optional": None}
+    result = classification._report_parameters(parameters)
+    assert result == {**parameters, "missing": {"type": "float", "nonfinite": str(value)}}
+    json.dumps(result, allow_nan=False)
+    assert parameters["missing"] is value
+
+
+def test_native_nan_parameter_preserves_fit_prediction_and_json_diagnostics() -> None:
+    xgboost = pytest.importorskip("xgboost")
+    X = pd.DataFrame({"x": np.linspace(-1, 1, 64)})
+    y = (X["x"] > 0).astype(int)
+    classifier = FeatureEnsembleClassifier(
+        xgboost.XGBClassifier(n_estimators=2, max_depth=1, n_jobs=1, random_state=42),
+        [{"missing": float("nan")}] * 3,
+        mode="single",
+        engineered=False,
+        n_jobs=1,
+    ).fit(X, y)
+    assert np.isfinite(classifier.predict_proba(X.iloc[:3])).all()
+    report = classifier.diagnostics()
+    json.dumps(report, allow_nan=False)
+    member = classifier.estimators_[0]
+    assert np.isnan(member.selected_parameters_["missing"])
+    assert member.diagnostics()["selected_parameters"]["missing"] == {"type": "float", "nonfinite": "nan"}
+
+
 @pytest.mark.parametrize("mode", ["single", "subsample85", "raw_fe_average"])
 @pytest.mark.parametrize("engineered", [False, True])
 @pytest.mark.parametrize("label_kind", ["string", "nonzero_integer"])
@@ -655,15 +695,15 @@ def test_diagnostic_serialization_failures_are_explicit_and_warning_is_once(
         engineered=False,
         n_jobs=1,
     ).fit(X, y)
-    original_hash = classification._sha256
+    original_dumps = classification.pickle.dumps
 
-    def unavailable(value: object) -> str:
+    def unavailable(value: object, *args, **kwargs) -> bytes:
         if isinstance(value, tuple) and len(value) == 4 and isinstance(value[0], Pipeline):
             raise failure("synthetic serialization failure")
-        return original_hash(value)
+        return original_dumps(value, *args, **kwargs)
 
     warning = Mock()
-    monkeypatch.setattr(classification, "_sha256", unavailable)
+    monkeypatch.setattr(classification.pickle, "dumps", unavailable)
     monkeypatch.setattr(classification.logger, "warning", warning)
     assert base.diagnostics()["fitted_state_sha256"] is None
     assert base.diagnostics()["fitted_state_unavailable_reason"]
@@ -673,16 +713,36 @@ def test_diagnostic_serialization_failures_are_explicit_and_warning_is_once(
 
 def test_unrelated_fingerprint_failure_is_not_silently_suppressed(monkeypatch: pytest.MonkeyPatch) -> None:
     base = _classifier().fit(*_data()).estimators_[0]
-    original_hash = classification._sha256
-
-    def unexpected(value: object) -> str:
-        if isinstance(value, tuple) and len(value) == 4 and isinstance(value[0], Pipeline):
-            raise RuntimeError("unrelated failure")
-        return original_hash(value)
-
-    monkeypatch.setattr(classification, "_sha256", unexpected)
+    monkeypatch.setattr(classification.hashlib, "sha256", Mock(side_effect=RuntimeError("unrelated failure")))
     with pytest.raises(RuntimeError, match="unrelated failure"):
         base.diagnostics()
+
+
+@pytest.mark.parametrize("failure", [ValueError, RuntimeError])
+def test_real_serialization_hooks_do_not_prevent_in_memory_classification(failure, monkeypatch):
+    class InMemoryClassifier(LogisticRegression):
+        def __getstate__(self):
+            raise failure("PRIVATE_EXPORT_FAILURE")
+
+    X, y = _data()
+    estimator = InMemoryClassifier(max_iter=300, random_state=42)
+    classifier = _classifier().set_params(estimator=estimator)
+    warning = Mock()
+    monkeypatch.setattr(classification.logger, "warning", warning)
+    classifier.fit(X, y)
+    probability = classifier.predict_proba(X.iloc[:3])
+    assert probability.shape == (3, 2) and np.isfinite(probability).all()
+    report = classifier.diagnostics()
+    assert report["members"][0]["fitted_state_sha256"] is None
+    assert "PRIVATE_EXPORT_FAILURE" not in json.dumps(report)
+    assert "PRIVATE_EXPORT_FAILURE" not in str(warning.call_args)
+    warning.assert_called_once()
+    base = classifier.estimators_[0]
+    base._strict_state_fingerprint = True
+    with pytest.raises(failure, match="PRIVATE_EXPORT_FAILURE"):
+        base.diagnostics()
+    with pytest.raises(failure, match="PRIVATE_EXPORT_FAILURE"):
+        pickle.dumps(classifier)
 
 
 @pytest.mark.parametrize("mode", ["subsample85", "raw_fe_average"])

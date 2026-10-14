@@ -86,6 +86,7 @@ def validate_feature_code(code: str, sample_data: dict[str, list] | None = None)
     result: dict[str, Any] = {"valid": True, "error": None, "warnings": []}
     try:
         tree = ast.parse(code)
+        compile(tree, "<feature>", "exec")
         if not any(
             isinstance(node, ast.Name) and node.id == "result" and isinstance(node.ctx, ast.Store)
             for node in ast.walk(tree)

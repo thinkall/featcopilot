@@ -55,6 +55,9 @@ and missing other aggregates. Original query columns are retained; exclude
 identifiers and raw timestamps from downstream models where appropriate.
 For `last`, equal availability timestamps retain the supplied history's row
 order; preaggregate or order tied records explicitly when that distinction matters.
+Counts and `last` use indexed history with no per-query prefix scan. Other
+aggregates scan each query's eligible interval, so long histories and overlapping
+queries can be expensive; use a bounded window where that matches the task.
 
 Use `FeatureEngineerTransformer(engine="point_in_time", ...)` for sklearn
 pipeline wrapping. This provides explicit aggregation semantics, not automatic

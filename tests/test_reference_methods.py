@@ -6,13 +6,33 @@ import pickle
 import random
 import subprocess
 import sys
+from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
 import pytest
+from packaging.requirements import Requirement
 
 from benchmarks import reference_methods as reference
+
+
+def test_benchmark_extra_matches_native_reference_and_calibration_version_contracts():
+    if sys.version_info >= (3, 11):
+        import tomllib
+    else:
+        import tomli as tomllib
+
+    project = tomllib.loads((Path(__file__).resolve().parents[1] / "pyproject.toml").read_text(encoding="utf-8"))
+    requirements = {
+        item.name: item for item in map(Requirement, project["project"]["optional-dependencies"]["benchmark-tabular"])
+    }
+    autofeat = requirements["autofeat"].specifier
+    sklearn = requirements["scikit-learn"].specifier
+    assert "2.1.1" in autofeat
+    assert all(version not in autofeat for version in ("2.1.0", "2.1.2", "2.1.3", "3.0.0"))
+    assert "1.7.2" in sklearn
+    assert all(version not in sklearn for version in ("1.6.0", "1.6.1", "1.7.0", "1.7.1", "1.8.0"))
 
 
 def leaf(name):

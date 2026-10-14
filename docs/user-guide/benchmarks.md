@@ -44,13 +44,17 @@ observational headline results.
   intervals resample datasets, not correlated folds.
 - Every run records data/split/source hashes and software versions. A source
   change during evaluation invalidates the comparison.
-- External worker deadlines actually stop work, including child processes.
+- External worker deadlines trigger bounded, best-effort process-tree
+  termination. OS-denied or incomplete cleanup is reported, not guaranteed
+  to stop every child process.
 
 ## Run it
 
 Use an isolated environment for comparator compatibility. The optional
-`benchmark-tabular` extra pins pandas below 3 and sklearn below 1.8 for AutoFeat;
-these constraints do not apply to the base FeatCopilot install.
+`benchmark-tabular` extra pins pandas below 3, scikit-learn `>=1.7.2,<1.8`,
+and AutoFeat `==2.1.1`. These constraints do not apply to the base FeatCopilot
+install. Calibration adapters also support sklearn 1.8/1.9 in separately
+managed environments, outside this reference-compatible extra.
 
 ```powershell
 python -m venv .venv-benchmark
@@ -65,8 +69,10 @@ python -m benchmarks.tabular --datasets magic abalone --folds 2 --seeds 42 --max
 ```
 
 Each run writes `manifest.json`, `results.json`, a readable `REPORT.md`, and
-worker logs. Output directories must be new; cached engineered features and
-scores are never reused. A nonzero exit status can mean partial failure, so
+worker logs. Output directories must be new unless `--resume` is explicitly
+requested. Resume reuses only fingerprint-identical completed cells, preserving
+previous attempts; it does not reuse arbitrary cached engineered features or
+scores from another run. A nonzero exit status can mean partial failure, so
 inspect the report for completed measurements and failed requests.
 
 See the repository's

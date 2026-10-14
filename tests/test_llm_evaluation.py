@@ -949,6 +949,29 @@ def test_copilot_soft_policy_preflight_is_honest_and_never_starts_sdk(copilot_sd
     factory.assert_not_called()
 
 
+@pytest.mark.parametrize("timeout", [float("nan"), float("inf"), float("-inf"), 0, -1, True, False])
+def test_copilot_provider_rejects_invalid_timeout_before_workspace_or_client(timeout, copilot_sdk):
+    factory, client, _ = copilot_sdk
+    with patch("featcopilot.llm._plan_transport.TemporaryDirectory") as workspace:
+        with pytest.raises(ValueError, match="timeout"):
+            CopilotPlanProvider(timeout=timeout)
+        workspace.assert_not_called()
+    factory.assert_not_called()
+    client.start.assert_not_awaited()
+
+
+async def test_copilot_send_plan_rejects_running_event_loop_without_starting_sdk(copilot_sdk):
+    factory, client, session = copilot_sdk
+    provider = CopilotPlanProvider()
+    with patch("featcopilot.llm._plan_transport.TemporaryDirectory") as workspace:
+        with pytest.raises(RuntimeError, match="outside an active asyncio loop"):
+            provider.send_plan(PlanRequest("{}"), max_tokens=4096)
+        workspace.assert_not_called()
+    factory.assert_not_called()
+    client.start.assert_not_awaited()
+    session.send_and_wait.assert_not_awaited()
+
+
 def test_copilot_hard_default_cannot_make_calls_even_with_live_approval(copilot_sdk, tmp_path, frames):
     factory, _, _ = copilot_sdk
     ledger = EvaluationLedger(tmp_path)

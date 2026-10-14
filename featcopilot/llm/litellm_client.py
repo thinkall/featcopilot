@@ -7,6 +7,8 @@ enabling flexible model selection without vendor lock-in.
 import asyncio
 import json
 from collections.abc import Coroutine
+from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
 from typing import Any, TypeVar
 
 from pydantic import BaseModel, Field
@@ -486,11 +488,13 @@ result = df['col1'] / (df['col2'] + 1e-8)
 
 
 class SyncLiteLLMFeatureClient:
-    """Synchronous wrapper for LiteLLMFeatureClient."""
+    """Own one loop/worker for nested and concurrent calls; stop must not overlap calls."""
 
     def __init__(self, **kwargs) -> None:
         self._async_client = LiteLLMFeatureClient(**kwargs)
         self._loop: asyncio.AbstractEventLoop | None = None
+        self._executor: ThreadPoolExecutor | None = None
+        self._executor_lock = Lock()
 
     def _get_or_create_loop(self) -> asyncio.AbstractEventLoop:
         """Keep pooled provider connections on one event loop."""
@@ -499,23 +503,20 @@ class SyncLiteLLMFeatureClient:
         return self._loop
 
     def _run_async(self, coro: Coroutine[Any, Any, _T]) -> _T:
-        """Run an async coroutine, handling nested event loops (e.g., Jupyter)."""
-        try:
-            loop = asyncio.get_running_loop()
-        except RuntimeError:
-            return self._get_or_create_loop().run_until_complete(coro)
+        """Keep construction, requests and closing on the provider's owned loop."""
+        with self._executor_lock:
+            if self._executor is None:
+                self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="featcopilot-litellm")
+            future = self._executor.submit(self._run_on_owned_loop, coro)
+        return future.result()
 
-        try:
-            import nest_asyncio
-        except ImportError:
-            import concurrent.futures
+    def _run_on_owned_loop(self, coro: Coroutine[Any, Any, _T]) -> _T:
+        return self._get_or_create_loop().run_until_complete(coro)
 
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                future = executor.submit(asyncio.run, coro)
-                return future.result()
-
-        nest_asyncio.apply()
-        return loop.run_until_complete(coro)
+    def _close_loop(self) -> None:
+        if self._loop is not None:
+            self._loop.close()
+            self._loop = None
 
     def start(self) -> "LiteLLMFeatureClient":
         """Start the client."""
@@ -526,9 +527,12 @@ class SyncLiteLLMFeatureClient:
         try:
             self._run_async(self._async_client.stop())
         finally:
-            if self._loop is not None and not self._loop.is_closed():
-                self._loop.close()
-                self._loop = None
+            if self._executor is not None:
+                try:
+                    self._executor.submit(self._close_loop).result()
+                finally:
+                    self._executor.shutdown(wait=True)
+                    self._executor = None
 
     def send_prompt(self, prompt: str, system_prompt: str | None = None) -> str:
         """Send a prompt and get a response."""

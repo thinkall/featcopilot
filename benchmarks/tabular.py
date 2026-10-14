@@ -44,6 +44,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder, PolynomialFeatures, StandardScaler
 
+from benchmarks.run_state import BenchmarkProtocolError
+
 logger = logging.getLogger(__name__)
 ROOT = Path(__file__).resolve().parent.parent
 SUITE_PATH = Path(__file__).with_name("tabular_suite.json")
@@ -858,6 +860,8 @@ def run_case(payload: dict, workspace: Path, *, outer_predictions: dict[str, np.
     base["family_id"] = payload.get("family_id", payload["dataset"])
     base["role"] = payload.get("role", "development")
     base["expected_cells"] = payload.get("expected_cells", 0)
+    if "stage" in payload:
+        base["stage"] = payload["stage"]
     np.random.seed(config["seed"])
     random.seed(config["seed"])
     started = time.perf_counter()
@@ -1055,36 +1059,83 @@ def failure_rows(payload: dict, status: str, message: str, seconds: float) -> li
     base["family_id"] = payload.get("family_id", payload["dataset"])
     base["role"] = payload.get("role", "development")
     base["expected_cells"] = payload.get("expected_cells", 0)
+    if "stage" in payload:
+        base["stage"] = payload["stage"]
     return [
         {**base, "learner": learner, "status": status, "error": message, "case_seconds": seconds}
         for learner in payload["config"]["learners"]
     ]
 
 
-def stop_process_tree(process: subprocess.Popen) -> None:
-    """Terminate only the worker PID and its descendants on a time limit."""
+def stop_process_tree(process: subprocess.Popen, *, descendants: list[Any] | None = None) -> None:
+    """Best-effort kill of owned PIDs with a shared five-second wait budget.
+
+    Previously observed descendants remain eligible for cleanup if the parent
+    has exited or a subsequent process-tree query is denied. Individual cleanup
+    failures are logged without preventing termination of the owned parent.
+    """
     import psutil
 
+    deadline = time.perf_counter() + 5.0
+    children = {child.pid: child for child in descendants or []}
     try:
         parent = psutil.Process(process.pid)
-        children = parent.children(recursive=True)
+        children.update((child.pid, child) for child in parent.children(recursive=True))
     except psutil.NoSuchProcess:
-        children = []
-    for child in reversed(children):
+        pass
+    except Exception as exc:
+        logger.warning("Cannot inspect worker %s during cleanup: %s", process.pid, exc)
+
+    def kill_child(child):
         try:
             child.kill()
         except psutil.NoSuchProcess:
-            continue
-    if process.poll() is None:
-        process.kill()
-    process.wait()
-    psutil.wait_procs(children, timeout=5)
+            pass
+        except Exception as exc:
+            logger.warning("Cannot terminate worker descendant %s: %s", child.pid, exc)
+
+    for child in reversed(list(children.values())):
+        kill_child(child)
+    try:
+        running = process.poll() is None
+    except Exception:
+        running = True
+    if running:
+        try:
+            process.kill()
+        except ProcessLookupError:
+            pass
+        except Exception as exc:
+            logger.warning("Cannot terminate owned worker %s: %s", process.pid, exc)
+    try:
+        process.wait(timeout=max(0.0, deadline - time.perf_counter()))
+    except subprocess.TimeoutExpired:
+        logger.warning("Worker %s did not reap within the cleanup budget", process.pid)
+        try:
+            if process.poll() is None:
+                process.kill()
+        except Exception as exc:
+            logger.warning("Cannot retry termination of worker %s: %s", process.pid, exc)
+    except Exception as exc:
+        logger.warning("Cannot reap worker %s: %s", process.pid, exc)
+    if children:
+        try:
+            _, alive = psutil.wait_procs(list(children.values()), timeout=max(0.0, deadline - time.perf_counter()))
+        except Exception as exc:
+            logger.warning("Cannot reap worker descendants: %s", exc)
+            alive = children.values()
+        for child in alive:
+            kill_child(child)
 
 
 def run_isolated(
     payload: dict, directory: Path, timeout: float, *, worker_module: str = "benchmarks.tabular"
 ) -> list[dict]:
-    """Enforce a wall-clock cap on the entire case, including feature engineering."""
+    """Supervise a worker, returning retryable operational failures without scores.
+
+    Malformed result files raise BenchmarkProtocolError. Every launched worker
+    receives bounded, best-effort cleanup and input removal on all exit paths.
+    """
     import psutil
 
     if worker_module not in {
@@ -1099,36 +1150,39 @@ def run_isolated(
         raise ValueError("Worker seed must be an integer between 0 and 4294967295")
     directory.mkdir(parents=True, exist_ok=False)
     input_path, output_path = directory / "input.pkl", directory / "result.json"
-    input_path.write_bytes(pickle.dumps(payload))
-    env = os.environ.copy()
-    env.update({key: str(payload["config"]["threads"]) for key in THREAD_VARIABLES})
-    # Python's hash seed must be fixed before interpreter startup, not inside the worker.
-    env["PYTHONHASHSEED"] = str(int(seed))
-    env["PYTHONPATH"] = str(ROOT) + os.pathsep + env.get("PYTHONPATH", "")
     start = time.perf_counter()
     peak_rss_mb = 0.0
-    with (directory / "worker.log").open("w", encoding="utf-8") as log:
-        process = subprocess.Popen(
-            [
-                sys.executable,
-                "-m",
-                worker_module,
-                "--worker",
-                str(input_path),
-                "--worker-output",
-                str(output_path),
-            ],
-            cwd=directory,
-            env=env,
-            stdout=log,
-            stderr=subprocess.STDOUT,
-        )
-        status = None
-        try:
+    process = None
+    descendants: dict[int, Any] = {}
+    try:
+        input_path.write_bytes(pickle.dumps(payload))
+        env = os.environ.copy()
+        env.update({key: str(payload["config"]["threads"]) for key in THREAD_VARIABLES})
+        # Python's hash seed must be fixed before interpreter startup, not inside the worker.
+        env["PYTHONHASHSEED"] = str(int(seed))
+        env["PYTHONPATH"] = str(ROOT) + os.pathsep + env.get("PYTHONPATH", "")
+        with (directory / "worker.log").open("w", encoding="utf-8") as log:
+            process = subprocess.Popen(
+                [
+                    sys.executable,
+                    "-m",
+                    worker_module,
+                    "--worker",
+                    str(input_path),
+                    "--worker-output",
+                    str(output_path),
+                ],
+                cwd=directory,
+                env=env,
+                stdout=log,
+                stderr=subprocess.STDOUT,
+            )
+            status = None
             while process.poll() is None:
                 try:
                     parent = psutil.Process(process.pid)
                     processes = [parent, *parent.children(recursive=True)]
+                    descendants.update((child.pid, child) for child in processes[1:])
                     rss = 0
                     for running in processes:
                         try:
@@ -1143,26 +1197,46 @@ def run_isolated(
                 elif peak_rss_mb > payload["config"].get("memory_limit_mb", 4096):
                     status = ("memory_limit", "Worker tree exceeded the configured RSS memory limit")
                 if status is not None:
-                    stop_process_tree(process)
                     break
                 try:
                     process.wait(timeout=min(0.2, max(0.001, timeout - (time.perf_counter() - start))))
                 except subprocess.TimeoutExpired:
                     continue
-        except KeyboardInterrupt:
-            stop_process_tree(process)
-            input_path.unlink(missing_ok=True)
-            raise
-        if status is not None:
-            rows = failure_rows(payload, status[0], status[1], time.perf_counter() - start)
-        else:
-            if process.returncode == 0 and output_path.exists():
-                rows = json.loads(output_path.read_text(encoding="utf-8"))
+            if status is not None:
+                rows = failure_rows(payload, status[0], status[1], time.perf_counter() - start)
+            elif process.returncode == 0 and output_path.exists():
+                try:
+                    rows = json.loads(output_path.read_text(encoding="utf-8"))
+                except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+                    raise BenchmarkProtocolError("Worker result file is not valid JSON") from exc
+                if not isinstance(rows, list) or not rows or any(not isinstance(row, dict) for row in rows):
+                    raise BenchmarkProtocolError("Worker result file must contain a nonempty list of result objects")
             else:
                 rows = failure_rows(
                     payload, "error", f"Worker exited {process.returncode}; see worker.log", time.perf_counter() - start
                 )
-    input_path.unlink()  # Do not retain copies of public datasets in each case.
+    except BenchmarkProtocolError:
+        raise
+    except Exception as exc:
+        logger.exception("Benchmark worker supervision failed")
+        rows = failure_rows(payload, "error", f"{type(exc).__name__}: {exc}", time.perf_counter() - start)
+    finally:
+        try:
+            if process is not None:
+                try:
+                    stop_process_tree(process, descendants=list(descendants.values()))
+                except Exception:
+                    logger.exception("Worker tree cleanup failed; attempting bounded parent cleanup")
+                    try:
+                        process.kill()
+                        process.wait(timeout=5)
+                    except Exception as exc:
+                        logger.warning("Cannot complete fallback worker cleanup: %s", exc)
+        finally:
+            try:
+                input_path.unlink(missing_ok=True)
+            except OSError as exc:
+                logger.warning("Cannot remove worker input %s: %s", input_path, exc)
     for row in rows:
         row["worker_python_hash_seed"] = int(seed)
         row["worker_wall_seconds"] = time.perf_counter() - start
@@ -1446,6 +1520,7 @@ def write_report(output: Path, manifest: dict, rows: list[dict]) -> None:
             "",
             "Raw cell metrics and provenance: local `results.json`. Completed runs also write `archive.json`,",
             "which lists the authoritative lossless gzip parts and their uncompressed checksum.",
+            "Older or interrupted archive generations may remain; reconstruct only the indexed parts, never a glob.",
             "",
         ]
     )
@@ -1453,13 +1528,15 @@ def write_report(output: Path, manifest: dict, rows: list[dict]) -> None:
 
 
 def source_files() -> list[Path]:
-    """List source inputs without generated results, prepared data or caches."""
-    paths = sorted((ROOT / "featcopilot").rglob("*.py")) + sorted((ROOT / "benchmarks").rglob("*.py"))
-    paths = [
-        path
-        for path in paths
-        if not {"tabular-results", ".cache", "__pycache__"}.intersection(path.relative_to(ROOT).parts)
-    ]
+    """Prune generated trees before collecting the existing ordered source allowlist."""
+    excluded = {"tabular-results", ".cache", "__pycache__"}
+    paths: list[Path] = []
+    for root in (ROOT / "featcopilot", ROOT / "benchmarks"):
+        sources: list[Path] = []
+        for directory, subdirectories, filenames in os.walk(root, topdown=True):
+            subdirectories[:] = [name for name in subdirectories if name not in excluded]
+            sources.extend(Path(directory) / name for name in filenames + subdirectories if Path(name).match("*.py"))
+        paths.extend(sorted(sources))
     paths += [ROOT / "pyproject.toml", SUITE_PATH]
     families = ROOT / "benchmarks" / "families.json"
     if families.exists():
@@ -1471,7 +1548,7 @@ def source_files() -> list[Path]:
 def source_fingerprint() -> str:
     """Hash current code and manifests, including dirty working-tree changes."""
     paths = source_files()
-    contents = b"".join(str(path.relative_to(ROOT)).encode() + b"\0" + path.read_bytes() for path in paths)
+    contents = b"".join(path.relative_to(ROOT).as_posix().encode() + b"\0" + path.read_bytes() for path in paths)
     return digest(contents)
 
 

@@ -2,6 +2,7 @@
 
 import json
 import pickle
+import weakref
 from unittest.mock import patch
 
 import numpy as np
@@ -242,6 +243,31 @@ def test_bag_local_unusable_features_still_fit_original_context_and_are_counted(
     assert ranked.features == []
     assert ranked.resampling["positive_counts"] == {"unusable": 0}
     assert all(call.args[0].columns.tolist() == ["original_category"] for call in fit.call_args_list)
+
+
+def test_scope_candidate_arrays_are_released_before_resampling():
+    X, y = numeric_data()
+    engine = bagged()
+    candidates = [engine._feature("a_sq", ["a"], "square", "x ** 2")]
+    deduplicate = engine._deduplicate_candidates
+    references = []
+
+    def observed_deduplication(*args):
+        retained, values, discarded = deduplicate(*args)
+        references.extend(weakref.ref(value) for value in values.values())
+        return retained, values, discarded
+
+    def inspect_resampling(retained, *args, **kwargs):
+        assert len(references) == 1
+        assert all(reference() is None for reference in references)
+        return _Ranking(retained, {feature.name: 1.0 for feature in retained})
+
+    with (
+        patch.object(engine, "_deduplicate_candidates", side_effect=observed_deduplication),
+        patch.object(engine, "_rank_importance_resampled", side_effect=inspect_resampling),
+    ):
+        ranked = engine._rank_importance(candidates, X, engine._model_frame(X), y, StubRegressor())
+    assert [feature.name for feature in ranked.features] == ["a_sq"]
 
 
 def test_scope_deduplication_precedes_bags_and_empty_scope_needs_no_ranking_fits():

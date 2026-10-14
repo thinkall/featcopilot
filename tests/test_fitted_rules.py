@@ -24,6 +24,21 @@ def rule(operator, columns=None, name=None, **parameters):
     )
 
 
+@pytest.mark.parametrize("operator", ["standardize", "clip", "group_mean"])
+def test_statistical_rules_reject_complex_training_sources(operator):
+    X = pd.DataFrame({"category": ["a", "a", "b"], "value": [1 + 10j, 2 + 20j, 3 + 30j]})
+    columns = ["category", "value"] if operator == "group_mean" else ["value"]
+    with pytest.raises(ValueError, match="real numeric"):
+        FittedRuleEngine([rule(operator, columns)]).fit(X)
+
+
+@pytest.mark.parametrize("operator", ["standardize", "clip"])
+def test_statistical_rules_reject_complex_inference_after_real_fit(operator):
+    engine = FittedRuleEngine([rule(operator, ["value"])]).fit(pd.DataFrame({"value": [1.0, 2.0, 3.0]}))
+    with pytest.raises(ValueError, match="real numeric"):
+        engine.transform(pd.DataFrame({"value": [1 + 100j, 2 - 200j, 3 + 300j]}))
+
+
 @pytest.mark.parametrize(
     "operator,columns,parameters",
     [
@@ -151,6 +166,29 @@ def test_binary_target_means_are_probabilities_and_record_class_mapping():
     assert output["target_mean"].between(0, 1).all()
     assert engine.transform(X)["target_mean"].tolist() == [0.5, 0.5, 1.0, 1.0]
     assert engine.to_dict()["target_classes"] == ["no", "yes"]
+
+
+@pytest.mark.parametrize("dtype", [int, bool, float])
+@pytest.mark.parametrize("task", ["auto", "classification"])
+@pytest.mark.parametrize("positive", [False, True])
+def test_object_backed_binary_targets_preserve_native_probability_and_state(dtype, task, positive):
+    X = pd.DataFrame({"category": ["a"] * 10})
+    native = np.full(10, positive, dtype=dtype)
+    rules = [rule("target_mean", smoothing=0.0)]
+    expected = FittedRuleEngine(rules, task=task)
+    actual = FittedRuleEngine(rules, task=task)
+    pd.testing.assert_frame_equal(actual.fit_transform(X, native.astype(object)), expected.fit_transform(X, native))
+    assert actual.to_dict() == expected.to_dict()
+    assert actual.transform(X)["target_mean"].tolist() == [float(positive)] * 10
+    restored = FittedRuleEngine.from_dict(json.loads(json.dumps(actual.to_dict())))
+    pd.testing.assert_frame_equal(restored.transform(X), expected.transform(X))
+
+
+def test_string_positive_label_remains_distinct_from_numeric_binary_target():
+    X = pd.DataFrame({"category": ["a"] * 10})
+    engine = FittedRuleEngine([rule("target_mean", smoothing=0.0)], task="classification")
+    assert engine.fit_transform(X, np.array(["1"] * 10, dtype=object))["target_mean"].eq(0).all()
+    assert engine.to_dict()["target_classes"] == ["1"]
 
 
 @pytest.mark.parametrize(

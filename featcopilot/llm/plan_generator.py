@@ -23,7 +23,9 @@ def request_fitted_plan(
     Parameters
     ----------
     client : FeatureClient
-        Synchronous provider with send_prompt support.
+        Trusted synchronous provider with send_prompt support. SemanticEngine
+        selects isolated_plan=True for Copilot; other backends use tool-free
+        chat completions. Explicitly injected test clients are trusted.
     column_info : dict
         Original column names and dtypes, without data samples.
     column_descriptions : dict

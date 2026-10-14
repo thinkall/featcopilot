@@ -137,15 +137,18 @@ for name, explanation in engineer.explain_features().items():
     print(f"{name}: {explanation}")
 ```
 
-### 4. Graceful Degradation
+### 4. Explicit Offline Operation
 
-LLM features fall back to heuristics when unavailable:
+Missing SDKs, authentication failures and required provider errors do not
+activate a mock LLM mode. Choose non-LLM engines explicitly when offline:
 
 ```python
-# Works even without Copilot authentication
-engineer = AutoFeatureEngineer(engines=['llm'])
-# Warning: Using mock LLM responses
+engineer = AutoFeatureEngineer(engines=['tabular'])
 ```
+
+Predeclared fitted rules also work without a provider. Legacy optional text
+suggestions may fall back to logged built-in text features; see the
+[LLM feature guide](llm-features.md) for that narrower distinction.
 
 ## Configuration
 

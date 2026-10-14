@@ -4,6 +4,8 @@ import asyncio
 import json
 import subprocess
 import sys
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
@@ -26,6 +28,141 @@ from featcopilot.utils.models import _fetch_models_from_copilot
 
 ASYNC_CLIENTS = [CopilotFeatureClient, OpenAIFeatureClient, LiteLLMFeatureClient]
 SYNC_CLIENTS = [SyncCopilotFeatureClient, SyncOpenAIFeatureClient, SyncLiteLLMFeatureClient]
+
+
+@pytest.mark.parametrize("client_type", [SyncOpenAIFeatureClient, SyncLiteLLMFeatureClient])
+@pytest.mark.parametrize("nested_first", [False, True])
+@pytest.mark.parametrize("nest_available", [False, True])
+def test_pooled_sync_client_owns_one_loop_for_mixed_call_contexts(
+    client_type, nested_first, nest_available, monkeypatch
+):
+    nest = SimpleNamespace(apply=MagicMock(side_effect=AssertionError("Do not patch caller loops")))
+    monkeypatch.setitem(sys.modules, "nest_asyncio", nest if nest_available else None)
+    client = client_type()
+    owner = None
+    seen = []
+    failure = RuntimeError("original provider failure")
+
+    async def start():
+        nonlocal owner
+        owner = (asyncio.get_running_loop(), threading.get_ident())
+        seen.append("start")
+
+    async def send(prompt, system_prompt=None):
+        assert (asyncio.get_running_loop(), threading.get_ident()) == owner
+        seen.append(prompt)
+        if prompt == "failure":
+            raise failure
+        return prompt
+
+    async def stop():
+        assert (asyncio.get_running_loop(), threading.get_ident()) == owner
+        seen.append("stop")
+
+    client._async_client = SimpleNamespace(start=start, send_prompt=send, stop=stop)
+
+    async def nested_call(method, *args):
+        caller_loop = asyncio.get_running_loop()
+        result = method(*args)
+        assert not caller_loop.is_closed()
+        return result
+
+    def invoke(nested, method, *args):
+        return asyncio.run(nested_call(method, *args)) if nested else method(*args)
+
+    try:
+        invoke(nested_first, client.start)
+        assert invoke(not nested_first, client.send_prompt, "first") == "first"
+        with pytest.raises(RuntimeError) as caught:
+            invoke(nested_first, client.send_prompt, "failure")
+        assert caught.value is failure
+        assert invoke(not nested_first, client.send_prompt, "second") == "second"
+    finally:
+        invoke(not nested_first, client.stop)
+    assert seen == ["start", "first", "failure", "second", "stop"]
+    assert owner[0].is_closed()
+    assert client._loop is None
+    assert not any(thread.ident == owner[1] and thread.is_alive() for thread in threading.enumerate())
+    if nest_available:
+        nest.apply.assert_not_called()
+
+
+@pytest.mark.parametrize("client_type", [SyncOpenAIFeatureClient, SyncLiteLLMFeatureClient])
+def test_pooled_sync_client_closes_worker_on_stop_error_and_can_restart(client_type):
+    client = client_type()
+    original = RuntimeError("close failed")
+    loops = []
+
+    async def start():
+        loops.append(asyncio.get_running_loop())
+
+    client._async_client = SimpleNamespace(start=start, stop=AsyncMock(side_effect=original))
+    client.start()
+    with pytest.raises(RuntimeError) as caught:
+        client.stop()
+    assert caught.value is original
+    assert loops[0].is_closed()
+    assert client._loop is client._executor is None
+    client._async_client.stop.side_effect = None
+    try:
+        client.start()
+        assert loops[1] is not loops[0]
+    finally:
+        client.stop()
+    assert loops[1].is_closed()
+
+
+@pytest.mark.parametrize("client_type", [SyncOpenAIFeatureClient, SyncLiteLLMFeatureClient])
+def test_concurrent_first_calls_create_one_provider_loop_and_worker(client_type, monkeypatch):
+    client = client_type()
+    competing = threading.Event()
+    executors = []
+
+    class ObservedLock:
+        def __init__(self):
+            self.lock = threading.Lock()
+            self.count_lock = threading.Lock()
+            self.attempts = 0
+
+        def __enter__(self):
+            with self.count_lock:
+                self.attempts += 1
+                if self.attempts == 2:
+                    competing.set()
+            self.lock.acquire()
+
+        def __exit__(self, *args):
+            self.lock.release()
+
+    def create_executor(**kwargs):
+        executor = ThreadPoolExecutor(**kwargs)
+        executors.append(executor)
+        if len(executors) == 2:
+            competing.set()
+        assert competing.wait(timeout=2), "Second caller did not contend during initialization"
+        return executor
+
+    monkeypatch.setattr(client, "_executor_lock", ObservedLock())
+    monkeypatch.setattr(sys.modules[client_type.__module__], "ThreadPoolExecutor", create_executor)
+
+    async def identify_owner():
+        return asyncio.get_running_loop(), threading.get_ident()
+
+    coroutines = [identify_owner(), identify_owner()]
+    try:
+        with ThreadPoolExecutor(max_workers=2) as callers:
+            futures = [callers.submit(client._run_async, coroutine) for coroutine in coroutines]
+            owners = [future.result(timeout=5) for future in futures]
+        assert len(executors) == 1
+        assert owners[0] == owners[1]
+    finally:
+        client.stop()
+        for executor in executors:
+            executor.shutdown(wait=True)
+        for coroutine in coroutines:
+            coroutine.close()
+    assert owners[0][0].is_closed()
+    assert not any(thread.ident == owners[0][1] and thread.is_alive() for thread in threading.enumerate())
 
 
 @pytest.mark.parametrize("client_type", ASYNC_CLIENTS)

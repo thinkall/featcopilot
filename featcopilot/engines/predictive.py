@@ -35,6 +35,7 @@ from featcopilot.core.feature import Feature, FeatureOrigin, FeatureSet, Feature
 from featcopilot.engines.tabular import TabularEngine
 from featcopilot.utils.frequency import apply_frequency_mapping, fit_frequency_mapping
 from featcopilot.utils.logger import get_logger
+from featcopilot.utils.model_preprocessing import encode_class_weights
 from featcopilot.utils.numeric_clipping import NUMERIC_GUARD_LIMIT as _NUMERIC_LIMIT
 from featcopilot.utils.numeric_clipping import NUMERIC_GUARD_POLICY as _NUMERIC_POLICY
 from featcopilot.utils.numeric_clipping import (
@@ -699,6 +700,7 @@ class PredictiveTabularEngine(BaseEngine):
         self._input_columns: list[str] = []
         self._numeric_columns: list[str] = []
         self._selected_features: list[Feature] = []
+        self._class_labels: np.ndarray | None = None
         self._feature_set = FeatureSet()
         self.selection_report_: SelectionReport = {}
 
@@ -780,6 +782,7 @@ class PredictiveTabularEngine(BaseEngine):
         n_classes = 0
         if task == "classification":
             encoder = LabelEncoder().fit(target)
+            self._class_labels = encoder.classes_.copy()
             target = encoder.transform(target)
             n_classes = len(encoder.classes_)
 
@@ -1420,7 +1423,7 @@ class PredictiveTabularEngine(BaseEngine):
         if task == "classification" and not callable(getattr(learner, "predict_proba", None)):
             raise ValueError("Classification estimators must implement predict_proba")
         parameters = learner.get_params(deep=True)
-        overrides = {
+        overrides: dict[str, Any] = {
             name: self.config.n_jobs
             for name, value in parameters.items()
             if (name == "n_jobs" or name.endswith("__n_jobs")) and (value is not None or self.config.n_jobs != 1)
@@ -1442,6 +1445,10 @@ class PredictiveTabularEngine(BaseEngine):
                 if (name == "random_state" or name.endswith("__random_state")) and value is None
             }
         )
+        if task == "classification" and self._class_labels is not None:
+            for name, value in parameters.items():
+                if (name == "class_weight" or name.endswith("__class_weight")) and isinstance(value, dict):
+                    overrides[name] = encode_class_weights(value, self._class_labels)
         learner.set_params(**overrides)
         return learner
 
@@ -1812,7 +1819,7 @@ class PredictiveTabularEngine(BaseEngine):
             origin=origin,
             source_columns=columns,
             transformation=operation,
-            explanation=f"{operation} of {', '.join(columns)}; selected by internal residual screening and holdout loss",
+            explanation=f"{operation} of {', '.join(columns)}; selected by internal screening and holdout loss",
             code="\n".join(code),
             metadata={"numeric_policy": _NUMERIC_POLICY},
         )
@@ -2056,7 +2063,8 @@ class PredictiveTabularEngine(BaseEngine):
     ) -> _Ranking:
         if self.config.importance_resamples == 1:
             return self._rank_importance_single(candidates, raw, prepared, target, template)
-        retained, _, discarded = self._deduplicate_candidates(candidates, raw, prepared)
+        retained, scope_values, discarded = self._deduplicate_candidates(candidates, raw, prepared)
+        del scope_values
         ranking = self._rank_importance_resampled(
             retained,
             raw,

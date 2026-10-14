@@ -66,6 +66,18 @@ one-standard-error rule favors stability over a single best holdout. All origina
 are retained. A predictor suited to the downstream task can be supplied; the
 default uses sklearn histogram gradient boosting.
 
+The predictive wrapper returns originals in their fitted column order even
+when inference columns arrive reordered. Original values, including infinities
+and missing values, are preserved in the output; learned numeric preprocessing
+belongs inside the downstream model pipeline. Generated features follow the
+predictive engine's separate finite-value policy.
+
+For injected classifiers, dictionary `class_weight` keys use the original
+training labels, including string or nonzero integer labels. The engine maps
+them on its owned estimator clone when encoding targets; it does not mutate
+the supplied estimator or weights. Partial dictionaries, `None` and
+`"balanced"` retain their native meanings. Unknown label keys are rejected.
+
 `screening="auto"` uses linear residual screening for supported bare linear
 estimators and shallow trees otherwise. Explicit `"linear"` and `"tree"` modes
 support ablations; `stability_repeats=1` provides a single-holdout mode.

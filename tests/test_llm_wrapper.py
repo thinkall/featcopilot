@@ -113,3 +113,31 @@ def test_fitted_plans_cannot_use_random_legacy_selection_with_groups():
     )
     with pytest.raises(ValueError, match="Legacy selection is not group/time-aware"):
         engineer.fit_transform(pd.DataFrame({"value": [1.0, 2.0]}), pd.Series([1.0, 2.0]), groups=["a", "b"])
+
+
+@pytest.mark.parametrize(
+    "metadata",
+    [
+        {"groups": [0, 0, 1, 1]},
+        {"timestamps": [1, 2, 3, 4]},
+        {"timestamps": [1, 2, 3, 4], "label_end_times": [1, 2, 3, 4]},
+    ],
+)
+def test_unsupervised_plan_fit_transform_does_not_forward_training_boundaries_to_inference(metadata):
+    X = pd.DataFrame({"category": ["a", "a", "b", "b"]}, index=[7, 3, 7, 2])
+    engineer = AutoFeatureEngineer(
+        engines=["llm"],
+        llm_config={
+            "feature_format": "plan",
+            "rules": [{"name": "frequency", "operator": "frequency", "columns": ["category"]}],
+        },
+    )
+    with patch(
+        "featcopilot.llm.copilot_client.SyncCopilotFeatureClient.start",
+        side_effect=AssertionError("Supplied rules must not call a provider"),
+    ):
+        training = engineer.fit_transform(X, **metadata)
+    assert training["frequency"].tolist() == [0.5] * 4
+    pd.testing.assert_frame_equal(training, engineer.transform(X))
+    with pytest.raises(TypeError, match="transform options"):
+        engineer.transform(X, **metadata)

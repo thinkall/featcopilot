@@ -162,7 +162,9 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         models (RandomForest). Defaults to ``1`` (sequential) to avoid CPU
         oversubscription when ``AutoFeatureEngineer`` is wrapped in an outer
         parallel CV / grid-search. Set to ``-1`` to use all cores when running
-        standalone.
+        standalone. With ``selection_strategy="predictive"``, this same
+        parameter controls the predictive engine's native thread limit and
+        injected learner worker settings; the legacy gate does not run.
     task : {'auto', 'classification', 'regression'}, default='auto'
         Explicit task override for selection and gate models. Set 'regression'
         for integer-valued regression targets. 'auto' preserves legacy heuristics.
@@ -646,23 +648,26 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         X: pd.DataFrame | np.ndarray,
         transform_params: dict[str, Any],
         training_target: pd.Series | np.ndarray | None = None,
+        *,
+        training: bool = False,
     ) -> pd.DataFrame:
         """Transform with fitted engines, optionally using training-safe semantics."""
         if isinstance(X, np.ndarray):
             X = pd.DataFrame(X, columns=[f"feature_{i}" for i in range(X.shape[1])])
 
+        if self.selection_strategy == "predictive":
+            inference_params = {
+                key: value
+                for key, value in transform_params.items()
+                if not training or key not in {"groups", "timestamps", "label_end_times"}
+            }
+            return self._engine_instances["tabular"].transform(X, **inference_params)
+
         result = X.copy()
         dropped_originals: set[Any] = set()
 
         for engine_name, engine in self._engine_instances.items():
-            if training_target is not None and self.selection_strategy == "predictive":
-                inference_params = {
-                    key: value
-                    for key, value in transform_params.items()
-                    if key not in {"groups", "timestamps", "label_end_times"}
-                }
-                transformed = engine.transform(X, **inference_params)
-            elif training_target is None:
+            if not training:
                 transformed = engine.transform(X, **transform_params)
             else:
                 transformed = engine._transform_fit_data(X, training_target, **transform_params)
@@ -767,7 +772,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         self.fit(X, y, column_descriptions, task_description, target_name=target_name, **fit_params)
         # Reuse transform-relevant kwargs (e.g. text_columns, related_tables)
         # while allowing supervised engines to cross-fit training-only features.
-        result = self._transform_fitted_engines(X, fit_params, training_target=y)
+        result = self._transform_fitted_engines(X, fit_params, training_target=y, training=True)
 
         # Track original features (input columns) vs derived features
         if isinstance(X, np.ndarray):

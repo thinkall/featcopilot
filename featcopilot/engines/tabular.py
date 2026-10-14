@@ -98,8 +98,9 @@ class TabularEngine(BaseEngine):
         encode_categorical: bool = True,
         onehot_ratio_threshold: float = 0.05,
         target_encode_ratio_threshold: float = 0.5,
-        target_encode_cv: int = 5,
         min_samples_per_category: int = 3,
+        *,
+        target_encode_cv: int = 5,
         **kwargs,
     ):
         config = TabularEngineConfig(
@@ -117,6 +118,12 @@ class TabularEngine(BaseEngine):
         )
         super().__init__(config=config)
         self.config: TabularEngineConfig = config
+        self._reset()
+
+    def _reset(self) -> None:
+        self._is_fitted = False
+        self._feature_names = []
+        self._feature_metadata = {}
         self._numeric_columns: list[str] = []
         self._feature_set = FeatureSet()
         # Categorical encoding state
@@ -148,6 +155,7 @@ class TabularEngine(BaseEngine):
         -------
         self : TabularEngine
         """
+        self._reset()
         X = self._validate_input(X)
 
         # Identify numeric columns
@@ -164,6 +172,8 @@ class TabularEngine(BaseEngine):
         # Handle categorical columns
         if self.config.encode_categorical:
             self._fit_categorical_encoding(X, y)
+        if self._target_encode_columns and len(X) < 2:
+            raise ValueError("Target encoding requires at least two rows for own-target exclusion")
 
         # Plan features to generate
         self._plan_features(X)
@@ -252,8 +262,8 @@ class TabularEngine(BaseEngine):
         if len(y_array) != len(index):
             raise ValueError(f"X and y must contain the same number of rows, got {len(index)} and {len(y_array)}")
 
-        y_series = pd.Series(y_array, index=index)
-        is_categorical = pd.api.types.is_string_dtype(y_series.dtype) or isinstance(y_series.dtype, pd.CategoricalDtype)
+        y_series = pd.Series(y.array if isinstance(y, pd.Series) else y_array, index=index)
+        is_categorical = pd.api.types.is_string_dtype(y_series) or isinstance(y_series.dtype, pd.CategoricalDtype)
         if is_categorical:
             labels = y_series.astype(str)
             if fit_label_encoder or self._target_label_encoder is None:
@@ -292,11 +302,7 @@ class TabularEngine(BaseEngine):
 
         n_splits = min(self.config.target_encode_cv, len(X))
         if n_splits < 2:
-            return {
-                col: X[col].map(self._target_encode_maps.get(col, {})).fillna(self._target_encode_global_mean)
-                for col in self._target_encode_columns
-                if col in X.columns
-            }
+            raise ValueError("Target encoding requires at least two rows for own-target exclusion")
 
         splits = list(KFold(n_splits=n_splits, shuffle=True, random_state=42).split(X))
         encoded_columns: dict[str, pd.Series] = {}
@@ -310,7 +316,7 @@ class TabularEngine(BaseEngine):
                 fold_target = y_encoded.iloc[train_idx]
                 fold_global_mean = float(fold_target.mean())
                 fold_map = self._build_target_encoding_map(X[col].iloc[train_idx], fold_target)
-                fold_values = X[col].iloc[validation_idx].map(fold_map).fillna(fold_global_mean)
+                fold_values = X[col].iloc[validation_idx].map(fold_map).astype(float).fillna(fold_global_mean)
                 encoded.iloc[validation_idx] = fold_values.to_numpy()
 
             encoded_columns[col] = encoded
@@ -537,7 +543,7 @@ class TabularEngine(BaseEngine):
                 result[col_name] = target_encoded_values[col]
             else:
                 encode_map = self._target_encode_maps.get(col, {})
-                result[col_name] = result[col].map(encode_map).fillna(self._target_encode_global_mean)
+                result[col_name] = result[col].map(encode_map).astype(float).fillna(self._target_encode_global_mean)
 
         if not self.config.keep_original_categorical:
             columns_to_drop = [col for col in self._categorical_columns if col in result.columns]

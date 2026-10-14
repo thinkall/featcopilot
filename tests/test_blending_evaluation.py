@@ -6,8 +6,12 @@ import copy
 import gzip
 import json
 import pickle
+import sqlite3
 import sys
+from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from threading import Barrier
 from types import ModuleType, SimpleNamespace
 from typing import Any, cast
 
@@ -17,7 +21,7 @@ import pytest
 
 from benchmarks import blending_evaluation as study
 from benchmarks import execution, tabular
-from benchmarks.run_state import fingerprint
+from benchmarks.run_state import ExposureLedger, fingerprint
 
 
 @pytest.fixture
@@ -103,6 +107,44 @@ def experiment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> SimpleNamespa
         prepare=prepare,
         splits=splits,
     )
+
+
+@pytest.mark.parametrize("interrupted", [False, True])
+@pytest.mark.parametrize("missing_manifest", [False, True])
+def test_source_initialization_failure_resumes_without_repeating_time(
+    experiment: SimpleNamespace, monkeypatch: pytest.MonkeyPatch, interrupted: bool, missing_manifest: bool
+) -> None:
+    e = experiment
+    clock = [0.0]
+    monkeypatch.setattr(study.time, "perf_counter", lambda: clock[0])
+
+    def fail(*args: Any) -> Any:
+        clock[0] += 60
+        raise KeyboardInterrupt if interrupted else OSError("Synthetic source publication failure")
+
+    with monkeypatch.context() as patch:
+        patch.setattr(study, "archive_source", fail)
+        assert study.main([*e.argv, "--total-seconds", "100"]) == 1
+    assert state(e)["elapsed_seconds"] == manifest(e)["active_seconds"] == 60
+    assert not records(e) and not e.calls and not e.acquisitions and not e.exposures
+    if missing_manifest:
+        (e.output / "manifest.json").unlink()
+    before = (e.output / "state.json").read_bytes()
+    with monkeypatch.context() as patch:
+        patch.setattr(tabular, "source_fingerprint", lambda: "changed")
+        assert study.main(e.resume) == 2
+    assert (e.output / "state.json").read_bytes() == before
+    run = tabular.run_isolated
+
+    def timed(*args: Any, **kwargs: Any) -> list[dict]:
+        clock[0] += 1
+        return run(*args, **kwargs)
+
+    monkeypatch.setattr(tabular, "run_isolated", timed)
+    assert study.main(e.resume) == 0
+    assert len(e.calls) == 3
+    assert state(e)["elapsed_seconds"] == 63
+    assert manifest(e)["initialization_status"] == "ready"
 
 
 def base_report(engineered: bool, rows: int, fit_id: str, classes: int = 2, input_features: int = 1) -> dict:
@@ -1750,6 +1792,40 @@ def test_confirmation_previously_exposed_family_is_blocked_before_acquisition(
     assert results(e)["confirmation_decision"]["status"] == "blocked"
 
 
+@pytest.mark.parametrize("failed_preparation", [False, True])
+def test_confirmation_contenders_reserve_before_protected_payload_open(
+    confirmation: SimpleNamespace, monkeypatch: pytest.MonkeyPatch, failed_preparation: bool
+) -> None:
+    e = confirmation
+    gate = Barrier(2)
+    prepare = execution._prepare_dataset
+    opened = []
+
+    class RacingLedger(ExposureLedger):
+        def check(self, family_id: str, run_id: str, role: str) -> None:
+            super().check(family_id, run_id, role)
+            gate.wait(timeout=15)
+
+    def acquire(spec: dict, *args: Any) -> Any:
+        opened.append(spec["family_id"])
+        if failed_preparation:
+            raise ValueError("Synthetic failure after protected acquisition began")
+        return prepare(spec, *args)
+
+    monkeypatch.setattr(study, "ExposureLedger", RacingLedger)
+    monkeypatch.setattr(execution, "_prepare_dataset", acquire)
+    outputs = [e.output, e.output.with_name("competing-run")]
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futures = [pool.submit(study.main, [*e.argv, "--output", str(directory)]) for directory in outputs]
+        statuses = [future.result(timeout=90) for future in futures]
+    families = [spec["family_id"] for spec in e.suite["datasets"]]
+    assert Counter(opened) == Counter(families)
+    assert sorted(statuses) == ([1, 1] if failed_preparation else [0, 1])
+    with sqlite3.connect(tabular.ROOT / "benchmarks" / ".cache" / "exposure.sqlite") as connection:
+        reserved = connection.execute("SELECT family_id, COUNT(*) FROM exposure GROUP BY family_id").fetchall()
+    assert dict(reserved) == dict.fromkeys(families, 1)
+
+
 @pytest.mark.parametrize(
     "mutation",
     ["ids_missing", "ids_duplicate", "ids_changed", "official_missing", "groups", "times", "tier", "rows", "mapping"],
@@ -1776,7 +1852,8 @@ def test_confirmation_validates_original_ids_and_full_payload_before_iid_executi
     else:
         e.metadata["column_mapping"]["x0"] = "Class"
     assert study.main(e.argv) == 1
-    assert not e.calls and not any(event[0] == "admit" for event in e.exposures)
+    assert not e.calls
+    assert sum(event[0] == "admit" for event in e.exposures) == 1
     assert len(records(e)) == 9 and len(results(e)["rows"]) == 15
     assert all(row["status"] == "dataset_error" for row in results(e)["rows"])
 

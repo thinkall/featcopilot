@@ -58,6 +58,8 @@ class _EngineState(BaseModel):
 
 
 def _numeric(series: pd.Series) -> np.ndarray:
+    if pd.api.types.is_complex_dtype(series.dtype):
+        raise ValueError(f"Fitted numerical rule requires a real numeric source column, got {series.name!r}")
     if not pd.api.types.is_numeric_dtype(series.dtype) and series.notna().any():
         raise ValueError(f"Fitted numerical rule requires a numeric source column, got {series.name!r}")
     values = series.to_numpy(dtype=float, na_value=np.nan)
@@ -251,6 +253,7 @@ class FittedRuleEngine(BaseEngine):
         self._resolved_task = resolve_task(values, self.task)
         if self._resolved_task == "regression":
             return np.asarray(values, dtype=float)
+        values = pd.Series(values).infer_objects().to_numpy()
         encoder = LabelEncoder()
         encoded = encoder.fit_transform(values)
         if len(encoder.classes_) > 2:

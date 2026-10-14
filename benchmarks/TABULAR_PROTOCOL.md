@@ -103,6 +103,38 @@ They are not inputs to the new reports.
 
 ## Data and reproducibility
 
+- The canonical controller charges graceful preparation interruptions and
+  report/archive publication to cumulative active time. Its final operational
+  `run_status`, `active_seconds`, `publication_reserve_seconds` and
+  `budget_overrun_seconds` are in `manifest.json`; score archives are publication
+  snapshots, not a substitute for final operational status. Publication reserves
+  are estimates, and an overrun is reported with a nonzero exit rather than hidden.
+  Per-cell state checkpoints provide crash recovery; the full report and
+  descriptive bootstrap are published at finalization, not after every cell.
+  Resumes preserve completed cells and prepared provenance; a rejected identity
+  does not consume the stored budget, and unchanged score evidence is not republished.
+  Invalid controller protocols or malformed worker result contracts record a
+  terminal `protocol_error`; resume is rejected without rewriting that checkpoint.
+  Ordinary failed evaluation cells retain their explicit retry behavior.
+- Worker supervision cleans up the owned process tree and input payload on
+  exceptional exits as well as explicit limits. Termination waits are bounded;
+  OS-denied cleanup is best-effort and reported, not a guaranteed hard kill.
+  Malformed result files are protocol errors; operational monitoring failures
+  remain visible retryable failures.
+- New result archives use immutable generation-specific part names and switch
+  the authoritative index only after the new parts are complete. Readers must
+  use the index, never a glob. Older generations are retained intentionally so
+  an interrupted publication or concurrent reader does not lose prior evidence.
+- Actual confirmation runs transactionally admit a family before acquisition,
+  preventing competing runs from both passing a separate check before opening
+  its data. Reservations are conservatively retained after acquisition failures;
+  they are not silently released as supposedly unexposed. The explicit
+  prepare-only non-exposure policy remains unchanged.
+- Source ZIP snapshots are also published atomically. A failed initialization
+  records recoverable bootstrap identity/configuration and consumed time;
+  `--resume` can finish that bootstrap only when the identity still matches and
+  no prepared, attempted or scored evidence exists. Missing bootstrap state or
+  identity drift fails explicitly rather than rebuilding a populated run.
 - Dataset names, source paths, targets, categorical columns and corresponding
   transformed OpenML dataset IDs are in `tabular_suite.json`.
 - Source revision: `8d0ff9103525b7e3579b180230fddb3186258301`. Data downloads fail
@@ -112,6 +144,12 @@ They are not inputs to the new reports.
   versions, OS/Python, Git commit, and current source hash (including dirty code).
 - Source is hashed again at completion. A changed fingerprint invalidates the
   comparison, rather than claiming measurements represent a single revision.
+  New fingerprints use POSIX relative path names, matching ZIP members and
+  source allowlists, so separators alone do not change source identity.
+  File bytes are still hashed exactly; historical fingerprints are not regenerated.
+  Source discovery prunes generated evidence and cache directories before
+  descending into them. Identity checks still rehash included bytes rather than
+  relying on file size or modification time.
 - New runs through the shared subprocess launcher set `PYTHONHASHSEED` to the
   cell's integer seed (0 through 4294967295) **before Python starts**, overriding
   inherited hash randomization without changing the parent environment. The

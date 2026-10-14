@@ -9,6 +9,8 @@ import pandas as pd
 import pytest
 from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
 
+from featcopilot import AutoFeatureEngineer
+from featcopilot.engines.tabular import TabularEngine
 from featcopilot.selection import FeatureSelector, ImportanceSelector, StatisticalSelector
 from featcopilot.utils.task import prepare_target, resolve_task, validate_task
 
@@ -81,6 +83,38 @@ def test_prepare_target_preserves_regression_values_instead_of_label_encoding():
     prepared = prepare_target(values, "regression")
     np.testing.assert_array_equal(prepared, [20.0, 2.0, 10.0, 2.0])
     assert prepared.dtype.kind == "f"
+
+
+@pytest.mark.parametrize("entry", ["engine", "wrapper"])
+def test_target_mean_encoding_preserves_object_backed_numeric_regression(entry):
+    X = pd.DataFrame({"category": ["a", "a", "b", "b"] * 3})
+    numeric = pd.Series([1.0, 9.0, 100.0, 300.0] * 3)
+
+    def make():
+        if entry == "wrapper":
+            return AutoFeatureEngineer(task="regression", max_features=None)
+        return TabularEngine(
+            include_transforms=[],
+            polynomial_degree=1,
+            onehot_ratio_threshold=0.0,
+            target_encode_ratio_threshold=1.0,
+            min_samples_per_category=1,
+        )
+
+    reference, actual = make(), make()
+    pd.testing.assert_frame_equal(actual.fit_transform(X, numeric.astype(object)), reference.fit_transform(X, numeric))
+    pd.testing.assert_frame_equal(actual.transform(X), reference.transform(X))
+    assert actual.transform(X)["category_target_encoded"].tolist() == [5.0, 5.0, 200.0, 200.0] * 3
+
+
+@pytest.mark.parametrize("minimum", [1, 2, 4])
+def test_tabular_category_support_keeps_its_existing_positional_slot(minimum):
+    engine = TabularEngine(2, False, ["log"], None, False, True, 0.05, 0.5, minimum)
+    assert engine.config.min_samples_per_category == minimum
+    assert engine.config.target_encode_cv == 5
+    explicit = TabularEngine(2, False, ["log"], None, False, True, 0.05, 0.5, minimum, target_encode_cv=3)
+    assert explicit.config.min_samples_per_category == minimum
+    assert explicit.config.target_encode_cv == 3
 
 
 @pytest.mark.parametrize("values", [["yes", "no", "yes"], [10, 2, 10], [1.0, 0.0, 1.0]])

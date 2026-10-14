@@ -31,9 +31,14 @@ FeatCopilot supports three LLM backends:
 
 The shared project default is `gpt-5.6-sol`. This is a requested model identifier,
 not a guarantee that your provider or Copilot account supports it. Explicit model
-overrides are preserved. Authentication, provider, timeout, and empty-response
-failures raise errors; production clients never substitute fabricated mock features
-or silently select a different model.
+overrides are preserved. Provider clients raise authentication, timeout and
+empty-response errors; required general-feature and typed-plan requests propagate
+failures. Production clients never substitute fabricated mock features or
+silently select a different model. Legacy code-mode text suggestions are optional:
+if that request fails, the engine logs a warning and can continue with explicitly
+identified built-in `custom` text features. In a text-only frame, a successful
+fit therefore does not by itself prove that the provider succeeded; inspect the
+warning and feature origins. This does not apply to typed-plan mode.
 
 ## SemanticEngine
 
@@ -131,11 +136,28 @@ Supplying `rules` uses no provider, including when the list is empty. Omit
 remains `gpt-5.6-sol`. Plan mode does not run the legacy text/code feature
 generation path. Invalid or unsupported plans fail explicitly.
 
+Copilot plan requests use a fresh isolated temporary workspace and session,
+with tools, MCPs, skills, custom agents and configuration discovery disabled
+and permission requests rejected. The request timeout covers startup,
+authentication, session creation and generation together. Each shutdown
+step has a separate grace of at most five seconds (or the shorter request
+timeout); cleanup failures are reported without replacing the original
+request error. Cancellation is cooperative, so blocking or
+cancellation-resistant SDK code cannot be given a hard process deadline by
+the in-process client. This plan policy does not change legacy code-mode
+session permissions.
+If the OS refuses temporary-workspace cleanup, a warning is emitted and
+the workspace may remain; the request result or original error is preserved.
+Copilot and semantic-engine timeout settings must be positive finite numbers;
+booleans are rejected rather than interpreted as one or zero seconds.
+
 All means, scales, bounds, category counts and group mappings are fitted on
 training data and frozen for inference. `target_mean` uses out-of-fold
 training encodings and full-training mappings only for later `transform`.
 Multiclass target means remain rejected rather than approximated by ordinal
-means. Group-disjoint or chronological target cross-fitting accepts `groups`,
+means. Binary numeric/boolean targets preserve fixed 0/1 semantics even when
+stored in object arrays; string labels such as `"1"` remain distinct labels.
+Group-disjoint or chronological target cross-fitting accepts `groups`,
 `timestamps`, and optional `label_end_times` at fit. No-history temporal prefix
 rows use an explicit fixed-zero prior, with a warning and serialized
 `cross_fit_report`; this is not a full-data-mean fallback. Invalid or fully

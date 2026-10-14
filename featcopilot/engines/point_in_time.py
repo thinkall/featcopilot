@@ -107,6 +107,8 @@ class PointInTimeRelationalEngine(BaseEngine):
     to include newly available observations. Original query columns, including
     identifiers/timestamps, are preserved; select appropriate model columns
     downstream. Serialized engines contain training-derived history.
+    Count and last queries use indexed finite history without prefix scans.
+    Other aggregates scan the eligible interval for each query.
     """
 
     def __init__(
@@ -193,6 +195,8 @@ class PointInTimeRelationalEngine(BaseEngine):
             groups = {}
             for entity, indices in positions.items():
                 order = np.asarray(indices)[np.argsort(times[indices], kind="stable")]
+                if spec.aggregation in {"count", "last"}:
+                    order = order[np.isfinite(values[order])]
                 groups[entity] = (times[order].copy(), values[order].copy())
             self._history[spec.name] = groups
             self._feature_set.add(
@@ -259,7 +263,12 @@ class PointInTimeRelationalEngine(BaseEngine):
                     eligible = observations[left:right]
                 with np.errstate(over="raise", invalid="raise"):
                     try:
-                        value = self._aggregate(eligible, spec.aggregation)
+                        if spec.aggregation == "count":
+                            value = float(len(eligible))
+                        elif spec.aggregation == "last":
+                            value = float(eligible[-1]) if len(eligible) else float("nan")
+                        else:
+                            value = self._aggregate(eligible, spec.aggregation)
                     except FloatingPointError as exc:
                         raise ValueError(f"Aggregate {spec.name!r} overflowed; rescale its source values") from exc
                 values.append(value)

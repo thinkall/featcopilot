@@ -1,15 +1,17 @@
 """Regression tests for opt-in predictive selection and explicit task routing."""
 
 import json
+import pickle
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
 import pytest
 from sklearn.base import clone
-from sklearn.linear_model import Ridge
+from sklearn.linear_model import LogisticRegression, Ridge
 
 from featcopilot import AutoFeatureEngineer, FeatureEngineerTransformer, cli
+from featcopilot.engines.predictive import PredictiveTabularEngine
 
 
 def example():
@@ -94,6 +96,91 @@ def test_predictive_requires_target_and_cannot_silently_disable_selection():
         engineer.fit(X)
     with pytest.raises(ValueError, match="apply_selection"):
         engineer.fit_transform(X, y, apply_selection=False)
+
+
+def test_predictive_wrapper_retains_fitted_order_for_downstream_predictions():
+    X, y = example()
+    engineer = AutoFeatureEngineer(
+        selection_strategy="predictive",
+        selection_estimator=Ridge(),
+        task="regression",
+        max_features=2,
+        max_candidates=1,
+        stability_repeats=1,
+    )
+    training = engineer.fit_transform(X, y)
+    model = Ridge().fit(training, y)
+    reordered = X[["b", "a"]]
+    actual = engineer.transform(reordered)
+    pd.testing.assert_frame_equal(actual, engineer._engine_instances["tabular"].transform(reordered))
+    pd.testing.assert_frame_equal(actual, training)
+    np.testing.assert_array_equal(model.predict(actual), model.predict(training))
+
+
+def test_predictive_wrapper_preserves_original_nonfinite_values_during_fit_and_inference():
+    X, y = example()
+    X.loc[X.index[:3], "a"] = [np.inf, -np.inf, np.nan]
+    engineer = AutoFeatureEngineer(
+        selection_strategy="predictive",
+        selection_estimator=Ridge(),
+        task="regression",
+        max_features=2,
+        max_candidates=1,
+        stability_repeats=1,
+    )
+    training = engineer.fit_transform(X, y)
+    pd.testing.assert_frame_equal(training[X.columns], X)
+    future = X.iloc[:4][["b", "a"]]
+    pd.testing.assert_frame_equal(engineer.transform(future)[X.columns], X.iloc[:4])
+
+
+@pytest.mark.parametrize("entry", ["engine", "wrapper"])
+@pytest.mark.parametrize("labels", [["no", "yes"], [-7, 11]])
+@pytest.mark.parametrize("weight_kind", ["full", "partial", "balanced", "none"])
+def test_predictive_class_weights_follow_original_labels_without_mutating_caller(entry, labels, weight_kind):
+    X, _ = example()
+    codes = (X.a > 0).astype(int).to_numpy()
+    y = np.asarray(labels)[codes]
+    weights = {
+        "full": {labels[0]: 0.5, labels[1]: 3.0},
+        "partial": {labels[1]: 3.0},
+        "balanced": "balanced",
+        "none": None,
+    }[weight_kind]
+    expected = {"full": {0: 0.5, 1: 3.0}, "partial": {1: 3.0}, "balanced": "balanced", "none": None}[weight_kind]
+    estimator = LogisticRegression(class_weight=weights, random_state=42, max_iter=300)
+    before = pickle.dumps(estimator)
+
+    def make(learner):
+        options = {"task": "classification", "max_features": 4, "max_candidates": 5, "stability_repeats": 1}
+        if entry == "engine":
+            return PredictiveTabularEngine(estimator=learner, **options)
+        return AutoFeatureEngineer(
+            selection_strategy="predictive", selection_estimator=learner, gate_n_jobs=1, **options
+        )
+
+    actual = make(estimator)
+    reference = make(LogisticRegression(class_weight=expected, random_state=42, max_iter=300))
+    pd.testing.assert_frame_equal(actual.fit_transform(X, y), reference.fit_transform(X, codes))
+    assert actual.selection_report_ == reference.selection_report_
+    engine = actual if entry == "engine" else actual._engine_instances["tabular"]
+    assert engine._learner("classification").get_params()["class_weight"] == expected
+    assert pickle.dumps(estimator) == before
+
+
+def test_predictive_unknown_class_weight_fails_before_fitting_and_refit_resets_vocabulary():
+    X, _ = example()
+    y = np.where(X.a > 0, "yes", "no")
+    estimator = LogisticRegression(class_weight={"no": 1.0, "yes": 2.0})
+    engine = PredictiveTabularEngine(
+        estimator=estimator, task="classification", max_features=2, max_candidates=1, stability_repeats=1
+    ).fit(X, y)
+    with patch.object(LogisticRegression, "fit", side_effect=AssertionError("Invalid class weights reached fit")):
+        with pytest.raises(ValueError, match="absent from the original training labels"):
+            engine.fit(X, np.where(X.a > 0, "new", "other"))
+    assert engine._is_fitted is False
+    engine.fit(X, y)
+    assert engine._learner("classification").class_weight == {0: 1.0, 1: 2.0}
 
 
 def test_explicit_regression_reaches_legacy_gate_models():

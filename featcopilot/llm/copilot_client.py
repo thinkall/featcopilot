@@ -15,6 +15,12 @@ from typing import TYPE_CHECKING, Any, TypeVar
 from pydantic import BaseModel, Field
 
 from featcopilot.llm._execution import validate_feature_code
+from featcopilot.llm._plan_transport import (
+    PLAN_CLEANUP_TIMEOUT,
+    IsolatedCopilotTransport,
+    plan_message,
+    plan_timeout_error,
+)
 from featcopilot.llm._types import feature_suggestions
 from featcopilot.utils.logger import get_logger
 from featcopilot.utils.models import DEFAULT_MODEL
@@ -33,8 +39,9 @@ class CopilotConfig(BaseModel):
     model: str = Field(default=DEFAULT_MODEL, description="Model to use")
     temperature: float = Field(default=0.3, ge=0, le=1, description="Temperature for generation")
     max_tokens: int = Field(default=4096, gt=0, description="Legacy setting; not supported by the SDK session API")
-    timeout: float = Field(default=60.0, gt=0, description="Timeout in seconds")
+    timeout: float = Field(default=60.0, gt=0, strict=True, allow_inf_nan=False, description="Timeout in seconds")
     streaming: bool = Field(default=False, description="Enable streaming responses")
+    isolated_plan: bool = Field(default=False, description="Use fresh tool-disabled sessions for typed plans only")
 
 
 class CopilotFeatureClient:
@@ -54,6 +61,13 @@ class CopilotFeatureClient:
     model : str, optional
         Model to use for generation. Defaults to
         :data:`featcopilot.utils.models.DEFAULT_MODEL`.
+    isolated_plan : bool, default=False
+        Opt into fresh, tool-disabled, permission-rejecting typed-plan sessions.
+        start checks SDK support locally; each send owns its entire SDK lifecycle.
+        timeout covers startup through send, with separate bounded cooperative
+        shutdown grace. Blocking or cancellation-resistant SDK code cannot be
+        forcibly terminated, and may outlive the synchronous watchdog.
+        Legacy code-generation sessions retain their existing permission policy.
 
     Examples
     --------
@@ -72,6 +86,7 @@ class CopilotFeatureClient:
         self._session: CopilotSession | None = None
         self._is_started = False
         self._copilot_available = False
+        self._plan_transport: IsolatedCopilotTransport | None = None
 
     async def start(self) -> CopilotFeatureClient:
         """
@@ -85,6 +100,15 @@ class CopilotFeatureClient:
             return self
         if self.config.temperature != 0.3 or self.config.max_tokens != 4096:
             logger.warning("Copilot SDK sessions do not support temperature or max_tokens; these settings are ignored")
+        if self.config.isolated_plan:
+            try:
+                self._plan_transport = IsolatedCopilotTransport()
+            except ImportError:
+                logger.error("Copilot SDK is unavailable. Install featcopilot[llm].")
+                raise
+            self._is_started = True
+            self._copilot_available = True
+            return self
         try:
             from copilot import CopilotClient
             from copilot.session import PermissionHandler
@@ -143,6 +167,7 @@ class CopilotFeatureClient:
         self._copilot_available = False
         self._session = None
         self._client = None
+        self._plan_transport = None
 
     async def send_prompt(self, prompt: str) -> str:
         """
@@ -160,6 +185,16 @@ class CopilotFeatureClient:
         """
         if not self._is_started:
             await self.start()
+
+        if self.config.isolated_plan:
+            if self._plan_transport is None:
+                raise RuntimeError("Copilot plan transport is not initialized")
+
+            async def send(session: CopilotSession) -> str:
+                event = await session.send_and_wait(prompt, timeout=self.config.timeout)
+                return plan_message(event).content
+
+            return await self._plan_transport.request(self.config.model, self.config.timeout, send)
 
         if not self._copilot_available or self._session is None:
             raise RuntimeError("Copilot client has no active session")
@@ -529,6 +564,60 @@ class SyncCopilotFeatureClient:
 
     def _run_async(self, coro: Coroutine[Any, Any, _T]) -> _T:
         """Run an async coroutine, handling various event loop scenarios."""
+        if self._async_client.config.isolated_plan:
+            # Each plan send owns startup through shutdown in one loop. Do not
+            # patch the caller's active loop or retain a loop between attempts.
+            timeout = self._async_client.config.timeout
+            total_timeout = timeout + 2 * min(timeout, PLAN_CLEANUP_TIMEOUT) + 0.1
+            running: concurrent.futures.Future[tuple[asyncio.AbstractEventLoop, asyncio.Task[Any]]] = (
+                concurrent.futures.Future()
+            )
+
+            async def bounded() -> _T:
+                task = asyncio.current_task()
+                if task is not None:
+                    running.set_result((asyncio.get_running_loop(), task))
+                # The transport owns the request deadline. This outer guard
+                # also bounds bridge-only work and allows its two cleanup steps.
+                try:
+                    return await asyncio.wait_for(coro, timeout=total_timeout)
+                except (TimeoutError, asyncio.TimeoutError, concurrent.futures.TimeoutError) as exc:
+                    contextual = plan_timeout_error(
+                        exc, total_timeout, f"synchronous bridge (request timeout {timeout:g} seconds)"
+                    )
+                    if contextual is exc:
+                        raise
+                    raise contextual from exc
+
+            try:
+                asyncio.get_running_loop()
+            except RuntimeError:
+                return asyncio.run(bounded())
+            executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+            future = executor.submit(asyncio.run, bounded())
+            try:
+                return future.result(timeout=total_timeout + 0.1)
+            except BaseException as exc:
+                if not future.done():
+                    if running.done():
+                        loop, task = running.result()
+                        try:
+                            loop.call_soon_threadsafe(task.cancel)
+                        except RuntimeError:
+                            logger.debug("Copilot plan worker loop closed before cancellation")
+                    future.cancel()
+                    if isinstance(exc, concurrent.futures.TimeoutError):
+                        logger.warning("Copilot plan exceeded shutdown grace; SDK cancellation is cooperative")
+                contextual = plan_timeout_error(
+                    exc, total_timeout + 0.1, f"shutdown watchdog (request timeout {timeout:g} seconds)"
+                )
+                if contextual is not exc:
+                    raise contextual from exc
+                raise
+            finally:
+                # Do not turn the watchdog into an unbounded executor join.
+                # A cancellation-resistant SDK may still outlive this call.
+                executor.shutdown(wait=future.done(), cancel_futures=True)
         try:
             loop = asyncio.get_running_loop()
         except RuntimeError:

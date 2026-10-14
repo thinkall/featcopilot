@@ -3,9 +3,9 @@
 import json
 import os
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import numpy as np
 import pandas as pd
@@ -36,6 +36,122 @@ def payload():
         "test_idx": np.arange(40, 60),
         "split_sha256": "split",
     }
+
+
+def test_source_helpers_cover_actual_sources_and_ignore_generated_evidence(tmp_path, monkeypatch):
+    included = [
+        "featcopilot/core.py",
+        "featcopilot/llm/provider.py",
+        "benchmarks/runner.py",
+        "pyproject.toml",
+        "benchmarks/tabular_suite.json",
+        "benchmarks/families.json",
+        "benchmarks/suites/test.json",
+    ]
+    excluded = [
+        "featcopilot/__pycache__/cached.py",
+        "benchmarks/.cache/generated.py",
+        "benchmarks/tabular-results/run/runner.py",
+        "reviews/review.py",
+        "submissions/script.py",
+    ]
+    for name in included + excluded:
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"source bytes\n")
+    monkeypatch.setattr(tabular, "ROOT", tmp_path)
+    monkeypatch.setattr(tabular, "SUITE_PATH", tmp_path / "benchmarks" / "tabular_suite.json")
+    selected = tabular.source_files()
+    assert {path.relative_to(tmp_path).as_posix() for path in selected} == set(included)
+    expected = b"".join(path.relative_to(tmp_path).as_posix().encode() + b"\0" + path.read_bytes() for path in selected)
+    assert tabular.source_fingerprint() == tabular.digest(expected)
+    before = tabular.source_fingerprint()
+    (tmp_path / "featcopilot" / "core.py").write_bytes(b"changed source\n")
+    assert tabular.source_fingerprint() != before
+
+
+def test_source_fingerprint_uses_zip_names_even_for_windows_relative_paths(monkeypatch):
+    relative = PureWindowsPath("pkg", "module.py")
+    assert str(relative) == "pkg\\module.py"
+    source = SimpleNamespace(relative_to=lambda root: relative, read_bytes=lambda: b"module bytes")
+    monkeypatch.setattr(tabular, "source_files", lambda: [source])
+    assert tabular.source_fingerprint() == tabular.digest(b"pkg/module.py\0module bytes")
+
+
+def test_source_walk_prunes_excluded_trees_before_descent_without_changing_allowlist(tmp_path, monkeypatch):
+    excluded = {"tabular-results", ".cache", "__pycache__"}
+    sources = [
+        "featcopilot/z.py",
+        "featcopilot/nested/a.py",
+        "featcopilot/upper.PY",
+        "benchmarks/z.py",
+        "benchmarks/nested/a.py",
+        "pyproject.toml",
+        "benchmarks/tabular_suite.json",
+        "benchmarks/families.json",
+        "benchmarks/suites/z.json",
+        "benchmarks/suites/a.json",
+    ]
+    for name in sources:
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(name.encode())
+    for tree in ("featcopilot", "benchmarks", "benchmarks/nested"):
+        for ignored in excluded:
+            directory = tmp_path / tree / ignored / "deep" / "generated"
+            directory.mkdir(parents=True)
+            for index in range(20):
+                (directory / f"file-{index}.py").write_bytes(b"excluded")
+    legacy = sorted((tmp_path / "featcopilot").rglob("*.py")) + sorted((tmp_path / "benchmarks").rglob("*.py"))
+    expected = [path for path in legacy if not excluded.intersection(path.relative_to(tmp_path).parts)]
+    expected += [tmp_path / name for name in sources[5:8]]
+    expected += sorted((tmp_path / "benchmarks" / "suites").glob("*.json"))
+    expected_hash = tabular.digest(
+        b"".join(path.relative_to(tmp_path).as_posix().encode() + b"\0" + path.read_bytes() for path in expected)
+    )
+    scandir = os.scandir
+    scanned = []
+
+    def guarded_scandir(directory):
+        path = Path(directory)
+        assert not excluded.intersection(path.relative_to(tmp_path).parts), f"Descended into excluded tree: {path}"
+        scanned.append(path)
+        return scandir(directory)
+
+    monkeypatch.setattr(tabular, "ROOT", tmp_path)
+    monkeypatch.setattr(tabular, "SUITE_PATH", tmp_path / "benchmarks" / "tabular_suite.json")
+    monkeypatch.setattr(os, "scandir", guarded_scandir)
+    assert tabular.source_files() == expected
+    assert tabular.source_fingerprint() == expected_hash
+    (tmp_path / "benchmarks" / "tabular-results" / "deep" / "generated" / "file-0.py").write_bytes(b"changed")
+    assert tabular.source_fingerprint() == expected_hash
+    assert tmp_path / "featcopilot" / "nested" in scanned
+    assert tmp_path / "benchmarks" / "nested" in scanned
+
+
+def test_source_fingerprint_detects_same_size_same_mtime_edits(tmp_path, monkeypatch):
+    source = tmp_path / "featcopilot" / "module.py"
+    source.parent.mkdir()
+    source.write_bytes(b"VALUE = 1\n")
+    monkeypatch.setattr(tabular, "ROOT", tmp_path)
+    monkeypatch.setattr(tabular, "source_files", lambda: [source])
+    before = tabular.source_fingerprint()
+    original = source.stat()
+    source.write_bytes(b"VALUE = 2\n")
+    os.utime(source, ns=(original.st_atime_ns, original.st_mtime_ns))
+    assert source.stat().st_size == original.st_size
+    assert source.stat().st_mtime_ns == original.st_mtime_ns
+    assert tabular.source_fingerprint() != before
+
+
+def test_source_walk_preserves_glob_candidates_instead_of_silently_dropping_them(tmp_path, monkeypatch):
+    directory = tmp_path / "benchmarks" / "unexpected.py"
+    directory.mkdir(parents=True)
+    monkeypatch.setattr(tabular, "ROOT", tmp_path)
+    monkeypatch.setattr(tabular, "SUITE_PATH", tmp_path / "benchmarks" / "tabular_suite.json")
+    assert directory in tabular.source_files()
+    with pytest.raises(OSError):
+        tabular.source_fingerprint()
 
 
 def test_regression_prediction_capture_preserves_complete_procedure(tmp_path):
@@ -848,6 +964,146 @@ def test_timeout_has_no_score_and_stops_worker(tmp_path):
     assert not (tmp_path / "case" / "input.pkl").exists()
 
 
+@pytest.fixture
+def fake_supervisor(monkeypatch):
+    import psutil
+
+    process = Mock(pid=424242, returncode=None)
+    process.poll.side_effect = lambda: process.returncode
+    process.kill.side_effect = lambda: setattr(process, "returncode", -9)
+    process.wait.side_effect = lambda timeout: process.returncode
+    parent = Mock(pid=process.pid)
+    parent.children.return_value = []
+    parent.memory_info.return_value = SimpleNamespace(rss=0)
+    monkeypatch.setattr(tabular.subprocess, "Popen", Mock(return_value=process))
+    monkeypatch.setattr(psutil, "Process", Mock(return_value=parent))
+    monkeypatch.setattr(psutil, "wait_procs", Mock(return_value=([], [])))
+    return process, parent
+
+
+@pytest.mark.parametrize("site", ["process", "children", "memory", "wait"])
+@pytest.mark.parametrize("denied", [False, True])
+def test_supervisor_monitor_errors_always_stop_worker_and_remove_input(
+    tmp_path, monkeypatch, fake_supervisor, caplog, site, denied
+):
+    import psutil
+
+    process, parent = fake_supervisor
+    error = psutil.AccessDenied(process.pid) if denied else RuntimeError("Synthetic monitor failure")
+    if site == "process":
+        psutil.Process.side_effect = error
+    elif site == "children":
+        parent.children.side_effect = error
+    elif site == "memory":
+        parent.memory_info.side_effect = error
+    else:
+        process.wait.side_effect = [error, -9]
+    rows = tabular.run_isolated(payload(), tmp_path / "case", 30)
+    assert rows[0]["status"] == "error" and "loss" not in rows[0]
+    assert type(error).__name__ in rows[0]["error"]
+    assert type(error).__name__ in caplog.text
+    process.kill.assert_called_once()
+    assert process.returncode == -9
+    assert not (tmp_path / "case" / "input.pkl").exists()
+    assert all(call.kwargs["timeout"] <= 5 for call in process.wait.call_args_list)
+
+
+def test_supervisor_interrupt_cleans_up_without_converting_cancellation(tmp_path, fake_supervisor):
+    process, parent = fake_supervisor
+    process.wait.side_effect = [KeyboardInterrupt, -9]
+    with pytest.raises(KeyboardInterrupt):
+        tabular.run_isolated(payload(), tmp_path / "case", 30)
+    process.kill.assert_called_once()
+    assert not (tmp_path / "case" / "input.pkl").exists()
+
+
+def test_tree_cleanup_survives_inaccessible_children_and_has_bounded_waits(fake_supervisor, monkeypatch):
+    import psutil
+
+    process, parent = fake_supervisor
+    inaccessible, accessible = Mock(pid=424243), Mock(pid=424244)
+    inaccessible.kill.side_effect = psutil.AccessDenied(inaccessible.pid)
+    parent.children.return_value = [inaccessible, accessible]
+    process.wait.side_effect = tabular.subprocess.TimeoutExpired("mock worker", 5)
+    psutil.wait_procs.return_value = ([accessible], [inaccessible])
+    tabular.stop_process_tree(process)
+    process.kill.assert_called()
+    accessible.kill.assert_called_once()
+    inaccessible.kill.assert_called()
+    assert 0 <= process.wait.call_args.kwargs["timeout"] <= 5
+    assert 0 <= psutil.wait_procs.call_args.kwargs["timeout"] <= 5
+
+
+def test_cleanup_retains_observed_descendants_when_parent_has_disappeared(fake_supervisor):
+    import psutil
+
+    process, parent = fake_supervisor
+    process.returncode = 0
+    child = Mock(pid=424243)
+    psutil.Process.side_effect = psutil.NoSuchProcess(process.pid)
+    tabular.stop_process_tree(process, descendants=[child])
+    child.kill.assert_called_once()
+    process.kill.assert_not_called()
+    assert psutil.wait_procs.call_args.args[0] == [child]
+
+
+@pytest.mark.parametrize("failure", ["decode", "monitor"])
+def test_cleanup_failure_does_not_replace_original_worker_failure(tmp_path, monkeypatch, fake_supervisor, failure):
+    import psutil
+
+    from benchmarks.execution import BenchmarkProtocolError
+
+    process, parent = fake_supervisor
+
+    def launch(command, **kwargs):
+        if failure == "decode":
+            process.returncode = 0
+            Path(command[-1]).write_text("{")
+        else:
+            parent.memory_info.side_effect = psutil.AccessDenied(process.pid)
+        return process
+
+    monkeypatch.setattr(tabular.subprocess, "Popen", launch)
+    monkeypatch.setattr(tabular, "stop_process_tree", Mock(side_effect=RuntimeError("Synthetic cleanup failure")))
+    if failure == "decode":
+        with pytest.raises(BenchmarkProtocolError, match="not valid JSON"):
+            tabular.run_isolated(payload(), tmp_path / "case", 30)
+    else:
+        rows = tabular.run_isolated(payload(), tmp_path / "case", 30)
+        assert "AccessDenied" in rows[0]["error"]
+        assert "cleanup failure" not in rows[0]["error"]
+    process.kill.assert_called_once()
+    assert process.wait.call_args.kwargs["timeout"] == 5
+    assert not (tmp_path / "case" / "input.pkl").exists()
+
+
+@pytest.mark.parametrize("document", [b"{", b"null", b"[42]", b"[]", b"[null]", b'{"status":"success"}', b"\xff"])
+def test_actual_worker_file_contract_is_validated_before_decoration(tmp_path, monkeypatch, document):
+    import psutil
+
+    from benchmarks.execution import BenchmarkProtocolError
+
+    process = Mock(pid=424242, returncode=0)
+    process.poll.return_value = 0
+
+    def launch(command, **kwargs):
+        Path(command[-1]).write_bytes(document)
+        return process
+
+    monkeypatch.setattr(tabular.subprocess, "Popen", launch)
+    monkeypatch.setattr(psutil, "Process", Mock(side_effect=psutil.NoSuchProcess(process.pid)))
+    with pytest.raises(BenchmarkProtocolError):
+        tabular.run_isolated(payload(), tmp_path / "case", 30)
+    assert not (tmp_path / "case" / "input.pkl").exists()
+
+
+def test_worker_launch_failure_is_retryable_and_removes_serialized_input(tmp_path, monkeypatch):
+    monkeypatch.setattr(tabular.subprocess, "Popen", Mock(side_effect=OSError("Synthetic launch failure")))
+    rows = tabular.run_isolated(payload(), tmp_path / "case", 30)
+    assert rows[0]["status"] == "error" and "OSError" in rows[0]["error"]
+    assert not (tmp_path / "case" / "input.pkl").exists()
+
+
 @pytest.mark.parametrize(
     "worker_module",
     [
@@ -898,10 +1154,9 @@ def test_invalid_worker_hash_seed_is_rejected_before_creating_files(tmp_path, se
     assert not (tmp_path / "case").exists()
 
 
-def test_worker_crash_records_effective_hash_seed_without_inventing_a_score(tmp_path, monkeypatch):
-    monkeypatch.setattr(
-        tabular.subprocess, "Popen", lambda *args, **kwargs: SimpleNamespace(poll=lambda: 1, returncode=1)
-    )
+def test_worker_crash_records_effective_hash_seed_without_inventing_a_score(tmp_path, fake_supervisor):
+    process, parent = fake_supervisor
+    process.returncode = 1
     rows = tabular.run_isolated(payload(), tmp_path / "case", timeout=1)
     assert rows[0]["status"] == "error" and "loss" not in rows[0]
     assert rows[0]["worker_python_hash_seed"] == 42

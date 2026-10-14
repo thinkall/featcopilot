@@ -11,6 +11,7 @@ import pandas as pd
 import pytest
 
 from featcopilot.core.feature import FeatureOrigin
+from featcopilot.llm._execution import validate_feature_code
 from featcopilot.llm.code_generator import FeatureCodeGenerator
 from featcopilot.llm.copilot_client import CopilotConfig, CopilotFeatureClient
 from featcopilot.llm.litellm_client import LiteLLMConfig, LiteLLMFeatureClient, SyncLiteLLMFeatureClient
@@ -42,6 +43,25 @@ def test_validation_supports_nested_scope_and_intermediate_values(client_type):
     code = "scale = 2\nresult = df['x'].apply(lambda x: np.sqrt(x) * scale)"
     result = asyncio.run(client_type().validate_feature_code(code, {"x": [1, 4, 9]}))
     assert result["valid"], result["error"]
+
+
+@pytest.mark.parametrize("statement", ["break", "continue", "return 1", "nonlocal missing"])
+@pytest.mark.parametrize("client_type", [None, *CLIENTS])
+def test_validation_without_samples_rejects_compiler_scope_errors(statement, client_type):
+    code = f"result = 1\n{statement}"
+    if client_type is None:
+        result = validate_feature_code(code)
+    else:
+        client = client_type()
+        result = asyncio.run(client.validate_feature_code(code))
+        assert not client._is_started
+    assert result["valid"] is False
+    assert result["error"].startswith("Syntax error:")
+
+
+def test_validation_without_samples_compiles_but_does_not_execute_code():
+    result = validate_feature_code("result = 1\nraise RuntimeError('must not run')")
+    assert result == {"valid": True, "error": None, "warnings": []}
 
 
 @pytest.mark.parametrize("client_type", CLIENTS)

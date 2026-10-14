@@ -129,6 +129,17 @@ def test_encoded_column_attribution_uses_numeric_block_not_onehot_names(mode):
     assert_frame_equal(X, mixed_data()[0])
 
 
+def test_delivered_importance_explanation_does_not_claim_residual_screening():
+    X = pd.DataFrame({"x": np.linspace(-2, 2, 128)})
+    y = X["x"].to_numpy() ** 2
+    engine = importance_engine(max_candidates=1, max_features=2).fit(X, y)
+    assert engine.selection_report_["screening"] == "importance"
+    features = list(engine.get_feature_set())
+    assert len(features) == 1
+    assert "internal screening and holdout loss" in features[0].explanation
+    assert "residual" not in features[0].explanation
+
+
 def test_exact_dedup_handles_signed_zero_nan_masks_and_collision_verification():
     X = pd.DataFrame({"a": [0.0, -0.0, 1.0, np.nan, -2.0], "b": [7, 8, 9, 10, 11]})
     engine = importance_engine()

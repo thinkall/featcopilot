@@ -64,7 +64,10 @@ class TestSyncLiteLLMFeatureClient:
         """Create client in mock mode."""
         client = SyncLiteLLMFeatureClient(model="gpt-4o")
         client.start()
-        return client
+        try:
+            yield client
+        finally:
+            client.stop()
 
     @pytest.fixture
     def sample_columns(self):

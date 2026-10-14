@@ -1,8 +1,15 @@
 """Provider-free tests of the opt-in typed SemanticEngine plan path."""
 
+import asyncio
+import errno
+import inspect
 import json
 import pickle
-from unittest.mock import MagicMock, patch
+import sys
+import time
+from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import numpy as np
 import pandas as pd
@@ -12,6 +19,7 @@ from pydantic import ValidationError
 from featcopilot.core.feature import FeatureOrigin, FeatureType
 from featcopilot.core.fitted_rule import FittedRuleSpec
 from featcopilot.engines.fitted_rules import FittedRuleEngine
+from featcopilot.llm.copilot_client import CopilotConfig, SyncCopilotFeatureClient
 from featcopilot.llm.semantic_engine import SemanticEngine, SemanticEngineConfig
 from featcopilot.utils.models import DEFAULT_MODEL
 
@@ -50,6 +58,30 @@ def test_plan_defaults_keep_shared_model_and_explicit_code_default():
         SemanticEngine(feature_format="arbitrary")
     with pytest.raises(ValueError, match="require"):
         SemanticEngine(rules=[])
+
+
+@pytest.mark.parametrize("config_type", [CopilotConfig, SemanticEngineConfig])
+@pytest.mark.parametrize("timeout", [float("nan"), float("inf"), float("-inf"), 0, -1, True, False])
+def test_timeout_configs_reject_invalid_numbers_and_booleans(config_type, timeout):
+    with pytest.raises(ValidationError, match="timeout"):
+        config_type(timeout=timeout)
+
+
+@pytest.mark.parametrize("feature_format", ["code", "plan"])
+@pytest.mark.parametrize("timeout", [float("nan"), float("inf"), float("-inf"), 0, -1, True, False])
+def test_semantic_engine_rejects_invalid_timeout_at_construction(feature_format, timeout):
+    with patch("featcopilot.llm.semantic_engine.SemanticEngine._ensure_client") as ensure_client:
+        with pytest.raises(ValidationError, match="timeout"):
+            SemanticEngine(feature_format=feature_format, timeout=timeout)
+        ensure_client.assert_not_called()
+
+
+@pytest.mark.parametrize("timeout", [19, 19.0, 0.03])
+def test_timeout_configs_preserve_positive_integer_and_float_inputs(timeout):
+    assert CopilotConfig(timeout=timeout).timeout == timeout
+    assert SemanticEngineConfig(timeout=timeout).timeout == timeout
+    assert SemanticEngine(feature_format="plan", timeout=timeout).config.timeout == timeout
+    assert CopilotConfig().timeout == SemanticEngineConfig().timeout == SemanticEngine().config.timeout == 60.0
 
 
 def test_plan_prompt_is_bounded_typed_and_contains_semantic_metadata_not_data_samples():
@@ -261,11 +293,559 @@ def test_shared_sync_send_prompt_interface_for_each_backend(backend, module, cli
         engine.fit(pd.DataFrame({"category": ["a", "b"]}))
         assert factory.call_args.kwargs["model"] == DEFAULT_MODEL
         assert factory.call_args.kwargs["timeout"] == 9
+        if backend == "copilot":
+            assert factory.call_args.kwargs["isolated_plan"] is True
         client.start.assert_called_once()
         client.send_prompt.assert_called_once()
         client.suggest_features.assert_not_called()
         engine.transform(pd.DataFrame({"category": ["a"]}))
         client.send_prompt.assert_called_once()
+
+
+@pytest.fixture
+def isolated_copilot_sdk():
+    pytest.importorskip("copilot")
+    from copilot.generated.session_events import AssistantMessageData
+    from copilot.session import CopilotSession
+
+    with patch("copilot.CopilotClient", autospec=True) as factory:
+        client = factory.return_value
+        client.get_auth_status.return_value = SimpleNamespace(isAuthenticated=True)
+        session = MagicMock(spec=CopilotSession)
+        session.send_and_wait.return_value = SimpleNamespace(
+            data=AssistantMessageData(content=json.dumps(frequency_plan()), message_id="mock")
+        )
+        client.create_session.return_value = session
+        yield factory, client, session
+
+
+def test_production_plan_uses_fresh_isolated_transport_and_schema_only_context(isolated_copilot_sdk):
+    factory, client, session = isolated_copilot_sdk
+    workspaces = []
+
+    async def start():
+        call = factory.call_args
+        if call.args:
+            config = call.args[0]
+            assert call.kwargs == {"auto_start": False}
+            assert config.use_logged_in_user is True
+            assert config.use_stdio is True
+            assert config.github_token is None
+            assert config.log_level == "error"
+            workspace, cli_args = config.cwd, config.cli_args
+        else:
+            options = call.kwargs
+            assert options["use_logged_in_user"] is True
+            assert options["log_level"] == "error"
+            assert "github_token" not in options
+            workspace, cli_args = options["working_directory"], options["connection"].args
+        assert set(cli_args) == {
+            "--no-custom-instructions",
+            "--disable-builtin-mcps",
+            "--no-ask-user",
+            "--no-auto-update",
+        }
+        workspace = Path(workspace)
+        assert workspace != Path.cwd()
+        assert workspace.is_dir()
+        assert list(workspace.iterdir()) == []
+        workspaces.append(workspace)
+
+    client.start.side_effect = start
+    engine = SemanticEngine(feature_format="plan", timeout=17, model="chosen-model")
+    try:
+        engine._ensure_client()
+        factory.assert_not_called()
+        train = pd.DataFrame({"category": ["PRIVATE_TRAIN", "PRIVATE_TRAIN", "OTHER"]})
+        test = pd.DataFrame({"category": ["PRIVATE_TEST"]})
+        engine.fit(train, column_descriptions={"category": "Customer segment"})
+        assert engine.transform(test)["category_frequency"].tolist() == [0.0]
+        session.send_and_wait.assert_awaited_once()
+        engine.fit(train, column_descriptions={"category": "Customer segment"})
+        assert factory.call_count == client.start.await_count == client.get_auth_status.await_count == 2
+        assert client.stop.await_count == session.disconnect.await_count == 2
+        assert len(set(workspaces)) == 2
+        assert all(not workspace.exists() for workspace in workspaces)
+        for call in client.create_session.call_args_list:
+            options = call.kwargs
+            assert options["available_tools"] == options["tools"] == []
+            assert options["skill_directories"] == options["custom_agents"] == []
+            assert options["mcp_servers"] == {}
+            assert options["enable_config_discovery"] is False
+            assert options["infinite_sessions"] == {"enabled": False}
+            assert options["streaming"] is False
+            assert options["model"] == "chosen-model"
+            assert options["on_permission_request"](None, {}).kind == "reject"
+            assert options["working_directory"] in [str(workspace) for workspace in workspaces]
+            assert "max_tokens" not in options and "temperature" not in options
+        for call in session.send_and_wait.call_args_list:
+            assert call.kwargs == {"timeout": 17}
+            prompt = call.args[0]
+            assert "Customer segment" in prompt
+            assert "PRIVATE_TRAIN" not in prompt and "PRIVATE_TEST" not in prompt and "OTHER" not in prompt
+        assert engine._client._loop is None
+    finally:
+        if engine._client is not None:
+            engine._client.stop()
+
+
+@pytest.mark.parametrize(
+    "stage",
+    [
+        "start",
+        "auth",
+        "missing_login",
+        "create_session",
+        "send",
+        "cancel",
+        "parse",
+        "empty",
+        "tools",
+        "disconnect",
+        "stop",
+    ],
+)
+def test_production_plan_cleanup_and_no_retry_on_errors(stage, isolated_copilot_sdk):
+    factory, client, session = isolated_copilot_sdk
+    if stage in ("start", "create_session", "stop"):
+        getattr(client, stage).side_effect = RuntimeError(f"mock {stage} failure")
+    elif stage == "auth":
+        client.get_auth_status.side_effect = RuntimeError("mock auth failure")
+    elif stage == "missing_login":
+        client.get_auth_status.return_value = SimpleNamespace(isAuthenticated=False)
+    elif stage == "send":
+        session.send_and_wait.side_effect = TimeoutError("mock send failure")
+    elif stage == "cancel":
+        session.send_and_wait.side_effect = asyncio.CancelledError()
+    elif stage == "parse":
+        session.send_and_wait.return_value.data.content = "invalid JSON"
+    elif stage == "empty":
+        session.send_and_wait.return_value = None
+    elif stage == "tools":
+        session.send_and_wait.return_value.data.tool_requests = [object()]
+    else:
+        session.disconnect.side_effect = RuntimeError("mock disconnect failure")
+    engine = SemanticEngine(feature_format="plan")
+    try:
+        with pytest.raises((RuntimeError, ValueError, TimeoutError, asyncio.CancelledError)):
+            engine.fit(pd.DataFrame({"category": ["a"]}))
+        assert not engine.is_fitted
+        factory.assert_called_once()
+        client.stop.assert_awaited_once()
+        workspace = (
+            factory.call_args.args[0].cwd if factory.call_args.args else factory.call_args.kwargs["working_directory"]
+        )
+        assert not Path(workspace).exists()
+        sent = stage not in ("start", "auth", "missing_login", "create_session")
+        assert session.send_and_wait.await_count == int(sent)
+        assert session.disconnect.await_count == int(sent)
+        assert engine._client._loop is None
+    finally:
+        if engine._client is not None:
+            engine._client.stop()
+
+
+def test_production_plan_requires_optional_sdk_but_predeclared_rules_do_not(monkeypatch):
+    monkeypatch.setitem(sys.modules, "copilot", None)
+    X = pd.DataFrame({"category": ["a"]})
+    engine = SemanticEngine(feature_format="plan")
+    with pytest.raises(ImportError):
+        engine.fit(X)
+    assert engine._client is None
+    declared = SemanticEngine(feature_format="plan", rules=frequency_plan()["rules"])
+    assert declared.fit_transform(X)["category_frequency"].tolist() == [1.0]
+    assert declared._client is None
+
+
+def test_missing_plan_sdk_logs_install_guidance_without_starting_client(isolated_copilot_sdk):
+    factory, sdk_client, _ = isolated_copilot_sdk
+    original = ModuleNotFoundError("PRIVATE_IMPORT_DETAIL")
+    original.__cause__ = ImportError("original import cause")
+    client = SyncCopilotFeatureClient(isolated_plan=True)
+    try:
+        with (
+            patch("featcopilot.llm._plan_transport.import_module", side_effect=original),
+            patch("featcopilot.llm._plan_transport.TemporaryDirectory") as workspace,
+            patch("featcopilot.llm.copilot_client.logger.error") as error_log,
+            pytest.raises(ModuleNotFoundError) as caught,
+        ):
+            client.start()
+        assert caught.value is original
+        assert str(caught.value.__cause__) == "original import cause"
+        error_log.assert_called_once_with("Copilot SDK is unavailable. Install featcopilot[llm].")
+        assert "PRIVATE" not in str(error_log.call_args_list)
+        workspace.assert_not_called()
+        factory.assert_not_called()
+        sdk_client.start.assert_not_awaited()
+        assert not client._async_client._is_started
+        assert not client._async_client._copilot_available
+    finally:
+        client.stop()
+
+
+@pytest.mark.parametrize("unsupported", ["client", "transport", "session"])
+def test_production_plan_rejects_unsupported_sdk_without_permissive_fallback(
+    unsupported, isolated_copilot_sdk, monkeypatch
+):
+    factory, _, _ = isolated_copilot_sdk
+    if unsupported == "client":
+        monkeypatch.setattr(factory, "__signature__", inspect.Signature())
+    elif unsupported == "session":
+        monkeypatch.setattr(factory.create_session, "__signature__", inspect.Signature())
+    elif "connection" in inspect.signature(factory).parameters:
+        from copilot import RuntimeConnection
+
+        monkeypatch.setattr(RuntimeConnection, "for_stdio", lambda: None)
+    else:
+        import copilot.client as sdk_client
+
+        monkeypatch.setattr(sdk_client, "SubprocessConfig", lambda: None)
+    engine = SemanticEngine(feature_format="plan")
+    with pytest.raises(RuntimeError, match=f"{unsupported}-isolation"):
+        engine.fit(pd.DataFrame({"category": ["a"]}))
+    assert engine._client is None
+    factory.assert_not_called()
+
+
+async def test_production_plan_in_active_event_loop_finishes_lifecycle_in_worker(isolated_copilot_sdk):
+    _, client, session = isolated_copilot_sdk
+    caller_loop = asyncio.get_running_loop()
+    loops = []
+
+    async def record_loop():
+        loops.append(asyncio.get_running_loop())
+        assert loops[-1] is not caller_loop
+
+    client.start.side_effect = record_loop
+    session.disconnect.side_effect = record_loop
+    client.stop.side_effect = record_loop
+    engine = SemanticEngine(feature_format="plan")
+    try:
+        engine.fit(pd.DataFrame({"category": ["a"]}))
+        assert engine.is_fitted
+        assert len(loops) == 3 and len(set(loops)) == 1
+        assert loops[0].is_closed()
+        assert not caller_loop.is_closed()
+    finally:
+        if engine._client is not None:
+            engine._client.stop()
+
+
+@pytest.mark.parametrize("nested", [False, True])
+@pytest.mark.parametrize("stage", ["start", "get_auth_status", "create_session", "send_and_wait"])
+def test_plan_deadline_covers_all_provider_phases(stage, nested, isolated_copilot_sdk):
+    _, client, session = isolated_copilot_sdk
+    cancelled = []
+
+    async def hang(*args, **kwargs):
+        try:
+            await asyncio.Event().wait()
+        finally:
+            cancelled.append(stage)
+
+    target = session if stage == "send_and_wait" else client
+    getattr(target, stage).side_effect = hang
+    engine = SemanticEngine(feature_format="plan", timeout=0.03)
+
+    async def nested_fit():
+        engine.fit(pd.DataFrame({"category": ["a"]}))
+
+    before = time.monotonic()
+    try:
+        with pytest.raises(TimeoutError) as caught:
+            if nested:
+                asyncio.run(nested_fit())
+            else:
+                engine.fit(pd.DataFrame({"category": ["a"]}))
+        assert "0.03 seconds" in str(caught.value)
+        assert "Copilot plan request" in str(caught.value)
+        assert isinstance(caught.value.__cause__, TimeoutError)
+        assert caught.value.__cause__.args == ()
+        assert time.monotonic() - before < 2
+        assert cancelled == [stage]
+        client.stop.assert_awaited_once()
+        assert session.disconnect.await_count == int(stage == "send_and_wait")
+        assert not engine.is_fitted
+    finally:
+        if engine._client is not None:
+            engine._client.stop()
+
+
+async def test_isolated_sync_bridge_cancels_a_hung_coroutine():
+    client = SyncCopilotFeatureClient(isolated_plan=True, timeout=0.03)
+    cancelled = []
+
+    async def hang():
+        try:
+            await asyncio.Event().wait()
+        finally:
+            cancelled.append(True)
+
+    before = time.monotonic()
+    with pytest.raises(TimeoutError) as caught:
+        client._run_async(hang())
+    assert "request timeout 0.03 seconds" in str(caught.value)
+    assert "bridge" in str(caught.value)
+    assert isinstance(caught.value.__cause__, TimeoutError)
+    assert time.monotonic() - before < 2
+    assert cancelled == [True]
+
+
+def test_plan_deadline_is_shared_across_startup_phases(isolated_copilot_sdk):
+    _, client, session = isolated_copilot_sdk
+
+    async def start():
+        await asyncio.sleep(0.13)
+
+    async def auth():
+        await asyncio.sleep(0.13)
+        return SimpleNamespace(isAuthenticated=True)
+
+    client.start.side_effect = start
+    client.get_auth_status.side_effect = auth
+    engine = SemanticEngine(feature_format="plan", timeout=0.2)
+    try:
+        with pytest.raises(TimeoutError):
+            engine.fit(pd.DataFrame({"category": ["a"]}))
+        client.get_auth_status.assert_awaited_once()
+        client.create_session.assert_not_awaited()
+        client.stop.assert_awaited_once()
+        session.send_and_wait.assert_not_awaited()
+    finally:
+        if engine._client is not None:
+            engine._client.stop()
+
+
+@pytest.mark.parametrize("phase", ["disconnect", "stop"])
+def test_plan_shutdown_has_a_separate_bounded_grace(phase, isolated_copilot_sdk):
+    _, client, session = isolated_copilot_sdk
+    cancelled = []
+
+    async def hang():
+        try:
+            await asyncio.Event().wait()
+        finally:
+            cancelled.append(phase)
+
+    target = session if phase == "disconnect" else client
+    getattr(target, phase).side_effect = hang
+    engine = SemanticEngine(feature_format="plan", timeout=0.03)
+    before = time.monotonic()
+    try:
+        with pytest.raises(TimeoutError) as caught, patch("featcopilot.llm._plan_transport.logger.warning") as warning:
+            engine.fit(pd.DataFrame({"category": ["a"]}))
+        assert f"{phase} cleanup" in str(caught.value)
+        assert "0.03 seconds" in str(caught.value)
+        assert isinstance(caught.value.__cause__, TimeoutError)
+        assert time.monotonic() - before < 2
+        assert cancelled == [phase]
+        warning.assert_called_once()
+        assert warning.call_args.args[1:] == (phase, "TimeoutError")
+        session.disconnect.assert_awaited_once()
+        client.stop.assert_awaited_once()
+    finally:
+        if engine._client is not None:
+            engine._client.stop()
+
+
+@pytest.mark.parametrize("request_timeout,cleanup_timeout", [(8, 5.0), (60.0, 5.0), (0.03, 0.03)])
+@pytest.mark.parametrize("phase", ["disconnect", "stop"])
+async def test_plan_cleanup_caps_actual_wait_for_argument(
+    request_timeout, cleanup_timeout, phase, isolated_copilot_sdk
+):
+    from featcopilot.llm._plan_transport import PLAN_CLEANUP_TIMEOUT, IsolatedCopilotTransport
+
+    assert PLAN_CLEANUP_TIMEOUT == 5.0
+    _, client, session = isolated_copilot_sdk
+    transport = IsolatedCopilotTransport()
+    real_wait_for = asyncio.wait_for
+    boundaries = []
+    cancelled = []
+
+    async def instrumented_wait_for(awaitable, timeout):
+        boundaries.append(timeout)
+        # Record the real policy argument, but exercise cooperative cleanup
+        # cancellation with a short wait instead of spending five seconds.
+        return await real_wait_for(awaitable, timeout=timeout if len(boundaries) == 1 else 0.01)
+
+    async def hang():
+        try:
+            await asyncio.Event().wait()
+        finally:
+            cancelled.append(phase)
+
+    target = session if phase == "disconnect" else client
+    getattr(target, phase).side_effect = hang
+    send = AsyncMock(return_value="successful plan")
+    with patch("featcopilot.llm._plan_transport.asyncio.wait_for", side_effect=instrumented_wait_for):
+        with pytest.raises(TimeoutError) as caught:
+            await transport.request(DEFAULT_MODEL, request_timeout, send)
+    assert f"{phase} cleanup" in str(caught.value)
+    assert f"after {cleanup_timeout:g} seconds" in str(caught.value)
+    assert f"request timeout {request_timeout:g} seconds" in str(caught.value)
+    assert isinstance(caught.value.__cause__, TimeoutError)
+    assert boundaries == [request_timeout, cleanup_timeout, cleanup_timeout]
+    assert cancelled == [phase]
+    send.assert_awaited_once_with(session)
+    session.disconnect.assert_awaited_once()
+    client.stop.assert_awaited_once()
+
+
+@pytest.mark.parametrize("timeout", [float("nan"), float("inf"), float("-inf"), 0, -1, True, False])
+async def test_plan_transport_rejects_invalid_timeout_before_workspace_or_client(timeout, isolated_copilot_sdk):
+    from featcopilot.llm._plan_transport import IsolatedCopilotTransport
+
+    factory, client, _ = isolated_copilot_sdk
+    transport = IsolatedCopilotTransport()
+    send = AsyncMock()
+    with patch("featcopilot.llm._plan_transport.TemporaryDirectory") as workspace:
+        with pytest.raises(ValueError, match="timeout"):
+            await transport.request(DEFAULT_MODEL, timeout, send)
+        workspace.assert_not_called()
+    factory.assert_not_called()
+    client.start.assert_not_awaited()
+    send.assert_not_awaited()
+
+
+@pytest.mark.parametrize("failure_stage", ["start", "send"])
+@pytest.mark.parametrize("error_type", [RuntimeError, asyncio.CancelledError, TimeoutError])
+def test_plan_shutdown_errors_are_observed_without_masking_original(failure_stage, error_type, isolated_copilot_sdk):
+    _, client, session = isolated_copilot_sdk
+    original = error_type("PRIVATE_REQUEST_FAILURE")
+    if failure_stage == "start":
+        client.start.side_effect = original
+    else:
+        session.send_and_wait.side_effect = original
+    session.disconnect.side_effect = RuntimeError("PRIVATE_DISCONNECT_ERROR")
+    client.stop.side_effect = RuntimeError("PRIVATE_STOP_ERROR")
+    engine = SemanticEngine(feature_format="plan", timeout=0.03)
+    try:
+        with pytest.raises(error_type) as caught, patch("featcopilot.llm._plan_transport.logger.warning") as warning:
+            engine.fit(pd.DataFrame({"category": ["a"]}))
+        assert caught.value is original
+        assert warning.call_count == (1 if failure_stage == "start" else 2)
+        assert "PRIVATE" not in str(warning.call_args_list)
+        client.stop.assert_awaited_once()
+    finally:
+        if engine._client is not None:
+            engine._client.stop()
+
+
+@pytest.mark.parametrize("args", [(), ("",)])
+def test_empty_sdk_plan_timeout_gets_context_and_keeps_original_cause(args, isolated_copilot_sdk):
+    _, client, session = isolated_copilot_sdk
+    original = TimeoutError(*args)
+    session.send_and_wait.side_effect = original
+    engine = SemanticEngine(feature_format="plan", timeout=19)
+    try:
+        with pytest.raises(TimeoutError) as caught:
+            engine.fit(pd.DataFrame({"category": ["a"]}))
+        assert caught.value is not original
+        assert type(caught.value) is type(original)
+        assert caught.value.__cause__ is original
+        assert "19 seconds" in str(caught.value)
+        assert "send" in str(caught.value)
+        session.disconnect.assert_awaited_once()
+        client.stop.assert_awaited_once()
+    finally:
+        if engine._client is not None:
+            engine._client.stop()
+
+
+@pytest.mark.parametrize("outcome", ["timeout", "cancel", "isolation", "success"])
+@pytest.mark.parametrize("cleanup_error_type", [PermissionError, OSError])
+@pytest.mark.parametrize("include_errno", [False, True])
+def test_workspace_cleanup_oserror_is_logged_without_replacing_request(
+    outcome, cleanup_error_type, include_errno, isolated_copilot_sdk
+):
+    from featcopilot.llm._plan_transport import PlanIsolationError
+
+    _, client, session = isolated_copilot_sdk
+    original = {
+        "timeout": TimeoutError("original deadline"),
+        "cancel": asyncio.CancelledError("original cancellation"),
+        "isolation": PlanIsolationError("original isolation failure"),
+        "success": None,
+    }[outcome]
+    if outcome == "isolation":
+        client.get_auth_status.side_effect = original
+    else:
+        session.send_and_wait.side_effect = original
+    workspace = MagicMock()
+    workspace.name = str(Path.cwd() / "featcopilot-plan-synthetic")
+    workspace.__enter__.return_value = workspace.name
+    cleanup_errno = (errno.EACCES if cleanup_error_type is PermissionError else errno.EIO) if include_errno else None
+    workspace.cleanup.side_effect = (
+        cleanup_error_type(cleanup_errno, "PRIVATE_BUSY_WORKSPACE", "PRIVATE_ERROR_FILENAME")
+        if include_errno
+        else cleanup_error_type("PRIVATE_BUSY_WORKSPACE")
+    )
+    workspace.__exit__.side_effect = lambda *args: workspace.cleanup()
+    engine = SemanticEngine(feature_format="plan")
+    try:
+        with (
+            patch("featcopilot.llm._plan_transport.TemporaryDirectory", return_value=workspace),
+            patch("featcopilot.llm._plan_transport.logger.warning") as warning,
+        ):
+            X = pd.DataFrame({"category": ["a"]})
+            if original is None:
+                assert engine.fit_transform(X)["category_frequency"].tolist() == [1.0]
+            else:
+                with pytest.raises(type(original)) as caught:
+                    engine.fit(X)
+                assert caught.value is original
+        assert engine.is_fitted is (original is None)
+        client.stop.assert_awaited_once()
+        workspace.cleanup.assert_called_once_with()
+        workspace.__exit__.assert_not_called()
+        warning.assert_called_once()
+        assert "workspace cleanup" in warning.call_args.args[0]
+        assert warning.call_args.args[1] == cleanup_error_type.__name__
+        assert warning.call_args.args[2:] == (cleanup_errno, workspace.name)
+        rendered = warning.call_args.args[0] % warning.call_args.args[1:]
+        assert f"errno={cleanup_errno}" in rendered
+        assert workspace.name in rendered
+        assert "PRIVATE" not in str(warning.call_args_list)
+    finally:
+        if engine._client is not None:
+            engine._client.stop()
+
+
+def test_workspace_creation_failure_propagates_before_sdk_start(isolated_copilot_sdk):
+    factory, client, _ = isolated_copilot_sdk
+    original = PermissionError("workspace creation denied")
+    engine = SemanticEngine(feature_format="plan")
+    try:
+        with (
+            patch("featcopilot.llm._plan_transport.TemporaryDirectory", side_effect=original) as directory_factory,
+            patch("featcopilot.llm._plan_transport.logger.warning") as warning,
+            pytest.raises(PermissionError) as caught,
+        ):
+            engine.fit(pd.DataFrame({"category": ["a"]}))
+        assert caught.value is original
+        assert not engine.is_fitted
+        directory_factory.assert_called_once_with(prefix="featcopilot-plan-")
+        factory.assert_not_called()
+        client.start.assert_not_awaited()
+        warning.assert_not_called()
+    finally:
+        if engine._client is not None:
+            engine._client.stop()
+
+
+def test_benchmark_adapter_uses_the_shared_startup_deadline(isolated_copilot_sdk):
+    from benchmarks.llm_evaluation import CopilotPlanProvider, PlanRequest
+
+    _, client, session = isolated_copilot_sdk
+
+    async def hang():
+        await asyncio.Event().wait()
+
+    client.start.side_effect = hang
+    with pytest.raises(TimeoutError):
+        CopilotPlanProvider(timeout=0.03).send_plan(PlanRequest("{}"), max_tokens=4096)
+    client.stop.assert_awaited_once()
+    session.send_and_wait.assert_not_awaited()
 
 
 def test_pickle_and_json_export_exclude_live_provider_and_preserve_output():

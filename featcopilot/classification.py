@@ -38,6 +38,7 @@ from featcopilot.utils.logger import get_logger
 from featcopilot.utils.model_preprocessing import (
     CategoricalEncoding,
     CrossFittedTargetEncoder,
+    encode_class_weights,
     make_classification_pipeline,
     normalize_model_frame,
     validate_classification_frame,
@@ -238,10 +239,15 @@ def _compact_selection(engineer: PredictiveTabularEngine | None) -> dict[str, ob
 
 def _report_parameters(parameters: dict[str, object]) -> dict[str, object]:
     # Arbitrary estimator parameters can contain credentials or unsafe repr().
-    return {
-        key: value if value is None or type(value) in (bool, int, float) else {"type": type(value).__name__}
-        for key, value in parameters.items()
-    }
+    report: dict[str, object] = {}
+    for key, value in parameters.items():
+        if type(value) is float and not np.isfinite(value):
+            report[key] = {"type": "float", "nonfinite": str(value)}
+        elif value is None or type(value) in (bool, int, float):
+            report[key] = value
+        else:
+            report[key] = {"type": type(value).__name__}
+    return report
 
 
 def _encoded_weight_parameters(
@@ -250,13 +256,7 @@ def _encoded_weight_parameters(
     effective = copy.deepcopy(dict(parameters))
     weights = effective.get("class_weight", prototype.get("class_weight"))
     if isinstance(weights, dict):
-        positions = {label: index for index, label in enumerate(classes)}
-        encoded = {}
-        for label, weight in weights.items():
-            if label not in positions:
-                raise ValueError("class_weight contains a key absent from the original training labels")
-            encoded[positions[label]] = copy.deepcopy(weight)
-        effective["class_weight"] = encoded
+        effective["class_weight"] = encode_class_weights(weights, classes)
     return effective
 
 
@@ -593,8 +593,9 @@ class NestedBaseClassifier(ClassifierMixin, BaseEstimator):
             trials.append({**trial, "parameters": _report_parameters(parameters)})
         unavailable_reason = None
         try:
-            fitted_state_hash = _sha256((self.model_, features, schema, self.classes_))
-        except (pickle.PicklingError, TypeError, AttributeError) as error:
+            serialized_state = pickle.dumps((self.model_, features, schema, self.classes_), protocol=5)
+        except Exception as error:
+            # Estimator serialization hooks may raise ordinary exceptions of any type.
             if self._strict_state_fingerprint:
                 raise
             fitted_state_hash = None
@@ -606,6 +607,8 @@ class NestedBaseClassifier(ClassifierMixin, BaseEstimator):
                 if warn_on_unavailable:
                     logger.warning("Fitted-state fingerprint unavailable: %s", unavailable_reason)
                 self._fingerprint_warning_emitted_ = True
+        else:
+            fitted_state_hash = hashlib.sha256(serialized_state).hexdigest()
         report: dict[str, object] = {
             "fit_identity_sha256": self.fit_identity_sha256_,
             "selected_parameters": _report_parameters(self.selected_parameters_),

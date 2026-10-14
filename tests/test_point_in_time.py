@@ -107,6 +107,100 @@ def test_frozen_history_batch_invariance_and_pickle():
     assert fitted.get_feature_set()["historical"].metadata["point_in_time"]["available_at"] == "available"
 
 
+@pytest.mark.parametrize("rows", [256, 512])
+@pytest.mark.parametrize("method,value_column", [("count", None), ("count", "value"), ("last", "value")])
+def test_indexed_count_and_last_do_not_scan_query_prefixes(rows, method, value_column, monkeypatch):
+    available = pd.date_range("2025-01-01", periods=rows, freq="s", tz="UTC")
+    observations = np.arange(rows, dtype=float)
+    observations[::7] = np.nan
+    events = pd.DataFrame({"entity": ["a"] * rows, "available": available, "value": observations})
+    X = pd.DataFrame({"customer": ["a"] * rows, "when": available + pd.Timedelta(1, unit="ns")})
+    fitted = PointInTimeRelationalEngine(
+        [
+            {
+                "name": "historical",
+                "table": "events",
+                "entity_column": "entity",
+                "available_at": "available",
+                "aggregation": method,
+                "value_column": value_column,
+            }
+        ],
+        "customer",
+        "when",
+    ).fit(X, related_tables={"events": events})
+
+    def reject_scan(*args):
+        pytest.fail("Indexed count/last must not scan or copy each query's history prefix")
+
+    monkeypatch.setattr(fitted, "_aggregate", reject_scan)
+    actual = fitted.transform(X).historical.to_numpy()
+    if value_column is None:
+        expected = np.arange(1, rows + 1)
+    elif method == "count":
+        expected = np.cumsum(np.isfinite(observations))
+    else:
+        expected = pd.Series(observations).ffill().to_numpy()
+    np.testing.assert_array_equal(actual, expected)
+
+
+@pytest.mark.parametrize(
+    "method,value_column,unbounded,windowed",
+    [
+        ("count", None, [1, 3, 6, 6, 7, 1, 0], [1, 2, 3, 3, 1, 0, 0]),
+        ("count", "value", [1, 3, 4, 4, 4, 0, 0], [1, 2, 1, 1, 0, 0, 0]),
+        ("last", "value", [1, 3, 4, 4, 4, np.nan, np.nan], [1, 3, 4, 4, np.nan, np.nan, np.nan]),
+    ],
+)
+@pytest.mark.parametrize("window", [None, "1D"])
+def test_indexed_count_and_last_preserve_ties_missing_values_and_window_boundaries(
+    method, value_column, unbounded, windowed, window
+):
+    events = pd.DataFrame(
+        {
+            "entity": ["a"] * 7 + ["b"],
+            "available": pd.to_datetime(
+                [
+                    "2025-01-01",
+                    "2025-01-02",
+                    "2025-01-02",
+                    "2025-01-03",
+                    "2025-01-03",
+                    "2025-01-03",
+                    "2025-01-04",
+                    "2025-01-01",
+                ],
+                utc=True,
+            ),
+            "value": [1, 2, 3, np.nan, 4, np.nan, np.nan, np.nan],
+        }
+    )
+    cutoffs = pd.to_datetime(
+        ["2025-01-02", "2025-01-03", "2025-01-03", "2025-01-04", "2025-01-05", "2025-01-03", "2025-01-03"], utc=True
+    ).to_list()
+    cutoffs[2] += pd.Timedelta(1, unit="ns")
+    X = pd.DataFrame({"customer": ["a"] * 5 + ["b", "new"], "when": cutoffs})
+    fitted = PointInTimeRelationalEngine(
+        [
+            {
+                "name": "historical",
+                "table": "events",
+                "entity_column": "entity",
+                "available_at": "available",
+                "aggregation": method,
+                "value_column": value_column,
+                "window": window,
+            }
+        ],
+        "customer",
+        "when",
+    ).fit(X, related_tables={"events": events})
+    expected = fitted.transform(X)
+    np.testing.assert_array_equal(expected.historical.to_numpy(), unbounded if window is None else windowed)
+    restored = pickle.loads(pickle.dumps(fitted))
+    pd.testing.assert_frame_equal(pd.concat([restored.transform(X.iloc[:3]), restored.transform(X.iloc[3:])]), expected)
+
+
 def test_refit_resets_state_and_invalid_refit_is_unfitted():
     fitted = engine().fit(queries(), related_tables={"events": history()})
     with pytest.raises(ValueError, match="Missing related table"):

@@ -66,7 +66,7 @@ class PredictionBundleConfig(BaseModel):
 
     seed: int = Field(default=42, ge=0, lt=2**32, strict=True)
     threads: int = Field(default=8, ge=1, strict=True)
-    stability_repeats: int = Field(default=3, ge=1, strict=True)
+    stability_repeats: int = Field(default=3, ge=1, le=10, strict=True)
     split_kind: Literal["iid"] = "iid"
     ensemble_sampling: EnsembleSampling = "cv3"
 

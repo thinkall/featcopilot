@@ -2473,6 +2473,10 @@ class TestCopilotClientSDKCompatibility:
         assert captured["on_permission_request"] is fake_permission_handler.approve_all
         assert captured["model"] == "gpt-5.2"
         assert captured["streaming"] is False
+        assert client.config.isolated_plan is False
+        assert set(captured) == {"on_permission_request", "model", "streaming"}
+        fake_client_class.assert_called_once_with()
+        asyncio.run(client.stop())
 
     def test_send_prompt_uses_send_and_wait(self, monkeypatch):
         """``send_prompt`` must call the SDK's ``send_and_wait`` helper

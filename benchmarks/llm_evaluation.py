@@ -97,7 +97,6 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
-import inspect
 import json
 import math
 import sqlite3
@@ -105,7 +104,6 @@ from collections.abc import Callable, Iterator, Mapping
 from contextlib import closing, contextmanager
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING, Literal, Protocol, TypeAlias
 
 import numpy as np
@@ -114,10 +112,12 @@ from pydantic import ValidationError
 
 from featcopilot.core.fitted_rule import FittedRulePlan, RuleOperator
 from featcopilot.engines.fitted_rules import FittedRuleEngine
+from featcopilot.llm._plan_transport import IsolatedCopilotTransport, PlanIsolationError, plan_message
 from featcopilot.utils.models import DEFAULT_MODEL
 
 if TYPE_CHECKING:
     from copilot.generated.session_events import SessionEvent
+    from copilot.session import CopilotSession
 
 Mode = Literal["no_llm", "typed_llm", "hybrid"]
 CompositionPolicy = Literal["raise", "namespace"]
@@ -286,7 +286,8 @@ class CopilotPlanProvider:
     model : str, default=DEFAULT_MODEL
         Must equal the project's gpt-5.6-sol default; no substitution or fallback.
     timeout : float, default=60.0
-        SDK wait timeout, not a generation/token limit.
+        Total startup/authentication/session/send deadline, excluding bounded
+        cleanup grace; not a generation/token limit.
 
     Raises
     ------
@@ -314,11 +315,6 @@ class CopilotPlanProvider:
     """
 
     def __init__(self, *, model: str = DEFAULT_MODEL, timeout: float = 60.0) -> None:
-        try:
-            from copilot import CopilotClient
-        except ImportError as exc:
-            raise ValueError("Copilot evaluation requires the optional SDK; install 'featcopilot[llm]'") from exc
-
         if model != DEFAULT_MODEL:
             raise ValueError("Copilot evaluation must preserve the configured project default model")
         if (
@@ -328,39 +324,12 @@ class CopilotPlanProvider:
             or timeout <= 0
         ):
             raise ValueError("timeout must be a finite positive number")
-        required = {
-            "on_permission_request",
-            "model",
-            "streaming",
-            "available_tools",
-            "tools",
-            "working_directory",
-            "enable_config_discovery",
-            "mcp_servers",
-            "skill_directories",
-            "custom_agents",
-            "infinite_sessions",
-        }
-        if not required.issubset(inspect.signature(CopilotClient.create_session).parameters):
-            raise PreflightBlockedError("Installed Copilot SDK lacks reviewed session-isolation parameters")
-        constructor_parameters = inspect.signature(CopilotClient).parameters
-        modern_parameters = {"connection", "working_directory", "log_level", "use_logged_in_user"}
-        self._uses_runtime_connection = modern_parameters.issubset(constructor_parameters)
-        if self._uses_runtime_connection:
-            from copilot import RuntimeConnection
-
-            transport_parameters = inspect.signature(RuntimeConnection.for_stdio).parameters
-            required_transport_parameters = {"args"}
-        elif {"config", "auto_start"}.issubset(constructor_parameters):
-            from copilot.client import SubprocessConfig
-
-            transport_parameters = inspect.signature(SubprocessConfig).parameters
-            required_transport_parameters = {"cwd", "cli_args", "log_level", "use_logged_in_user"}
-        else:
-            raise PreflightBlockedError("Installed Copilot SDK lacks reviewed client-isolation parameters")
-        if not required_transport_parameters.issubset(transport_parameters):
-            raise PreflightBlockedError("Installed Copilot SDK lacks reviewed transport-isolation parameters")
-        self._client_type = CopilotClient
+        try:
+            self._transport = IsolatedCopilotTransport()
+        except ImportError as exc:
+            raise ValueError("Copilot evaluation requires the optional SDK; install 'featcopilot[llm]'") from exc
+        except PlanIsolationError as exc:
+            raise PreflightBlockedError(str(exc)) from exc
         self._model = model
         self._timeout = timeout
 
@@ -389,100 +358,49 @@ class CopilotPlanProvider:
         raise RuntimeError("Run synchronous Copilot evaluation outside an active asyncio loop or use asyncio.to_thread")
 
     async def _send_plan(self, request: PlanRequest, max_tokens: int) -> PlanResponse:
-        from copilot.generated.session_events import AssistantMessageData, AssistantUsageData
+        from copilot.generated.session_events import AssistantUsageData
 
-        # Discovery=False does NOT disable AGENTS.md; isolate cwd and disable
-        # custom instructions explicitly using flags verified with the SDK CLI.
-        with TemporaryDirectory(prefix="featcopilot-plan-") as workspace:
-            cli_args = [
-                "--no-custom-instructions",
-                "--disable-builtin-mcps",
-                "--no-ask-user",
-                "--no-auto-update",
-            ]
-            if self._uses_runtime_connection:
-                from copilot import RuntimeConnection
-                from copilot.generated.rpc import PermissionDecisionReject
+        async def send(session: CopilotSession) -> PlanResponse:
+            usage: list[AssistantUsageData] = []
 
-                client = self._client_type(
-                    connection=RuntimeConnection.for_stdio(args=cli_args),
-                    working_directory=workspace,
-                    use_logged_in_user=True,
-                    log_level="error",
-                )
-                permission_denied = PermissionDecisionReject()
-            else:
-                from copilot.client import SubprocessConfig
-                from copilot.session import PermissionRequestResult
+            def collect(event: SessionEvent) -> None:
+                if isinstance(event.data, AssistantUsageData):
+                    usage.append(event.data)
 
-                config = SubprocessConfig(
-                    cwd=workspace,
-                    use_logged_in_user=True,
-                    log_level="error",
-                    cli_args=cli_args,
-                )
-                client = self._client_type(config, auto_start=False)
-                permission_denied = PermissionRequestResult(kind="reject")
+            unsubscribe = session.on(collect)
             try:
-                await client.start()
-                auth_status = await client.get_auth_status()
-                if auth_status.isAuthenticated is not True:
-                    raise PreflightBlockedError(
-                        "Copilot has no authenticated logged-in user; authenticate outside the benchmark"
-                    )
-                session = await client.create_session(
-                    on_permission_request=lambda _request, _invocation: permission_denied,
-                    model=self._model,
-                    streaming=False,
-                    available_tools=[],
-                    tools=[],
-                    working_directory=workspace,
-                    enable_config_discovery=False,
-                    mcp_servers={},
-                    skill_directories=[],
-                    custom_agents=[],
-                    infinite_sessions={"enabled": False},
-                )
-                usage: list[AssistantUsageData] = []
-
-                def collect(event: SessionEvent) -> None:
-                    if isinstance(event.data, AssistantUsageData):
-                        usage.append(event.data)
-
-                unsubscribe = session.on(collect)
-                try:
-                    event = await session.send_and_wait(
-                        f"Aim for at most {max_tokens} output tokens (best-effort request, not an enforced limit).\n"
-                        + request.prompt,
-                        timeout=self._timeout,
-                    )
-                finally:
-                    unsubscribe()
-                if event is None or not isinstance(event.data, AssistantMessageData) or not event.data.content.strip():
-                    raise ValueError("Copilot returned an empty or non-text plan response")
-                if event.data.tool_requests:
-                    raise ValueError("Copilot returned tool requests despite the tool-disabled evaluation contract")
-                if usage:
-                    if any(item.model != self._model for item in usage):
-                        raise ValueError("Copilot reported usage for an unexpected model; no fallback is permitted")
-                    inputs = [_sdk_tokens(item.input_tokens) for item in usage]
-                    outputs = [_sdk_tokens(item.output_tokens) for item in usage]
-                    return PlanResponse(
-                        event.data.content,
-                        None if None in inputs else sum(value for value in inputs if value is not None),
-                        None if None in outputs else sum(value for value in outputs if value is not None),
-                        "sdk_usage_events",
-                        len(usage),
-                    )
-                output_tokens = _sdk_tokens(event.data.output_tokens)
-                return PlanResponse(
-                    event.data.content,
-                    output_tokens=output_tokens,
-                    usage_scope="unknown" if output_tokens is None else "assistant_message",
-                    usage_events=0,
+                event = await session.send_and_wait(
+                    f"Aim for at most {max_tokens} output tokens (best-effort request, not an enforced limit).\n"
+                    + request.prompt,
+                    timeout=self._timeout,
                 )
             finally:
-                await client.stop()
+                unsubscribe()
+            message = plan_message(event)
+            if usage:
+                if any(item.model != self._model for item in usage):
+                    raise ValueError("Copilot reported usage for an unexpected model; no fallback is permitted")
+                inputs = [_sdk_tokens(item.input_tokens) for item in usage]
+                outputs = [_sdk_tokens(item.output_tokens) for item in usage]
+                return PlanResponse(
+                    message.content,
+                    None if None in inputs else sum(value for value in inputs if value is not None),
+                    None if None in outputs else sum(value for value in outputs if value is not None),
+                    "sdk_usage_events",
+                    len(usage),
+                )
+            output_tokens = _sdk_tokens(message.output_tokens)
+            return PlanResponse(
+                message.content,
+                output_tokens=output_tokens,
+                usage_scope="unknown" if output_tokens is None else "assistant_message",
+                usage_events=0,
+            )
+
+        try:
+            return await self._transport.request(self._model, self._timeout, send)
+        except PlanIsolationError as exc:
+            raise PreflightBlockedError(str(exc)) from exc
 
 
 def _sdk_tokens(value: float | None) -> int | None:

@@ -52,6 +52,10 @@ When a target is provided, `fit_transform` uses out-of-fold target encodings for
 the training rows. A later `transform` call uses category means learned from the
 full training set. This distinction prevents each training row's own target
 from leaking into its encoded feature.
+If target encoding is activated, fitting requires at least two rows; singleton
+training no longer falls back to its own target. Pandas categorical predictors
+produce numeric encodings, and categorical targets retain label semantics even
+when their categories are numbers or their indexes differ from the input frame.
 
 ### Available Transforms
 

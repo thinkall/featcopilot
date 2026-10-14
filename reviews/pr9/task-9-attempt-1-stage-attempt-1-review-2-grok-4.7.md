@@ -79,3 +79,58 @@ _Updated by the driving agent as findings are addressed._
 - **What changed**: pending
 - **Why**: pending
 - **How verified**: pending
+
+### Driver triage and resolution update
+
+The independent findings above remain intact.
+
+- **Issue 1 - Fix in progress**: The new typed-plan path is being given an
+  isolated, tool-disabled Copilot transport without altering the legacy
+  code-mode permission default. Sharing the same learned-rule engine does
+  not by itself enforce a transport boundary. Distinct production versus
+  benchmark prompt budgets remain explicitly different protocols; prompt
+  identity alone is not being imposed as an unrelated behavior change.
+- **Issue 2 - Deferred architectural concern; claimed current contract
+  violation not established**: The raw-feature wrapper deliberately does not
+  return a fitted target encoder. `docs/user-guide/selection.md:265-269`
+  states that it returns unencoded features and requires downstream
+  train-only encoding. Returning its internal encoder would expose
+  selection-partition state as a deployment transform, contrary to that
+  boundary. The native CatBoost/OHE selection distinction is also expressly
+  disclosed in `benchmarks/README.md:325-328`; the public classifier excludes
+  native CatBoost (`docs/user-guide/classification.md:168`).
+  Factory duplication can drift and remains a maintainability concern,
+  but no concrete newly failing input or undisclosed equivalence claim was
+  established here. A broad preprocessor rewrite or removal of supported
+  experimental modes is deferred rather than called a completed fix.
+- **Issue 3 - Partially addressed / partially deferred**: The original-label
+  provenance error is being corrected with a focused loader/controller
+  test. The broader cycle-breaking refactor is deferred: both
+  `execution -> tabular -> regression_averaging` and the reverse import
+  order succeeded in independent fresh processes. Hypothetical movement
+  of lazy imports to module scope is not a demonstrated current import
+  failure. Dependency coupling remains recorded as architectural debt.
+- **Issue 4 - Documentation fixed; API redesign deferred**: The public
+  `gate_n_jobs` docstring now explicitly states its predictive-engine
+  thread/worker role. Existing wiring and defaults are preserved instead
+  of introducing another parallelism parameter in this review fix.
+
+### Driver artifact handling
+
+This reviewer committed only its own artifact in `62cbb1c` before the
+driver's final review check-in. No source fixes or other pending work were
+included. That commit is retained without rewriting history; current-run
+review artifacts remain explicitly excluded from subsequent review inputs.
+
+### Driver verification update: Issue 3 label provenance
+
+- **Status**: Concrete provenance defect fixed; broader dependency refactor remains deferred.
+- **What changed**: `benchmarks/execution.py` maps observed encoded classes through the loader's original `class_labels`, including a correctly ordered subset when sampling drops a class. Prepared numeric targets and the original vocabulary are unchanged. Invalid vocabularies/code indices fail explicitly; raw-label diagnostic inputs retain their existing encoding path.
+- **How verified**: Fifty-one focused metadata cases and the complete 250-test execution suite passed with the pinned interpreter; Black, Ruff and whitespace checks passed. No row-level raw targets or historical archive bytes were published or modified.
+
+### Driver verification update: Issue 1 typed-plan isolation
+
+- **Status**: Fixed for the newly introduced production typed-plan path.
+- **What changed**: Added a production-owned `_plan_transport.py` shared with the benchmark provider. Plan mode uses a fresh isolated temporary workspace/session, denies permissions, disables tools/MCPs/skills/custom agents/config discovery, verifies existing authentication, and cleans up on normal and exceptional exits. Supplied rules remain provider-free. Legacy code-mode session defaults and the distinct production/benchmark prompts are unchanged.
+- **Why**: Transport isolation belongs in the reusable production layer, not in a benchmark-only adapter or prompt wording. System temporary storage avoids adding a writable-project-directory requirement.
+- **How verified**: The implementation's 427-test suite passed with both SDK 0.3.0 and 1.0.16 using mocked clients. The driver's combined plan/provider/controller/preprocessing/task suite passed 789 tests, package mypy passed 52 files and the wheel built. Cleanup, rejected permissions, isolation settings, event-loop behavior, invalid responses and supplied-rule bypass are covered without provider calls.

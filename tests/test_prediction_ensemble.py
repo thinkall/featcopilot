@@ -388,20 +388,25 @@ def test_deterministic_search_ties_choose_first_candidate(monkeypatch: pytest.Mo
     assert [trial["loss"] for trial in base.trials_] == [0.5, 0.5, 0.5]
 
 
-def test_benchmark_fitted_state_fingerprint_remains_strict(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize("error_type", [pickle.PicklingError, ValueError, RuntimeError])
+def test_benchmark_fitted_state_fingerprint_remains_strict(
+    monkeypatch: pytest.MonkeyPatch, error_type: type[Exception]
+) -> None:
     train, y, _, _ = _data()
     base = ensemble.CompleteBaseProcedure(config={"threads": 1}).fit(train, y)
     assert isinstance(base.diagnostics()["fitted_state_sha256"], str)
-    original_hash = classification._sha256
+    original_dumps = classification.pickle.dumps
+    error = error_type("synthetic unsupported state")
 
-    def unavailable(value: object) -> str:
+    def unavailable(value: object, **kwargs) -> bytes:
         if isinstance(value, tuple) and len(value) == 4 and isinstance(value[0], Pipeline):
-            raise pickle.PicklingError("synthetic unsupported state")
-        return original_hash(value)
+            raise error
+        return original_dumps(value, **kwargs)
 
-    monkeypatch.setattr(classification, "_sha256", unavailable)
-    with pytest.raises(pickle.PicklingError, match="unsupported state"):
+    monkeypatch.setattr(classification.pickle, "dumps", unavailable)
+    with pytest.raises(error_type, match="unsupported state") as caught:
         base.diagnostics()
+    assert caught.value is error
 
 
 @pytest.mark.parametrize("counts", [(2, 20), (3, 3), (3, 3, 3), (3, 3, 3, 3)])
@@ -810,6 +815,8 @@ def test_public_api_rejects_budget_overrides_before_any_fit(
         ("threads", -1),
         ("stability_repeats", True),
         ("stability_repeats", 0),
+        ("stability_repeats", 11),
+        ("stability_repeats", 100),
         ("stability_repeats", "3"),
         ("stability_repeats", 3.5),
         ("stability_repeats", None),
@@ -837,6 +844,7 @@ def test_execution_settings_defaults_and_explicit_values() -> None:
     assert settings.seed == 2**32 - 1
     assert settings.threads == 2
     assert settings.stability_repeats == 4
+    assert ensemble.PredictionBundleConfig(stability_repeats=10).stability_repeats == 10
 
 
 @pytest.mark.parametrize(

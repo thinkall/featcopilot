@@ -75,10 +75,10 @@ benchmark = [
 ]
 benchmark-tabular = [
     "pandas>=2.2,<3",
-    "scikit-learn>=1.6,<1.8",
+    "scikit-learn>=1.7.2,<1.8",
     "lightgbm>=4.0.0",
     "openfe==0.0.12",
-    "autofeat>=2.1.0",
+    "autofeat==2.1.1",
     "psutil>=5.9.0",
     "threadpoolctl>=3.1.0",
     "openml>=0.15.1",

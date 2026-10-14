@@ -254,7 +254,7 @@ clean exit-2 error pointing at the missing dependency.
   treat anything on `stdout` as the JSON result.
 * Treat the JSON `warnings` field as a list of human-readable
   diagnostic strings ─ it is non-empty for `transform` runs that
-  generated leakage / mock-mode / sampling notices, and empty for
+  generated leakage or sampling notices, and empty for
   fully clean runs.
 * For long-running batch jobs, prefer `featcopilot transform` to
   `python -m featcopilot transform` only because the former is shorter;

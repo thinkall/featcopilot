@@ -41,6 +41,7 @@ from benchmarks.run_state import (
     archive_source,
     atomic_json,
     fingerprint,
+    load_run_manifest,
 )
 
 logger = logging.getLogger(__name__)
@@ -186,7 +187,7 @@ def validate_config(config: dict[str, Any], budget: float) -> None:
         "max_rows": (0, 0) if confirmation else (1, 10_000_000),
         "max_added_features": (50, 50),
         "max_candidates": (1000, 1000),
-        "stability_repeats": (1, 100),
+        "stability_repeats": (1, 10),
         "threads": (1, 256),
         "memory_limit_mb": (1, 1_048_576),
     }
@@ -1222,7 +1223,7 @@ def execute(args: argparse.Namespace) -> int:
     """Prepare or resume this fixed six-arm study, checkpointing physical jobs atomically."""
     started = time.perf_counter()
     output = args.output.resolve()
-    previous = json.loads((output / "manifest.json").read_text(encoding="utf-8")) if args.resume else {}
+    previous = load_run_manifest(output) if args.resume else {}
     if previous.get("source_changed"):
         raise ResumeMismatchError("Cannot resume a study invalidated by changed source")
     confirmation = (
@@ -1268,21 +1269,17 @@ def execute(args: argparse.Namespace) -> int:
         "python": sys.version,
         "platform": platform.platform(),
     }
-    if args.resume and tabular.digest((output / "source.zip").read_bytes()) != previous["source_archive_sha256"]:
-        raise ResumeMismatchError("Cannot resume: source ZIP changed")
-    state = RunState(output, identity, resume=args.resume)
+    paths = tabular.source_files()
+    state = RunState(output, identity, resume=args.resume, initialization={"config": config, "budget_seconds": budget})
     prior_elapsed = state.elapsed_seconds
     deadline = started + max(0.0, budget - prior_elapsed)
-    paths = tabular.source_files()
     source_archive = previous.get("source_archive_sha256")
-    if not args.resume:
-        source_archive = archive_source(output, tabular.ROOT, paths, suite)
     count = len(specs) * len(config["seeds"]) * config["folds"] * len(config["learners"])
     manifest = {
         **identity,
         "run_id": state.run_id,
         "source_archive_sha256": source_archive,
-        "source_allowlist": [str(path.relative_to(tabular.ROOT)) for path in paths],
+        "source_allowlist": [path.relative_to(tabular.ROOT).as_posix() for path in paths],
         "budget_seconds": budget,
         "report_reserve_seconds": REPORT_RESERVE_SECONDS,
         "budget_scope": "This run's cumulative active-time ceiling only; remaining cycle usage is parent-ledger authoritative.",
@@ -1317,6 +1314,10 @@ def execute(args: argparse.Namespace) -> int:
             "feature_budget": {"max_added_features": 50, "max_candidates": 1000},
         },
     }
+    if not state.initialize_source(
+        manifest, tabular.ROOT, paths, suite, started=started, archive_writer=archive_source
+    ):
+        return 1
     prepared_dir = output / "prepared"
     prepared_dir.mkdir(exist_ok=True)
     if not args.resume:
@@ -1347,6 +1348,17 @@ def execute(args: argparse.Namespace) -> int:
         ]
         try:
             old = previous_datasets.get(name, {})
+            if cached is None:
+                if old.get("error") and old.get("preparation_status") == "dataset_error" and not args.retry_failed:
+                    raise ValueError(old["error"])
+                if interrupted:
+                    raise KeyboardInterrupt
+                if time.perf_counter() >= deadline - REPORT_RESERVE_SECONDS:
+                    raise TimeoutError("Active-time budget exhausted before preparation (including report reserve)")
+            if confirmation and not args.prepare_only:
+                assert ledger is not None
+                ledger.admit(spec["family_id"], state.run_id, "confirmation")
+                admitted_families.add(spec["family_id"])
             reuse_hash = (
                 cached["prepared_sha256"]
                 if cached is not None
@@ -1359,13 +1371,6 @@ def execute(args: argparse.Namespace) -> int:
                     raise ResumeMismatchError(f"Cannot resume: prepared data changed for {name}")
                 prepared_data = pickle.loads(content)
                 prepared_sha256 = reuse_hash
-            if cached is None:
-                if old.get("error") and old.get("preparation_status") == "dataset_error" and not args.retry_failed:
-                    raise ValueError(old["error"])
-                if interrupted:
-                    raise KeyboardInterrupt
-                if time.perf_counter() >= deadline - REPORT_RESERVE_SECONDS:
-                    raise TimeoutError("Active-time budget exhausted before preparation (including report reserve)")
             # Catalog acquisition validates the original raw payload and checksum pin
             # even when a prepared pickle and completed jobs already exist.
             data, acquired, official = execution._prepare_dataset(spec, source, suite, False, config, tabular.ROOT)

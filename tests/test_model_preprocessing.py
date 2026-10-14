@@ -241,9 +241,8 @@ def test_typed_missing_categories_multiclass_shape_batch_and_pickle() -> None:
     assert adapter.get_encoding_report()["output_width"] == 6
     test = pd.DataFrame({"category": ["new", None, 1], "other": ["new", None, True]})
     prediction = adapter.transform(test)
-    np.testing.assert_array_equal(
-        np.vstack([adapter.transform(test.iloc[:1]), adapter.transform(test.iloc[1:])]), prediction
-    )
+    np.testing.assert_array_equal(np.vstack([adapter.transform(test.iloc[[i]]) for i in range(len(test))]), prediction)
+    assert normalize_categorical_frame(test.iloc[[1]]).dtypes.eq(object).all()
     restored = pickle.loads(pickle.dumps(adapter))
     np.testing.assert_array_equal(restored.transform(test), prediction)
     unfitted = clone(adapter)

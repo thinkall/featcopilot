@@ -29,6 +29,12 @@ same-base calibration contrasts using complete matching folds/families.
 `brier_sum` always sums squared error over all class coordinates, including
 both binary coordinates; it is diagnostic, not a replacement primary metric.
 
+The `benchmark-tabular` extra installs scikit-learn `>=1.7.2,<1.8` and
+AutoFeat `==2.1.1`, matching the calibration adapter's floor and native
+reference constraints. The retained-base adapter also supports sklearn
+1.8/1.9 in separately managed environments, not the AutoFeat-compatible
+extra. The safe-scale diagnostic retains its additional exact runtime pins.
+
 ```powershell
 python -m benchmarks.calibration_evaluation --prepare-only --output benchmarks\tabular-results\calibration-study
 python -m benchmarks.calibration_evaluation --resume --output benchmarks\tabular-results\calibration-study

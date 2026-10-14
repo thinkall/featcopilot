@@ -31,7 +31,9 @@ class SemanticEngineConfig(EngineConfig):
     validate_features: bool = Field(default=True, description="Validate generated code")
     domain: str | None = Field(default=None, description="Domain context")
     temperature: float = Field(default=0.3, ge=0, le=2, description="LLM temperature")
-    timeout: float = Field(default=60.0, gt=0, description="Provider request timeout in seconds")
+    timeout: float = Field(
+        default=60.0, gt=0, strict=True, allow_inf_nan=False, description="Provider request timeout in seconds"
+    )
     max_tokens: int = Field(default=4096, gt=0, description="Maximum response tokens for chat backends")
     backend: Literal["copilot", "litellm", "openai"] = Field(default="copilot", description="LLM backend to use")
     api_key: str | None = Field(default=None, description="API key for litellm/openai backend")
@@ -99,6 +101,10 @@ class SemanticEngine(BaseEngine):
         Code mode preserves trusted Python generation. Plan mode requests only
         allowlisted fitted tabular rules, never executes generated Python, and
         skips built-in/generated text features while retaining original columns.
+        Copilot plans use a fresh isolated session per request, without tools,
+        MCPs, skills, custom agents or workspace instructions. An existing CLI
+        login and a supported isolation contract are required; no permissive
+        session fallback is allowed. Chat backends remain tool-free completions.
         Code-generation helpers suggest_more_features/generate_custom_feature
         are unavailable in plan mode; supply new rules and refit instead.
     rules : list[FittedRuleSpec or dict], optional
@@ -262,6 +268,7 @@ class SemanticEngine(BaseEngine):
                 self._client = SyncCopilotFeatureClient(
                     model=self.config.model,
                     timeout=self.config.timeout,
+                    **({"isolated_plan": True} if self.config.feature_format == "plan" else {}),
                 )
             try:
                 self._client.start()

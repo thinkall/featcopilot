@@ -36,6 +36,7 @@ from benchmarks.run_state import (
     archive_source,
     atomic_json,
     fingerprint,
+    load_run_manifest,
 )
 
 logger = logging.getLogger(__name__)
@@ -1590,7 +1591,7 @@ def execute(args: argparse.Namespace) -> int:
     """Predeclare and run or resume one bounded, mode-locked atomic experiment."""
     started = time.perf_counter()
     output = args.output.resolve()
-    previous = json.loads((output / "manifest.json").read_text(encoding="utf-8")) if args.resume else {}
+    previous = load_run_manifest(output) if args.resume else {}
     if previous.get("source_changed") or previous.get("identity_invalid"):
         raise ResumeMismatchError("Cannot resume an invalidated experiment; use a new directory")
     confirmation = (
@@ -1660,22 +1661,8 @@ def execute(args: argparse.Namespace) -> int:
         "platform": platform.platform(),
     }
     previous_archive = previous.get("source_archive_sha256")
-    if (
-        args.resume
-        and previous_archive is not None
-        and tabular.digest((output / "source.zip").read_bytes()) != previous_archive
-    ):
-        raise ResumeMismatchError("Cannot resume: source ZIP changed")
-    state = RunState(output, identity, resume=args.resume)
-    if (
-        args.resume
-        and previous_archive is None
-        and (
-            state.datasets
-            or any(not _unfinished_preparation(job, mode=mode, method=job.get("method")) for job in state.rows.values())
-        )
-    ):
-        raise ResumeMismatchError("Cannot resume: source archive identity is unavailable for prepared/attempted jobs")
+    paths = tabular.source_files()
+    state = RunState(output, identity, resume=args.resume, initialization={"config": config, "budget_seconds": budget})
     prior_elapsed = state.elapsed_seconds
     deadline = started + max(0.0, budget - prior_elapsed)
     manifest = {
@@ -1713,6 +1700,10 @@ def execute(args: argparse.Namespace) -> int:
         "datasets": [],
         "splits": [],
     }
+    if not state.initialize_source(
+        manifest, tabular.ROOT, paths, suite, started=started, archive_writer=archive_source
+    ):
+        return 1
     jobs: list[dict] = []
     for spec in specs:
         metadata = {**spec, "source_specification": spec.get("source"), "source": execution.source_kind(spec)}
@@ -1806,12 +1797,6 @@ def execute(args: argparse.Namespace) -> int:
 
     try:
         atomic_json(output / "manifest.json", manifest)
-        paths = tabular.source_files()
-        manifest["source_archive_sha256"] = (
-            previous_archive if previous_archive is not None else archive_source(output, tabular.ROOT, paths, suite)
-        )
-        manifest["source_allowlist"] = [str(path.relative_to(tabular.ROOT)) for path in paths]
-        atomic_json(output / "manifest.json", manifest)
         (output / "prepared").mkdir(exist_ok=True)
         if confirmation:
             ledger = ExposureLedger(tabular.ROOT / "benchmarks" / ".cache" / "exposure.sqlite")
@@ -1829,6 +1814,10 @@ def execute(args: argparse.Namespace) -> int:
                 old = state.rows.get(selected[0]["physical_job_id"], {})
                 if cached is None and old.get("status") == "dataset_error" and not args.retry_failed:
                     raise ValueError(old["outcomes"][0]["error"])
+                if confirmation and not args.prepare_only:
+                    assert ledger is not None
+                    ledger.admit(spec["family_id"], state.run_id, "confirmation")
+                    admitted.add(spec["family_id"])
                 metadata, prepared_hash, splits = _prepare(
                     spec, suite, config, state, Path(selected[0]["data_path"]), registration=registration
                 )

@@ -4,7 +4,12 @@ import copy
 import gzip
 import json
 import pickle
-from pathlib import Path
+import sqlite3
+import zipfile
+from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path, PureWindowsPath
+from threading import Barrier
 from types import SimpleNamespace
 
 import numpy as np
@@ -13,7 +18,7 @@ import pytest
 
 from benchmarks import calibration_evaluation as study
 from benchmarks import execution, tabular
-from benchmarks.run_state import fingerprint
+from benchmarks.run_state import ExposureLedger, fingerprint
 
 REAL_RUN_ISOLATED = tabular.run_isolated
 REAL_SPLITS = execution._splits
@@ -138,6 +143,74 @@ def state_rows(experiment):
     return [
         json.loads((experiment.output / "records" / record["file"]).read_text()) for record in state["records"].values()
     ]
+
+
+@pytest.mark.parametrize("interrupted", [False, True])
+@pytest.mark.parametrize("missing_manifest", [False, True])
+def test_source_initialization_failure_resumes_without_repeating_time(
+    experiment, monkeypatch, interrupted, missing_manifest
+):
+    e = experiment
+    clock = [0.0]
+    monkeypatch.setattr(study.time, "perf_counter", lambda: clock[0])
+
+    def fail(*args):
+        clock[0] += 60
+        raise KeyboardInterrupt if interrupted else OSError("Synthetic source publication failure")
+
+    with monkeypatch.context() as patch:
+        patch.setattr(study, "archive_source", fail)
+        assert study.main([*e.argv, "--total-seconds", "100"]) == 1
+    saved = json.loads((e.output / "state.json").read_text())
+    metadata = json.loads((e.output / "manifest.json").read_text())
+    assert saved["elapsed_seconds"] == metadata["active_seconds"] == 60
+    assert saved["records"] == saved["attempts"] == saved["datasets"] == {}
+    assert not e.calls and not e.acquisitions and not e.admissions
+    if missing_manifest:
+        (e.output / "manifest.json").unlink()
+    before = (e.output / "state.json").read_bytes()
+    with monkeypatch.context() as patch:
+        patch.setattr(tabular, "source_fingerprint", lambda: "changed")
+        assert study.main(e.resume) == 2
+    assert (e.output / "state.json").read_bytes() == before
+    run = tabular.run_isolated
+
+    def timed(*args, **kwargs):
+        clock[0] += 1
+        return run(*args, **kwargs)
+
+    monkeypatch.setattr(tabular, "run_isolated", timed)
+    assert study.main(e.resume) == 0
+    assert len(e.calls) == 8
+    assert json.loads((e.output / "state.json").read_text())["elapsed_seconds"] == 68
+    assert json.loads((e.output / "manifest.json").read_text())["initialization_status"] == "ready"
+
+
+def test_source_allowlist_uses_zip_names_on_initialization_and_resume(experiment, monkeypatch):
+    e = experiment
+    source = e.output.parent / "pkg" / "mod.py"
+    source.parent.mkdir()
+    source.write_text("VALUE = 1\n")
+    relative_to = Path.relative_to
+
+    def windows_relative(path, *args, **kwargs):
+        relative = relative_to(path, *args, **kwargs)
+        return PureWindowsPath(*relative.parts) if path == source else relative
+
+    monkeypatch.setattr(Path, "relative_to", windows_relative)
+    monkeypatch.setattr(tabular, "source_files", lambda: [source])
+    assert str(source.relative_to(tabular.ROOT)) == "pkg\\mod.py"
+    assert study.main([*e.argv, "--prepare-only"]) == 0
+    original_zip = (e.output / "source.zip").read_bytes()
+    for args in (None, [*e.resume, "--prepare-only"]):
+        if args is not None:
+            assert study.main(args) == 0
+        manifest = json.loads((e.output / "manifest.json").read_text())
+        with zipfile.ZipFile(e.output / "source.zip") as archive:
+            members = set(archive.namelist()) - {"resolved-suite.json"}
+        assert manifest["source_allowlist"] == ["pkg/mod.py"]
+        assert set(manifest["source_allowlist"]) == members
+        assert (e.output / "source.zip").read_bytes() == original_zip
 
 
 def test_four_physical_jobs_six_prediction_rows_and_exact_archive(experiment):
@@ -689,6 +762,8 @@ def test_controller_elapsed_includes_report_work_and_records_overshoot(experimen
         ["--max-candidates", "500"],
         ["--max-candidates", "1001"],
         ["--stability-repeats", "0"],
+        ["--stability-repeats", "11"],
+        ["--stability-repeats", "100"],
         ["--memory-limit-mb", "0"],
         ["--case-timeout", "nan"],
         ["--case-timeout", "inf"],
@@ -705,6 +780,10 @@ def test_controller_elapsed_includes_report_work_and_records_overshoot(experimen
 def test_invalid_cli_configuration_before_acquisition(experiment, args):
     assert study.main([*experiment.argv, *args]) == 2
     assert not experiment.acquisitions
+
+
+def test_maximum_supported_stability_repeats_is_admitted():
+    study.validate_config({**study.DEFAULTS, "stability_repeats": 10}, 1000.0)
 
 
 def test_cli_has_one_suite_no_method_or_calibration_grid(experiment):
@@ -1259,7 +1338,6 @@ def confirmation(experiment, monkeypatch):
             e.checks.append(args)
 
         def admit(self, *args):
-            assert len(e.acquisitions) == 2
             e.admissions.append(args)
 
     monkeypatch.setattr(study, "ExposureLedger", Ledger)
@@ -1425,7 +1503,10 @@ def test_confirmation_preparation_failures_retain_96_tiered_rows(confirmation, m
         row["status"] == "dataset_error" and row["evaluation_tier"] == study.CONFIRMATION_TIER for row in result["rows"]
     )
     assert all(row["requested_families"] == 2 and row["complete_paired_families"] == 0 for row in result["summary"])
-    assert len(confirmation.admissions) == 1 and not confirmation.calls
+    assert confirmation.admissions[0][0] == "created"
+    assert [event[0] for event in confirmation.admissions[1:]] == list(study.CONFIRMATION_FAMILIES)
+    assert all(event[2] == "confirmation" for event in confirmation.admissions[1:])
+    assert not confirmation.calls
 
 
 @pytest.mark.parametrize("boundary", ["groups", "timestamps", "label_end_times"])
@@ -1464,6 +1545,42 @@ def test_confirmation_exposure_check_blocks_entire_cohort_before_payload(confirm
     monkeypatch.setattr(study, "ExposureLedger", BlockedLedger)
     assert study.main(confirmation.argv) == 2
     assert not confirmation.acquisitions and not confirmation.calls
+
+
+@pytest.mark.parametrize("failed_preparation", [False, True])
+def test_confirmation_contenders_reserve_each_family_before_any_payload_open(
+    confirmation, monkeypatch, failed_preparation
+):
+    e = confirmation
+    gate = Barrier(2)
+    prepare = execution._prepare_dataset
+    opened = []
+
+    class RacingLedger(ExposureLedger):
+        def check(self, family_id, run_id, role):
+            super().check(family_id, run_id, role)
+            if family_id == study.CONFIRMATION_FAMILIES[-1]:
+                gate.wait(timeout=15)
+
+    def acquire(spec, *args):
+        opened.append(spec["family_id"])
+        if failed_preparation:
+            raise ValueError("Synthetic failure after protected acquisition began")
+        return prepare(spec, *args)
+
+    monkeypatch.setattr(study, "ExposureLedger", RacingLedger)
+    monkeypatch.setattr(execution, "_prepare_dataset", acquire)
+    outputs = [e.output, e.output.with_name("competing-run")]
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futures = [pool.submit(study.main, [*e.argv, "--output", str(directory)]) for directory in outputs]
+        statuses = [future.result(timeout=90) for future in futures]
+    assert Counter(opened) == Counter(study.CONFIRMATION_FAMILIES)
+    assert 1 in statuses and all(status in (0, 1) for status in statuses)
+    if failed_preparation:
+        assert statuses == [1, 1] and not e.calls
+    with sqlite3.connect(tabular.ROOT / "benchmarks" / ".cache" / "exposure.sqlite") as connection:
+        reserved = connection.execute("SELECT family_id, COUNT(*) FROM exposure GROUP BY family_id").fetchall()
+    assert dict(reserved) == dict.fromkeys(study.CONFIRMATION_FAMILIES, 1)
 
 
 def test_confirmation_prepare_only_read_only_exposure_check(confirmation):
@@ -1551,6 +1668,7 @@ def test_confirmation_resume_reuses_successes_and_rechecks_raw_source(confirmati
     assert study.main(e.argv) == 0
     original = execution._prepare_dataset
     checks = []
+    reservations = []
 
     def prepare(*args):
         checks.append(args[0]["name"])
@@ -1563,13 +1681,16 @@ def test_confirmation_resume_reuses_successes_and_rechecks_raw_source(confirmati
         def check(self, family, run_id, role):
             assert role == "confirmation"
 
-        def admit(self, *args):
-            pytest.fail("Completed physical jobs must not be admitted/evaluated again")
+        def admit(self, family, run_id, role):
+            assert role == "confirmation"
+            assert family not in checks
+            reservations.append(family)
 
     monkeypatch.setattr(execution, "_prepare_dataset", prepare)
     monkeypatch.setattr(study, "ExposureLedger", Ledger)
     assert study.main(e.resume) == 0
     assert checks == list(study.CONFIRMATION_FAMILIES)
+    assert reservations == checks
     assert len(e.calls) == 72 and len(results(e)["rows"]) == 96
 
 

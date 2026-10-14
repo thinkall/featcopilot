@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import re
+from collections.abc import Mapping
 from typing import Literal
 
 import numpy as np
@@ -19,6 +20,17 @@ from sklearn.utils.validation import check_is_fitted
 from featcopilot.utils.numeric_clipping import NumericQuantileClipper
 
 CategoricalEncoding = Literal["one_hot", "target"]
+
+
+def encode_class_weights(weights: Mapping[object, object], classes: np.ndarray) -> dict[int, object]:
+    """Copy original-label weights into the fitted contiguous class vocabulary."""
+    positions = {label: index for index, label in enumerate(classes)}
+    encoded = {}
+    for label, weight in weights.items():
+        if label not in positions:
+            raise ValueError("class_weight contains a key absent from the original training labels")
+        encoded[positions[label]] = copy.deepcopy(weight)
+    return encoded
 
 
 def validate_categorical_encoding(value: object) -> CategoricalEncoding:
@@ -44,7 +56,7 @@ def _category_token(value: object) -> str | float:
 def normalize_categorical_frame(X: pd.DataFrame) -> pd.DataFrame:
     """Normalize scalar category types and missingness without learning statistics."""
     X = validate_classification_frame(X)
-    return X.apply(lambda column: column.astype(object).map(_category_token))
+    return X.apply(lambda column: column.astype(object).map(_category_token)).astype(object)
 
 
 def _make_target_encoder(target_type: Literal["binary", "multiclass"], random_state: int) -> BaseEstimator:
