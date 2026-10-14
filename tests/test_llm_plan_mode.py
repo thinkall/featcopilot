@@ -582,11 +582,11 @@ async def test_isolated_sync_bridge_cancels_a_hung_coroutine():
             cancelled.append(True)
 
     before = time.monotonic()
-    with pytest.raises(TimeoutError) as caught:
+    with pytest.raises(asyncio.TimeoutError) as caught:
         client._run_async(hang())
     assert "request timeout 0.03 seconds" in str(caught.value)
     assert "bridge" in str(caught.value)
-    assert isinstance(caught.value.__cause__, TimeoutError)
+    assert isinstance(caught.value.__cause__, asyncio.TimeoutError)
     assert time.monotonic() - before < 2
     assert cancelled == [True]
 

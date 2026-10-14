@@ -268,3 +268,18 @@ environment and 133 plan tests in the SDK 1.0 environment; 16 inference/pickle
 cases also passed with CI-style dependencies. The wheel rebuilt successfully.
 These are CI repairs within the completed capped review, not a third review
 attempt. A new published matrix remains the final remote gate.
+
+### Driver Python 3.10 timeout assertion follow-up
+
+Run `38618933772` passed complete tests/types on Python 3.11, 3.12 and 3.13,
+plus pre-commit and both Codecov checks. Python 3.10 passed types and reached
+one remaining test failure: its `asyncio.TimeoutError` is distinct from the
+built-in `TimeoutError` (the classes became aliases in Python 3.11).
+
+The SDK-independent hung-coroutine test now asserts the actual
+`asyncio.wait_for` exception and chained cause using `asyncio.TimeoutError`.
+Cancellation, contextual duration and elapsed-time assertions are unchanged.
+Production exception identity is intentionally preserved; no runtime code,
+timeout bounds or SDK requirements changed. The entire plan-mode module
+passed 133 tests in each installed SDK environment, and the wheel rebuilt.
+Actual Python 3.10 execution remains the fresh remote CI gate.
