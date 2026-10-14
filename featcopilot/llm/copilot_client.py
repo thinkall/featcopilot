@@ -192,7 +192,8 @@ class CopilotFeatureClient:
 
             async def send(session: CopilotSession) -> str:
                 event = await session.send_and_wait(prompt, timeout=self.config.timeout)
-                return plan_message(event).content
+                content: str = plan_message(event).content
+                return content
 
             return await self._plan_transport.request(self.config.model, self.config.timeout, send)
 

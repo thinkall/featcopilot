@@ -243,3 +243,28 @@ types, wheel isolation, mandatory pre-commit and explicit-path publication.
 - Publication and a fresh remote Python 3.10-3.13 CI matrix follow this local
   gate. No merge, default promotion, new benchmark measurement or SOTA claim
   is part of this review completion.
+
+### Driver published CI follow-up
+
+The first published matrix, run `38614776818` on `08317c7`, exposed two
+cross-environment issues not reproduced by the pinned local full-suite run:
+
+- Python 3.10 intentionally has no Copilot SDK. Mypy consequently sees the
+  imported SDK message type as `Any`; the isolated callback now gives its
+  already SDK-validated text an explicit local `str` annotation. No SDK
+  dependency, runtime coercion, fallback or ignored type error was added.
+  A missing-SDK type-check configuration reproduced the exact error before
+  the fix and passed all 52 package files afterward; installed-SDK typing
+  also passed all 52 files.
+- Linux BLAS batch-versus-singleton prediction arithmetic differed by at most
+  `1.11e-16` in the new missing-only target-encoding test. The test now asserts
+  **exact equality of encoded model inputs**, and applies the already existing
+  public probability tolerances (`atol=1e-15`, `rtol=1e-14`) after the learner.
+  This targets encoding invariance without requiring bit-identical matrix
+  multiplication. Production prediction and preprocessing code are unchanged.
+
+The follow-up passed 150 relevant plan/inference tests in the SDK 0.3
+environment and 133 plan tests in the SDK 1.0 environment; 16 inference/pickle
+cases also passed with CI-style dependencies. The wheel rebuilt successfully.
+These are CI repairs within the completed capped review, not a third review
+attempt. A new published matrix remains the final remote gate.

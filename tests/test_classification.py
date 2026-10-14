@@ -78,9 +78,16 @@ def test_target_encoded_classifier_accepts_missing_only_inference_batches(classe
     classifier = _classifier(engineered=engineered).set_params(categorical_encoding="target").fit(X, y)
     query = X.iloc[:3].copy()
     query.loc[query.index[1], "category"] = None
+    for member in classifier.estimators_:
+        preprocessing = member.model_[:-1]
+        encoded = preprocessing.transform(member._features(query))
+        encoded_singletons = np.vstack(
+            [preprocessing.transform(member._features(query.iloc[[i]])) for i in range(len(query))]
+        )
+        np.testing.assert_array_equal(encoded_singletons, encoded)
     whole = classifier.predict_proba(query)
     singletons = np.vstack([classifier.predict_proba(query.iloc[[i]]) for i in range(len(query))])
-    np.testing.assert_array_equal(singletons, whole)
+    np.testing.assert_allclose(singletons, whole, atol=1e-15, rtol=1e-14)
 
 
 @pytest.mark.parametrize("mode", ["single", "subsample85", "raw_fe_average"])
