@@ -9,6 +9,7 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
+site/
 develop-eggs/
 dist/
 downloads/
@@ -53,6 +54,7 @@ coverage.xml
 # Environments
 .env
 .venv
+.venv-benchmark/
 env/
 venv/
 ENV/
@@ -87,5 +89,63 @@ openfe_tmp_data*
 test.py
 mlruns
 *.log
+# Per-case scratch files and logs; keep run-level benchmark evidence visible.
+benchmarks/tabular-results/*/*/
+# Hidden pytest scratch runs are not published benchmark evidence.
+benchmarks/tabular-results/.*/
+# Archive raw fold evidence as results.json.gz for version control.
+benchmarks/tabular-results/*/results.json
+# Operational cell checkpoints remain local; result archives retain the evidence.
+benchmarks/tabular-results/*/state.json
+# Large raw resume artifacts; exact numbered public archives remain visible.
+benchmarks/tabular-results/2026-09-22-full-reference-development/manifest.json
+benchmarks/tabular-results/2026-09-22-full-reference-development/source.zip
+benchmarks/tabular-results/2026-09-23-extended-development/manifest.json
+benchmarks/tabular-results/2026-09-23-extended-development/source.zip
+benchmarks/tabular-results/2026-09-23-joint-importance-development/manifest.json
+benchmarks/tabular-results/2026-09-23-joint-importance-development/source.zip
+benchmarks/tabular-results/2026-09-24-frozen-native-confirmation/manifest.json
+benchmarks/tabular-results/2026-09-24-frozen-native-confirmation/source.zip
+benchmarks/tabular-results/2026-09-24-logistic-worker-efficiency/manifest.json
+benchmarks/tabular-results/2026-09-24-logistic-worker-efficiency/source.zip
+benchmarks/tabular-results/2026-09-24-frequency-development/manifest.json
+benchmarks/tabular-results/2026-09-24-frequency-development/source.zip
+benchmarks/tabular-results/2026-09-28-frequency-iid-confirmation/manifest.json
+benchmarks/tabular-results/2026-09-28-frequency-iid-confirmation/source.zip
+benchmarks/tabular-results/2026-09-29-training-selection-audit/source.zip
+benchmarks/tabular-results/2026-09-29-aligned-development/manifest.json
+benchmarks/tabular-results/2026-09-29-aligned-development/source.zip
+benchmarks/tabular-results/2026-09-29-aligned-training-audit/source.zip
+benchmarks/tabular-results/2026-09-29-aligned-training-audit/record-11.json
+benchmarks/tabular-results/2026-09-29-aligned-training-audit/record-14.json
+benchmarks/tabular-results/2026-09-29-aligned-training-audit/record-17.json
+benchmarks/tabular-results/2026-09-29-robust-development/manifest.json
+benchmarks/tabular-results/2026-09-29-robust-development/source.zip
+benchmarks/tabular-results/2026-09-29-bagged-development/manifest.json
+benchmarks/tabular-results/2026-09-29-bagged-development/source.zip
+benchmarks/tabular-results/2026-09-30-fixed-plan-development/manifest.json
+benchmarks/tabular-results/2026-09-30-fixed-plan-development/source.zip
+benchmarks/tabular-results/2026-09-30-robust-confirmation/manifest.json
+benchmarks/tabular-results/2026-09-30-robust-confirmation/source.zip
+benchmarks/tabular-results/2026-10-01-calibration-development/manifest.json
+benchmarks/tabular-results/2026-10-01-calibration-development/source.zip
+benchmarks/tabular-results/2026-10-01-calibration-replication/manifest.json
+benchmarks/tabular-results/2026-10-01-calibration-replication/source.zip
+benchmarks/tabular-results/2026-10-03-subsample85-development/manifest.json
+benchmarks/tabular-results/2026-10-03-subsample85-development/source.zip
+benchmarks/tabular-results/2026-10-03-qualified-policy-confirmation/manifest.json
+benchmarks/tabular-results/2026-10-03-qualified-policy-confirmation/source.zip
+benchmarks/tabular-results/2026-10-03-classifier-extraction-parity/manifest.json
+benchmarks/tabular-results/2026-10-03-classifier-extraction-parity/source.zip
+benchmarks/tabular-results/2026-10-03-target-encoding-development/manifest.json
+benchmarks/tabular-results/2026-10-03-target-encoding-development/source.zip
+benchmarks/tabular-results/2026-10-04-oof-blend-development/manifest.json
+benchmarks/tabular-results/2026-10-04-oof-blend-development/source.zip
+benchmarks/tabular-results/2026-10-04-fixed-average-development/manifest.json
+benchmarks/tabular-results/2026-10-04-fixed-average-development/source.zip
+benchmarks/tabular-results/2026-10-04-thoracic-fixed-average-confirmation/manifest.json
+benchmarks/tabular-results/2026-10-04-thoracic-fixed-average-confirmation/source.zip
+benchmarks/tabular-results/2026-10-04-autofeat-safe-scale-diagnostic/source.zip
+benchmarks/tabular-results/2026-10-08-regression-training-audit/source.zip
 *.mp4
 final_video_frames/

@@ -1,0 +1,3343 @@
+{
+  "schema_version": 1,
+  "name": "fresh-origin-reservation-audit-20260924",
+  "family_registry": "../families.json",
+  "purpose": "Bounded metadata-only evidence for ten new independently canonical origins. No dataset payloads, split payloads, model/LLM calls or project performance results were accessed.",
+  "selection_policy": {
+    "quotas": {
+      "regression": 4,
+      "binary": 3,
+      "multiclass": 3
+    },
+    "actual_selected": {
+      "regression": 4,
+      "binary": 3,
+      "multiclass": 3
+    },
+    "shortfalls": {
+      "regression": 0,
+      "binary": 0,
+      "multiclass": 0
+    },
+    "eligible_pool_order_by_stratum": {
+      "regression": [
+        "communities-crime",
+        "computer-hardware-performance",
+        "forest-fires-montesinho",
+        "infrared-oral-temperature"
+      ],
+      "binary": [
+        "australian-credit-approval",
+        "indian-liver-patients",
+        "ionosphere-radar"
+      ],
+      "multiclass": [
+        "contraceptive-method-choice",
+        "vertebral-column",
+        "wall-following-robot"
+      ]
+    },
+    "within_stratum_order": "ASCII canonical family_id ascending",
+    "quota_redistribution": false,
+    "method": "Choose the first at most quota[k] completely audited eligible origins per stratum. Incomplete audits are pending, not eligible. No model outcomes, leaderboard rankings or cross-stratum transfers.",
+    "eligibility": {
+      "maximum_rows": 50000,
+      "maximum_predictors": 200,
+      "minimum_class_count": 30,
+      "split_policy": [
+        "iid",
+        "official"
+      ],
+      "origin_kind": "observational",
+      "primary_rights_required": true,
+      "schema_reviewed": true,
+      "excluded": [
+        "prior canonical registry/history/ledger union",
+        "source aliases/mirrors",
+        "toy image-only panels",
+        "simulation or synthetic quota substitutes"
+      ]
+    }
+  },
+  "selected_origin_audits": [
+    {
+      "family_id": "communities-crime",
+      "eligible": true,
+      "selected": true,
+      "stratum": "regression",
+      "canonical_origin": "1990 US Census/LEMAS and 1995 FBI UCR community-level compilation by Michael Redmond.",
+      "aliases": [
+        "communities_and_crime",
+        "us_crime"
+      ],
+      "source_ids": [
+        "uci:183",
+        "openml:42730",
+        "openml-task:359945"
+      ],
+      "prior_registry_matches": [],
+      "prior_inventory_source_matches": [],
+      "historical_name_matches": [],
+      "ledger_matches": [],
+      "rights_evidence": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI dataset publication explicitly licenses this data under CC BY 4.0; the OpenML Public/license badge is not the grant relied upon.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/183/communities+and+crime",
+          "https://archive.ics.uci.edu/api/dataset?id=183"
+        ],
+        "primary_page_sha256": "e1e95e3084f78cff32084ce67647b19dfac9d0cef1d7c42e409850f0f86e1570",
+        "reviewed_on": "2026-09-24",
+        "scope": "Metadata-only candidate reservation now; later acquisition/use only after explicit parent release and protocol freeze. Local scientific processing only, no hosted row sharing or individual high-stakes deployment.",
+        "obligations": "Retain original source/contributor attribution, dataset and paper citations, and describe all curation/target/timing limitations."
+      },
+      "metadata_evidence": [
+        {
+          "kind": "primary_uci_metadata",
+          "url": "https://archive.ics.uci.edu/api/dataset?id=183",
+          "sha256": "1bdb484e17f38af829a7c0d71a4246f4c97094398321d2f08d24ca031853fc6b"
+        },
+        {
+          "kind": "official_dataset",
+          "url": "https://www.openml.org/api/v1/json/data/42730",
+          "sha256": "d6a75700170d1ed38fa516e2c54baf12eb74929875b5f6b1e301bfa132ce1d6e"
+        },
+        {
+          "kind": "official_features",
+          "url": "https://www.openml.org/api/v1/json/data/features/42730",
+          "sha256": "946c262df314948564ac2149e6a60246c83954264a5bf489effd1644a4eae6a3"
+        },
+        {
+          "kind": "official_qualities",
+          "url": "https://www.openml.org/api/v1/json/data/qualities/42730",
+          "sha256": "61c0c84c7726400cc8948f1db03091bd6b10ce0aeae4b3c6fe2d99b34c7a8558"
+        },
+        {
+          "kind": "official_task",
+          "url": "https://www.openml.org/api/v1/json/task/359945",
+          "sha256": "19fc553107ed947b90b9775786d8afb242d29234f828f5b2bcb63dc2f544e6ab"
+        }
+      ],
+      "metadata_profile": {
+        "rows": 1994,
+        "predictors": 122,
+        "stratum": "regression",
+        "classes": null,
+        "minimum_class_count": null,
+        "class_labels": null,
+        "profile_kind": "official_reported_metadata_not_recomputed_from_payload",
+        "payload_checked": false,
+        "selected_fold_class_support_checked": false
+      },
+      "reviewed_target": "ViolentCrimesPerPop",
+      "reviewed_categorical_columns": [],
+      "excluded_columns": [
+        "state",
+        "county",
+        "community",
+        "communityname",
+        "fold"
+      ],
+      "class_support_limit": "Metadata proves the overall minimum >=30 for classification; selected fold support and source payload integrity remain unchecked pending parent release.",
+      "timing_and_origin_limit": "Remove all five primary-source nonpredictive identifiers/fold fields, including STRING communityname. Retain original normalization/missingness. Source selection and recorded-crime biases must be disclosed; no deployment or geographic-disjoint generalization is approved."
+    },
+    {
+      "family_id": "computer-hardware-performance",
+      "eligible": true,
+      "selected": true,
+      "stratum": "regression",
+      "canonical_origin": "UCI Computer Hardware published relative performance (PRP), 209 distinct machine specifications from the 1987 hardware study.",
+      "aliases": [
+        "machine_cpu",
+        "hardware-prp"
+      ],
+      "source_ids": [
+        "uci:29",
+        "openml:230",
+        "openml-task:2318"
+      ],
+      "prior_registry_matches": [],
+      "prior_inventory_source_matches": [],
+      "historical_name_matches": [],
+      "ledger_matches": [],
+      "rights_evidence": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI dataset publication explicitly licenses this data under CC BY 4.0; the OpenML Public/license badge is not the grant relied upon.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/29/computer+hardware",
+          "https://archive.ics.uci.edu/api/dataset?id=29"
+        ],
+        "primary_page_sha256": "ca075e010c166b618045f238372248cd939909c01466f7f22a82cb05f13ddea1",
+        "reviewed_on": "2026-09-24",
+        "scope": "Metadata-only candidate reservation now; later acquisition/use only after explicit parent release and protocol freeze. Local scientific processing only, no hosted row sharing or individual high-stakes deployment.",
+        "obligations": "Retain original source/contributor attribution, dataset and paper citations, and describe all curation/target/timing limitations."
+      },
+      "metadata_evidence": [
+        {
+          "kind": "primary_uci_metadata",
+          "url": "https://archive.ics.uci.edu/api/dataset?id=29",
+          "sha256": "3f880e3b6332d8c446f0a30153fb31648bfdae745d0d235cdc4643a6239b52fa"
+        },
+        {
+          "kind": "official_dataset",
+          "url": "https://www.openml.org/api/v1/json/data/230",
+          "sha256": "8d2cbe14385cf1975ffc0825a28107acc3d8338c2c7088aa43238c3c68ba4a3d"
+        },
+        {
+          "kind": "official_features",
+          "url": "https://www.openml.org/api/v1/json/data/features/230",
+          "sha256": "bf98357d33f30c828694d03728108e26c6433a4087389f68e04d428833f10681"
+        },
+        {
+          "kind": "official_qualities",
+          "url": "https://www.openml.org/api/v1/json/data/qualities/230",
+          "sha256": "4b4966f7d5bf82f7be3c06944f5bad15c980edd49b1885d4aa7a7aac26ec2a7c"
+        },
+        {
+          "kind": "official_task",
+          "url": "https://www.openml.org/api/v1/json/task/2318",
+          "sha256": "3242345c0e10716eb51ddb975ee004cccf8b4c28b2a4b5a807871ea1146b684a"
+        }
+      ],
+      "metadata_profile": {
+        "rows": 209,
+        "predictors": 6,
+        "stratum": "regression",
+        "classes": null,
+        "minimum_class_count": null,
+        "class_labels": null,
+        "profile_kind": "official_reported_metadata_not_recomputed_from_payload",
+        "payload_checked": false,
+        "selected_fold_class_support_checked": false
+      },
+      "reviewed_target": "class",
+      "reviewed_categorical_columns": [],
+      "excluded_columns": [],
+      "class_support_limit": "Metadata proves the overall minimum >=30 for classification; selected fold support and source payload integrity remain unchecked pending parent release.",
+      "timing_and_origin_limit": "Different origin from exposed cpu-act, which is Sun Sparcstation 20/712 activity telemetry predicting usr. Do not treat ERP fitted by the original authors as a predictor or a new outcome. No future hardware-generation claim."
+    },
+    {
+      "family_id": "forest-fires-montesinho",
+      "eligible": true,
+      "selected": true,
+      "stratum": "regression",
+      "canonical_origin": "Observed forest-fire records in Montesinho natural park, northeast Portugal.",
+      "aliases": [
+        "forest_fires",
+        "montesinho-burned-area"
+      ],
+      "source_ids": [
+        "uci:162"
+      ],
+      "prior_registry_matches": [],
+      "prior_inventory_source_matches": [],
+      "historical_name_matches": [],
+      "ledger_matches": [],
+      "rights_evidence": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI dataset publication explicitly licenses this data under CC BY 4.0; the OpenML Public/license badge is not the grant relied upon.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/162/forest+fires",
+          "https://archive.ics.uci.edu/api/dataset?id=162"
+        ],
+        "primary_page_sha256": "021fc4c970c87908e5e8b8053e511b9125d2e197c7502df3584b541f69a95e97",
+        "reviewed_on": "2026-09-24",
+        "scope": "Metadata-only candidate reservation now; later acquisition/use only after explicit parent release and protocol freeze. Local scientific processing only, no hosted row sharing or individual high-stakes deployment.",
+        "obligations": "Retain original source/contributor attribution, dataset and paper citations, and describe all curation/target/timing limitations."
+      },
+      "metadata_evidence": [
+        {
+          "kind": "primary_uci_metadata",
+          "url": "https://archive.ics.uci.edu/api/dataset?id=162",
+          "sha256": "b40871b9d420424d1ca574604eaa056c0f5f6d13a16486e6eb3802a80f7afe6d"
+        }
+      ],
+      "metadata_profile": {
+        "rows": 517,
+        "predictors": 12,
+        "stratum": "regression",
+        "classes": null,
+        "minimum_class_count": null,
+        "class_labels": null,
+        "profile_kind": "official_reported_metadata_not_recomputed_from_payload",
+        "payload_checked": false,
+        "selected_fold_class_support_checked": false
+      },
+      "reviewed_target": "area",
+      "reviewed_categorical_columns": [
+        "month",
+        "day"
+      ],
+      "excluded_columns": [],
+      "class_support_limit": "Metadata proves the overall minimum >=30 for classification; selected fold support and source payload integrity remain unchecked pending parent release.",
+      "timing_and_origin_limit": "Month/day-of-week are not exact event timestamps. IID descriptive response regression, not spatial/event-disjoint or ahead-of-weather forecasting. Native zero-heavy response is retained; no outcome-based filtering."
+    },
+    {
+      "family_id": "infrared-oral-temperature",
+      "eligible": true,
+      "selected": true,
+      "stratum": "regression",
+      "canonical_origin": "PhysioNet Facial and oral temperature data v1.0.0, IRT-1 cohort of 1020 de-identified volunteer records.",
+      "aliases": [
+        "infrared_thermography_temperature",
+        "face-oral-temp-data"
+      ],
+      "source_ids": [
+        "uci:925",
+        "physionet:face-oral-temp-data:1.0.0"
+      ],
+      "prior_registry_matches": [],
+      "prior_inventory_source_matches": [],
+      "historical_name_matches": [],
+      "ledger_matches": [],
+      "rights_evidence": {
+        "status": "approved",
+        "license": "CC0-1.0",
+        "access": "public",
+        "approval_basis": "UCI explicitly delegates licensing to the linked original data. PhysioNet face-oral-temp-data v1.0.0 is Open Access with an explicit CC0 1.0 grant for the de-identified data files; no UCI default license is assumed.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/925/infrared+thermography+temperature+dataset",
+          "https://physionet.org/content/face-oral-temp-data/1.0.0/",
+          "https://physionet.org/content/face-oral-temp-data/view-license/1.0.0/"
+        ],
+        "primary_page_sha256": "1e419b42921384d551c10e15af2542639964205cef509b7bf5c6837a6d5b599e",
+        "reviewed_on": "2026-09-24",
+        "scope": "Metadata-only candidate reservation now; later acquisition/use only after explicit parent release and protocol freeze. Local scientific processing only, no hosted row sharing or individual high-stakes deployment.",
+        "obligations": "Retain original source/contributor attribution, dataset and paper citations, and describe all curation/target/timing limitations.",
+        "primary_license_sha256": "b50ed9146ede4dcf431a4717f549b940e264a2e73d69b242cef3b61ebf85ce4e"
+      },
+      "metadata_evidence": [
+        {
+          "kind": "primary_uci_metadata",
+          "url": "https://archive.ics.uci.edu/api/dataset?id=925",
+          "sha256": "e4f80bdf53f7b1824c9bf49943f5960ee00b910f4223ffd1967ae90067152c26"
+        }
+      ],
+      "metadata_profile": {
+        "rows": 1020,
+        "predictors": 33,
+        "stratum": "regression",
+        "classes": null,
+        "minimum_class_count": null,
+        "class_labels": null,
+        "profile_kind": "official_reported_metadata_not_recomputed_from_payload",
+        "payload_checked": false,
+        "selected_fold_class_support_checked": false
+      },
+      "reviewed_target": "aveOralM",
+      "reviewed_categorical_columns": [
+        "Gender",
+        "Age",
+        "Ethnicity"
+      ],
+      "excluded_columns": [
+        "SubjectID",
+        "aveOralF"
+      ],
+      "class_support_limit": "Metadata proves the overall minimum >=30 for classification; selected fold support and source payload integrity remain unchecked pending parent release.",
+      "timing_and_origin_limit": "This is a heterogeneous clinical measurement/calibration table, not a homogeneous pixel benchmark. IRT-2 and repeated camera/location variants share this origin and are not separate families. No identifiable images, subject reidentification, individual clinical use or hosted row transfer is approved."
+    },
+    {
+      "family_id": "australian-credit-approval",
+      "eligible": true,
+      "selected": true,
+      "stratum": "binary",
+      "canonical_origin": "UCI Australian/Statlog Credit Approval, the same original application collection as UCI Credit Approval 27.",
+      "aliases": [
+        "Australian",
+        "credit-a",
+        "credit-approval-australian"
+      ],
+      "source_ids": [
+        "uci:143",
+        "uci:27",
+        "openml:29",
+        "openml:40981",
+        "openml-task:146818",
+        "openml-task:29"
+      ],
+      "prior_registry_matches": [],
+      "prior_inventory_source_matches": [],
+      "historical_name_matches": [],
+      "ledger_matches": [],
+      "rights_evidence": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI dataset publication explicitly licenses this data under CC BY 4.0; the OpenML Public/license badge is not the grant relied upon.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/27/credit+approval",
+          "https://archive.ics.uci.edu/api/dataset?id=27"
+        ],
+        "primary_page_sha256": "e95e404da1b24dc0cd952e3768b98c1790f75b6f81cf225c19ec908a08febefc",
+        "reviewed_on": "2026-09-24",
+        "scope": "Metadata-only candidate reservation now; later acquisition/use only after explicit parent release and protocol freeze. Local scientific processing only, no hosted row sharing or individual high-stakes deployment.",
+        "obligations": "Retain original source/contributor attribution, dataset and paper citations, and describe all curation/target/timing limitations."
+      },
+      "metadata_evidence": [
+        {
+          "kind": "primary_uci_metadata",
+          "url": "https://archive.ics.uci.edu/api/dataset?id=27",
+          "sha256": "c86c38c9f063b6f97e9ea40572efeb041f7e2dab354dc5ed5bfdbca8517fd476"
+        },
+        {
+          "kind": "official_dataset",
+          "url": "https://www.openml.org/api/v1/json/data/29",
+          "sha256": "3799658e93833bfd4ad33525c6438212af9d482021e5fe093424a1defd027638"
+        },
+        {
+          "kind": "official_features",
+          "url": "https://www.openml.org/api/v1/json/data/features/29",
+          "sha256": "4af9b723f27a8285291c9fd7382cd4ac884e22d9dea2607d8a0735ef2bfa9d89"
+        },
+        {
+          "kind": "official_qualities",
+          "url": "https://www.openml.org/api/v1/json/data/qualities/29",
+          "sha256": "5e909b2db7bbc88779779b6f670f45e2312fd92130aa7d7eb489d31365f0a5d9"
+        },
+        {
+          "kind": "official_task",
+          "url": "https://www.openml.org/api/v1/json/task/29",
+          "sha256": "72827fcc9677776389a985c2036af44094e98e3dc04e492ea8e905d689ae0ab4"
+        }
+      ],
+      "metadata_profile": {
+        "rows": 690,
+        "predictors": 15,
+        "stratum": "binary",
+        "classes": 2,
+        "minimum_class_count": 307,
+        "class_labels": [
+          "+",
+          "-"
+        ],
+        "profile_kind": "official_reported_metadata_not_recomputed_from_payload",
+        "payload_checked": false,
+        "selected_fold_class_support_checked": false
+      },
+      "reviewed_target": "class",
+      "reviewed_categorical_columns": [
+        "A1",
+        "A4",
+        "A5",
+        "A6",
+        "A7",
+        "A9",
+        "A10",
+        "A12",
+        "A13"
+      ],
+      "excluded_columns": [],
+      "class_support_limit": "Metadata proves the overall minimum >=30 for classification; selected fold support and source payload integrity remain unchecked pending parent release.",
+      "timing_and_origin_limit": "Prefer original UCI27/OpenML29 with its 67 metadata-reported missing values preserved over Statlog/OpenML40981's undocumented filling/normalization. The latter remains a same-origin alias, not another candidate. Anonymized approval annotation, not future default or operational credit-risk evaluation."
+    },
+    {
+      "family_id": "indian-liver-patients",
+      "eligible": true,
+      "selected": true,
+      "stratum": "binary",
+      "canonical_origin": "ILPD clinical records collected in northeast Andhra Pradesh, India.",
+      "aliases": [
+        "ilpd",
+        "indian-liver-patient-dataset"
+      ],
+      "source_ids": [
+        "uci:225",
+        "openml:1480",
+        "openml-task:9971"
+      ],
+      "prior_registry_matches": [],
+      "prior_inventory_source_matches": [],
+      "historical_name_matches": [],
+      "ledger_matches": [],
+      "rights_evidence": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI dataset publication explicitly licenses this data under CC BY 4.0; the OpenML Public/license badge is not the grant relied upon.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/225/ilpd+indian+liver+patient+dataset",
+          "https://archive.ics.uci.edu/api/dataset?id=225"
+        ],
+        "primary_page_sha256": "2d66c055b2f1bee7cc302a6fae21263bebda3e1880277a885917af6c8eb166c6",
+        "reviewed_on": "2026-09-24",
+        "scope": "Metadata-only candidate reservation now; later acquisition/use only after explicit parent release and protocol freeze. Local scientific processing only, no hosted row sharing or individual high-stakes deployment.",
+        "obligations": "Retain original source/contributor attribution, dataset and paper citations, and describe all curation/target/timing limitations."
+      },
+      "metadata_evidence": [
+        {
+          "kind": "primary_uci_metadata",
+          "url": "https://archive.ics.uci.edu/api/dataset?id=225",
+          "sha256": "82458c6693a2f1b032ca5a914277bad31578782e072f799d0fdb68010a806ac8"
+        },
+        {
+          "kind": "official_dataset",
+          "url": "https://www.openml.org/api/v1/json/data/1480",
+          "sha256": "eb06f21a94d4abbda50ab060dc9b5b5834dfebdd219ecbc0421101d9663d9994"
+        },
+        {
+          "kind": "official_features",
+          "url": "https://www.openml.org/api/v1/json/data/features/1480",
+          "sha256": "365142d85932d62880fa985271bbf6f9f0e2cb5f7953089651a4e21d72c476e6"
+        },
+        {
+          "kind": "official_qualities",
+          "url": "https://www.openml.org/api/v1/json/data/qualities/1480",
+          "sha256": "728c62c5457a46f3668fe37ca45604f75508b3748466237b4c2b70f81763294c"
+        },
+        {
+          "kind": "official_task",
+          "url": "https://www.openml.org/api/v1/json/task/9971",
+          "sha256": "041fe9142d0030f0431eb551b56eccdab538c8c164f828d74dc13c4f0119a2f2"
+        }
+      ],
+      "metadata_profile": {
+        "rows": 583,
+        "predictors": 10,
+        "stratum": "binary",
+        "classes": 2,
+        "minimum_class_count": 167,
+        "class_labels": [
+          "1",
+          "2"
+        ],
+        "profile_kind": "official_reported_metadata_not_recomputed_from_payload",
+        "payload_checked": false,
+        "selected_fold_class_support_checked": false
+      },
+      "reviewed_target": "Class",
+      "reviewed_categorical_columns": [
+        "V2"
+      ],
+      "excluded_columns": [],
+      "class_support_limit": "Metadata proves the overall minimum >=30 for classification; selected fold support and source payload integrity remain unchecked pending parent release.",
+      "timing_and_origin_limit": "Static clinical-record classification; no pre-test onset, mortality, treatment recommendation or uniform baseline-timing claim. Source metadata reports no missing values in this processed OpenML version; no missing-value preprocessing is newly inferred."
+    },
+    {
+      "family_id": "ionosphere-radar",
+      "eligible": true,
+      "selected": true,
+      "stratum": "binary",
+      "canonical_origin": "Johns Hopkins/Goose Bay radar return experiment.",
+      "aliases": [
+        "ionosphere"
+      ],
+      "source_ids": [
+        "uci:52",
+        "openml:59",
+        "openml-task:57"
+      ],
+      "prior_registry_matches": [],
+      "prior_inventory_source_matches": [],
+      "historical_name_matches": [],
+      "ledger_matches": [],
+      "rights_evidence": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI dataset publication explicitly licenses this data under CC BY 4.0; the OpenML Public/license badge is not the grant relied upon.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/52/ionosphere",
+          "https://archive.ics.uci.edu/api/dataset?id=52"
+        ],
+        "primary_page_sha256": "ef9e40a9c40b1075504c2202fe9610430959c62542d250653c749a3706fff4e5",
+        "reviewed_on": "2026-09-24",
+        "scope": "Metadata-only candidate reservation now; later acquisition/use only after explicit parent release and protocol freeze. Local scientific processing only, no hosted row sharing or individual high-stakes deployment.",
+        "obligations": "Retain original source/contributor attribution, dataset and paper citations, and describe all curation/target/timing limitations."
+      },
+      "metadata_evidence": [
+        {
+          "kind": "primary_uci_metadata",
+          "url": "https://archive.ics.uci.edu/api/dataset?id=52",
+          "sha256": "b9659d2e4129196c80a56587b9b14932c1d3b2e988925b51fe0e31f867862ae9"
+        },
+        {
+          "kind": "official_dataset",
+          "url": "https://www.openml.org/api/v1/json/data/59",
+          "sha256": "2ba2e1a42907b8cfaf4a13004732e403253966042ded1d261ca0b2e889647930"
+        },
+        {
+          "kind": "official_features",
+          "url": "https://www.openml.org/api/v1/json/data/features/59",
+          "sha256": "172d522d52cc15da9909f74f4e9ab79a21f7a2397cb1a3c6a1b0bf3113e827ad"
+        },
+        {
+          "kind": "official_qualities",
+          "url": "https://www.openml.org/api/v1/json/data/qualities/59",
+          "sha256": "909be03ae520a4d01f4b417d16aaf3b88de8f8a07d3165128bfb3d113054c8fd"
+        },
+        {
+          "kind": "official_task",
+          "url": "https://www.openml.org/api/v1/json/task/57",
+          "sha256": "0ec03e2cede2854f61d3db9e2137ab05a1bfe2ad9adceb3d8d2e0751da6446fe"
+        }
+      ],
+      "metadata_profile": {
+        "rows": 351,
+        "predictors": 34,
+        "stratum": "binary",
+        "classes": 2,
+        "minimum_class_count": 126,
+        "class_labels": [
+          "b",
+          "g"
+        ],
+        "profile_kind": "official_reported_metadata_not_recomputed_from_payload",
+        "payload_checked": false,
+        "selected_fold_class_support_checked": false
+      },
+      "reviewed_target": "class",
+      "reviewed_categorical_columns": [],
+      "excluded_columns": [],
+      "class_support_limit": "Metadata proves the overall minimum >=30 for classification; selected fold support and source payload integrity remain unchecked pending parent release.",
+      "timing_and_origin_limit": "Retain the native measurements, including constants; no performance-driven removal. No unseen-station, independent-pulse or future-period generalization is established."
+    },
+    {
+      "family_id": "contraceptive-method-choice",
+      "eligible": true,
+      "selected": true,
+      "stratum": "multiclass",
+      "canonical_origin": "Subset of the 1987 National Indonesia Contraceptive Prevalence Survey.",
+      "aliases": [
+        "cmc",
+        "contraceptive_method_choice"
+      ],
+      "source_ids": [
+        "uci:30",
+        "openml:23",
+        "openml-task:23"
+      ],
+      "prior_registry_matches": [],
+      "prior_inventory_source_matches": [],
+      "historical_name_matches": [],
+      "ledger_matches": [],
+      "rights_evidence": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI dataset publication explicitly licenses this data under CC BY 4.0; the OpenML Public/license badge is not the grant relied upon.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/30/contraceptive+method+choice",
+          "https://archive.ics.uci.edu/api/dataset?id=30"
+        ],
+        "primary_page_sha256": "5b1ca5db0e26856d1705bedaa3a4dca204b78d591c8167abd6783df28f5e78a9",
+        "reviewed_on": "2026-09-24",
+        "scope": "Metadata-only candidate reservation now; later acquisition/use only after explicit parent release and protocol freeze. Local scientific processing only, no hosted row sharing or individual high-stakes deployment.",
+        "obligations": "Retain original source/contributor attribution, dataset and paper citations, and describe all curation/target/timing limitations."
+      },
+      "metadata_evidence": [
+        {
+          "kind": "primary_uci_metadata",
+          "url": "https://archive.ics.uci.edu/api/dataset?id=30",
+          "sha256": "4b315509e5bf575ac90773e119a88351560a747ad57832c19f5bc1354602d39b"
+        },
+        {
+          "kind": "official_dataset",
+          "url": "https://www.openml.org/api/v1/json/data/23",
+          "sha256": "e05506bb4e476df1e56e2d0e3237790886da8aa2a5b749532cf40c90618eef13"
+        },
+        {
+          "kind": "official_features",
+          "url": "https://www.openml.org/api/v1/json/data/features/23",
+          "sha256": "66f57ab7bbfecd39b57a5107ae047a65e93c84bad84d63606bf29cc5a220b39a"
+        },
+        {
+          "kind": "official_qualities",
+          "url": "https://www.openml.org/api/v1/json/data/qualities/23",
+          "sha256": "d8377ce3974b86fc0008af865664b3dd43fb507f21d570741e8592157316b3d6"
+        },
+        {
+          "kind": "official_task",
+          "url": "https://www.openml.org/api/v1/json/task/23",
+          "sha256": "9b87ad05918698aca5c8478d8f1b6e4265091a5a0b21b2aab6dbb602f8b5fd5b"
+        }
+      ],
+      "metadata_profile": {
+        "rows": 1473,
+        "predictors": 9,
+        "stratum": "multiclass",
+        "classes": 3,
+        "minimum_class_count": 333,
+        "class_labels": [
+          "1",
+          "2",
+          "3"
+        ],
+        "profile_kind": "official_reported_metadata_not_recomputed_from_payload",
+        "payload_checked": false,
+        "selected_fold_class_support_checked": false
+      },
+      "reviewed_target": "Contraceptive_method_used",
+      "reviewed_categorical_columns": [
+        "Wifes_education",
+        "Husbands_education",
+        "Wifes_religion",
+        "Wifes_now_working%3F",
+        "Husbands_occupation",
+        "Standard-of-living_index",
+        "Media_exposure"
+      ],
+      "excluded_columns": [],
+      "class_support_limit": "Metadata proves the overall minimum >=30 for classification; selected fold support and source payload integrity remain unchecked pending parent release.",
+      "timing_and_origin_limit": "Sensitive survey content is approved for local research only; no individual decision-making or reidentification. Preserve source sampling restrictions and native three-way labels."
+    },
+    {
+      "family_id": "vertebral-column",
+      "eligible": true,
+      "selected": true,
+      "stratum": "multiclass",
+      "canonical_origin": "Dr Henrique da Mota's GARO/Les Massues orthopaedic patient dataset, Lyon.",
+      "aliases": [
+        "vertebra-column",
+        "vertebral_column"
+      ],
+      "source_ids": [
+        "uci:212",
+        "openml:1524",
+        "openml:1523",
+        "openml-task:9939"
+      ],
+      "prior_registry_matches": [],
+      "prior_inventory_source_matches": [],
+      "historical_name_matches": [],
+      "ledger_matches": [],
+      "rights_evidence": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI dataset publication explicitly licenses this data under CC BY 4.0; the OpenML Public/license badge is not the grant relied upon.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/212/vertebral+column",
+          "https://archive.ics.uci.edu/api/dataset?id=212"
+        ],
+        "primary_page_sha256": "1b161789a82e0bcfced647f8eb3ba4486e3b201ce6cb73cf90cd08832206960f",
+        "reviewed_on": "2026-09-24",
+        "scope": "Metadata-only candidate reservation now; later acquisition/use only after explicit parent release and protocol freeze. Local scientific processing only, no hosted row sharing or individual high-stakes deployment.",
+        "obligations": "Retain original source/contributor attribution, dataset and paper citations, and describe all curation/target/timing limitations."
+      },
+      "metadata_evidence": [
+        {
+          "kind": "primary_uci_metadata",
+          "url": "https://archive.ics.uci.edu/api/dataset?id=212",
+          "sha256": "bbe4c36b146310babef26bfc1705da4740a851ffe8b0a16d8a2df8807d9a1d9f"
+        },
+        {
+          "kind": "official_dataset",
+          "url": "https://www.openml.org/api/v1/json/data/1523",
+          "sha256": "abd7860f0266232d2cd10f087a0962b4aeb87667050cf60657847759158b505e"
+        },
+        {
+          "kind": "official_features",
+          "url": "https://www.openml.org/api/v1/json/data/features/1523",
+          "sha256": "e47edd2122246f1f428e5a930104042e8f80dea9d32a9a94faab89bd1a151a99"
+        },
+        {
+          "kind": "official_qualities",
+          "url": "https://www.openml.org/api/v1/json/data/qualities/1523",
+          "sha256": "cd2e9dffb28bea77f0a7e8ea7c6bc3f88fef030284494cbc312522e3d1904779"
+        },
+        {
+          "kind": "official_task",
+          "url": "https://www.openml.org/api/v1/json/task/9939",
+          "sha256": "4f85012289b4d9e88ef148b068e8fc1747bf8c53a618bd207262ee57b0067a01"
+        }
+      ],
+      "metadata_profile": {
+        "rows": 310,
+        "predictors": 6,
+        "stratum": "multiclass",
+        "classes": 3,
+        "minimum_class_count": 60,
+        "class_labels": [
+          "1",
+          "2",
+          "3"
+        ],
+        "profile_kind": "official_reported_metadata_not_recomputed_from_payload",
+        "payload_checked": false,
+        "selected_fold_class_support_checked": false
+      },
+      "reviewed_target": "Class",
+      "reviewed_categorical_columns": [],
+      "excluded_columns": [],
+      "class_support_limit": "Metadata proves the overall minimum >=30 for classification; selected fold support and source payload integrity remain unchecked pending parent release.",
+      "timing_and_origin_limit": "The two-class OpenML1524/UCI representation is the SAME origin, not another candidate. Static clinical annotation, not future disease onset or treatment guidance."
+    },
+    {
+      "family_id": "wall-following-robot",
+      "eligible": true,
+      "selected": true,
+      "stratum": "multiclass",
+      "canonical_origin": "SCITOS G5 physical robot, four clockwise wall-following rounds measured with 24 ultrasound sensors.",
+      "aliases": [
+        "wall-robot-navigation",
+        "wall_following_robot_navigation"
+      ],
+      "source_ids": [
+        "uci:194",
+        "openml:1497",
+        "openml-task:9960"
+      ],
+      "prior_registry_matches": [],
+      "prior_inventory_source_matches": [],
+      "historical_name_matches": [],
+      "ledger_matches": [],
+      "rights_evidence": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI dataset publication explicitly licenses this data under CC BY 4.0; the OpenML Public/license badge is not the grant relied upon.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/194/wall+following+robot+navigation+data",
+          "https://archive.ics.uci.edu/api/dataset?id=194"
+        ],
+        "primary_page_sha256": "4d525d4b09eb57ad7679336971cd8621634a9e9b0e02505599b7a5e41ae132d7",
+        "reviewed_on": "2026-09-24",
+        "scope": "Metadata-only candidate reservation now; later acquisition/use only after explicit parent release and protocol freeze. Local scientific processing only, no hosted row sharing or individual high-stakes deployment.",
+        "obligations": "Retain original source/contributor attribution, dataset and paper citations, and describe all curation/target/timing limitations."
+      },
+      "metadata_evidence": [
+        {
+          "kind": "primary_uci_metadata",
+          "url": "https://archive.ics.uci.edu/api/dataset?id=194",
+          "sha256": "a6c143179244d6dd5ac6c58aea07f7155647276b7b9b10e8ff414a9507292e2c"
+        },
+        {
+          "kind": "official_dataset",
+          "url": "https://www.openml.org/api/v1/json/data/1497",
+          "sha256": "046419e99fdafc2d5b826f6d9a2819eb3642ee504fb2ee4e90ea649dae4744dc"
+        },
+        {
+          "kind": "official_features",
+          "url": "https://www.openml.org/api/v1/json/data/features/1497",
+          "sha256": "e4268e67de19946316a8b58c3dfa17ef8354dc25b2d78cb48d7727918d47cd72"
+        },
+        {
+          "kind": "official_qualities",
+          "url": "https://www.openml.org/api/v1/json/data/qualities/1497",
+          "sha256": "7372a0b627615c1058c89e0e9ccd18bf34a51e738f2ae37b8b452e92c84df1db"
+        },
+        {
+          "kind": "official_task",
+          "url": "https://www.openml.org/api/v1/json/task/9960",
+          "sha256": "8a57771006be2d6e4a54c8ed2dcb97d9b6087dd89cfb0a43706c0bee51042513"
+        }
+      ],
+      "metadata_profile": {
+        "rows": 5456,
+        "predictors": 24,
+        "stratum": "multiclass",
+        "classes": 4,
+        "minimum_class_count": 328,
+        "class_labels": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "profile_kind": "official_reported_metadata_not_recomputed_from_payload",
+        "payload_checked": false,
+        "selected_fold_class_support_checked": false
+      },
+      "reviewed_target": "Class",
+      "reviewed_categorical_columns": [],
+      "excluded_columns": [],
+      "class_support_limit": "Metadata proves the overall minimum >=30 for classification; selected fold support and source payload integrity remain unchecked pending parent release.",
+      "timing_and_origin_limit": "Neighboring samples are temporally correlated; no unseen-trajectory/room or closed-loop safety claim. The 24-, 4- and 2-sensor representations share the same sampling steps and origin, not three independent families."
+    }
+  ],
+  "reconnaissance": {
+    "uci_records_inspected": 37,
+    "selected_distinct_uci_origins": 10,
+    "remaining_records": [
+      {
+        "uci_id": 107,
+        "name": "Waveform Database Generator (Version 1)",
+        "source_url": "https://archive.ics.uci.edu/dataset/107/waveform+database+generator+version+1",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "Waveform generator is synthetic; excluded from observational quotas.",
+        "metadata_sha256": "229d307086f83dc00f181ccb8666eab6736e50ed5847dd06c685939304ea3c62"
+      },
+      {
+        "uci_id": 111,
+        "name": "Zoo",
+        "source_url": "https://archive.ics.uci.edu/dataset/111/zoo",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "Primary abstract explicitly labels Zoo artificial; cannot fill observational quota.",
+        "metadata_sha256": "0f933fb3de00877e9cb9174bc9aef309187a53731855c5d4431321c9298809c3"
+      },
+      {
+        "uci_id": 145,
+        "name": "Statlog (Heart)",
+        "source_url": "https://archive.ics.uci.edu/dataset/145/statlog+heart",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "Primary metadata explicitly calls this a differently formatted heart-disease database; potential Cleveland/Statlog overlap excludes it.",
+        "metadata_sha256": "dbde49a99761aeabefeeb58b9166b2859ad2ebeff4f51ac91c1202902c42e6e4"
+      },
+      {
+        "uci_id": 146,
+        "name": "Statlog (Landsat Satellite)",
+        "source_url": "https://archive.ics.uci.edu/dataset/146/statlog+landsat+satellite",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "Satellite neighbourhood pixels; excluded homogeneous image-only panel.",
+        "metadata_sha256": "9d7bcda7b77194cfa7c0ee8c9629b3c14a3a6a15ce3b94a0170232f9806b3491"
+      },
+      {
+        "uci_id": 148,
+        "name": "Statlog (Shuttle)",
+        "source_url": "https://archive.ics.uci.edu/dataset/148/statlog+shuttle",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "58000 rows exceed the row cap; rare-class feasibility not completed.",
+        "metadata_sha256": "b97b7a8e84c4a00056e50dc4b41a24eda209fd1ef0d76a25eb525ed822caf701"
+      },
+      {
+        "uci_id": 149,
+        "name": "Statlog (Vehicle Silhouettes)",
+        "source_url": "https://archive.ics.uci.edu/dataset/149/statlog+vehicle+silhouettes",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "Vehicle silhouette image-only features; also not automatically the paper's unrelated Vehicle identity.",
+        "metadata_sha256": "ca243d87130afdc4a3fb432228c76c7e31c1f858e89459ddb3e1c0e7394558d8"
+      },
+      {
+        "uci_id": 15,
+        "name": "Breast Cancer Wisconsin (Original)",
+        "source_url": "https://archive.ics.uci.edu/dataset/15/breast+cancer+wisconsin+original",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "Original Wisconsin breast-cancer collection shares institution/domain with registered diagnostic collection; cross-collection identity/overlap not resolved, so not used as an independent fresh origin.",
+        "metadata_sha256": "ee82afd3ad879061a46f47eeead396f4d875abad2295eafb2327c66531c20013"
+      },
+      {
+        "uci_id": 151,
+        "name": "Connectionist Bench (Sonar, Mines vs. Rocks)",
+        "source_url": "https://archive.ics.uci.edu/dataset/151/connectionist+bench+sonar+mines+vs+rocks",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "Potential observational sonar candidate; full primary rights/class-support/official-task audit not completed in this bounded pass.",
+        "metadata_sha256": "be5817e5b3220132138882326ebc295ae3b5fb08a3ad008b91d4cf4246a7bc4f"
+      },
+      {
+        "uci_id": 17,
+        "name": "Breast Cancer Wisconsin (Diagnostic)",
+        "source_url": "https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "Existing Wisconsin diagnostic family; exposed and image-summary/toy panel.",
+        "metadata_sha256": "c129484733a4d262158c583e69afba393e0e5909b9e7dad228c438a7b62830f9"
+      },
+      {
+        "uci_id": 186,
+        "name": "Wine Quality",
+        "source_url": "https://archive.ics.uci.edu/dataset/186/wine+quality",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "Existing wine-quality origin including transformed/colour variants.",
+        "metadata_sha256": "ac10cf6f35d75d37f37498815389a0668048c0e4d585b4278c2686620f6c2c77"
+      },
+      {
+        "uci_id": 189,
+        "name": "Parkinsons Telemonitoring",
+        "source_url": "https://archive.ics.uci.edu/dataset/189/parkinsons+telemonitoring",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "Existing parkinsons-telemonitoring family and grouped source; not fresh IID.",
+        "metadata_sha256": "f729e3a13f60e64fc00ff0af32bd258dee8a3156885d48fde8f606d65fe7d449"
+      },
+      {
+        "uci_id": 19,
+        "name": "Car Evaluation",
+        "source_url": "https://archive.ics.uci.edu/dataset/19/car+evaluation",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "Derived from a hierarchical decision model, not an observed population outcome; no simulation quota substitution.",
+        "metadata_sha256": "cd0ba68a2f300353bd4a4059b64b47d102e977d69a96e1da888fe17587653b8d"
+      },
+      {
+        "uci_id": 206,
+        "name": "Relative location of CT slices on axial axis",
+        "source_url": "https://archive.ics.uci.edu/dataset/206/relative+location+of+ct+slices+on+axial+axis",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "53500 rows and 386 features exceed both caps; CT image-only features excluded.",
+        "metadata_sha256": "427f32e3c1469d552bf66b014dcd5e2d20d4f49f770e941bf9cb81a5e4f4eee3"
+      },
+      {
+        "uci_id": 210,
+        "name": "Record Linkage Comparison Patterns",
+        "source_url": "https://archive.ics.uci.edu/dataset/210/record+linkage+comparison+patterns",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "Over five million comparison rows exceed the cap; no payload inspection.",
+        "metadata_sha256": "13ac31360e614589893b14a1454cf173565fded8ec2fc6e9376b8bac6475e901"
+      },
+      {
+        "uci_id": 236,
+        "name": "Seeds",
+        "source_url": "https://archive.ics.uci.edu/dataset/236/seeds",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "Grain image/geometry-only panel and missing reviewed normalized CSV schema; no quota padding.",
+        "metadata_sha256": "8958b04dc43d16c1866ff856f3f81e5f7bc04245de33e90e8a739e50cd8e10f9"
+      },
+      {
+        "uci_id": 27,
+        "name": "Credit Approval",
+        "source_url": "https://archive.ics.uci.edu/dataset/27/credit+approval",
+        "decision": "same_origin_representation_selected",
+        "reason": "Same original credit-approval origin as UCI143; its raw OpenML29 representation was selected to avoid undocumented imputation. Not an additional origin.",
+        "metadata_sha256": "c86c38c9f063b6f97e9ea40572efeb041f7e2dab354dc5ed5bfdbca8517fd476"
+      },
+      {
+        "uci_id": 28,
+        "name": "Japanese Credit Screening",
+        "source_url": "https://archive.ics.uci.edu/dataset/28/japanese+credit+screening",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "Only 125 records and unclear relation to other credit-screening variants; independent origin/class-support audit incomplete.",
+        "metadata_sha256": "d12e5c348c3b1b711774c32d6e361a24cae83630fe565f9a8709e9def50f14b2"
+      },
+      {
+        "uci_id": 33,
+        "name": "Dermatology",
+        "source_url": "https://archive.ics.uci.edu/dataset/33/dermatology",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "Known six-way dermatology record includes a rare class; authoritative minimum-class and full task audit not completed in this bounded pool.",
+        "metadata_sha256": "946e7a89ce3cefac50e0107b242b7ed4fa281f71bd110f817e7728939dec6c7a"
+      },
+      {
+        "uci_id": 332,
+        "name": "Online News Popularity",
+        "source_url": "https://archive.ics.uci.edu/dataset/332/online+news+popularity",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "News-share target and popularity-derived keyword/self-reference fields need publication-time/target-derived feature review; left pending, not used for quota completion.",
+        "metadata_sha256": "4b9b5df3bef8ad68f85336cbe779a48c1ab6c6543a2567565de94a876bddf53a"
+      },
+      {
+        "uci_id": 342,
+        "name": "Mice Protein Expression",
+        "source_url": "https://archive.ics.uci.edu/dataset/342/mice+protein+expression",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "Repeated measurements per mouse plus treatment/genotype variables related to composite class; group/target leakage review incomplete.",
+        "metadata_sha256": "3071c763951f92d762fbf3615af490d6524803238d50053cf591a221cc5b61a0"
+      },
+      {
+        "uci_id": 372,
+        "name": "HTRU2",
+        "source_url": "https://archive.ics.uci.edu/dataset/372/htru2",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "Potential observational pulsar candidate; source task/minimum-class and canonical-exposure audit not completed in this bounded pass, so not treated as eligible.",
+        "metadata_sha256": "d315308c947d10ca62d1c75d4d93e8069c4e69a1eb3a7973dc434fc5c906ad57"
+      },
+      {
+        "uci_id": 467,
+        "name": "Student Academics Performance",
+        "source_url": "https://archive.ics.uci.edu/dataset/467/student+academics+performance",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "Primary API does not declare a target; no outcome is guessed.",
+        "metadata_sha256": "98d653d089efeb62f9863cb6ed01e4f61a75c135c3b99a65d59185bb44c721ca"
+      },
+      {
+        "uci_id": 477,
+        "name": "Real Estate Valuation",
+        "source_url": "https://archive.ics.uci.edu/dataset/477/real+estate+valuation+data+set",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "Existing real-estate-sindian family; not a new origin.",
+        "metadata_sha256": "fd8824fc1e6a17472c35d59d00e7b0845304eb394d5772be363f5925ff3f9c54"
+      },
+      {
+        "uci_id": 545,
+        "name": "Rice (Cammeo and Osmancik)",
+        "source_url": "https://archive.ics.uci.edu/dataset/545/rice+cammeo+and+osmancik",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "Rice image-morphology-only panel; excluded for the primary tabular claim.",
+        "metadata_sha256": "52452869c0d5986abb6931d3406a5e655702f9adb6bf3b96d8a6a11c6843cbda"
+      },
+      {
+        "uci_id": 551,
+        "name": "Gas Turbine CO and NOx Emission Data Set",
+        "source_url": "https://archive.ics.uci.edu/dataset/551/gas+turbine+co+and+nox+emission+data+set",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "Primary metadata explicitly says the SAME plant as exposed Combined Cycle Power Plant. Different years/target do not establish a new family.",
+        "metadata_sha256": "55b057fa924c48ed3205ab74c43f94f6a4169a93b9a687d477d4af82baf11cdb"
+      },
+      {
+        "uci_id": 59,
+        "name": "Letter Recognition",
+        "source_url": "https://archive.ics.uci.edu/dataset/59/letter+recognition",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "Character-image feature classification; excluded image-only panel.",
+        "metadata_sha256": "6927f27f6caca2e154acc0b741968f6869dcea10a14fd8eb971326a0054dccc1"
+      },
+      {
+        "uci_id": 73,
+        "name": "Mushroom",
+        "source_url": "https://archive.ics.uci.edu/dataset/73/mushroom",
+        "decision": "not_eligible_or_incomplete_audit",
+        "reason": "Field-guide enumeration and conservative edible/poisonous labels require original row-generation/annotation provenance review; not assumed observed individual fungi.",
+        "metadata_sha256": "5bfac60738edbc1e22309cb367e1b9332adf696c5f551410aca9034a71c2ed75"
+      }
+    ],
+    "suite_metadata": [
+      {
+        "suite_id": 99,
+        "url": "https://www.openml.org/api/v1/json/study/99",
+        "sha256": "4dabdc0e9e49c0b7eb39d6eac1a7e42811fb2f75d144c3701edf2b619fddc1c3"
+      },
+      {
+        "suite_id": 269,
+        "url": "https://www.openml.org/api/v1/json/study/269",
+        "sha256": "7ac2f1b59b5afb8d1ae00da6b72d6067814545a688865754021e2a5bcd5bfd5a"
+      },
+      {
+        "suite_id": 271,
+        "url": "https://www.openml.org/api/v1/json/study/271",
+        "sha256": "93f2dc62833a626762c4e826c807cee53040c835c8a3ad881a5636e7764de790"
+      }
+    ],
+    "source_coverage": "CC18 and AMLB dataset/task metadata plus original UCI records. No benchmark rankings or scores were used. No FE-paper task names were assumed identical without provenance.",
+    "metadata_collection_limit": "This is a bounded completely audited pool, not a claim that all unexamined CC18/AMLB datasets are ineligible."
+  },
+  "identity_decisions": {
+    "hardware_vs_cpu_activity": "UCI29 machine specifications predict published PRP. Exposed cpu_act is Sun Sparcstation activity telemetry predicting usr. Different original studies and units of observation; the bare cpu alias is deliberately not registered to the new hardware family.",
+    "gas_turbine": "UCI551 explicitly states same plant as exposed UCI294 Combined Cycle Power Plant; rejected as new origin.",
+    "australian_credit": "UCI27/143 and OpenML29/40981 are one original collection. Select original OpenML29/task29, preserving missing values; reject the filled/normalized 40981 variant as the primary representation. No additional family count or performance-based choice.",
+    "vertebral": "OpenML1523 three-class and1524 binary merge are one patient origin; reserve only original three-class task.",
+    "robot": "24-/4-/2-sensor variants are the same SCITOS G5 sampling steps; one origin only.",
+    "infrared": "UCI925 delegates licensing to original PhysioNet v1.0.0. Its two cameras, oral modes and temperature-region variants are one clinical study. Monitor-mode aveOralM selected explicitly; fast-mode aveOralF and SubjectID excluded."
+  },
+  "exposure_audit": {
+    "as_of": "2026-09-24",
+    "registry_before_sha256": "5e90597a252668aff2152e49979f65ba22bc74b195658f798b578b67d0ced6f4",
+    "prior_registry_family_ids": [
+      "abalone",
+      "adult",
+      "albert",
+      "allstate-claims",
+      "appliances-energy",
+      "auto-mpg",
+      "bank-marketing",
+      "banknote-authentication",
+      "bioresponse",
+      "brazilian-houses",
+      "california-housing",
+      "capital-bikeshare",
+      "chronic-kidney-disease",
+      "cleveland-heart-disease",
+      "combined-cycle-power",
+      "concrete-strength",
+      "covertype",
+      "cpu-act",
+      "default-of-credit-card-clients",
+      "diabetes130us",
+      "diamonds",
+      "dry-bean",
+      "electricity",
+      "elevators",
+      "energy-efficiency",
+      "eye-movements",
+      "fake-news-gonzaloa",
+      "german-credit",
+      "give-me-some-credit",
+      "glass-identification",
+      "heart-failure-clinical",
+      "heloc",
+      "higgs",
+      "house-sales",
+      "iris-anderson",
+      "jannis",
+      "magic-telescope",
+      "mercedes-benz",
+      "miami-housing",
+      "miniboone",
+      "musk-molecules",
+      "nyc-taxi-green-2016",
+      "online-shoppers",
+      "optical-digits",
+      "parkinsons-telemonitoring",
+      "real-estate-sindian",
+      "road-safety",
+      "seoul-bike",
+      "spambase",
+      "steel-faults",
+      "student-performance",
+      "superconductivity",
+      "synthetic-house-prices",
+      "synthetic-titanic",
+      "tabarena-46904",
+      "tabarena-46906",
+      "tabarena-46907",
+      "tabarena-46908",
+      "tabarena-46913",
+      "tabarena-46916",
+      "tabarena-46930",
+      "tabarena-46937",
+      "tabarena-46941",
+      "tabarena-46949",
+      "tabarena-46950",
+      "tabarena-46954",
+      "tabarena-46956",
+      "tabarena-46958",
+      "tabarena-46960",
+      "tabarena-46962",
+      "tabarena-46963",
+      "tabarena-46969",
+      "tabarena-46980",
+      "wine-cultivars",
+      "wine-quality",
+      "wisconsin-diagnostic",
+      "zurich-delays"
+    ],
+    "prior_inventory_family_ids": [
+      "adult",
+      "appliances-energy",
+      "auto-mpg",
+      "bank-marketing",
+      "banknote-authentication",
+      "bioresponse",
+      "california-housing",
+      "capital-bikeshare",
+      "chronic-kidney-disease",
+      "cleveland-heart-disease",
+      "combined-cycle-power",
+      "concrete-strength",
+      "default-of-credit-card-clients",
+      "diabetes130us",
+      "diamonds",
+      "dry-bean",
+      "energy-efficiency",
+      "german-credit",
+      "give-me-some-credit",
+      "glass-identification",
+      "heart-failure-clinical",
+      "heloc",
+      "iris-anderson",
+      "miami-housing",
+      "musk-molecules",
+      "online-shoppers",
+      "optical-digits",
+      "parkinsons-telemonitoring",
+      "real-estate-sindian",
+      "seoul-bike",
+      "spambase",
+      "steel-faults",
+      "student-performance",
+      "superconductivity",
+      "tabarena-46904",
+      "tabarena-46905",
+      "tabarena-46906",
+      "tabarena-46907",
+      "tabarena-46908",
+      "tabarena-46911",
+      "tabarena-46913",
+      "tabarena-46915",
+      "tabarena-46916",
+      "tabarena-46920",
+      "tabarena-46921",
+      "tabarena-46924",
+      "tabarena-46927",
+      "tabarena-46928",
+      "tabarena-46930",
+      "tabarena-46931",
+      "tabarena-46933",
+      "tabarena-46935",
+      "tabarena-46937",
+      "tabarena-46938",
+      "tabarena-46939",
+      "tabarena-46940",
+      "tabarena-46941",
+      "tabarena-46949",
+      "tabarena-46950",
+      "tabarena-46952",
+      "tabarena-46953",
+      "tabarena-46954",
+      "tabarena-46955",
+      "tabarena-46956",
+      "tabarena-46958",
+      "tabarena-46960",
+      "tabarena-46962",
+      "tabarena-46963",
+      "tabarena-46969",
+      "tabarena-46979",
+      "tabarena-46980",
+      "wine-cultivars",
+      "wine-quality",
+      "wisconsin-diagnostic"
+    ],
+    "prior_inventory_source_ids": [
+      "openml-task:363612",
+      "openml-task:363613",
+      "openml-task:363614",
+      "openml-task:363615",
+      "openml-task:363616",
+      "openml-task:363618",
+      "openml-task:363619",
+      "openml-task:363620",
+      "openml-task:363621",
+      "openml-task:363623",
+      "openml-task:363624",
+      "openml-task:363625",
+      "openml-task:363626",
+      "openml-task:363627",
+      "openml-task:363628",
+      "openml-task:363629",
+      "openml-task:363630",
+      "openml-task:363631",
+      "openml-task:363632",
+      "openml-task:363671",
+      "openml-task:363672",
+      "openml-task:363673",
+      "openml-task:363674",
+      "openml-task:363675",
+      "openml-task:363676",
+      "openml-task:363677",
+      "openml-task:363678",
+      "openml-task:363679",
+      "openml-task:363681",
+      "openml-task:363682",
+      "openml-task:363683",
+      "openml-task:363684",
+      "openml-task:363685",
+      "openml-task:363686",
+      "openml-task:363689",
+      "openml-task:363691",
+      "openml-task:363693",
+      "openml-task:363694",
+      "openml-task:363696",
+      "openml-task:363697",
+      "openml-task:363698",
+      "openml-task:363699",
+      "openml-task:363700",
+      "openml-task:363702",
+      "openml-task:363704",
+      "openml-task:363705",
+      "openml-task:363706",
+      "openml-task:363707",
+      "openml-task:363708",
+      "openml-task:363711",
+      "openml-task:363712",
+      "openml:46904",
+      "openml:46905",
+      "openml:46906",
+      "openml:46907",
+      "openml:46908",
+      "openml:46910",
+      "openml:46911",
+      "openml:46912",
+      "openml:46913",
+      "openml:46915",
+      "openml:46916",
+      "openml:46917",
+      "openml:46918",
+      "openml:46919",
+      "openml:46920",
+      "openml:46921",
+      "openml:46922",
+      "openml:46923",
+      "openml:46924",
+      "openml:46927",
+      "openml:46928",
+      "openml:46929",
+      "openml:46930",
+      "openml:46931",
+      "openml:46932",
+      "openml:46933",
+      "openml:46934",
+      "openml:46935",
+      "openml:46937",
+      "openml:46938",
+      "openml:46939",
+      "openml:46940",
+      "openml:46941",
+      "openml:46942",
+      "openml:46947",
+      "openml:46949",
+      "openml:46950",
+      "openml:46952",
+      "openml:46953",
+      "openml:46954",
+      "openml:46955",
+      "openml:46956",
+      "openml:46958",
+      "openml:46960",
+      "openml:46961",
+      "openml:46962",
+      "openml:46963",
+      "openml:46964",
+      "openml:46969",
+      "openml:46979",
+      "openml:46980",
+      "uci:109",
+      "uci:125",
+      "uci:144",
+      "uci:165",
+      "uci:17",
+      "uci:176",
+      "uci:186",
+      "uci:189",
+      "uci:198",
+      "uci:2",
+      "uci:222",
+      "uci:242",
+      "uci:254",
+      "uci:265",
+      "uci:266",
+      "uci:267",
+      "uci:275",
+      "uci:291",
+      "uci:294",
+      "uci:296",
+      "uci:3",
+      "uci:320",
+      "uci:336",
+      "uci:350",
+      "uci:365",
+      "uci:374",
+      "uci:379",
+      "uci:42",
+      "uci:421",
+      "uci:45",
+      "uci:464",
+      "uci:468",
+      "uci:477",
+      "uci:504",
+      "uci:519",
+      "uci:53",
+      "uci:560",
+      "uci:572",
+      "uci:579",
+      "uci:602",
+      "uci:603",
+      "uci:69",
+      "uci:697",
+      "uci:722",
+      "uci:75",
+      "uci:80",
+      "uci:863",
+      "uci:9",
+      "uci:94"
+    ],
+    "historical_identity_inputs": [
+      {
+        "path": "benchmarks/simple_models/SIMPLE_MODELS_CACHE.json",
+        "sha256": "77d41190780af6414ba81c8c29bfa95baaccc6af209154aaccbebd660d599141",
+        "dataset_identifiers": [
+          "abalone",
+          "albert",
+          "allstate_claims",
+          "bank_marketing",
+          "bike_sharing",
+          "bike_sharing_inria",
+          "bioresponse",
+          "brazilian_houses",
+          "california",
+          "complex_classification",
+          "complex_regression",
+          "covertype",
+          "covertype_cat",
+          "cpu_act",
+          "credit",
+          "credit_card_fraud",
+          "credit_risk",
+          "customer_churn",
+          "customer_support",
+          "delays_zurich",
+          "diabetes",
+          "diamonds",
+          "ecommerce_product",
+          "electricity",
+          "elevators",
+          "employee_attrition",
+          "eye_movements",
+          "fake_news",
+          "higgs",
+          "house_prices",
+          "house_sales",
+          "houses",
+          "insurance_claims",
+          "interaction_classification",
+          "jannis",
+          "job_postings",
+          "magic_telescope",
+          "medical_diagnosis",
+          "medical_notes",
+          "mercedes_benz",
+          "miami_housing",
+          "miniboone",
+          "news_classification",
+          "nonlinear_regression",
+          "nyc_taxi",
+          "pairwise_product_regression",
+          "polynomial_classification",
+          "polynomial_regression",
+          "product_reviews",
+          "quadratic_heavy_regression",
+          "ratio_regression",
+          "retail_demand",
+          "road_safety",
+          "sensor_anomaly",
+          "server_latency",
+          "spotify_tracks",
+          "sqrt_log_regression",
+          "superconduct",
+          "titanic",
+          "triple_interaction_regression",
+          "wine_quality",
+          "xor_classification",
+          "xor_regression"
+        ],
+        "synthetic_identifiers": [],
+        "fields_inspected": [
+          "dataset",
+          "source"
+        ]
+      },
+      {
+        "path": "benchmarks/simple_models/SIMPLE_MODELS_CACHE_LLM.json",
+        "sha256": "f34f28b7d96bbac7eaa1173649629d90997997094dda329209c0ac40add4d538",
+        "dataset_identifiers": [
+          "abalone",
+          "albert",
+          "allstate_claims",
+          "bank_marketing",
+          "bike_sharing",
+          "bike_sharing_inria",
+          "bioresponse",
+          "brazilian_houses",
+          "california",
+          "complex_classification",
+          "complex_regression",
+          "covertype",
+          "covertype_cat",
+          "cpu_act",
+          "credit",
+          "credit_card_fraud",
+          "credit_risk",
+          "customer_churn",
+          "customer_support",
+          "delays_zurich",
+          "diabetes",
+          "diamonds",
+          "ecommerce_product",
+          "electricity",
+          "elevators",
+          "employee_attrition",
+          "eye_movements",
+          "fake_news",
+          "higgs",
+          "house_prices",
+          "house_sales",
+          "houses",
+          "insurance_claims",
+          "interaction_classification",
+          "jannis",
+          "job_postings",
+          "magic_telescope",
+          "medical_diagnosis",
+          "medical_notes",
+          "mercedes_benz",
+          "miami_housing",
+          "miniboone",
+          "news_classification",
+          "nonlinear_regression",
+          "nyc_taxi",
+          "pairwise_product_regression",
+          "polynomial_classification",
+          "polynomial_regression",
+          "product_reviews",
+          "quadratic_heavy_regression",
+          "ratio_regression",
+          "retail_demand",
+          "road_safety",
+          "sensor_anomaly",
+          "server_latency",
+          "spotify_tracks",
+          "sqrt_log_regression",
+          "superconduct",
+          "titanic",
+          "triple_interaction_regression",
+          "wine_quality",
+          "xor_classification",
+          "xor_regression"
+        ],
+        "synthetic_identifiers": [
+          "bike_sharing",
+          "complex_classification",
+          "complex_regression",
+          "credit_card_fraud",
+          "credit_risk",
+          "customer_churn",
+          "customer_support",
+          "ecommerce_product",
+          "employee_attrition",
+          "house_prices",
+          "insurance_claims",
+          "interaction_classification",
+          "job_postings",
+          "medical_diagnosis",
+          "medical_notes",
+          "news_classification",
+          "nonlinear_regression",
+          "pairwise_product_regression",
+          "polynomial_classification",
+          "polynomial_regression",
+          "product_reviews",
+          "quadratic_heavy_regression",
+          "ratio_regression",
+          "retail_demand",
+          "sensor_anomaly",
+          "server_latency",
+          "spotify_tracks",
+          "sqrt_log_regression",
+          "titanic",
+          "triple_interaction_regression",
+          "xor_classification",
+          "xor_regression"
+        ],
+        "fields_inspected": [
+          "dataset",
+          "source"
+        ]
+      }
+    ],
+    "source_code_identity_search": "Read-only Python source search under benchmarks, package, examples and tests found no matching names for the ten selected source origins. Generic names were resolved through explicit UCI/OpenML provenance, not treated as fresh aliases.",
+    "ledger": {
+      "path": "benchmarks/.cache/exposure.sqlite",
+      "access": "SQLite URI mode=ro",
+      "row_count": 83,
+      "query": "SELECT family_id,run_id,role,created_at FROM exposure ORDER BY family_id,run_id",
+      "logical_rows_sha256": "30846f49c6a44554b31f384edfd12059f8193c03ec2038e4c2a90d19a9d888d2",
+      "rows": [
+        {
+          "family_id": "adult",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:27.167775+00:00"
+        },
+        {
+          "family_id": "adult",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:06.294233+00:00"
+        },
+        {
+          "family_id": "adult",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.023155+00:00"
+        },
+        {
+          "family_id": "adult",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:40.271692+00:00"
+        },
+        {
+          "family_id": "auto-mpg",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.773312+00:00"
+        },
+        {
+          "family_id": "auto-mpg",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.545256+00:00"
+        },
+        {
+          "family_id": "auto-mpg",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.714926+00:00"
+        },
+        {
+          "family_id": "banknote-authentication",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.408141+00:00"
+        },
+        {
+          "family_id": "banknote-authentication",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.174076+00:00"
+        },
+        {
+          "family_id": "banknote-authentication",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.375998+00:00"
+        },
+        {
+          "family_id": "california-housing",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:28.301260+00:00"
+        },
+        {
+          "family_id": "california-housing",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.873285+00:00"
+        },
+        {
+          "family_id": "california-housing",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.640344+00:00"
+        },
+        {
+          "family_id": "california-housing",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.809720+00:00"
+        },
+        {
+          "family_id": "chronic-kidney-disease",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.692856+00:00"
+        },
+        {
+          "family_id": "chronic-kidney-disease",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.454403+00:00"
+        },
+        {
+          "family_id": "chronic-kidney-disease",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.643585+00:00"
+        },
+        {
+          "family_id": "combined-cycle-power",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.510790+00:00"
+        },
+        {
+          "family_id": "combined-cycle-power",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.274612+00:00"
+        },
+        {
+          "family_id": "combined-cycle-power",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.471117+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "12de448078245ea61495c6e442b7f81d9e6907edbc0c15b553448004ba9ebda3",
+          "role": "development",
+          "created_at": "2026-09-20T08:52:54.881121+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:28.075106+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:06.960342+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.711007+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "7bf61e7cf3f0c03687d21bfb072f1054f9df4d9f1ee8f1c2969fa45b8d357bad",
+          "role": "development",
+          "created_at": "2026-09-17T06:51:56.088888+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:40.938193+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "a5c05d09c00626a942851f70d680f8a121cb0c6f5840c2e8a7715db4cdbf30ec",
+          "role": "development",
+          "created_at": "2026-09-17T07:23:12.228125+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "f1113556c7db1d80a1b00fd28f006515bf715c8a9af875df1d517ea2f03af17b",
+          "role": "development",
+          "created_at": "2026-09-17T07:19:07.259838+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:27.795029+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:06.749764+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.497413+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "7bf61e7cf3f0c03687d21bfb072f1054f9df4d9f1ee8f1c2969fa45b8d357bad",
+          "role": "development",
+          "created_at": "2026-09-17T06:51:56.059433+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:40.728420+00:00"
+        },
+        {
+          "family_id": "energy-efficiency",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:28.176485+00:00"
+        },
+        {
+          "family_id": "energy-efficiency",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.037263+00:00"
+        },
+        {
+          "family_id": "energy-efficiency",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.789596+00:00"
+        },
+        {
+          "family_id": "energy-efficiency",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.016341+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:27.349190+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:06.405585+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.137742+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "7bf61e7cf3f0c03687d21bfb072f1054f9df4d9f1ee8f1c2969fa45b8d357bad",
+          "role": "development",
+          "created_at": "2026-09-17T06:51:55.935561+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:40.382260+00:00"
+        },
+        {
+          "family_id": "heart-failure-clinical",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:43.781894+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "12de448078245ea61495c6e442b7f81d9e6907edbc0c15b553448004ba9ebda3",
+          "role": "development",
+          "created_at": "2026-09-20T08:52:54.782252+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:27.523781+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:06.549907+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.289717+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:40.531157+00:00"
+        },
+        {
+          "family_id": "real-estate-sindian",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.597870+00:00"
+        },
+        {
+          "family_id": "real-estate-sindian",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.364126+00:00"
+        },
+        {
+          "family_id": "real-estate-sindian",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.554520+00:00"
+        },
+        {
+          "family_id": "seoul-bike",
+          "run_id": "37b08f9e0d0c0482c06a31727c593d3c24c7a69a859891dfcd592ca31617ea1c",
+          "role": "development",
+          "created_at": "2026-09-20T10:09:12.059098+00:00"
+        },
+        {
+          "family_id": "spambase",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.306397+00:00"
+        },
+        {
+          "family_id": "spambase",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.068277+00:00"
+        },
+        {
+          "family_id": "spambase",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.274182+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:27.990273+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:06.873999+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.625443+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:40.855516+00:00"
+        },
+        {
+          "family_id": "student-performance",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:45.017687+00:00"
+        },
+        {
+          "family_id": "tabarena-46904",
+          "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+          "role": "confirmation",
+          "created_at": "2026-09-20T10:14:48.511575+00:00"
+        },
+        {
+          "family_id": "tabarena-46907",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:46.824642+00:00"
+        },
+        {
+          "family_id": "tabarena-46913",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:45.259114+00:00"
+        },
+        {
+          "family_id": "tabarena-46916",
+          "run_id": "fbfa458ef79c8fae0ed44da73fcb1ada89468d3c7ea5b7aadc12d3ecda99c581",
+          "role": "confirmation",
+          "created_at": "2026-09-20T21:42:54.263178+00:00"
+        },
+        {
+          "family_id": "tabarena-46930",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:47.358962+00:00"
+        },
+        {
+          "family_id": "tabarena-46937",
+          "run_id": "fbfa458ef79c8fae0ed44da73fcb1ada89468d3c7ea5b7aadc12d3ecda99c581",
+          "role": "confirmation",
+          "created_at": "2026-09-20T21:42:57.385423+00:00"
+        },
+        {
+          "family_id": "tabarena-46941",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:44.921408+00:00"
+        },
+        {
+          "family_id": "tabarena-46949",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:55.236359+00:00"
+        },
+        {
+          "family_id": "tabarena-46950",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:56.541063+00:00"
+        },
+        {
+          "family_id": "tabarena-46954",
+          "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+          "role": "confirmation",
+          "created_at": "2026-09-20T10:15:10.740949+00:00"
+        },
+        {
+          "family_id": "tabarena-46956",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:57.110080+00:00"
+        },
+        {
+          "family_id": "tabarena-46958",
+          "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+          "role": "confirmation",
+          "created_at": "2026-09-20T10:15:15.995406+00:00"
+        },
+        {
+          "family_id": "tabarena-46960",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:46.410078+00:00"
+        },
+        {
+          "family_id": "tabarena-46962",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:58.913018+00:00"
+        },
+        {
+          "family_id": "tabarena-46963",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:47.689276+00:00"
+        },
+        {
+          "family_id": "tabarena-46969",
+          "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+          "role": "confirmation",
+          "created_at": "2026-09-20T10:15:24.009024+00:00"
+        },
+        {
+          "family_id": "wine-quality",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:28.244611+00:00"
+        },
+        {
+          "family_id": "wine-quality",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.816767+00:00"
+        },
+        {
+          "family_id": "wine-quality",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.587084+00:00"
+        },
+        {
+          "family_id": "wine-quality",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.756758+00:00"
+        },
+        {
+          "family_id": "wisconsin-diagnostic",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.134785+00:00"
+        },
+        {
+          "family_id": "wisconsin-diagnostic",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.892925+00:00"
+        },
+        {
+          "family_id": "wisconsin-diagnostic",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.110435+00:00"
+        }
+      ],
+      "selected_family_matches": []
+    },
+    "previous_final_twelve_now_exposed": [
+      "heart-failure-clinical",
+      "tabarena-46941",
+      "student-performance",
+      "tabarena-46913",
+      "tabarena-46960",
+      "tabarena-46907",
+      "tabarena-46930",
+      "tabarena-46963",
+      "tabarena-46949",
+      "tabarena-46950",
+      "tabarena-46956",
+      "tabarena-46962"
+    ],
+    "historical_record_policy": "All existing registry records, final/draft/release/audit suites and ledger rows are preserved. This audit records current exposure of the prior twelve without relabeling them fresh or rewriting their historical admission records.",
+    "unknown_exposure_policy": "Every new family keeps prior_exposure=unknown. No recorded project model match was found, but metadata review is not a guarantee of unrecorded exposure or public model pretraining absence."
+  },
+  "preserved_prior_manifest_sha256": {
+    "confirmation_candidate_reservation_20260923.json": "c7ad92d890362d82bdb6f8e75d1024c9500f4c956aae56fb861015c559c73547",
+    "confirmation_candidate_reservation_audit_20260923.json": "43f9a662bfa51c8eec94db4df3b305d8e316b717cf8b9d80878acea6b231827a",
+    "development_expansion_20260922.json": "49a8d02f411d456abe4747026ec26762648fceefc03a722a1fc47ac3cadb4969",
+    "development_expansion_audit_20260922.json": "6782e17e825319394f4885137bc6e6832155317a12f4223b27ca8df722c150b6",
+    "final_reserved_confirmation_20260924.json": "6e7f603655e624ae18c3949c7a73dace77f1da513200cb41a4e13c63f33e7f78",
+    "final_reserved_confirmation_audit_20260924.json": "39e98397a3901063057e8bffd00b1e7dbaa51b32393bc8dc531424f2433ed93a",
+    "final_reserved_confirmation_draft_20260924.json": "90da2bbc93900155aee2dffd09bbbeb057bed541fe366dcc500a57adc433fa6e",
+    "final_reserved_confirmation_release_20260924.json": "c3ecbba219c1f840b1e7f721285eb7767c24a79a2851d443187cb20883d92eee",
+    "seoul_development.json": "eb949eb6de7a77d39e5dbf4d2026cad6163d47f4fd837e686310bd2f2b1b3f48",
+    "seoul_inventory.json": "8f861070d84577f8a77d6135c61980d6bd24be4eb7f3099dda6256bc22ec5dd5",
+    "tabarena_confirmation_candidates_20260920.json": "db4bafa21d2697c4b19955e031440b55fdd33bd068fd08866cee70e5943d9b00",
+    "tabarena_confirmation_completion_repair_20260921.json": "85035ccd8290a105d87b05e2aebc8cd0193a9c81776a9e367f0d4cba9fe0253b",
+    "tabarena_v01_audit_20260920.json": "6a4f6f2c9dbaf222dd3b991fbef291e88d2a30833da4f4e86b1d7cfbe65063c9",
+    "tabarena_v01_inventory.json": "92dc0e6e58e09422104735cbe049dd42eca559acca3808a6abee55e9cf870243",
+    "uci_development.json": "72b5257603de43b1653c00449f0dfd3279a7dea3fa53c5f036d70e5e3443ee7d"
+  },
+  "registry_append_only": {
+    "old_family_count": 77,
+    "new_family_count": 10,
+    "appended_family_ids": [
+      "communities-crime",
+      "computer-hardware-performance",
+      "forest-fires-montesinho",
+      "infrared-oral-temperature",
+      "australian-credit-approval",
+      "indian-liver-patients",
+      "ionosphere-radar",
+      "contraceptive-method-choice",
+      "vertebral-column",
+      "wall-following-robot"
+    ],
+    "prior_registry_record_sha256": {
+      "higgs": "b8bf4b4f8f173f4c9461e2dbd45a5bbc37ed7622ece30ff4f54576684f7f162d",
+      "covertype": "b5adb1f00397037a64f999d05fe2fcba7a7210864acfcbbf01226bccd75e26ee",
+      "jannis": "5c63ee812e167af88065706ab433ea9eba2d7703a2e625f5c51daff66f3bb916",
+      "miniboone": "4bca0f12f9305e978ecc963c7f1034bfaf1aea5a4ba09250239ebb0d03a82e50",
+      "california-housing": "1d235bf053bba2053d57b020f7d7a915091c9e4d9633e8d69db2c2b5bb41ac68",
+      "give-me-some-credit": "8afc266a45d90d020e28e6e87dbf5f0d56e9a7265888edbe8c121397e1155fd3",
+      "bank-marketing": "977d674698d4cbdfdd69d52a0a70e66a688ed14b656b637159f5c70f8fbb4531",
+      "diabetes130us": "18771dd4562924486e1e127d67832dc847f844cb0ca9a6913ae85b9111b7f66b",
+      "bioresponse": "3488201e4afc65048c1b76025ad209cc26569ff26c4f14e2234b3cd028c3d642",
+      "magic-telescope": "800b260245010823b0844805981450bffdda138f39140571adf3766d72546c94",
+      "electricity": "f1f9e7c6607185793b0019111b44aedd51dec4db2c984cd61215890712ee99dd",
+      "eye-movements": "9894748c80906ed0b8c0fc862461098981ed25b2df5e21a595b1b317cd43c258",
+      "road-safety": "e15dc5b44ec9417ae2f2f8ecb2750139eddd8cc277ad3b11790c61b450863f70",
+      "albert": "ec049ff931f2b26e1dfee26680ab80b5d8f4e20469dba62b1378c7b2910ebfed",
+      "diamonds": "96d91abb5b2ae410f20c24f0374b9d7563b863879d1546ca440d733ab6b6df53",
+      "house-sales": "bd1468ea2ea2502d88a9889886a99533a2fad9aae8c1edc794c08bca9e5ddafc",
+      "wine-quality": "4f28a3889d45e66538588ea7bf13b00a25fe06f7d31bb956560d683d8f9ae27f",
+      "abalone": "8492f7babab4972cfcde2b5bd25bfd1b10eb21199f3ba88d9f77311dd6853c89",
+      "superconductivity": "0e096ef255f62bf38da5c24ffb647db0a4798b81b4e3443979b86cea1241ff7d",
+      "cpu-act": "8f571580ed019546eb66c8899e39e64f6bfaca005c5223116efc49d1cde04e8c",
+      "elevators": "4a670ec37852605bb2102853c9e91fe47ea9254e71d7a0700f2e45da3dd15019",
+      "miami-housing": "4729e4caebe43f0a36357c0bb935fd5bd84390126b52e55c039f43bacc88982f",
+      "capital-bikeshare": "26670c91d9ad8d78450e2b0d6a12d2940afc59b6979ac46008478b63976c8f82",
+      "zurich-delays": "5404f38a28fd67f905a147fd7f9966201c9745fef205d4f88f62a4368867383d",
+      "allstate-claims": "070835c93ea40a00b349fab027298fba24fa93b6f5031dfb0abf9dd2e2ff290e",
+      "mercedes-benz": "8eae5fdde80a193b4ce96cbaab731e8a1fcac792b6f64376c96674cc5d25684c",
+      "nyc-taxi-green-2016": "65ce9d19dd81f5afafd05b5e31db67f02969bf2dc997e27963f34fe3437a2bd6",
+      "brazilian-houses": "51261f86e0db6b3ea3582d182921e56953c70bba06cf9b50a7def0135161bf7b",
+      "fake-news-gonzaloa": "47372d630a681d163e842408ff659eed7211bbd7a446ba2ce47d31dd06d74e41",
+      "heloc": "f75d4bc8e050deff5c88d6d902442a7820c257ae4f8a71d32e7229f36d5de1a2",
+      "default-of-credit-card-clients": "4c8a07cf9cb1a5f615b9a843f78cdf44c163802b830c5743c9e1186a17ab735d",
+      "synthetic-titanic": "ae12ce9681fe9ecbe8d5cd558a88e5ed13157b2a049b82c0dbd130884920df75",
+      "synthetic-house-prices": "299a279e8f01520b28eba0d5ad18e7f6330065e61ff6f5c6f1478e63606d412e",
+      "adult": "8ab51642295d491b04e4a03bdab1713441423cafbe2da04f092fad20e8ce29af",
+      "german-credit": "2e5fa262932036e959b647971b16187659c654ae3db55faf8ed647c608d57b24",
+      "online-shoppers": "833397bac39466da557db9c2b14ad02697d5bea64e64b3e9c42fbb030ae7b1e7",
+      "dry-bean": "cfb1fe488edb64ac63b463d58ab6294e8247711b298869fdd265bba9cd68a2ea",
+      "steel-faults": "257b40f96ba16156ae8ea3939a999322d8e6fd68f41ba89dd52cce11f0d6d6b4",
+      "concrete-strength": "b1eb98158ea2c3a044e8ced4bc05ae4557db444b22a4a416bd9a34f9ef5e35fd",
+      "energy-efficiency": "8d4bada84e0ce4531e21f7eeb21f42f1ea43294ede64fb70202855da07b18308",
+      "seoul-bike": "610216e2cebc5623b214cfa1b4796c083ec517d5fe47f5a58d7a175471ef2a09",
+      "tabarena-46904": "b8d0e042b012fa671cbbdbc272a810e85e7331062e906de5574b6f209d057cdc",
+      "tabarena-46916": "c2bbd8502228ec4a008ad06a90b2ae5b28c810cf22d140dcc5425ece40a0f5c0",
+      "tabarena-46937": "63910c615e6e18332d8d63d3e66ffd79deeddb4180861841c743e4519ad7f41e",
+      "tabarena-46954": "e57127377bcaed4606e7dae8823671ee2f9adf8f079a7c35d55754303d219a38",
+      "tabarena-46958": "590cb986234f3b5fb9c7bb0ff51568718576f5c24d8384fe191045a6f69a2d1c",
+      "tabarena-46969": "d483d3aaa9537bfabcb8a138c9aab68bdefdc59bc84d1d66d168a7b1e9ecdc5d",
+      "tabarena-46906": "db313d3a8404ea9a1a0b55de6bd05b6f573ed6b027c023dfbc07c0a98e0fbcae",
+      "tabarena-46908": "a5bef3c3d389d0e1a67f776d4c6c44e55893e0b516358585d0811e00a412f3cb",
+      "tabarena-46913": "9571e7818cdbfd85068b851e1dd9354eb441b8be77c8db984060181e8a0ed2c1",
+      "tabarena-46941": "79f51f65009c6e510d502a89f943e4ffb3a10cdce018a435f56f2d31e30ac30f",
+      "tabarena-46980": "d8e2082f75ce50d117ff613d7042bc7cae85e0dd19e59581483164afc4ecc5b9",
+      "tabarena-46949": "fd860d701a98a2416bca121ffc7ead2cba111d29afe629d3e2d2e1cdbbbd5d28",
+      "tabarena-46950": "8cec26062d3a681327c262c49b4e937c6fe38555bd73e704144994013077df4f",
+      "tabarena-46956": "b5ed23b30879d3af6c9a092d0ef9246b979bd52a5f11459bfd26b73e522da8c2",
+      "tabarena-46960": "32077f4686ad518fcdb285208774cd3cdeddb7c35b3013b2d85bfb0a1259af9e",
+      "tabarena-46962": "5cdd58dc6f9456f538f48fcee46f779558b8fa42225b08407efc22a23d3ecb7f",
+      "tabarena-46963": "2275dea194c3e4648abafc5c5133b0425962964bd1c4014aff9529a06430d193",
+      "wisconsin-diagnostic": "3885c716e0b404928d5fe1f842a30f0b463f122a8a01a0adca06fbf7c7af507c",
+      "cleveland-heart-disease": "8387201dc27c82ede62da604b6c4398c5624eb18c00209a7318e91e4ffbe170e",
+      "wine-cultivars": "03a86368cc0cca5a31b3bce8ae5a9260f1dbb8bbf99e04d158b91a85df694325",
+      "spambase": "c8a1e8a2cfefd681180bc2153277ee04bc4306529dde787a2394dc3dfb4858a2",
+      "heart-failure-clinical": "af98bc7f0949765646fc5abe51cd975774c9dc948064815847b0b097486b4b4b",
+      "banknote-authentication": "030804c84dbdef8319d85ba312f505546339d3049962b53abb178ceb23adec25",
+      "combined-cycle-power": "430c9b8f81ddb665009f4b407bb8fc4d2ccc20f0674a801f9cc0f8d05628f491",
+      "real-estate-sindian": "c30127b924b9f2130f0f372a64634f1a14a56928c2ec77072109352dea33a4a1",
+      "student-performance": "3ae75f9b3819c2927b1c0d7a2db4ccbf085bc353ccff78a994a776f561f22555",
+      "chronic-kidney-disease": "05f1354b823fc52afdbae20f7aa218febc7e6b578cf229d45c49aeb37be35401",
+      "musk-molecules": "cbbd6422b72c7de27d8f74cdcb2fea0c7b188329128085adcc59ce73b693c251",
+      "iris-anderson": "ecec4e33341ec16ab8b9af815fd28ce70e67f973a86185dfa868e8b22bf9a978",
+      "optical-digits": "105ba6e2bd341418dba3660ce7496bce4a39c20c9211df21b3b51a28da6eda5d",
+      "appliances-energy": "a61c690454d20d5d22351e2efe4ebbc5e55d538656a381caac0c42edce72960c",
+      "auto-mpg": "e2d62f5f9aac9e0e855655ea1db99ff1d47c634b18bd18de9d364b2ea4101a0c",
+      "parkinsons-telemonitoring": "bbb749851cbc359baaf8e5161a73d94ef42290e7258b5142704d0c3d9afafd8e",
+      "glass-identification": "cbbc006e4a47555d012d1ba652a7c028aa1a2274896e6c8861c344ef3238147e",
+      "tabarena-46907": "f8a5890460588b5083c6a9e87f18a6ba54ed4fd5d894f7d409ac23292a745ee7",
+      "tabarena-46930": "a16311529a3b74fa88e7acbca81bf69f9fcd0f4029cac802b9abbb9fe7859987"
+    },
+    "prior_registry_top_level": {
+      "schema_version": 1,
+      "name": "benchmark-family-exposure-registry-v1",
+      "policy": "One runnable variant per family in each suite. Metadata inspection is not an unexposed-family audit. Unresolved origins remain separate provisional identities, never fresh confirmation.",
+      "evidence": [
+        "benchmarks/simple_models/SIMPLE_MODELS_CACHE.json",
+        "benchmarks/simple_models/SIMPLE_MODELS_CACHE_LLM.json",
+        "benchmarks/datasets.py:INRIA_DATASETS",
+        "benchmarks/tabular_suite.json",
+        "benchmarks/IMPROVEMENT_PLAN.md",
+        "https://raw.githubusercontent.com/autogluon/tabarena/f87f22d301b5985554c037c1bb1429ae6635dded/packages/tabarena/src/tabarena/benchmark/task/metadata/data/curated_tabarena_dataset_metadata.csv"
+      ],
+      "historical_inria_variants": [
+        "higgs",
+        "covertype",
+        "jannis",
+        "miniboone",
+        "california",
+        "credit",
+        "bank_marketing",
+        "diabetes",
+        "bioresponse",
+        "magic_telescope",
+        "electricity",
+        "covertype_cat",
+        "eye_movements",
+        "road_safety",
+        "albert",
+        "diamonds",
+        "house_sales",
+        "houses",
+        "wine_quality",
+        "abalone",
+        "superconduct",
+        "cpu_act",
+        "elevators",
+        "miami_housing",
+        "bike_sharing_inria",
+        "delays_zurich",
+        "allstate_claims",
+        "mercedes_benz",
+        "nyc_taxi",
+        "brazilian_houses"
+      ],
+      "current_development_datasets": [
+        "magic",
+        "bank",
+        "credit",
+        "heloc",
+        "credit_default",
+        "eye_movements",
+        "cpu",
+        "wine",
+        "houses",
+        "elevators",
+        "abalone",
+        "diamonds"
+      ],
+      "current_exposure_snapshot": {
+        "as_of": "2026-09-23",
+        "ledger_rows": 39,
+        "logical_rows_sha256": "d6594687cafa167ba10096e83b35c916d41d3cab57021f0fa03013d7760b11d1",
+        "policy": "Current exposure overrides historical declarations. Active candidate reservations prohibit acquisition until explicit parent release; historical manifests remain unchanged."
+      }
+    }
+  },
+  "runtime_changes": false,
+  "payload_downloads": 0,
+  "model_calls": 0,
+  "llm_calls": 0,
+  "datasets": [
+    {
+      "name": "communities-crime",
+      "family_id": "communities-crime",
+      "task": "regression",
+      "provider": "openml_task",
+      "role": "inventory",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "fresh-origin-reservation-20260924",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "ViolentCrimesPerPop",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [
+        "state",
+        "county",
+        "community",
+        "communityname",
+        "fold"
+      ],
+      "split_policy": "official",
+      "prediction_time": "Retrospective community-level normalized ViolentCrimesPerPop annotation from the historical published compilation; not individual criminality, causal demographic attribution or a prospective policing tool.",
+      "evaluation_limitations": "Remove all five primary-source nonpredictive identifiers/fold fields, including STRING communityname. Retain original normalization/missingness. Source selection and recorded-crime biases must be disclosed; no deployment or geographic-disjoint generalization is approved.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI dataset publication explicitly licenses this data under CC BY 4.0; the OpenML Public/license badge is not the grant relied upon.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/183/communities+and+crime",
+          "https://archive.ics.uci.edu/api/dataset?id=183"
+        ],
+        "primary_page_sha256": "e1e95e3084f78cff32084ce67647b19dfac9d0cef1d7c42e409850f0f86e1570",
+        "reviewed_on": "2026-09-24",
+        "scope": "Metadata-only candidate reservation now; later acquisition/use only after explicit parent release and protocol freeze. Local scientific processing only, no hosted row sharing or individual high-stakes deployment.",
+        "obligations": "Retain original source/contributor attribution, dataset and paper citations, and describe all curation/target/timing limitations."
+      },
+      "source": {
+        "uci_id": 183,
+        "dataset_id": 42730,
+        "dataset_version": 2,
+        "task_id": 359945,
+        "columns": [
+          "state",
+          "county",
+          "community",
+          "communityname",
+          "fold",
+          "population",
+          "householdsize",
+          "racepctblack",
+          "racePctWhite",
+          "racePctAsian",
+          "racePctHisp",
+          "agePct12t21",
+          "agePct12t29",
+          "agePct16t24",
+          "agePct65up",
+          "numbUrban",
+          "pctUrban",
+          "medIncome",
+          "pctWWage",
+          "pctWFarmSelf",
+          "pctWInvInc",
+          "pctWSocSec",
+          "pctWPubAsst",
+          "pctWRetire",
+          "medFamInc",
+          "perCapInc",
+          "whitePerCap",
+          "blackPerCap",
+          "indianPerCap",
+          "AsianPerCap",
+          "OtherPerCap",
+          "HispPerCap",
+          "NumUnderPov",
+          "PctPopUnderPov",
+          "PctLess9thGrade",
+          "PctNotHSGrad",
+          "PctBSorMore",
+          "PctUnemployed",
+          "PctEmploy",
+          "PctEmplManu",
+          "PctEmplProfServ",
+          "PctOccupManu",
+          "PctOccupMgmtProf",
+          "MalePctDivorce",
+          "MalePctNevMarr",
+          "FemalePctDiv",
+          "TotalPctDiv",
+          "PersPerFam",
+          "PctFam2Par",
+          "PctKids2Par",
+          "PctYoungKids2Par",
+          "PctTeen2Par",
+          "PctWorkMomYoungKids",
+          "PctWorkMom",
+          "NumIlleg",
+          "PctIlleg",
+          "NumImmig",
+          "PctImmigRecent",
+          "PctImmigRec5",
+          "PctImmigRec8",
+          "PctImmigRec10",
+          "PctRecentImmig",
+          "PctRecImmig5",
+          "PctRecImmig8",
+          "PctRecImmig10",
+          "PctSpeakEnglOnly",
+          "PctNotSpeakEnglWell",
+          "PctLargHouseFam",
+          "PctLargHouseOccup",
+          "PersPerOccupHous",
+          "PersPerOwnOccHous",
+          "PersPerRentOccHous",
+          "PctPersOwnOccup",
+          "PctPersDenseHous",
+          "PctHousLess3BR",
+          "MedNumBR",
+          "HousVacant",
+          "PctHousOccup",
+          "PctHousOwnOcc",
+          "PctVacantBoarded",
+          "PctVacMore6Mos",
+          "MedYrHousBuilt",
+          "PctHousNoPhone",
+          "PctWOFullPlumb",
+          "OwnOccLowQuart",
+          "OwnOccMedVal",
+          "OwnOccHiQuart",
+          "RentLowQ",
+          "RentMedian",
+          "RentHighQ",
+          "MedRent",
+          "MedRentPctHousInc",
+          "MedOwnCostPctInc",
+          "MedOwnCostPctIncNoMtg",
+          "NumInShelters",
+          "NumStreet",
+          "PctForeignBorn",
+          "PctBornSameState",
+          "PctSameHouse85",
+          "PctSameCity85",
+          "PctSameState85",
+          "LemasSwornFT",
+          "LemasSwFTPerPop",
+          "LemasSwFTFieldOps",
+          "LemasSwFTFieldPerPop",
+          "LemasTotalReq",
+          "LemasTotReqPerPop",
+          "PolicReqPerOffic",
+          "PolicPerPop",
+          "RacialMatchCommPol",
+          "PctPolicWhite",
+          "PctPolicBlack",
+          "PctPolicHisp",
+          "PctPolicAsian",
+          "PctPolicMinor",
+          "OfficAssgnDrugUnits",
+          "NumKindsDrugsSeiz",
+          "PolicAveOTWorked",
+          "LandArea",
+          "PopDens",
+          "PctUsePubTrans",
+          "PolicCars",
+          "PolicOperBudg",
+          "LemasPctPolicOnPatr",
+          "LemasGangUnitDeploy",
+          "LemasPctOfficDrugUn",
+          "PolicBudgPerPop",
+          "ViolentCrimesPerPop"
+        ],
+        "target_columns": [
+          "ViolentCrimesPerPop"
+        ],
+        "schema_reviewed": true,
+        "expected_rows": 1994,
+        "md5_checksum": "4981ef46797c457c873354162ce73dba",
+        "official_split_dimensions": {
+          "repeats": 1,
+          "folds": 10,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=183",
+        "primary_metadata_sha256": "1bdb484e17f38af829a7c0d71a4246f4c97094398321d2f08d24ca031853fc6b",
+        "openml_description_sha256": "d6a75700170d1ed38fa516e2c54baf12eb74929875b5f6b1e301bfa132ce1d6e",
+        "openml_features_sha256": "946c262df314948564ac2149e6a60246c83954264a5bf489effd1644a4eae6a3",
+        "openml_qualities_sha256": "61c0c84c7726400cc8948f1db03091bd6b10ce0aeae4b3c6fe2d99b34c7a8558",
+        "openml_task_sha256": "19fc553107ed947b90b9775786d8afb242d29234f828f5b2bcb63dc2f544e6ab",
+        "categorical_rule": "All NOMINAL and STRING predictors are categorical unless explicitly excluded; no value-cardinality heuristics or model outcomes.",
+        "payload_sha256_status": "Not acquired. Original upstream MD5 is a metadata pin, not evidence that payload bytes have been verified."
+      },
+      "metadata_profile": {
+        "rows": 1994,
+        "predictors": 122,
+        "stratum": "regression",
+        "classes": null,
+        "minimum_class_count": null,
+        "class_labels": null,
+        "profile_kind": "official_reported_metadata_not_recomputed_from_payload",
+        "payload_checked": false,
+        "selected_fold_class_support_checked": false
+      }
+    },
+    {
+      "name": "computer-hardware-performance",
+      "family_id": "computer-hardware-performance",
+      "task": "regression",
+      "provider": "openml_task",
+      "role": "inventory",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "fresh-origin-reservation-20260924",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "class",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Static published relative CPU performance PRP from machine cycle time, memory, cache and channel specifications. OpenML names PRP class. Estimated ERP is absent, as are vendor/model identifiers.",
+      "evaluation_limitations": "Different origin from exposed cpu-act, which is Sun Sparcstation 20/712 activity telemetry predicting usr. Do not treat ERP fitted by the original authors as a predictor or a new outcome. No future hardware-generation claim.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI dataset publication explicitly licenses this data under CC BY 4.0; the OpenML Public/license badge is not the grant relied upon.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/29/computer+hardware",
+          "https://archive.ics.uci.edu/api/dataset?id=29"
+        ],
+        "primary_page_sha256": "ca075e010c166b618045f238372248cd939909c01466f7f22a82cb05f13ddea1",
+        "reviewed_on": "2026-09-24",
+        "scope": "Metadata-only candidate reservation now; later acquisition/use only after explicit parent release and protocol freeze. Local scientific processing only, no hosted row sharing or individual high-stakes deployment.",
+        "obligations": "Retain original source/contributor attribution, dataset and paper citations, and describe all curation/target/timing limitations."
+      },
+      "source": {
+        "uci_id": 29,
+        "dataset_id": 230,
+        "dataset_version": 1,
+        "task_id": 2318,
+        "columns": [
+          "MYCT",
+          "MMIN",
+          "MMAX",
+          "CACH",
+          "CHMIN",
+          "CHMAX",
+          "class"
+        ],
+        "target_columns": [
+          "class"
+        ],
+        "schema_reviewed": true,
+        "expected_rows": 209,
+        "md5_checksum": "e26d62e83069b74dff6cf492e06868a0",
+        "official_split_dimensions": {
+          "repeats": 1,
+          "folds": 10,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=29",
+        "primary_metadata_sha256": "3f880e3b6332d8c446f0a30153fb31648bfdae745d0d235cdc4643a6239b52fa",
+        "openml_description_sha256": "8d2cbe14385cf1975ffc0825a28107acc3d8338c2c7088aa43238c3c68ba4a3d",
+        "openml_features_sha256": "bf98357d33f30c828694d03728108e26c6433a4087389f68e04d428833f10681",
+        "openml_qualities_sha256": "4b4966f7d5bf82f7be3c06944f5bad15c980edd49b1885d4aa7a7aac26ec2a7c",
+        "openml_task_sha256": "3242345c0e10716eb51ddb975ee004cccf8b4c28b2a4b5a807871ea1146b684a",
+        "categorical_rule": "All NOMINAL and STRING predictors are categorical unless explicitly excluded; no value-cardinality heuristics or model outcomes.",
+        "payload_sha256_status": "Not acquired. Original upstream MD5 is a metadata pin, not evidence that payload bytes have been verified."
+      },
+      "metadata_profile": {
+        "rows": 209,
+        "predictors": 6,
+        "stratum": "regression",
+        "classes": null,
+        "minimum_class_count": null,
+        "class_labels": null,
+        "profile_kind": "official_reported_metadata_not_recomputed_from_payload",
+        "payload_checked": false,
+        "selected_fold_class_support_checked": false
+      }
+    },
+    {
+      "name": "forest-fires-montesinho",
+      "family_id": "forest-fires-montesinho",
+      "task": "regression",
+      "provider": "uci",
+      "role": "inventory",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "fresh-origin-reservation-20260924",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "area",
+      "target_transform": "identity",
+      "categorical": [
+        "month",
+        "day"
+      ],
+      "drop_columns": [],
+      "split_policy": "iid",
+      "prediction_time": "Retrospective recorded burned area in hectares conditional on the supplied event/weather/fire-index record. Identity target scale, no prospective alert-time or fire-growth horizon is claimed.",
+      "evaluation_limitations": "Month/day-of-week are not exact event timestamps. IID descriptive response regression, not spatial/event-disjoint or ahead-of-weather forecasting. Native zero-heavy response is retained; no outcome-based filtering.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI dataset publication explicitly licenses this data under CC BY 4.0; the OpenML Public/license badge is not the grant relied upon.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/162/forest+fires",
+          "https://archive.ics.uci.edu/api/dataset?id=162"
+        ],
+        "primary_page_sha256": "021fc4c970c87908e5e8b8053e511b9125d2e197c7502df3584b541f69a95e97",
+        "reviewed_on": "2026-09-24",
+        "scope": "Metadata-only candidate reservation now; later acquisition/use only after explicit parent release and protocol freeze. Local scientific processing only, no hosted row sharing or individual high-stakes deployment.",
+        "obligations": "Retain original source/contributor attribution, dataset and paper citations, and describe all curation/target/timing limitations."
+      },
+      "source": {
+        "uci_id": 162,
+        "data_url": "https://archive.ics.uci.edu/static/public/162/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=162",
+        "metadata_sha256": "b40871b9d420424d1ca574604eaa056c0f5f6d13a16486e6eb3802a80f7afe6d",
+        "schema_reviewed": true,
+        "columns": [
+          "X",
+          "Y",
+          "month",
+          "day",
+          "FFMC",
+          "DMC",
+          "DC",
+          "ISI",
+          "temp",
+          "RH",
+          "wind",
+          "rain",
+          "area"
+        ],
+        "target_columns": [
+          "area"
+        ],
+        "expected_rows": 517,
+        "payload_sha256_status": "Not acquired; reported shape and reviewed schema require payload verification after explicit release."
+      },
+      "metadata_profile": {
+        "rows": 517,
+        "predictors": 12,
+        "stratum": "regression",
+        "classes": null,
+        "minimum_class_count": null,
+        "class_labels": null,
+        "profile_kind": "official_reported_metadata_not_recomputed_from_payload",
+        "payload_checked": false,
+        "selected_fold_class_support_checked": false
+      }
+    },
+    {
+      "name": "infrared-oral-temperature",
+      "family_id": "infrared-oral-temperature",
+      "task": "regression",
+      "provider": "uci",
+      "role": "inventory",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "fresh-origin-reservation-20260924",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "aveOralM",
+      "target_transform": "identity",
+      "categorical": [
+        "Gender",
+        "Age",
+        "Ethnicity"
+      ],
+      "drop_columns": [
+        "SubjectID",
+        "aveOralF"
+      ],
+      "split_policy": "iid",
+      "prediction_time": "Contemporaneous oral temperature in monitor mode from measured infrared temperatures, demographic categories and acquisition conditions. Exclude fast-mode oral temperature and SubjectID; not fever diagnosis or future illness prediction.",
+      "evaluation_limitations": "This is a heterogeneous clinical measurement/calibration table, not a homogeneous pixel benchmark. IRT-2 and repeated camera/location variants share this origin and are not separate families. No identifiable images, subject reidentification, individual clinical use or hosted row transfer is approved.",
+      "rights": {
+        "status": "approved",
+        "license": "CC0-1.0",
+        "access": "public",
+        "approval_basis": "UCI explicitly delegates licensing to the linked original data. PhysioNet face-oral-temp-data v1.0.0 is Open Access with an explicit CC0 1.0 grant for the de-identified data files; no UCI default license is assumed.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/925/infrared+thermography+temperature+dataset",
+          "https://physionet.org/content/face-oral-temp-data/1.0.0/",
+          "https://physionet.org/content/face-oral-temp-data/view-license/1.0.0/"
+        ],
+        "primary_page_sha256": "1e419b42921384d551c10e15af2542639964205cef509b7bf5c6837a6d5b599e",
+        "reviewed_on": "2026-09-24",
+        "scope": "Metadata-only candidate reservation now; later acquisition/use only after explicit parent release and protocol freeze. Local scientific processing only, no hosted row sharing or individual high-stakes deployment.",
+        "obligations": "Retain original source/contributor attribution, dataset and paper citations, and describe all curation/target/timing limitations.",
+        "primary_license_sha256": "b50ed9146ede4dcf431a4717f549b940e264a2e73d69b242cef3b61ebf85ce4e"
+      },
+      "source": {
+        "uci_id": 925,
+        "data_url": "https://archive.ics.uci.edu/static/public/925/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=925",
+        "metadata_sha256": "e4f80bdf53f7b1824c9bf49943f5960ee00b910f4223ffd1967ae90067152c26",
+        "schema_reviewed": true,
+        "columns": [
+          "SubjectID",
+          "aveOralF",
+          "aveOralM",
+          "Gender",
+          "Age",
+          "Ethnicity",
+          "T_atm",
+          "Humidity",
+          "Distance",
+          "T_offset1",
+          "Max1R13_1",
+          "Max1L13_1",
+          "aveAllR13_1",
+          "aveAllL13_1",
+          "T_RC1",
+          "T_RC_Dry1",
+          "T_RC_Wet1",
+          "T_RC_Max1",
+          "T_LC1",
+          "T_LC_Dry1",
+          "T_LC_Wet1",
+          "T_LC_Max1",
+          "RCC1",
+          "LCC1",
+          "canthiMax1",
+          "canthi4Max1",
+          "T_FHCC1",
+          "T_FHRC1",
+          "T_FHLC1",
+          "T_FHBC1",
+          "T_FHTC1",
+          "T_FH_Max1",
+          "T_FHC_Max1",
+          "T_Max1",
+          "T_OR1",
+          "T_OR_Max1"
+        ],
+        "target_columns": [
+          "aveOralF",
+          "aveOralM"
+        ],
+        "expected_rows": 1020,
+        "payload_sha256_status": "Not acquired; reported shape and reviewed schema require payload verification after explicit release."
+      },
+      "metadata_profile": {
+        "rows": 1020,
+        "predictors": 33,
+        "stratum": "regression",
+        "classes": null,
+        "minimum_class_count": null,
+        "class_labels": null,
+        "profile_kind": "official_reported_metadata_not_recomputed_from_payload",
+        "payload_checked": false,
+        "selected_fold_class_support_checked": false
+      }
+    },
+    {
+      "name": "australian-credit-approval",
+      "family_id": "australian-credit-approval",
+      "task": "classification",
+      "provider": "openml_task",
+      "role": "inventory",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "fresh-origin-reservation-20260924",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "class",
+      "target_transform": "identity",
+      "categorical": [
+        "A1",
+        "A4",
+        "A5",
+        "A6",
+        "A7",
+        "A9",
+        "A10",
+        "A12",
+        "A13"
+      ],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Recorded application approval annotation from the supplied anonymized record. This is not subsequent default, repayment outcome or a prospective credit-risk decision rule.",
+      "evaluation_limitations": "Prefer original UCI27/OpenML29 with its 67 metadata-reported missing values preserved over Statlog/OpenML40981's undocumented filling/normalization. The latter remains a same-origin alias, not another candidate. Anonymized approval annotation, not future default or operational credit-risk evaluation.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI dataset publication explicitly licenses this data under CC BY 4.0; the OpenML Public/license badge is not the grant relied upon.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/27/credit+approval",
+          "https://archive.ics.uci.edu/api/dataset?id=27"
+        ],
+        "primary_page_sha256": "e95e404da1b24dc0cd952e3768b98c1790f75b6f81cf225c19ec908a08febefc",
+        "reviewed_on": "2026-09-24",
+        "scope": "Metadata-only candidate reservation now; later acquisition/use only after explicit parent release and protocol freeze. Local scientific processing only, no hosted row sharing or individual high-stakes deployment.",
+        "obligations": "Retain original source/contributor attribution, dataset and paper citations, and describe all curation/target/timing limitations."
+      },
+      "source": {
+        "uci_id": 27,
+        "dataset_id": 29,
+        "dataset_version": 1,
+        "task_id": 29,
+        "columns": [
+          "A1",
+          "A2",
+          "A3",
+          "A4",
+          "A5",
+          "A6",
+          "A7",
+          "A8",
+          "A9",
+          "A10",
+          "A11",
+          "A12",
+          "A13",
+          "A14",
+          "A15",
+          "class"
+        ],
+        "target_columns": [
+          "class"
+        ],
+        "schema_reviewed": true,
+        "expected_rows": 690,
+        "md5_checksum": "a948be968270a823fce432227c1aa36e",
+        "official_split_dimensions": {
+          "repeats": 1,
+          "folds": 10,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=27",
+        "primary_metadata_sha256": "c86c38c9f063b6f97e9ea40572efeb041f7e2dab354dc5ed5bfdbca8517fd476",
+        "openml_description_sha256": "3799658e93833bfd4ad33525c6438212af9d482021e5fe093424a1defd027638",
+        "openml_features_sha256": "4af9b723f27a8285291c9fd7382cd4ac884e22d9dea2607d8a0735ef2bfa9d89",
+        "openml_qualities_sha256": "5e909b2db7bbc88779779b6f670f45e2312fd92130aa7d7eb489d31365f0a5d9",
+        "openml_task_sha256": "72827fcc9677776389a985c2036af44094e98e3dc04e492ea8e905d689ae0ab4",
+        "categorical_rule": "All NOMINAL and STRING predictors are categorical unless explicitly excluded; no value-cardinality heuristics or model outcomes.",
+        "payload_sha256_status": "Not acquired. Original upstream MD5 is a metadata pin, not evidence that payload bytes have been verified."
+      },
+      "metadata_profile": {
+        "rows": 690,
+        "predictors": 15,
+        "stratum": "binary",
+        "classes": 2,
+        "minimum_class_count": 307,
+        "class_labels": [
+          "+",
+          "-"
+        ],
+        "profile_kind": "official_reported_metadata_not_recomputed_from_payload",
+        "payload_checked": false,
+        "selected_fold_class_support_checked": false
+      }
+    },
+    {
+      "name": "indian-liver-patients",
+      "family_id": "indian-liver-patients",
+      "task": "classification",
+      "provider": "openml_task",
+      "role": "inventory",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "fresh-origin-reservation-20260924",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "Class",
+      "target_transform": "identity",
+      "categorical": [
+        "V2"
+      ],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Recorded expert liver-patient/non-liver-patient annotation from age, gender and laboratory measurements. OpenML Class corresponds to the primary source Selector grouping, not a forecasting label.",
+      "evaluation_limitations": "Static clinical-record classification; no pre-test onset, mortality, treatment recommendation or uniform baseline-timing claim. Source metadata reports no missing values in this processed OpenML version; no missing-value preprocessing is newly inferred.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI dataset publication explicitly licenses this data under CC BY 4.0; the OpenML Public/license badge is not the grant relied upon.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/225/ilpd+indian+liver+patient+dataset",
+          "https://archive.ics.uci.edu/api/dataset?id=225"
+        ],
+        "primary_page_sha256": "2d66c055b2f1bee7cc302a6fae21263bebda3e1880277a885917af6c8eb166c6",
+        "reviewed_on": "2026-09-24",
+        "scope": "Metadata-only candidate reservation now; later acquisition/use only after explicit parent release and protocol freeze. Local scientific processing only, no hosted row sharing or individual high-stakes deployment.",
+        "obligations": "Retain original source/contributor attribution, dataset and paper citations, and describe all curation/target/timing limitations."
+      },
+      "source": {
+        "uci_id": 225,
+        "dataset_id": 1480,
+        "dataset_version": 1,
+        "task_id": 9971,
+        "columns": [
+          "V1",
+          "V2",
+          "V3",
+          "V4",
+          "V5",
+          "V6",
+          "V7",
+          "V8",
+          "V9",
+          "V10",
+          "Class"
+        ],
+        "target_columns": [
+          "Class"
+        ],
+        "schema_reviewed": true,
+        "expected_rows": 583,
+        "md5_checksum": "155295549a459387fb71312caf1b8360",
+        "official_split_dimensions": {
+          "repeats": 1,
+          "folds": 10,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=225",
+        "primary_metadata_sha256": "82458c6693a2f1b032ca5a914277bad31578782e072f799d0fdb68010a806ac8",
+        "openml_description_sha256": "eb06f21a94d4abbda50ab060dc9b5b5834dfebdd219ecbc0421101d9663d9994",
+        "openml_features_sha256": "365142d85932d62880fa985271bbf6f9f0e2cb5f7953089651a4e21d72c476e6",
+        "openml_qualities_sha256": "728c62c5457a46f3668fe37ca45604f75508b3748466237b4c2b70f81763294c",
+        "openml_task_sha256": "041fe9142d0030f0431eb551b56eccdab538c8c164f828d74dc13c4f0119a2f2",
+        "categorical_rule": "All NOMINAL and STRING predictors are categorical unless explicitly excluded; no value-cardinality heuristics or model outcomes.",
+        "payload_sha256_status": "Not acquired. Original upstream MD5 is a metadata pin, not evidence that payload bytes have been verified."
+      },
+      "metadata_profile": {
+        "rows": 583,
+        "predictors": 10,
+        "stratum": "binary",
+        "classes": 2,
+        "minimum_class_count": 167,
+        "class_labels": [
+          "1",
+          "2"
+        ],
+        "profile_kind": "official_reported_metadata_not_recomputed_from_payload",
+        "payload_checked": false,
+        "selected_fold_class_support_checked": false
+      }
+    },
+    {
+      "name": "ionosphere-radar",
+      "family_id": "ionosphere-radar",
+      "task": "classification",
+      "provider": "openml_task",
+      "role": "inventory",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "fresh-origin-reservation-20260924",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "class",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Recorded good/bad radar-return structure annotation from 34 measured autocorrelation components. An observational signal-response table, not image pixels or synthetic waveforms.",
+      "evaluation_limitations": "Retain the native measurements, including constants; no performance-driven removal. No unseen-station, independent-pulse or future-period generalization is established.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI dataset publication explicitly licenses this data under CC BY 4.0; the OpenML Public/license badge is not the grant relied upon.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/52/ionosphere",
+          "https://archive.ics.uci.edu/api/dataset?id=52"
+        ],
+        "primary_page_sha256": "ef9e40a9c40b1075504c2202fe9610430959c62542d250653c749a3706fff4e5",
+        "reviewed_on": "2026-09-24",
+        "scope": "Metadata-only candidate reservation now; later acquisition/use only after explicit parent release and protocol freeze. Local scientific processing only, no hosted row sharing or individual high-stakes deployment.",
+        "obligations": "Retain original source/contributor attribution, dataset and paper citations, and describe all curation/target/timing limitations."
+      },
+      "source": {
+        "uci_id": 52,
+        "dataset_id": 59,
+        "dataset_version": 1,
+        "task_id": 57,
+        "columns": [
+          "a01",
+          "a02",
+          "a03",
+          "a04",
+          "a05",
+          "a06",
+          "a07",
+          "a08",
+          "a09",
+          "a10",
+          "a11",
+          "a12",
+          "a13",
+          "a14",
+          "a15",
+          "a16",
+          "a17",
+          "a18",
+          "a19",
+          "a20",
+          "a21",
+          "a22",
+          "a23",
+          "a24",
+          "a25",
+          "a26",
+          "a27",
+          "a28",
+          "a29",
+          "a30",
+          "a31",
+          "a32",
+          "a33",
+          "a34",
+          "class"
+        ],
+        "target_columns": [
+          "class"
+        ],
+        "schema_reviewed": true,
+        "expected_rows": 351,
+        "md5_checksum": "23dd3c8b5693e2848901fd1a0248ef42",
+        "official_split_dimensions": {
+          "repeats": 1,
+          "folds": 10,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=52",
+        "primary_metadata_sha256": "b9659d2e4129196c80a56587b9b14932c1d3b2e988925b51fe0e31f867862ae9",
+        "openml_description_sha256": "2ba2e1a42907b8cfaf4a13004732e403253966042ded1d261ca0b2e889647930",
+        "openml_features_sha256": "172d522d52cc15da9909f74f4e9ab79a21f7a2397cb1a3c6a1b0bf3113e827ad",
+        "openml_qualities_sha256": "909be03ae520a4d01f4b417d16aaf3b88de8f8a07d3165128bfb3d113054c8fd",
+        "openml_task_sha256": "0ec03e2cede2854f61d3db9e2137ab05a1bfe2ad9adceb3d8d2e0751da6446fe",
+        "categorical_rule": "All NOMINAL and STRING predictors are categorical unless explicitly excluded; no value-cardinality heuristics or model outcomes.",
+        "payload_sha256_status": "Not acquired. Original upstream MD5 is a metadata pin, not evidence that payload bytes have been verified."
+      },
+      "metadata_profile": {
+        "rows": 351,
+        "predictors": 34,
+        "stratum": "binary",
+        "classes": 2,
+        "minimum_class_count": 126,
+        "class_labels": [
+          "b",
+          "g"
+        ],
+        "profile_kind": "official_reported_metadata_not_recomputed_from_payload",
+        "payload_checked": false,
+        "selected_fold_class_support_checked": false
+      }
+    },
+    {
+      "name": "contraceptive-method-choice",
+      "family_id": "contraceptive-method-choice",
+      "task": "classification",
+      "provider": "openml_task",
+      "role": "inventory",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "fresh-origin-reservation-20260924",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "Contraceptive_method_used",
+      "target_transform": "identity",
+      "categorical": [
+        "Wifes_education",
+        "Husbands_education",
+        "Wifes_religion",
+        "Wifes_now_working%3F",
+        "Husbands_occupation",
+        "Standard-of-living_index",
+        "Media_exposure"
+      ],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Survey-time annotation of no use, long-term or short-term contraceptive method from the supplied demographic/socioeconomic attributes. Descriptive choice classification, not effectiveness, pregnancy risk or a clinical recommendation.",
+      "evaluation_limitations": "Sensitive survey content is approved for local research only; no individual decision-making or reidentification. Preserve source sampling restrictions and native three-way labels.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI dataset publication explicitly licenses this data under CC BY 4.0; the OpenML Public/license badge is not the grant relied upon.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/30/contraceptive+method+choice",
+          "https://archive.ics.uci.edu/api/dataset?id=30"
+        ],
+        "primary_page_sha256": "5b1ca5db0e26856d1705bedaa3a4dca204b78d591c8167abd6783df28f5e78a9",
+        "reviewed_on": "2026-09-24",
+        "scope": "Metadata-only candidate reservation now; later acquisition/use only after explicit parent release and protocol freeze. Local scientific processing only, no hosted row sharing or individual high-stakes deployment.",
+        "obligations": "Retain original source/contributor attribution, dataset and paper citations, and describe all curation/target/timing limitations."
+      },
+      "source": {
+        "uci_id": 30,
+        "dataset_id": 23,
+        "dataset_version": 1,
+        "task_id": 23,
+        "columns": [
+          "Wifes_age",
+          "Wifes_education",
+          "Husbands_education",
+          "Number_of_children_ever_born",
+          "Wifes_religion",
+          "Wifes_now_working%3F",
+          "Husbands_occupation",
+          "Standard-of-living_index",
+          "Media_exposure",
+          "Contraceptive_method_used"
+        ],
+        "target_columns": [
+          "Contraceptive_method_used"
+        ],
+        "schema_reviewed": true,
+        "expected_rows": 1473,
+        "md5_checksum": "3149646ecff276abac3e892d1556655f",
+        "official_split_dimensions": {
+          "repeats": 1,
+          "folds": 10,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=30",
+        "primary_metadata_sha256": "4b315509e5bf575ac90773e119a88351560a747ad57832c19f5bc1354602d39b",
+        "openml_description_sha256": "e05506bb4e476df1e56e2d0e3237790886da8aa2a5b749532cf40c90618eef13",
+        "openml_features_sha256": "66f57ab7bbfecd39b57a5107ae047a65e93c84bad84d63606bf29cc5a220b39a",
+        "openml_qualities_sha256": "d8377ce3974b86fc0008af865664b3dd43fb507f21d570741e8592157316b3d6",
+        "openml_task_sha256": "9b87ad05918698aca5c8478d8f1b6e4265091a5a0b21b2aab6dbb602f8b5fd5b",
+        "categorical_rule": "All NOMINAL and STRING predictors are categorical unless explicitly excluded; no value-cardinality heuristics or model outcomes.",
+        "payload_sha256_status": "Not acquired. Original upstream MD5 is a metadata pin, not evidence that payload bytes have been verified."
+      },
+      "metadata_profile": {
+        "rows": 1473,
+        "predictors": 9,
+        "stratum": "multiclass",
+        "classes": 3,
+        "minimum_class_count": 333,
+        "class_labels": [
+          "1",
+          "2",
+          "3"
+        ],
+        "profile_kind": "official_reported_metadata_not_recomputed_from_payload",
+        "payload_checked": false,
+        "selected_fold_class_support_checked": false
+      }
+    },
+    {
+      "name": "vertebral-column",
+      "family_id": "vertebral-column",
+      "task": "classification",
+      "provider": "openml_task",
+      "role": "inventory",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "fresh-origin-reservation-20260924",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "Class",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Recorded Normal/Disk Hernia/Spondylolisthesis clinical annotation from six biomechanical measurements. Keep the original three-class task, not the alternate binary merge.",
+      "evaluation_limitations": "The two-class OpenML1524/UCI representation is the SAME origin, not another candidate. Static clinical annotation, not future disease onset or treatment guidance.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI dataset publication explicitly licenses this data under CC BY 4.0; the OpenML Public/license badge is not the grant relied upon.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/212/vertebral+column",
+          "https://archive.ics.uci.edu/api/dataset?id=212"
+        ],
+        "primary_page_sha256": "1b161789a82e0bcfced647f8eb3ba4486e3b201ce6cb73cf90cd08832206960f",
+        "reviewed_on": "2026-09-24",
+        "scope": "Metadata-only candidate reservation now; later acquisition/use only after explicit parent release and protocol freeze. Local scientific processing only, no hosted row sharing or individual high-stakes deployment.",
+        "obligations": "Retain original source/contributor attribution, dataset and paper citations, and describe all curation/target/timing limitations."
+      },
+      "source": {
+        "uci_id": 212,
+        "dataset_id": 1523,
+        "dataset_version": 1,
+        "task_id": 9939,
+        "columns": [
+          "V1",
+          "V2",
+          "V3",
+          "V4",
+          "V5",
+          "V6",
+          "Class"
+        ],
+        "target_columns": [
+          "Class"
+        ],
+        "schema_reviewed": true,
+        "expected_rows": 310,
+        "md5_checksum": "78913b1453c43b7b9e0623b0d295b1cb",
+        "official_split_dimensions": {
+          "repeats": 1,
+          "folds": 10,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=212",
+        "primary_metadata_sha256": "bbe4c36b146310babef26bfc1705da4740a851ffe8b0a16d8a2df8807d9a1d9f",
+        "openml_description_sha256": "abd7860f0266232d2cd10f087a0962b4aeb87667050cf60657847759158b505e",
+        "openml_features_sha256": "e47edd2122246f1f428e5a930104042e8f80dea9d32a9a94faab89bd1a151a99",
+        "openml_qualities_sha256": "cd2e9dffb28bea77f0a7e8ea7c6bc3f88fef030284494cbc312522e3d1904779",
+        "openml_task_sha256": "4f85012289b4d9e88ef148b068e8fc1747bf8c53a618bd207262ee57b0067a01",
+        "categorical_rule": "All NOMINAL and STRING predictors are categorical unless explicitly excluded; no value-cardinality heuristics or model outcomes.",
+        "payload_sha256_status": "Not acquired. Original upstream MD5 is a metadata pin, not evidence that payload bytes have been verified."
+      },
+      "metadata_profile": {
+        "rows": 310,
+        "predictors": 6,
+        "stratum": "multiclass",
+        "classes": 3,
+        "minimum_class_count": 60,
+        "class_labels": [
+          "1",
+          "2",
+          "3"
+        ],
+        "profile_kind": "official_reported_metadata_not_recomputed_from_payload",
+        "payload_checked": false,
+        "selected_fold_class_support_checked": false
+      }
+    },
+    {
+      "name": "wall-following-robot",
+      "family_id": "wall-following-robot",
+      "task": "classification",
+      "provider": "openml_task",
+      "role": "inventory",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "fresh-origin-reservation-20260924",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "Class",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Recorded motion-command class associated with contemporaneous physical ultrasound readings. This is static annotation reconstruction on the official task, not a claim that an IID classifier is safe for autonomous navigation.",
+      "evaluation_limitations": "Neighboring samples are temporally correlated; no unseen-trajectory/room or closed-loop safety claim. The 24-, 4- and 2-sensor representations share the same sampling steps and origin, not three independent families.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI dataset publication explicitly licenses this data under CC BY 4.0; the OpenML Public/license badge is not the grant relied upon.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/194/wall+following+robot+navigation+data",
+          "https://archive.ics.uci.edu/api/dataset?id=194"
+        ],
+        "primary_page_sha256": "4d525d4b09eb57ad7679336971cd8621634a9e9b0e02505599b7a5e41ae132d7",
+        "reviewed_on": "2026-09-24",
+        "scope": "Metadata-only candidate reservation now; later acquisition/use only after explicit parent release and protocol freeze. Local scientific processing only, no hosted row sharing or individual high-stakes deployment.",
+        "obligations": "Retain original source/contributor attribution, dataset and paper citations, and describe all curation/target/timing limitations."
+      },
+      "source": {
+        "uci_id": 194,
+        "dataset_id": 1497,
+        "dataset_version": 1,
+        "task_id": 9960,
+        "columns": [
+          "V1",
+          "V2",
+          "V3",
+          "V4",
+          "V5",
+          "V6",
+          "V7",
+          "V8",
+          "V9",
+          "V10",
+          "V11",
+          "V12",
+          "V13",
+          "V14",
+          "V15",
+          "V16",
+          "V17",
+          "V18",
+          "V19",
+          "V20",
+          "V21",
+          "V22",
+          "V23",
+          "V24",
+          "Class"
+        ],
+        "target_columns": [
+          "Class"
+        ],
+        "schema_reviewed": true,
+        "expected_rows": 5456,
+        "md5_checksum": "05d4fd7921f662a911dc41eafb5a5183",
+        "official_split_dimensions": {
+          "repeats": 1,
+          "folds": 10,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=194",
+        "primary_metadata_sha256": "a6c143179244d6dd5ac6c58aea07f7155647276b7b9b10e8ff414a9507292e2c",
+        "openml_description_sha256": "046419e99fdafc2d5b826f6d9a2819eb3642ee504fb2ee4e90ea649dae4744dc",
+        "openml_features_sha256": "e4268e67de19946316a8b58c3dfa17ef8354dc25b2d78cb48d7727918d47cd72",
+        "openml_qualities_sha256": "7372a0b627615c1058c89e0e9ccd18bf34a51e738f2ae37b8b452e92c84df1db",
+        "openml_task_sha256": "8a57771006be2d6e4a54c8ed2dcb97d9b6087dd89cfb0a43706c0bee51042513",
+        "categorical_rule": "All NOMINAL and STRING predictors are categorical unless explicitly excluded; no value-cardinality heuristics or model outcomes.",
+        "payload_sha256_status": "Not acquired. Original upstream MD5 is a metadata pin, not evidence that payload bytes have been verified."
+      },
+      "metadata_profile": {
+        "rows": 5456,
+        "predictors": 24,
+        "stratum": "multiclass",
+        "classes": 4,
+        "minimum_class_count": 328,
+        "class_labels": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "profile_kind": "official_reported_metadata_not_recomputed_from_payload",
+        "payload_checked": false,
+        "selected_fold_class_support_checked": false
+      }
+    }
+  ],
+  "metadata_representation_refinement": {
+    "family_id": "australian-credit-approval",
+    "reason": "Official description disclosed undocumented imputation in OpenML40981. Original OpenML29 metadata provides a completely reviewed alternative preserving missingness.",
+    "selected_dataset_id": 29,
+    "selected_task_id": 29,
+    "version": 1,
+    "rows": 690,
+    "predictors": 15,
+    "minimum_class_count": 307,
+    "reported_missing_values": 67,
+    "quota_or_origin_selection_changed": false,
+    "payloads_or_models_opened": false
+  }
+}

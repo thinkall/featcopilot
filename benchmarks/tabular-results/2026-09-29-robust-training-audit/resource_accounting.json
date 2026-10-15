@@ -1,0 +1,10 @@
+{
+  "whole_audit_process_seconds": 911.2343309,
+  "synthetic_safety_test_process_seconds": 29.5925588,
+  "final_verification_publication_process_seconds": 30.0288136,
+  "audit_plus_final_publication_measured_seconds": 941.2631445,
+  "note": "Safety-test time is separate. Worker and pipeline times are nested, not additive. Additional metadata checks are not model measurements.",
+  "final_archive_index_check_body_seconds": 3.9396379000972956,
+  "final_archive_index_verification_process_seconds": 6.1918353,
+  "combined_measured_audit_publication_verification_seconds": 947.4549798
+}

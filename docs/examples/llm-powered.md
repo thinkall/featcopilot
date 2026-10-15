@@ -14,7 +14,7 @@ FeatCopilot supports multiple LLM backends:
 
 ```python
 # Option 1: GitHub Copilot SDK (default)
-llm_config = {'model': 'gpt-5.2'}
+llm_config = {'model': 'gpt-5.6-sol'}
 
 # Option 2: LiteLLM with OpenAI
 llm_config = {'model': 'gpt-4o', 'backend': 'litellm'}
@@ -37,6 +37,12 @@ llm_config = {
     'api_base': 'http://localhost:11434'
 }
 ```
+
+`gpt-5.6-sol` is the shared project default, not a provider-availability guarantee.
+Set an explicit supported model for another backend. Provider failures are errors,
+not mock feature generation. Fit on training data only and review generated code:
+the engine persists rules, but does not automatically freeze means, group statistics,
+or quantile boundaries computed by generated code.
 
 ## The Problem
 
@@ -129,7 +135,7 @@ engineer = AutoFeatureEngineer(
     engines=['tabular', 'llm'],
     max_features=40,
     llm_config={
-        'model': 'gpt-5.2',
+        'model': 'gpt-5.6-sol',
         'max_suggestions': 15,
         'domain': 'healthcare',
         'validate_features': True
@@ -373,7 +379,7 @@ for feat in custom_features:
 ```python
 from featcopilot.llm import FeatureExplainer
 
-explainer = FeatureExplainer(model='gpt-5.2')
+explainer = FeatureExplainer(model='gpt-5.6-sol')
 
 report = explainer.generate_feature_report(
     features=engineer._engine_instances['llm'].get_feature_set(),
@@ -483,7 +489,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 engineer = AutoFeatureEngineer(
     engines=['tabular', 'llm'],
     max_features=30,
-    llm_config={'model': 'gpt-5.2', 'domain': 'healthcare'}
+    llm_config={'model': 'gpt-5.6-sol', 'domain': 'healthcare'}
 )
 
 X_train_fe = engineer.fit_transform(

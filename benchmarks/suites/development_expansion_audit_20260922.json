@@ -1,0 +1,4105 @@
+{
+  "schema_version": 1,
+  "name": "development-expansion-audit-20260922",
+  "family_registry": "tabarena_v01_inventory.json",
+  "reviewed_on": "2026-09-22",
+  "purpose": "Current development/stress admission decisions and concrete holds. Inventory rows never authorize acquisition; historical confirmation cohorts are consumed/exposed.",
+  "admission_summary": {
+    "admitted_unique_origins": 50,
+    "observational_origins": 48,
+    "domain_simulation_origins": 2,
+    "synthetic_diagnostic_substitutes": 0,
+    "fresh_confirmation_origins": 0,
+    "split_policy_counts": {
+      "iid": 21,
+      "temporal": 3,
+      "official": 24,
+      "grouped": 2
+    },
+    "prior_exposure_counts": {
+      "exposed": 20,
+      "metadata_only": 13,
+      "unknown": 17
+    },
+    "task_counts": {
+      "classification": 34,
+      "regression": 16
+    },
+    "evaluation_track_counts": {
+      "iid_development": 17,
+      "domain_simulation": 2,
+      "temporal_retrospective": 3,
+      "official_iid_development": 21,
+      "rare_class_stress": 4,
+      "nested_cv_stress": 1,
+      "fast_regression_realdata": 1,
+      "grouped_development": 1
+    },
+    "official_outer_splits_total": 720,
+    "reference_nonofficial_outer_splits_total": 78,
+    "model_calls": 0,
+    "interpretation": "Source-origin groups, not a guarantee of independent row entities or universal SOTA coverage. Every admitted family is development/stress, including all six now-exposed former confirmation families."
+  },
+  "validation_environment": {
+    "python": "3.13.13",
+    "numpy": "2.4.4",
+    "pandas": "3.0.2",
+    "scikit-learn": "1.8.0",
+    "openml": "0.15.1",
+    "scope": "Payload/schema and reference split-feasibility checks only, not a model-evaluation environment prescription."
+  },
+  "inventory_summary": {
+    "named_family_inventory_entries": 74,
+    "admitted_unique_origins": 50,
+    "pending_named_inventory_entries": 24,
+    "tabarena_inventory_entries": 51,
+    "tabarena_origins_admitted": 27,
+    "tabarena_origins_pending": 24,
+    "certified_independent_origins_for_pending_inventory": null,
+    "confirmation_candidates_allocated": 0,
+    "policy": "Unresolved inventory identities and noisy/opaque sources are not additional admitted origins. Future confirmation requires a separate parent freeze and a fresh exposure/permission audit; none is allocated by this cycle."
+  },
+  "primary_rights_decisions": {
+    "uci": "Original dataset pages explicitly grant CC-BY-4.0; native task/column descriptions reviewed independently of a curated badge.",
+    "aps": {
+      "decision": "approved_private_local_only",
+      "primary_donor_notice": "https://archive.ics.uci.edu/api/dataset?id=421",
+      "authoritative_permission": "https://www.gnu.org/licenses/gpl-3.0.html#section2",
+      "license_text_sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+      "basis": "GPLv3 section 0 includes copyrightable works; section 2 expressly permits making/running non-conveyed covered works. Original Scania data notice grants GPLv3-or-later. This is a private-use permission, not a waiver of the conflicting CC panel or redistribution conditions.",
+      "redistribution_approved": false
+    },
+    "fiat": "Original collector's Kaggle API record expressly declares CC0 and invites regression research. Existing compiled table only; unnamed upstream listing-site permission, new scraping and row sharing are not asserted.",
+    "microwave": "Original author's dataset 45538 declares CC BY-SA and is tied to the cited experiment. Local non-conveying processing only; exact license version and conveyance obligations require clarification before redistribution.",
+    "other_kaggle": "Primary metadata was inspected where accessible. Unknown/Other badges, an unavailable competition grant, or unresolved collection/label provenance remain holds. CC0 on a mirror does not by itself establish an unknown upstream collection.",
+    "legal_scope": "Conservative operational review from published grants, not legal advice or a general redistribution approval."
+  },
+  "exposure_snapshot": {
+    "source": "benchmarks/.cache/exposure.sqlite",
+    "access": "SQLite URI mode=ro; no writes",
+    "row_count": 23,
+    "logical_rows_sha256": "1ef38705e4ba5fc9d29e71ba9ce88ef1a9181198a150efd50845a525e459f684",
+    "exposed_families": [
+      "adult",
+      "california-housing",
+      "concrete-strength",
+      "dry-bean",
+      "energy-efficiency",
+      "german-credit",
+      "online-shoppers",
+      "seoul-bike",
+      "steel-faults",
+      "tabarena-46904",
+      "tabarena-46916",
+      "tabarena-46937",
+      "tabarena-46954",
+      "tabarena-46958",
+      "tabarena-46969",
+      "wine-quality"
+    ],
+    "completed_confirmation_families_now_exposed": [
+      "tabarena-46904",
+      "tabarena-46916",
+      "tabarena-46937",
+      "tabarena-46954",
+      "tabarena-46958",
+      "tabarena-46969"
+    ],
+    "policy": "Family registry now records current exposure and historical admissions. Historical files stay byte-identical; attempting fresh confirmation with these families fails closed, even with allow_confirmation."
+  },
+  "protocol_notes": {
+    "anneal": "Minority class eight is admitted development stress. No global min_total=30 admission rule is used. The recorded seed-2026 structural probe passes; that does not erase known nested-CV fragility for other seeds/learner paths.",
+    "mic": "Use the donor's explicitly documented admission-time predictor set: omit original input columns 93-95 and 100-105. Other eleven outcome targets are already absent from the curated payload and are verified excluded.",
+    "student_dropout": "Enrollment-record variant removes all twelve semester-outcome fields plus debtor, fee, scholarship and macro-timing fields. Keep native Dropout/Enrolled/Graduate annotations without inventing eventual outcomes.",
+    "website_phishing": "Native Suspicious is a defined uncertain annotation, not confirmed phishing. It is admitted as retrospective three-way annotation classification, not a live safety guarantee.",
+    "blood_donation": "Retrospective supplied-snapshot annotation only; a pre-March feature cutoff is neither required for that declared task nor invented.",
+    "seismic": "Historical record-level annotation classification on official supplied splits, not an assertion of forward mine forecasting.",
+    "musk": "Versions 1/2 share one origin. Version 2 is grouped by original molecule_name, not random conformers; two outer folds failed the reference nested-group split checks and remain explicit stress outcomes.",
+    "target_exclusions": "Student Performance excludes G1/G2; Parkinsons excludes total_UPDRS; Heart Failure excludes follow-up time; Capital Bikeshare excludes casual/registered/instant; Appliances excludes lights and random controls; Energy excludes Y2; Steel excludes all seven labels; all identifier exclusions are declared.",
+    "categorical_rule": "OpenML nominal AND string fields are categorical unless explicitly excluded. UCI Binary/Categorical fields and reviewed coded categories are declared. No value-cardinality-based feature selection.",
+    "class_counts": "Actual pinned-source class counts/prevalence, missingness, cardinality, duplicates and structural split checks are stored per admitted dataset. Curator deduplication/balance changes remain disclosed; no resampling was performed."
+  },
+  "metadata_repairs_before_any_models": [
+    {
+      "dataset": "uci-appliances-energy",
+      "issue": "Normalized UCI date strings omit the separator between date and clock.",
+      "explicit_format": "%Y-%m-%d%H:%M:%S",
+      "verified_rows": 19735,
+      "model_calls_before_or_after": 0
+    }
+  ],
+  "native_resource_holds": [
+    {
+      "uci_id": 422,
+      "name": "Wireless Indoor Localization",
+      "status": "provider_schema_hold",
+      "primary_source": "https://archive.ics.uci.edu/dataset/422/wireless+indoor+localization",
+      "reason": "Primary CC-BY-4.0 verified, but API supplies no normalized public CSV and blank column names. A pinned official task or reviewed headerless-file adapter is required; no invented schema or payload substitution."
+    },
+    {
+      "uci_id": 243,
+      "name": "Yacht Hydrodynamics",
+      "status": "provider_schema_hold",
+      "primary_source": "https://archive.ics.uci.edu/dataset/243/yacht+hydrodynamics",
+      "reason": "Primary CC-BY-4.0 verified, but normalized CSV URL and column schema are absent. Requires separately reviewed primary-file/task representation."
+    },
+    {
+      "uci_id": 40,
+      "name": "Flags",
+      "status": "task_definition_hold",
+      "primary_source": "https://archive.ics.uci.edu/dataset/40/flags",
+      "reason": "Metadata inspected, but no explicit target was nominated and API marks no target. It is not an admitted classification task; no outcome was guessed."
+    }
+  ],
+  "same_origin_reference_not_counted": {
+    "uci_id": 74,
+    "name": "Musk (Version 1)",
+    "family_id": "musk-molecules",
+    "policy": "Version 2 is the primary admitted representation; version 1 is not another origin."
+  },
+  "primary_metadata_access": {
+    "kaggle": [
+      {
+        "dataset_id": "46907",
+        "url": "https://www.kaggle.com/api/v1/datasets/view/paolocons/another-fiat-500-dataset-1538-rows",
+        "status": "metadata_retrieved",
+        "fields": {
+          "title": "Another Dataset on used Fiat 500 (1538 rows)",
+          "licenseName": "CC0: Public Domain",
+          "ownerName": "pc1975",
+          "ownerRef": "paolocons",
+          "ref": "paolocons/another-fiat-500-dataset-1538-rows"
+        },
+        "description_excerpt": "This dataset has been created from a query done on an website specialized in used cars and contains 1538 rows\n\nDescription of colums:\nmodel: Fiat 500 comes in several 'flavours' :'pop', 'lounge', 'sport'\n\nengine_power: number of Kw of the engine\n\nage_in_days: age of the car in number of days (from the time the dataset has been created)\n\nkm: kilometers of the car\n\nprevious_owners: number of previous owners\n\nlat: latitude of the seller (the price of cars in Italy varies from North to South of the country)\n\nlon: longitude of the seller (the price of cars in Italy varies from North to South of the country)\n\nprice: selling price (the target)\n\nI co"
+      },
+      {
+        "dataset_id": "46911",
+        "url": "https://www.kaggle.com/api/v1/datasets/view/gauravtopre/bank-customer-churn-dataset",
+        "status": "metadata_retrieved",
+        "fields": {
+          "title": "Bank Customer Churn Dataset ",
+          "licenseName": "Other (specified in description)",
+          "ownerName": "Gaurav Topre",
+          "ownerRef": "gauravtopre",
+          "ref": "gauravtopre/bank-customer-churn-dataset"
+        },
+        "description_excerpt": "This dataset is for ABC Multistate bank with following columns: \n\n1. **customer_id**, unused variable.\n2. **credit_score,** used as input.\n3. **country**, used as input.\n4. **gender**, used as input.\n5. **age**, used as input.\n6. **tenure**, used as input.\n7. **balance**, used as input.\n8. **products_number**, used as input.\n9. **credit_card**, used as input.\n10. **active_member**, used as input.\n11. **estimated_salary**, used as input.\n12. **churn**, used as the target. 1 if the client has left the bank during some period or 0 if he/she has not.\n\n*Aim is to Predict the Customer Churn for ABC Bank.*\n\n![](https://miro.medium.com/max/737/1*Xap6"
+      },
+      {
+        "dataset_id": "46920",
+        "url": "https://www.kaggle.com/api/v1/datasets/view/yakhyojon/customer-satisfaction-in-airline",
+        "status": "metadata_retrieved",
+        "fields": {
+          "title": "Customer Satisfaction in Airline",
+          "licenseName": "CC0: Public Domain",
+          "ownerName": "Yakhyojon",
+          "ownerRef": "yakhyojon",
+          "ref": "yakhyojon/customer-satisfaction-in-airline"
+        },
+        "description_excerpt": "The data is for a sample size of 129,880 customers. It includes data points such as class, flight distance, and inflight entertainment to be used to predict whether a customer will be satisfied with their flight experience."
+      },
+      {
+        "dataset_id": "46921",
+        "url": "https://www.kaggle.com/api/v1/datasets/view/uciml/pima-indians-diabetes-database",
+        "status": "metadata_access_or_schema_blocked",
+        "error": "HTTP Error 403: Forbidden"
+      },
+      {
+        "dataset_id": "46924",
+        "url": "https://www.kaggle.com/api/v1/datasets/view/prachi13/customer-analytics",
+        "status": "metadata_retrieved",
+        "fields": {
+          "title": " E-Commerce Shipping Data ",
+          "licenseName": "Other (specified in description)",
+          "ownerName": "Prachi Gopalani",
+          "ownerRef": "prachi13",
+          "ref": "prachi13/customer-analytics"
+        },
+        "description_excerpt": "### Context\n\nAn international e-commerce company based wants to discover key insights from their customer database. They want to use some of the most advanced machine learning techniques to study their customers. The company sells electronic products.\n\n### Content\n\nThe dataset used for model building contained 10999 observations of 12 variables.\nThe data contains the following information:\n\n- **ID:** ID Number of Customers.\n- **Warehouse block:** The Company have big Warehouse which is divided in to block such as A,B,C,D,E.\n- **Mode of shipment:**The Company Ships the products in multiple way such as Ship, Flight and Road.\n- **Customer care c"
+      },
+      {
+        "dataset_id": "46927",
+        "url": "https://www.kaggle.com/api/v1/datasets/view/ddosad/datacamps-data-science-associate-certification",
+        "status": "metadata_retrieved",
+        "fields": {
+          "title": "Fitness Club Dataset for ML Classification",
+          "licenseName": "Other (specified in description)",
+          "ownerName": "Dhruv D",
+          "ownerRef": "ddosad",
+          "ref": "ddosad/datacamps-data-science-associate-certification"
+        },
+        "description_excerpt": "GoalZone is a fitness club chain in Canada.\nGoalZone offers a range of fitness classes in two capacities - 25 and 15.\nSome classes are always fully booked. Fully booked classes often have a low attendance rate.\nGoalZone wants to increase the number of spaces available for classes.\nThey want to do this by predicting whether the member will attend the class or not.\nIf they can predict a member will not attend the class, they can make another space\navailable.\n\n&gt;**Do explore pinned \ud83d\udccc notebook under code section for quick reference**\n"
+      },
+      {
+        "dataset_id": "46928",
+        "url": "https://www.kaggle.com/api/v1/datasets/view/rajatkumar30/food-delivery-time",
+        "status": "metadata_retrieved",
+        "fields": {
+          "title": "Food Delivery Time",
+          "licenseName": "Database: Open Database, Contents: Database Contents",
+          "ownerName": "Rajat Kumar",
+          "ownerRef": "rajatkumar30",
+          "ref": "rajatkumar30/food-delivery-time"
+        },
+        "description_excerpt": "** **Please Upvote if you like the dataset** **\n\n## Food delivery Dataset \n\nPredict the time taken by the delivery person to deliver the food from the restaurant to the delivery location. With the help of age of the delivery person, previous rating and distance between restaurant and delivery location.\nDataset Columns:-\n1. ID\n2. Delivery_person_ID\n3. Delivery_person_Age\n4. Delivery_person_Ratings\n5. Restaurant_latitude\n6. Restaurant_longitude\n7. Delivery_location_latitude\n8. Delivery_location_longitude\n9. Type_of_order\n10. Type_of_vehicle\n\n** If You Like this Dataset Please UPVOTE!!! **\n"
+      },
+      {
+        "dataset_id": "46931",
+        "url": "https://www.kaggle.com/api/v1/datasets/view/arunjangir245/healthcare-insurance-expenses",
+        "status": "metadata_retrieved",
+        "fields": {
+          "title": "Healthcare Insurance Expenses",
+          "licenseName": "Database: Open Database, Contents: Database Contents",
+          "ownerName": "Arun Jangir",
+          "ownerRef": "arunjangir245",
+          "ref": "arunjangir245/healthcare-insurance-expenses"
+        },
+        "description_excerpt": "1. Age: The insured person's age.\n\n2. Sex: Gender (male or female) of the insured.\n\n3. BMI (Body Mass Index): A measure of body fat based on height and weight.\n\n4. Children: The number of dependents covered.\n\n5. Smoker: Whether the insured is a smoker (yes or no).\n\n6. Region: The geographic area of coverage.\n\n7. Charges: The medical insurance costs incurred by the insured person."
+      },
+      {
+        "dataset_id": "46932",
+        "url": "https://www.kaggle.com/api/v1/datasets/view/averkiyoliabev/home-equity-line-of-creditheloc",
+        "status": "metadata_retrieved",
+        "fields": {
+          "title": "Home Equity Line of Credit(HELOC)",
+          "licenseName": "Unknown",
+          "ownerName": "Averkiy Oliabev",
+          "ownerRef": "averkiyoliabev",
+          "ref": "averkiyoliabev/home-equity-line-of-creditheloc"
+        },
+        "description_excerpt": ""
+      },
+      {
+        "dataset_id": "46935",
+        "url": "https://www.kaggle.com/api/v1/datasets/view/arashnic/hr-analytics-job-change-of-data-scientists",
+        "status": "metadata_retrieved",
+        "fields": {
+          "title": "HR Analytics: Job Change of Data Scientists",
+          "licenseName": "CC0: Public Domain",
+          "ownerName": "M\u00f6bius",
+          "ownerRef": "arashnic",
+          "ref": "arashnic/hr-analytics-job-change-of-data-scientists"
+        },
+        "description_excerpt": "### Context and Content\n\nA company which is active in Big Data and Data Science  wants to hire data scientists among people who successfully pass some courses which conduct by the company. Many people signup  for their training. Company wants to know which of these candidates are really wants to work for the company after training or looking for a new employment because **it helps to reduce the cost and time as well as the quality of training or planning the courses and categorization of candidates**. Information related to demographics, education, experience are in hands from candidates signup and enrollment.\n \nThis  dataset designed to unde"
+      },
+      {
+        "dataset_id": "46938",
+        "url": "https://www.kaggle.com/api/v1/datasets/view/podsyp/is-this-a-good-customer",
+        "status": "metadata_retrieved",
+        "fields": {
+          "title": "Is this a good customer?",
+          "licenseName": "CC0: Public Domain",
+          "ownerName": "podsyp",
+          "ownerRef": "podsyp",
+          "ref": "podsyp/is-this-a-good-customer"
+        },
+        "description_excerpt": "### Context\n\nImbalanced classes put \u201caccuracy\u201d out of business. This is a surprisingly common problem in machine learning (specifically in classification), occurring in datasets with a disproportionate ratio of observations in each class.\n\n\n### Content\n\nStandard accuracy no longer reliably measures performance, which makes model training much trickier.\nImbalanced classes appear in many domains, including:\n- Antifraud\n- Antispam\n- ...\n\n\n### Inspiration\n\n5 tactics for handling imbalanced classes in machine learning:\n- Up-sample the minority class\n- Down-sample the majority class\n- Change your performance metric\n- Penalize algorithms (cost-sensi"
+      },
+      {
+        "dataset_id": "46940",
+        "url": "https://www.kaggle.com/api/v1/datasets/view/rodsaldanha/arketing-campaign",
+        "status": "metadata_retrieved",
+        "fields": {
+          "title": "Marketing Campaign",
+          "licenseName": "Other (specified in description)",
+          "ownerName": "Rodolfo Saldanha",
+          "ownerRef": "rodsaldanha",
+          "ref": "rodsaldanha/arketing-campaign"
+        },
+        "description_excerpt": "### Context\n\nA response model can provide a significant boost to the efficiency of a marketing campaign by increasing responses or reducing expenses. The objective is to predict who will respond to an offer for a product or service\n\n\n### Content\n\nAcceptedCmp1 - 1 if customer accepted the offer in the 1st campaign, 0 otherwise \nAcceptedCmp2 - 1 if customer accepted the offer in the 2nd campaign, 0 otherwise \nAcceptedCmp3 - 1 if customer accepted the offer in the 3rd campaign, 0 otherwise \nAcceptedCmp4 - 1 if customer accepted the offer in the 4th campaign, 0 otherwise \nAcceptedCmp5 - 1 if customer accepted the offer in the 5th campaign, 0 othe"
+      },
+      {
+        "dataset_id": "46955",
+        "url": "https://www.kaggle.com/api/v1/datasets/view/fedesoriano/stellar-classification-dataset-sdss17",
+        "status": "metadata_retrieved",
+        "fields": {
+          "title": "Stellar Classification Dataset - SDSS17",
+          "licenseName": "Data files \u00a9 Original Authors",
+          "ownerName": "fedesoriano",
+          "ownerRef": "fedesoriano",
+          "ref": "fedesoriano/stellar-classification-dataset-sdss17"
+        },
+        "description_excerpt": "### Similar Datasets\n\n- CERN Proton Collision Dataset: [LINK](https://www.kaggle.com/fedesoriano/multijet-primary-dataset)\n- Airfoil Self-Noise Dataset: [LINK](https://www.kaggle.com/fedesoriano/airfoil-selfnoise-dataset)\n- CERN Electron Collision Data: [LINK](https://www.kaggle.com/fedesoriano/cern-electron-collision-data)\n- Wind Speed Prediction Dataset: [LINK](https://www.kaggle.com/datasets/fedesoriano/wind-speed-prediction-dataset)\n- Spanish Wine Quality Dataset: [LINK](https://www.kaggle.com/datasets/fedesoriano/spanish-wine-quality-dataset)\n\n\n### Context\n\nIn astronomy, stellar classification is the classification of stars based on thei"
+      }
+    ],
+    "sdss": "Kaggle's data-license record points to original authors; cited current SDSS image-gallery permissions are not a DR17 catalogue data grant, and attempted original credits endpoints returned 404.",
+    "promise": "https://promise.site.uottawa.ca/SERepository/ returned 404.",
+    "chembl": "The attempted original terms-of-use endpoint returned 404; no applicable MetaQSAR derivative grant was verified.",
+    "competition_rules": "Amazon Employee Access, Bioresponse and GiveMeSomeCredit public rules responses exposed titles only; no usable rights terms were extracted."
+  },
+  "preserved_historical_manifest_sha256": {
+    "seoul_development.json": "eb949eb6de7a77d39e5dbf4d2026cad6163d47f4fd837e686310bd2f2b1b3f48",
+    "seoul_inventory.json": "8f861070d84577f8a77d6135c61980d6bd24be4eb7f3099dda6256bc22ec5dd5",
+    "tabarena_confirmation_candidates_20260920.json": "db4bafa21d2697c4b19955e031440b55fdd33bd068fd08866cee70e5943d9b00",
+    "tabarena_confirmation_completion_repair_20260921.json": "85035ccd8290a105d87b05e2aebc8cd0193a9c81776a9e367f0d4cba9fe0253b",
+    "tabarena_v01_audit_20260920.json": "6a4f6f2c9dbaf222dd3b991fbef291e88d2a30833da4f4e86b1d7cfbe65063c9",
+    "tabarena_v01_inventory.json": "92dc0e6e58e09422104735cbe049dd42eca559acca3808a6abee55e9cf870243",
+    "uci_development.json": "72b5257603de43b1653c00449f0dfd3279a7dea3fa53c5f036d70e5e3443ee7d"
+  },
+  "no_model_runs": true,
+  "no_evaluation_scores": true,
+  "no_llm_calls": true,
+  "datasets": [
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/291/airfoil+self+noise",
+          "https://archive.ics.uci.edu/api/dataset?id=291"
+        ],
+        "primary_page_sha256": "a9c0b735bb515e297c112a3e6828930a01b16d7579de228a0066dd0d4f3ff966",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46904",
+      "display_name": "airfoil_self_noise",
+      "family_id": "tabarena-46904",
+      "task": "regression",
+      "target": "scaled-sound-pressure",
+      "source": {
+        "dataset_id": 46904,
+        "task_id": 363612,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46904",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46905",
+      "display_name": "Amazon_employee_access",
+      "family_id": "tabarena-46905",
+      "task": "classification",
+      "target": "ResourceApproved",
+      "source": {
+        "dataset_id": 46905,
+        "task_id": 363613,
+        "declared_license": "Public Domain",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "competition_rights",
+      "hold_reason": "Official Amazon competition rules endpoint exposes only a title in the available public response; no data-use grant was verified. Curator Public Domain alone is insufficient."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/3/annealing",
+          "https://archive.ics.uci.edu/api/dataset?id=3"
+        ],
+        "primary_page_sha256": "0c7438c2a5b5d9bfdc20f980f9c84cd02c1354bfa33093dfec0711d80bf41a33",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46906",
+      "display_name": "anneal",
+      "family_id": "tabarena-46906",
+      "task": "classification",
+      "target": "classes",
+      "source": {
+        "dataset_id": 46906,
+        "task_id": 363614,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46906",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC0-1.0",
+        "access": "public",
+        "approval_basis": "The original dataset collector explicitly publishes this collected listing table under CC0 on Kaggle and invites regression research. This is a first-party publisher grant, not the TabArena badge alone.",
+        "evidence": [
+          "https://www.kaggle.com/datasets/paolocons/another-fiat-500-dataset-1538-rows",
+          "https://www.kaggle.com/api/v1/datasets/view/paolocons/another-fiat-500-dataset-1538-rows",
+          "https://creativecommons.org/publicdomain/zero/1.0/legalcode"
+        ],
+        "primary_metadata_sha256": "a1ec9d92040e61050fa6c75c6c74b9864998dbc1e2d893c258ca3097665c99ab",
+        "reviewed_on": "2026-09-22",
+        "scope": "Existing public table, local benchmarking only; no new listing-site scraping, seller reidentification, hosted row sharing or row redistribution is approved by this admission.",
+        "provenance_limit": "The collector describes querying a used-car website without naming it. The recorded grant is the collector's CC0 declaration for this table; no broader permission for the unnamed website is asserted.",
+        "obligations": "Retain collector and curated-task attribution for scientific provenance; report listing-price and origin limitations."
+      },
+      "name": "tabarena-46907",
+      "display_name": "Another-Dataset-on-used-Fiat-500",
+      "family_id": "tabarena-46907",
+      "task": "regression",
+      "target": "price",
+      "source": {
+        "dataset_id": 46907,
+        "task_id": 363615,
+        "declared_license": "CC0: Public Domain",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46907",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "GPL-3.0-or-later",
+        "access": "public",
+        "approval_basis": "Original Scania donor notice expressly licenses APS Failure and Operational Data under GPLv3-or-later. GNU GPLv3 sections 0 and 2 cover copyrightable works and permit making/running non-conveyed copies. This grants local processing without waiving any redistribution condition; the conflicting CC panel is not the basis.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/421/aps+failure+at+scania+trucks",
+          "https://archive.ics.uci.edu/api/dataset?id=421",
+          "https://www.gnu.org/licenses/gpl-3.0.html#section2"
+        ],
+        "primary_page_sha256": "4e1b32028c0696c759821ef097dd3b72cdf1cc3a4f51890970c6bab6a7d5fddb",
+        "reviewed_on": "2026-09-22",
+        "scope": "Private local research processing only; no conveyance of data, row-level derivatives, predictions with source rows, or hosted-model transfer is approved.",
+        "obligations": "Retain Scania copyright/GPL notices and the no-warranty statement. Redistribution and cloud/third-party conveyance remain held for separate review.",
+        "redistribution_approved": false,
+        "gpl_primary_text_sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+      },
+      "name": "tabarena-46908",
+      "display_name": "APSFailure",
+      "family_id": "tabarena-46908",
+      "task": "classification",
+      "target": "AirPressureSystemFailure",
+      "source": {
+        "dataset_id": 46908,
+        "task_id": 363616,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46908",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/222/bank+marketing",
+          "https://archive.ics.uci.edu/api/dataset?id=222"
+        ],
+        "primary_page_sha256": "e6bdcee447e3331566007ea4eacb75f6dc72f390ddd816ef83d6e18c1927d332",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46910",
+      "display_name": "bank-marketing",
+      "family_id": "bank-marketing",
+      "task": "classification",
+      "target": "SubscribeTermDeposit",
+      "source": {
+        "dataset_id": 46910,
+        "task_id": 363618,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46910",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46911",
+      "display_name": "Bank_Customer_Churn",
+      "family_id": "tabarena-46911",
+      "task": "classification",
+      "target": "churn",
+      "source": {
+        "dataset_id": 46911,
+        "task_id": 363619,
+        "declared_license": "Public",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "rights_and_origin",
+      "hold_reason": "Original Kaggle API says Other (specified in description), with no actual grant in the description; ABC Multistate Bank collection provenance is not established."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46912",
+      "display_name": "Bioresponse",
+      "family_id": "bioresponse",
+      "task": "classification",
+      "target": "MoleculeElicitsResponse",
+      "source": {
+        "dataset_id": 46912,
+        "task_id": 363620,
+        "declared_license": "Public Domain",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "competition_rights",
+      "hold_reason": "Original Bioresponse competition rules page provides no usable grant in the available response. Do not infer rights from the curator Public Domain label."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/176/blood+transfusion+service+center",
+          "https://archive.ics.uci.edu/api/dataset?id=176"
+        ],
+        "primary_page_sha256": "4620fd103accca27d4f6a5a85c6b18b77bd552f0bf737f0f4e3814e3c7bbb8b0",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46913",
+      "display_name": "blood-transfusion-service-center",
+      "family_id": "tabarena-46913",
+      "task": "classification",
+      "target": "DonatedBloodInMarch2007",
+      "source": {
+        "dataset_id": 46913,
+        "task_id": 363621,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46913",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46915",
+      "display_name": "churn",
+      "family_id": "tabarena-46915",
+      "task": "classification",
+      "target": "CustomerChurned",
+      "source": {
+        "dataset_id": 46915,
+        "task_id": 363623,
+        "declared_license": "MIT License",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "origin_and_rights",
+      "hold_reason": "Curated description explicitly says original source lost. PMLB/software MIT labeling does not resolve original data provenance or potential simulation."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/125/insurance+company+benchmark+coil+2000",
+          "https://archive.ics.uci.edu/api/dataset?id=125"
+        ],
+        "primary_page_sha256": "440d3881d5f725578d85429cadf1ae79cc964f6bd99ed915ab3aea1d56d5e3ab",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46916",
+      "display_name": "coil2000_insurance_policies",
+      "family_id": "tabarena-46916",
+      "task": "classification",
+      "target": "MobileHomePolicy",
+      "source": {
+        "dataset_id": 46916,
+        "task_id": 363624,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46916",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/165/concrete+compressive+strength",
+          "https://archive.ics.uci.edu/api/dataset?id=165"
+        ],
+        "primary_page_sha256": "cdae5493cbed8b90020a9b898301e498656e5944cdcf4ca1e9c5b2ef0a20428b",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46917",
+      "display_name": "concrete_compressive_strength",
+      "family_id": "concrete-strength",
+      "task": "regression",
+      "target": "ConcreteCompressiveStrength",
+      "source": {
+        "dataset_id": 46917,
+        "task_id": 363625,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-concrete-strength",
+      "admission_reference": "development_expansion_20260922.json",
+      "variant_note": "Origin admitted through the retained native UCI representation; this alternate curated task remains inventory-only and is not counted twice."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/144/statlog+german+credit+data",
+          "https://archive.ics.uci.edu/api/dataset?id=144"
+        ],
+        "primary_page_sha256": "ce366571de03f3ece443fe364196baf0ca8625ac86328c2124f87d4f058b2cce",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46918",
+      "display_name": "credit-g",
+      "family_id": "german-credit",
+      "task": "classification",
+      "target": "good_or_bad_customer",
+      "source": {
+        "dataset_id": 46918,
+        "task_id": 363626,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-german-credit",
+      "admission_reference": "development_expansion_20260922.json",
+      "variant_note": "Origin admitted through the retained native UCI representation; this alternate curated task remains inventory-only and is not counted twice."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/350/default+of+credit+card+clients",
+          "https://archive.ics.uci.edu/api/dataset?id=350"
+        ],
+        "primary_page_sha256": "a200a8b340e169cc54451401547f01421f748c5f05b48f4842114d4ca6aa5f58",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46919",
+      "display_name": "credit_card_clients_default",
+      "family_id": "default-of-credit-card-clients",
+      "task": "classification",
+      "target": "DefaultOnPaymentNextMonth",
+      "source": {
+        "dataset_id": 46919,
+        "task_id": 363627,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46919",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46920",
+      "display_name": "customer_satisfaction_in_airline",
+      "family_id": "tabarena-46920",
+      "task": "classification",
+      "target": "satisfaction",
+      "source": {
+        "dataset_id": 46920,
+        "task_id": 363628,
+        "declared_license": "CC0: Public Domain",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "origin_and_rights_chain",
+      "hold_reason": "Kaggle publisher declares CC0 but gives no original airline/survey collection attribution. Original observed-versus-fictional provenance and grant chain remain unverified."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46921",
+      "display_name": "diabetes",
+      "family_id": "tabarena-46921",
+      "task": "classification",
+      "target": "TestedPositiveForDiabetes",
+      "source": {
+        "dataset_id": 46921,
+        "task_id": 363629,
+        "declared_license": "CC0: Public Domain",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "primary_access_and_rights",
+      "hold_reason": "Original Kaggle metadata endpoint returns HTTP 403. No primary reuse grant or provenance/consent clearance was verified; not the Diabetes130US family."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/296/diabetes+130-us+hospitals+for+years+1999-2008",
+          "https://archive.ics.uci.edu/api/dataset?id=296"
+        ],
+        "primary_page_sha256": "5683707ed1e02dbbc562132f54c5bf27d58ccb59ab6f8bd919916465b771f87f",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46922",
+      "display_name": "Diabetes130US",
+      "family_id": "diabetes130us",
+      "task": "classification",
+      "target": "EarlyReadmission",
+      "source": {
+        "dataset_id": 46922,
+        "task_id": 363630,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46922",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46923",
+      "display_name": "diamonds",
+      "family_id": "diamonds",
+      "task": "regression",
+      "target": "price",
+      "source": {
+        "dataset_id": 46923,
+        "task_id": 363631,
+        "declared_license": "MIT License",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "data_rights_chain",
+      "hold_reason": "Primary ggplot2 LICENSE stub identifies copyright holder/year but not an explicit upstream diamond-price data grant. Software licensing/curator MIT is not used as a substitute."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46924",
+      "display_name": "E-CommereShippingData",
+      "family_id": "tabarena-46924",
+      "task": "classification",
+      "target": "ArrivedLate",
+      "source": {
+        "dataset_id": 46924,
+        "task_id": 363632,
+        "declared_license": "Public Domain",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "rights_and_origin",
+      "hold_reason": "Kaggle API returns Other (specified in description), without a grant; generic unnamed-company provenance remains unresolved."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46927",
+      "display_name": "Fitness_Club",
+      "family_id": "tabarena-46927",
+      "task": "classification",
+      "target": "attended",
+      "source": {
+        "dataset_id": 46927,
+        "task_id": 363671,
+        "declared_license": "Public Domain",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "rights_and_origin",
+      "hold_reason": "DataCamp/GoalZone training-scenario provenance and original data rights are unresolved; Kaggle API says Other, not a usable grant. No fictional-data substitution."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46928",
+      "display_name": "Food_Delivery_Time",
+      "family_id": "tabarena-46928",
+      "task": "regression",
+      "target": "Time_taken(min)",
+      "source": {
+        "dataset_id": 46928,
+        "task_id": 363672,
+        "declared_license": "Database Contents License (DbCL) v1.0",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "rights_and_origin",
+      "hold_reason": "Publisher declares ODbL/DbCL, but original delivery-record origin and license chain are not established. Source IDs/location fields also need review."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46929",
+      "display_name": "GiveMeSomeCredit",
+      "family_id": "give-me-some-credit",
+      "task": "classification",
+      "target": "FinancialDistressNextTwoYears",
+      "source": {
+        "dataset_id": 46929,
+        "task_id": 363673,
+        "declared_license": "Public",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "competition_rights",
+      "hold_reason": "GiveMeSomeCredit rules endpoint supplies no usable primary data grant in this audit. Legacy project exposure does not supply permission."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-SA (version unspecified by original donor)",
+        "access": "public",
+        "approval_basis": "Original study dataset 45538 is published with creator Luca Urbinati, the cited paper's author, and an express CC BY-SA grant. Approval is limited to local non-conveying research processing, a permission common to the named CC BY-SA licenses; no particular unrecorded license version or redistribution right is invented.",
+        "evidence": [
+          "https://www.openml.org/d/45538",
+          "https://www.openml.org/api/v1/json/data/45538",
+          "https://doi.org/10.1109/ISCAS45731.2020.9181293"
+        ],
+        "primary_metadata_sha256": "e6d147162b0e889ca7c8a5d43c517fe48db7dfe599d3e9f242aebeadc68e06d0",
+        "reviewed_on": "2026-09-22",
+        "scope": "Private local processing and aggregate scientific reporting only. Exact CC BY-SA version and redistribution obligations require clarification before conveying data/row derivatives.",
+        "obligations": "Retain Luca Urbinati and coauthors' attribution, original CC BY-SA declaration and citation. No hosted row sharing, new-frequency origin inflation or row-level redistribution is approved.",
+        "redistribution_approved": false
+      },
+      "name": "tabarena-46930",
+      "display_name": "hazelnut-spread-contaminant-detection",
+      "family_id": "tabarena-46930",
+      "task": "classification",
+      "target": "Contaminated",
+      "source": {
+        "dataset_id": 46930,
+        "task_id": 363674,
+        "declared_license": "CC BY-SA",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46930",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46931",
+      "display_name": "healthcare_insurance_expenses",
+      "family_id": "tabarena-46931",
+      "task": "regression",
+      "target": "charges",
+      "source": {
+        "dataset_id": 46931,
+        "task_id": 363675,
+        "declared_license": "Database Contents License (DbCL) v1.0",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "rights_and_origin",
+      "hold_reason": "Uploader lists ODbL/DbCL but provides no original healthcare-charge collection attribution or clear observed-versus-simulated provenance."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46932",
+      "display_name": "heloc",
+      "family_id": "heloc",
+      "task": "classification",
+      "target": "RiskPerformance",
+      "source": {
+        "dataset_id": 46932,
+        "task_id": 363676,
+        "declared_license": "Public",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "rights",
+      "hold_reason": "Primary Kaggle API explicitly reports Unknown license and an empty description; curator Public is not approval."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46933",
+      "display_name": "hiva_agnostic",
+      "family_id": "tabarena-46933",
+      "task": "classification",
+      "target": "CompoundActivity",
+      "source": {
+        "dataset_id": 46933,
+        "task_id": 363677,
+        "declared_license": "Public",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "competition_rights",
+      "hold_reason": "Original agnostic-challenge homepage is reachable but no reuse license was verified. Challenge availability and a Public badge are not a grant."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46934",
+      "display_name": "houses",
+      "family_id": "california-housing",
+      "task": "regression",
+      "target": "LnMedianHouseValue",
+      "source": {
+        "dataset_id": 46934,
+        "task_id": 363678,
+        "declared_license": "Public",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "primary_grant",
+      "hold_reason": "StatLib primary index is reachable, but an explicit grant for this compiled California-housing representation was not located. Do not silently treat historical use as rights approval."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46935",
+      "display_name": "HR_Analytics_Job_Change_of_Data_Scientists",
+      "family_id": "tabarena-46935",
+      "task": "classification",
+      "target": "LookingForJobChange",
+      "source": {
+        "dataset_id": 46935,
+        "task_id": 363679,
+        "declared_license": "CC0: Public Domain",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "origin_and_label_provenance",
+      "hold_reason": "Kaggle author declares CC0, but the actual collection source and observed-versus-designed HR table provenance are unresolved. No invented job-change outcome."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/603/in+vehicle+coupon+recommendation",
+          "https://archive.ics.uci.edu/api/dataset?id=603"
+        ],
+        "primary_page_sha256": "25778f9809fc9067cf0c723bc5f792dd489068e50d7860718dbfa101dfc1b10a",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46937",
+      "display_name": "in_vehicle_coupon_recommendation",
+      "family_id": "tabarena-46937",
+      "task": "classification",
+      "target": "AcceptCoupon",
+      "source": {
+        "dataset_id": 46937,
+        "task_id": 363681,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46937",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46938",
+      "display_name": "Is-this-a-good-customer",
+      "family_id": "tabarena-46938",
+      "task": "classification",
+      "target": "bad_client_target",
+      "source": {
+        "dataset_id": 46938,
+        "task_id": 363682,
+        "declared_license": "CC0: Public Domain",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "target_and_origin",
+      "hold_reason": "CC0 publisher metadata lacks a definition/provenance for bad_client_target and collection origin. Do not invent a credit/fraud outcome."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46939",
+      "display_name": "kddcup09_appetency",
+      "family_id": "tabarena-46939",
+      "task": "classification",
+      "target": "appetency",
+      "source": {
+        "dataset_id": 46939,
+        "task_id": 363683,
+        "declared_license": "Public",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "competition_rights",
+      "hold_reason": "KDD Cup 2009 primary introduction describes the Orange challenge, not an explicit ongoing data-use grant. Appetency/other-target exclusions need subsequent reviewed acquisition."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46940",
+      "display_name": "Marketing_Campaign",
+      "family_id": "tabarena-46940",
+      "task": "classification",
+      "target": "Response",
+      "source": {
+        "dataset_id": 46940,
+        "task_id": 363684,
+        "declared_license": "Public",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "rights",
+      "hold_reason": "Primary Kaggle metadata says Other (specified in description), but the available description contains no explicit permission grant."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/863/maternal+health+risk",
+          "https://archive.ics.uci.edu/api/dataset?id=863"
+        ],
+        "primary_page_sha256": "9f76f92ef2c3ba763bf9927f63388c17cdb23658fb2904475b19ed8d9d29e2e8",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46941",
+      "display_name": "maternal_health_risk",
+      "family_id": "tabarena-46941",
+      "task": "classification",
+      "target": "RiskLevel",
+      "source": {
+        "dataset_id": 46941,
+        "task_id": 363685,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46941",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46942",
+      "display_name": "miami_housing",
+      "family_id": "miami-housing",
+      "task": "regression",
+      "target": "SALE_PRC",
+      "source": {
+        "dataset_id": 46942,
+        "task_id": 363686,
+        "declared_license": "CC BY-NC-SA",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "noncommercial_condition",
+      "hold_reason": "Original creator declares CC-BY-NC-SA. Private processing does not automatically waive the NonCommercial condition; intended-use compatibility or additional authorization must be established."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/579/myocardial+infarction+complications",
+          "https://archive.ics.uci.edu/api/dataset?id=579"
+        ],
+        "primary_page_sha256": "60a1fbb9df89719337cc17a9ae891296e50399701172734c12792d9b2556c279",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46980",
+      "display_name": "MIC",
+      "family_id": "tabarena-46980",
+      "task": "classification",
+      "target": "LET_IS",
+      "source": {
+        "dataset_id": 46980,
+        "task_id": 363711,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46980",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/722/naticusdroid+android+permissions+dataset",
+          "https://archive.ics.uci.edu/api/dataset?id=722"
+        ],
+        "primary_page_sha256": "9397fcfb56c3a58be8ec4cde7dfef0a67c9ffed911229d54ca24c5392e073f8b",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46969",
+      "display_name": "NATICUSdroid",
+      "family_id": "tabarena-46969",
+      "task": "classification",
+      "target": "Malware",
+      "source": {
+        "dataset_id": 46969,
+        "task_id": 363689,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46969",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/468/online+shoppers+purchasing+intention+dataset",
+          "https://archive.ics.uci.edu/api/dataset?id=468"
+        ],
+        "primary_page_sha256": "45ba681bb9ba8d233613f575f9a83c533686d4f25ceb705440f373c4c9192422",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46947",
+      "display_name": "online_shoppers_intention",
+      "family_id": "online-shoppers",
+      "task": "classification",
+      "target": "Revenue",
+      "source": {
+        "dataset_id": 46947,
+        "task_id": 363691,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-online-shoppers",
+      "admission_reference": "development_expansion_20260922.json",
+      "variant_note": "Origin admitted through the retained native UCI representation; this alternate curated task remains inventory-only and is not counted twice."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/265/physicochemical+properties+of+protein+tertiary+structure",
+          "https://archive.ics.uci.edu/api/dataset?id=265"
+        ],
+        "primary_page_sha256": "ad74cd89d4a60874e34bb58a8f7c4b5312d855119e5761c00cc4e872d650e258",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46949",
+      "display_name": "physiochemical_protein",
+      "family_id": "tabarena-46949",
+      "task": "regression",
+      "target": "ResidualSize",
+      "source": {
+        "dataset_id": 46949,
+        "task_id": 363693,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46949",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/365/polish+companies+bankruptcy+data",
+          "https://archive.ics.uci.edu/api/dataset?id=365"
+        ],
+        "primary_page_sha256": "a9fc2b3d6a67115707a09ee08325893fc7c7ae2fbbfaad84c8cf09bfda32eb06",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46950",
+      "display_name": "polish_companies_bankruptcy",
+      "family_id": "tabarena-46950",
+      "task": "classification",
+      "target": "company_bankrupt",
+      "source": {
+        "dataset_id": 46950,
+        "task_id": 363694,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46950",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46952",
+      "display_name": "qsar-biodeg",
+      "family_id": "tabarena-46952",
+      "task": "classification",
+      "target": "Biodegradable",
+      "source": {
+        "dataset_id": 46952,
+        "task_id": 363696,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "origin_independence",
+      "hold_reason": "UCI primary CC-BY-4.0 grant and native target are known, but chemical-origin overlap with selected QSAR fish remains unresolved. Not merged as identical and not counted as another independent admitted origin."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46953",
+      "display_name": "QSAR-TID-11",
+      "family_id": "tabarena-46953",
+      "task": "regression",
+      "target": "MEDIAN_PXC50",
+      "source": {
+        "dataset_id": 46953,
+        "task_id": 363697,
+        "declared_license": "Public",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "rights_chain",
+      "hold_reason": "Original MetaQSAR/ChEMBL-v17 provenance is described, but Public is not a license and a current authoritative grant covering this fingerprinted derivative was not verified."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/504/qsar+fish+toxicity",
+          "https://archive.ics.uci.edu/api/dataset?id=504"
+        ],
+        "primary_page_sha256": "f584a6b25f6c394f80b421d249daf3ef049edbde1ab68ca0d7ac2962fb7201b9",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46954",
+      "display_name": "QSAR_fish_toxicity",
+      "family_id": "tabarena-46954",
+      "task": "regression",
+      "target": "LC50",
+      "source": {
+        "dataset_id": 46954,
+        "task_id": 363698,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46954",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46955",
+      "display_name": "SDSS17",
+      "family_id": "tabarena-46955",
+      "task": "classification",
+      "target": "ObjectType",
+      "source": {
+        "dataset_id": 46955,
+        "task_id": 363699,
+        "declared_license": "Public Domain",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "primary_grant_and_variant",
+      "hold_reason": "Kaggle says Data files copyright Original Authors; its public-domain claim links to an image gallery, not an explicit DR17 tabular grant. Original credits endpoints failed. Redshift/spectral identifiers also need a declared photometric-only variant."
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/266/seismic+bumps",
+          "https://archive.ics.uci.edu/api/dataset?id=266"
+        ],
+        "primary_page_sha256": "52d155fab993770e2268017c63b489cbb9f5b5e656f2c998262f2a3b38c0e12a",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46956",
+      "display_name": "seismic-bumps",
+      "family_id": "tabarena-46956",
+      "task": "classification",
+      "target": "HighEnergySeismicBump",
+      "source": {
+        "dataset_id": 46956,
+        "task_id": 363700,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46956",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/69/molecular+biology+splice+junction+gene+sequences",
+          "https://archive.ics.uci.edu/api/dataset?id=69"
+        ],
+        "primary_page_sha256": "823f8fbb26406502d90fd4c1fd6ec9681ba0d2e337f2109b4b72712eb40e633e",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46958",
+      "display_name": "splice",
+      "family_id": "tabarena-46958",
+      "task": "classification",
+      "target": "SiteType",
+      "source": {
+        "dataset_id": 46958,
+        "task_id": 363702,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46958",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/697/predict+students+dropout+and+academic+success",
+          "https://archive.ics.uci.edu/api/dataset?id=697"
+        ],
+        "primary_page_sha256": "dbaf9cf267f1200f153f430e71b5da1d2d50ea71be0ef56b70cfc345c6c9dcbf",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46960",
+      "display_name": "students_dropout_and_academic_success",
+      "family_id": "tabarena-46960",
+      "task": "classification",
+      "target": "AcademicOutcome",
+      "source": {
+        "dataset_id": 46960,
+        "task_id": 363704,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46960",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/464/superconductivty+data",
+          "https://archive.ics.uci.edu/api/dataset?id=464"
+        ],
+        "primary_page_sha256": "ca22b1249a8d77b0871b5930c9f954ddef1031f8806ee8f2a7deda71c6631b4e",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46961",
+      "display_name": "superconductivity",
+      "family_id": "superconductivity",
+      "task": "regression",
+      "target": "critical_temp",
+      "source": {
+        "dataset_id": 46961,
+        "task_id": 363705,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46961",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/572/taiwanese+bankruptcy+prediction",
+          "https://archive.ics.uci.edu/api/dataset?id=572"
+        ],
+        "primary_page_sha256": "3ba63a7335b022f8acb940d29009b534e8122086ef3ef3a0736208e29d8af34a",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46962",
+      "display_name": "taiwanese_bankruptcy_prediction",
+      "family_id": "tabarena-46962",
+      "task": "classification",
+      "target": "Bankrupt",
+      "source": {
+        "dataset_id": 46962,
+        "task_id": 363706,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46962",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/379/website+phishing",
+          "https://archive.ics.uci.edu/api/dataset?id=379"
+        ],
+        "primary_page_sha256": "8aa2c674699c9f9f054b048df6ea9792f5a0651dea468ff2cdb6b3636bee4294",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46963",
+      "display_name": "website_phishing",
+      "family_id": "tabarena-46963",
+      "task": "classification",
+      "target": "WebsiteType",
+      "source": {
+        "dataset_id": 46963,
+        "task_id": 363707,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46963",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/186/wine+quality",
+          "https://archive.ics.uci.edu/api/dataset?id=186"
+        ],
+        "primary_page_sha256": "2a1be594f29e266acea08ae1c97d7623728c8fe7644232f17775a365834b1fcb",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "tabarena-46964",
+      "display_name": "wine_quality",
+      "family_id": "wine-quality",
+      "task": "regression",
+      "target": "median_wine_quality",
+      "source": {
+        "dataset_id": 46964,
+        "task_id": 363708,
+        "declared_license": "CC BY 4.0",
+        "schema_reviewed": false
+      },
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "tabarena-46964",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "openml_task",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "unknown",
+      "split_policy": "official",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "pending_review",
+        "license": "upstream rights unreviewed; see source.declared_license",
+        "access": "public",
+        "note": "Curator license declarations are evidence, not completed upstream permission/exposure audits. No automatic acquisition."
+      },
+      "name": "tabarena-46979",
+      "display_name": "jm1",
+      "family_id": "tabarena-46979",
+      "task": "classification",
+      "target": "defects",
+      "source": {
+        "dataset_id": 46979,
+        "task_id": 363712,
+        "declared_license": "Public Domain",
+        "schema_reviewed": false
+      },
+      "review_status": "pending_review",
+      "hold_category": "primary_grant",
+      "hold_reason": "Original PROMISE repository URL returns HTTP 404. Mirrored Public/public-availability language and a government-source name are not treated as a verified applicable grant."
+    },
+    {
+      "provider": "uci",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "observational",
+      "split_policy": "iid",
+      "target_transform": "identity",
+      "categorical": [
+        "workclass",
+        "education",
+        "marital-status",
+        "occupation",
+        "relationship",
+        "race",
+        "sex",
+        "native-country"
+      ],
+      "drop_columns": [
+        "fnlwgt"
+      ],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/2/adult",
+          "https://archive.ics.uci.edu/api/dataset?id=2"
+        ],
+        "primary_page_sha256": "22b3a1043b1f074d31413c60d89951e91f4f2375a31beae79ebfc6ec7cbadac5",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "uci-adult",
+      "family_id": "adult",
+      "task": "classification",
+      "target": "income",
+      "prediction_time": "Census record attributes predict annual income; survey weight fnlwgt is excluded, not used as a feature or loss weight.",
+      "evaluation_notes": "Development IID CV on the normalized full CSV, not reproduction of the original train/test evaluation. Audit duplicates before reporting.",
+      "original_split": {
+        "kind": "source_train_test_boundary",
+        "train_rows": 32561,
+        "test_rows": 16281,
+        "normalized_boundary_index": 32561,
+        "status": "source-reported boundary; normalized payload ordering must be verified before any official-split claim",
+        "evidence": [
+          "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.names"
+        ],
+        "evaluation_uses_boundary": false
+      },
+      "source": {
+        "uci_id": 2,
+        "data_url": "https://archive.ics.uci.edu/static/public/2/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=2",
+        "schema_reviewed": true,
+        "expected_rows": 48842,
+        "columns": [
+          "age",
+          "workclass",
+          "fnlwgt",
+          "education",
+          "education-num",
+          "marital-status",
+          "occupation",
+          "relationship",
+          "race",
+          "sex",
+          "capital-gain",
+          "capital-loss",
+          "hours-per-week",
+          "native-country",
+          "income"
+        ],
+        "target_columns": [
+          "income"
+        ],
+        "target_value_map": {
+          "<=50K": "<=50K",
+          ">50K": ">50K",
+          "<=50K.": "<=50K",
+          ">50K.": ">50K"
+        },
+        "na_values": [
+          "?"
+        ],
+        "skipinitialspace": true,
+        "sha256": "26b38f8623766396e2ba0d1a235a283db8ed993cc32bf32fc8aab09708c3bdf2"
+      },
+      "evaluation_track": "iid_development",
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-adult",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "uci",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "observational",
+      "split_policy": "iid",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/602/dry+bean+dataset",
+          "https://archive.ics.uci.edu/api/dataset?id=602"
+        ],
+        "primary_page_sha256": "17cef7a06891f4a52225fe30149704d50a57aa1a591c426d290df1c74365b317",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "uci-dry-bean",
+      "family_id": "dry-bean",
+      "task": "classification",
+      "target": "Class",
+      "prediction_time": "Image-derived grain shape measurements predict bean variety.",
+      "evaluation_notes": "Seven-class stratified evaluation; report macro/per-class metrics and duplicate counts.",
+      "source": {
+        "uci_id": 602,
+        "data_url": "https://archive.ics.uci.edu/static/public/602/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=602",
+        "schema_reviewed": true,
+        "expected_rows": 13611,
+        "columns": [
+          "Area",
+          "Perimeter",
+          "MajorAxisLength",
+          "MinorAxisLength",
+          "AspectRatio",
+          "Eccentricity",
+          "ConvexArea",
+          "EquivDiameter",
+          "Extent",
+          "Solidity",
+          "Roundness",
+          "Compactness",
+          "ShapeFactor1",
+          "ShapeFactor2",
+          "ShapeFactor3",
+          "ShapeFactor4",
+          "Class"
+        ],
+        "target_columns": [
+          "Class"
+        ],
+        "sha256": "c91a086bb4357e69409d23287ec22be1be9512145cead1d8ca988c918be38fcb"
+      },
+      "evaluation_track": "iid_development",
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-dry-bean",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "uci",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "observational",
+      "split_policy": "iid",
+      "target_transform": "one_hot",
+      "categorical": [
+        "TypeOfSteel_A300",
+        "TypeOfSteel_A400"
+      ],
+      "drop_columns": [
+        "Pastry",
+        "Z_Scratch",
+        "K_Scratch",
+        "Stains",
+        "Dirtiness",
+        "Bumps",
+        "Other_Faults"
+      ],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/198/steel+plates+faults",
+          "https://archive.ics.uci.edu/api/dataset?id=198"
+        ],
+        "primary_page_sha256": "e2e18004f8ce11c4d23b93b20e5c6f21d2a439d7f305019c1d6edebd9137ee55",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "uci-steel-faults",
+      "family_id": "steel-faults",
+      "task": "classification",
+      "target": "fault_type",
+      "prediction_time": "Measured steel-plate attributes predict defect class; all seven fault indicators excluded from predictors.",
+      "evaluation_notes": "Reject payloads unless all seven labels are binary and each row has exactly one active label.",
+      "source": {
+        "uci_id": 198,
+        "data_url": "https://archive.ics.uci.edu/static/public/198/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=198",
+        "schema_reviewed": true,
+        "expected_rows": 1941,
+        "columns": [
+          "X_Minimum",
+          "X_Maximum",
+          "Y_Minimum",
+          "Y_Maximum",
+          "Pixels_Areas",
+          "X_Perimeter",
+          "Y_Perimeter",
+          "Sum_of_Luminosity",
+          "Minimum_of_Luminosity",
+          "Maximum_of_Luminosity",
+          "Length_of_Conveyer",
+          "TypeOfSteel_A300",
+          "TypeOfSteel_A400",
+          "Steel_Plate_Thickness",
+          "Edges_Index",
+          "Empty_Index",
+          "Square_Index",
+          "Outside_X_Index",
+          "Edges_X_Index",
+          "Edges_Y_Index",
+          "Outside_Global_Index",
+          "LogOfAreas",
+          "Log_X_Index",
+          "Log_Y_Index",
+          "Orientation_Index",
+          "Luminosity_Index",
+          "SigmoidOfAreas",
+          "Pastry",
+          "Z_Scratch",
+          "K_Scratch",
+          "Stains",
+          "Dirtiness",
+          "Bumps",
+          "Other_Faults"
+        ],
+        "target_columns": [
+          "Pastry",
+          "Z_Scratch",
+          "K_Scratch",
+          "Stains",
+          "Dirtiness",
+          "Bumps",
+          "Other_Faults"
+        ],
+        "sha256": "883ed09b2a46fcde7144dd173092c645aacb45499dea703d00228d3ddc3c60de"
+      },
+      "evaluation_track": "iid_development",
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-steel-faults",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "provider": "uci",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "simulation",
+      "split_policy": "iid",
+      "target_transform": "identity",
+      "categorical": [
+        "X6",
+        "X8"
+      ],
+      "drop_columns": [
+        "Y2"
+      ],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/242/energy+efficiency",
+          "https://archive.ics.uci.edu/api/dataset?id=242"
+        ],
+        "primary_page_sha256": "8ef77d96b3cc9bb25d61b1328946e352bb5af21c5d0c865fb832fb9ecdef3b89",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "uci-energy-efficiency",
+      "family_id": "energy-efficiency",
+      "task": "regression",
+      "target": "Y1",
+      "prediction_time": "Building geometry/design predicts simulated heating load; cooling load Y2 is unavailable as a predictor.",
+      "evaluation_notes": "Primary Y1 only. IID design interpolation, not observational evidence or held-out-geometry generalization. Y2 is the same family.",
+      "source": {
+        "uci_id": 242,
+        "data_url": "https://archive.ics.uci.edu/static/public/242/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=242",
+        "schema_reviewed": true,
+        "expected_rows": 768,
+        "columns": [
+          "X1",
+          "X2",
+          "X3",
+          "X4",
+          "X5",
+          "X6",
+          "X7",
+          "X8",
+          "Y1",
+          "Y2"
+        ],
+        "target_columns": [
+          "Y1",
+          "Y2"
+        ],
+        "feature_descriptions": {
+          "X1": "Relative compactness",
+          "X2": "Surface area",
+          "X3": "Wall area",
+          "X4": "Roof area",
+          "X5": "Overall height",
+          "X6": "Orientation",
+          "X7": "Glazing area",
+          "X8": "Glazing area distribution"
+        },
+        "label_meanings": {
+          "Y1": "Heating load",
+          "Y2": "Cooling load"
+        },
+        "sha256": "db44dbe453acd464b5cf65be2fb01a28aa9c5b2630300e65fbe28cde35f5d96f"
+      },
+      "evaluation_track": "domain_simulation",
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-energy-efficiency",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "name": "uci-seoul-bike",
+      "family_id": "seoul-bike",
+      "provider": "uci",
+      "task": "regression",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "observational",
+      "target": "Rented Bike Count",
+      "target_transform": "identity",
+      "categorical": [
+        "Seasons",
+        "Holiday"
+      ],
+      "drop_columns": [
+        "Functioning Day"
+      ],
+      "split_policy": "temporal",
+      "time_column": "Date",
+      "time_format": "%d/%m/%Y",
+      "prediction_time": "Retrospective estimation of a completed hour's rented-bike count using that hour's observed weather and calendar context. Whole-day-blocked forward evaluation assesses transfer to later recorded days, NOT what could have been predicted before the weather/day was observed.",
+      "time_policy": {
+        "outer_and_inner_splits": "whole-calendar-day-blocked forward evaluation",
+        "groups": null,
+        "blocking_key": "Date-only timestamps shared by all 24 rows of the calendar day",
+        "timestamp": "Strictly parsed Date only; midnight is a day-bucket marker, not an availability time",
+        "hour_retained_as_predictor": true,
+        "label_end_times": null,
+        "label_availability": "No separate availability column exists; do not infer one from Date, Hour or a horizon.",
+        "completed_day_assumption": "Rows scored for a day represent completed hourly observations; use earlier whole days for training. All 24 hours of a day remain on one side of every split. Calendar ordering establishes neither intraday availability nor operational publication times or delays.",
+        "ahead_of_time_forecasting_approved": false,
+        "timezone_localization_applied": false
+      },
+      "evaluation_notes": "Retain all 8760 rows, including zero counts on non-functioning periods; do not condition row inclusion on the dropped operating-status field. Date supplies day-bucket timestamps only, groups=None, and Hour remains a predictor. This is a separate retrospective temporal-development scoreboard, not forecasting.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/560/seoul+bike+sharing+demand",
+          "https://archive.ics.uci.edu/api/dataset?id=560"
+        ],
+        "primary_page_sha256": "f1299ac5105befcb527d25861f5dfa9538cd254cd3040062ee1c9610603fcd77",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 560,
+        "data_url": "https://archive.ics.uci.edu/static/public/560/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=560",
+        "metadata_sha256": "1de15e20d832f9dc7be131ae15302ffc62a0df4014586574ab277346eca7166c",
+        "sha256": "e392e3be042e7c0e58b48329a777206acb7f3400da95ee7cf405da5eb99d283e",
+        "schema_reviewed": true,
+        "expected_rows": 8760,
+        "columns": [
+          "Date",
+          "Rented Bike Count",
+          "Hour",
+          "Temperature",
+          "Humidity",
+          "Wind speed",
+          "Visibility",
+          "Dew point temperature",
+          "Solar Radiation",
+          "Rainfall",
+          "Snowfall",
+          "Seasons",
+          "Holiday",
+          "Functioning Day"
+        ],
+        "target_columns": [
+          "Rented Bike Count",
+          "Functioning Day"
+        ],
+        "target_role_override": {
+          "status": "reviewed",
+          "selected_target": "Rented Bike Count",
+          "metadata_selected_target_role": "Feature",
+          "metadata_target_columns": [
+            "Functioning Day"
+          ],
+          "rationale": "UCI's task narrative explicitly describes hourly rented-bike demand, but its API marks Functioning Day Target and Rented Bike Count Feature. Treat the count as the reviewed regression target and exclude the entire original metadata-target field. Neither role nor target is guessed at load time.",
+          "evidence": [
+            "https://archive.ics.uci.edu/dataset/560/seoul+bike+sharing+demand",
+            "https://archive.ics.uci.edu/api/dataset?id=560",
+            "benchmarks/IMPROVEMENT_PLAN.md"
+          ]
+        },
+        "time_audit": {
+          "date_format": "%d/%m/%Y",
+          "first_day": "2017-12-01",
+          "last_day": "2018-11-30",
+          "calendar_days": 365,
+          "rows_per_day": 24,
+          "unique_hours_per_day": 24,
+          "hour_min": 0,
+          "hour_max": 23,
+          "duplicate_date_hour_pairs": 0,
+          "missing_dates": 0,
+          "missing_targets": 0,
+          "target_nonnegative_integer": true,
+          "verified_payload_bytes": 598942,
+          "provider_policy": "Return Date-only day buckets and groups=None; retain Hour solely as a predictor. Never synthesize intraday or label-availability times."
+        }
+      },
+      "evaluation_track": "temporal_retrospective",
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-seoul-bike",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "name": "uci-wisconsin-diagnostic",
+      "family_id": "wisconsin-diagnostic",
+      "provider": "uci",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "Diagnosis",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [
+        "ID"
+      ],
+      "split_policy": "iid",
+      "prediction_time": "Diagnostic breast-mass annotation from digitized FNA nuclear measurements; patient ID excluded. Static diagnosis classification, not future cancer onset.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic",
+          "https://archive.ics.uci.edu/api/dataset?id=17"
+        ],
+        "primary_page_sha256": "bd0bac0e365edac633d8891b71bb65f26afc413a251746bd29c821e10474703c",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 17,
+        "data_url": "https://archive.ics.uci.edu/static/public/17/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=17",
+        "metadata_sha256": "c129484733a4d262158c583e69afba393e0e5909b9e7dad228c438a7b62830f9",
+        "schema_reviewed": true,
+        "columns": [
+          "ID",
+          "radius1",
+          "texture1",
+          "perimeter1",
+          "area1",
+          "smoothness1",
+          "compactness1",
+          "concavity1",
+          "concave_points1",
+          "symmetry1",
+          "fractal_dimension1",
+          "radius2",
+          "texture2",
+          "perimeter2",
+          "area2",
+          "smoothness2",
+          "compactness2",
+          "concavity2",
+          "concave_points2",
+          "symmetry2",
+          "fractal_dimension2",
+          "radius3",
+          "texture3",
+          "perimeter3",
+          "area3",
+          "smoothness3",
+          "compactness3",
+          "concavity3",
+          "concave_points3",
+          "symmetry3",
+          "fractal_dimension3",
+          "Diagnosis"
+        ],
+        "target_columns": [
+          "Diagnosis"
+        ],
+        "reported_rows": 569,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "3487b754ff02c93cdc8a18afafe223961d9cfbfdb932e57483e52581042767d7",
+        "expected_rows": 569
+      },
+      "evaluation_track": "iid_development",
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-wisconsin-diagnostic",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "name": "uci-cleveland-heart-disease",
+      "family_id": "cleveland-heart-disease",
+      "provider": "uci",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "num",
+      "target_transform": "identity",
+      "categorical": [
+        "sex",
+        "cp",
+        "fbs",
+        "restecg",
+        "exang",
+        "slope",
+        "thal"
+      ],
+      "drop_columns": [],
+      "split_policy": "iid",
+      "prediction_time": "Native 0-4 Cleveland disease annotation from the supplied diagnostic examination. Keep all five classes; no unreviewed binary collapse or pre-examination risk claim.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/45/heart+disease",
+          "https://archive.ics.uci.edu/api/dataset?id=45"
+        ],
+        "primary_page_sha256": "d9299d0b8870576942f2660b4a24e75cd4fe0afc899ee3a8c0d17e2f619938a9",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 45,
+        "data_url": "https://archive.ics.uci.edu/static/public/45/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=45",
+        "metadata_sha256": "88cbc5a8918cb2f0103134233989b71efc52178dc3f2c197c32711e300c3d14b",
+        "schema_reviewed": true,
+        "columns": [
+          "age",
+          "sex",
+          "cp",
+          "trestbps",
+          "chol",
+          "fbs",
+          "restecg",
+          "thalach",
+          "exang",
+          "oldpeak",
+          "slope",
+          "ca",
+          "thal",
+          "num"
+        ],
+        "target_columns": [
+          "num"
+        ],
+        "reported_rows": 303,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "868cd646a53ffbc55611192bae7496911a163937c185710f6b8aa11549b88df1",
+        "expected_rows": 303
+      },
+      "evaluation_track": "rare_class_stress",
+      "stress_note": "Native rare classes retained. Nested-CV fragility/infeasibility remains an explicit stress outcome; the reference seed-2026 probe is not a universal feasibility guarantee. No confirmation margin is imposed.",
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-cleveland-heart-disease",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "name": "uci-wine-cultivars",
+      "family_id": "wine-cultivars",
+      "provider": "uci",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "class",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "iid",
+      "prediction_time": "Three Italian cultivar-origin classes from chemical measurements; a different original collection from Portuguese wine-quality ratings.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/109/wine",
+          "https://archive.ics.uci.edu/api/dataset?id=109"
+        ],
+        "primary_page_sha256": "7b46d53856a48cda3497debe3a19cb684b004968d21e87f3d7006be5fdfbc222",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 109,
+        "data_url": "https://archive.ics.uci.edu/static/public/109/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=109",
+        "metadata_sha256": "ac0e877a4f06e3e9e686e2cc3d61f65577dcafa3c808049af03e95c110aeeccb",
+        "schema_reviewed": true,
+        "columns": [
+          "Alcohol",
+          "Malicacid",
+          "Ash",
+          "Alcalinity_of_ash",
+          "Magnesium",
+          "Total_phenols",
+          "Flavanoids",
+          "Nonflavanoid_phenols",
+          "Proanthocyanins",
+          "Color_intensity",
+          "Hue",
+          "0D280_0D315_of_diluted_wines",
+          "Proline",
+          "class"
+        ],
+        "target_columns": [
+          "class"
+        ],
+        "reported_rows": 178,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "70ba539f750faef04eb4859f68cf67f13676d42fafce8e4f85982705953c219a",
+        "expected_rows": 178
+      },
+      "evaluation_track": "iid_development",
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-wine-cultivars",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "name": "uci-spambase",
+      "family_id": "spambase",
+      "provider": "uci",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "Class",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "iid",
+      "prediction_time": "Recorded spam/non-spam annotation from email token/character statistics; historical mailbox corpus, not future-sender/general-domain performance.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/94/spambase",
+          "https://archive.ics.uci.edu/api/dataset?id=94"
+        ],
+        "primary_page_sha256": "3329d6901c49c333d51772236ad1f7ebcab66b026c05fe3f7c5f252a0fb81059",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 94,
+        "data_url": "https://archive.ics.uci.edu/static/public/94/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=94",
+        "metadata_sha256": "ed4b9c3f86284700629c350508f341a3690b4941768351956a41089d1ff793f2",
+        "schema_reviewed": true,
+        "columns": [
+          "word_freq_make",
+          "word_freq_address",
+          "word_freq_all",
+          "word_freq_3d",
+          "word_freq_our",
+          "word_freq_over",
+          "word_freq_remove",
+          "word_freq_internet",
+          "word_freq_order",
+          "word_freq_mail",
+          "word_freq_receive",
+          "word_freq_will",
+          "word_freq_people",
+          "word_freq_report",
+          "word_freq_addresses",
+          "word_freq_free",
+          "word_freq_business",
+          "word_freq_email",
+          "word_freq_you",
+          "word_freq_credit",
+          "word_freq_your",
+          "word_freq_font",
+          "word_freq_000",
+          "word_freq_money",
+          "word_freq_hp",
+          "word_freq_hpl",
+          "word_freq_george",
+          "word_freq_650",
+          "word_freq_lab",
+          "word_freq_labs",
+          "word_freq_telnet",
+          "word_freq_857",
+          "word_freq_data",
+          "word_freq_415",
+          "word_freq_85",
+          "word_freq_technology",
+          "word_freq_1999",
+          "word_freq_parts",
+          "word_freq_pm",
+          "word_freq_direct",
+          "word_freq_cs",
+          "word_freq_meeting",
+          "word_freq_original",
+          "word_freq_project",
+          "word_freq_re",
+          "word_freq_edu",
+          "word_freq_table",
+          "word_freq_conference",
+          "char_freq_;",
+          "char_freq_(",
+          "char_freq_[",
+          "char_freq_!",
+          "char_freq_$",
+          "char_freq_#",
+          "capital_run_length_average",
+          "capital_run_length_longest",
+          "capital_run_length_total",
+          "Class"
+        ],
+        "target_columns": [
+          "Class"
+        ],
+        "reported_rows": 4601,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "d86711ceadadd177f09ca816fffa79d82edf5007b585a836c112462e2c217c0d",
+        "expected_rows": 4601
+      },
+      "evaluation_track": "iid_development",
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-spambase",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "name": "uci-heart-failure-clinical",
+      "family_id": "heart-failure-clinical",
+      "provider": "uci",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "death_event",
+      "target_transform": "identity",
+      "categorical": [
+        "anaemia",
+        "diabetes",
+        "high_blood_pressure",
+        "sex",
+        "smoking"
+      ],
+      "drop_columns": [
+        "time"
+      ],
+      "split_policy": "iid",
+      "prediction_time": "Recorded death during the supplied follow-up from clinical measurements. Follow-up time is excluded as outcome-associated information; no uniform survival horizon or clinical deployment claim.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/519/heart+failure+clinical+records",
+          "https://archive.ics.uci.edu/api/dataset?id=519"
+        ],
+        "primary_page_sha256": "caa73aecc3ba74ec93c547aa360c69d5351d2561b1e31165342a06081ac43f39",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 519,
+        "data_url": "https://archive.ics.uci.edu/static/public/519/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=519",
+        "metadata_sha256": "abb8ed505b926e5033e1adc6bbe5ab6658041ee065d8c181bf1dc16558264338",
+        "schema_reviewed": true,
+        "columns": [
+          "age",
+          "anaemia",
+          "creatinine_phosphokinase",
+          "diabetes",
+          "ejection_fraction",
+          "high_blood_pressure",
+          "platelets",
+          "serum_creatinine",
+          "serum_sodium",
+          "sex",
+          "smoking",
+          "time",
+          "death_event"
+        ],
+        "target_columns": [
+          "death_event"
+        ],
+        "reported_rows": 299,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "54349729933cffdde5c92068572a89761bb53df50cc28250b0915fd18066976c",
+        "expected_rows": 299
+      },
+      "evaluation_track": "iid_development",
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-heart-failure-clinical",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "name": "uci-banknote-authentication",
+      "family_id": "banknote-authentication",
+      "provider": "uci",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "class",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "iid",
+      "prediction_time": "Genuine/forged banknote-specimen annotation from measured image wavelet statistics. Real specimen measurements, not generated classification substitutes.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/267/banknote+authentication",
+          "https://archive.ics.uci.edu/api/dataset?id=267"
+        ],
+        "primary_page_sha256": "711135258ade545edd3b1faba0cc1e62d2554c31fdcf7b1da3b66753ba9dd75b",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 267,
+        "data_url": "https://archive.ics.uci.edu/static/public/267/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=267",
+        "metadata_sha256": "786ce14b24eb567f99ce77afe0525508ae351ae547d4beff72172849144cf63b",
+        "schema_reviewed": true,
+        "columns": [
+          "variance",
+          "skewness",
+          "curtosis",
+          "entropy",
+          "class"
+        ],
+        "target_columns": [
+          "class"
+        ],
+        "reported_rows": 1372,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "0787e50299c198e919276660edf98dd5dcb94951ad81435b3ab61afb666936c9",
+        "expected_rows": 1372
+      },
+      "evaluation_track": "iid_development",
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-banknote-authentication",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "name": "uci-combined-cycle-power",
+      "family_id": "combined-cycle-power",
+      "provider": "uci",
+      "task": "regression",
+      "role": "inventory",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "PE",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "iid",
+      "prediction_time": "Measured contemporaneous full-load power output from ambient conditions and exhaust vacuum; static thermodynamic response, not ahead-of-weather forecasting.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/294/combined+cycle+power+plant",
+          "https://archive.ics.uci.edu/api/dataset?id=294"
+        ],
+        "primary_page_sha256": "e9577348193f7424973439278266ca60e6059afd3a1fdbda995c1bf302fa1ac6",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 294,
+        "data_url": "https://archive.ics.uci.edu/static/public/294/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=294",
+        "metadata_sha256": "5ba61595859018366941cdeaa75f8ccc496926590c91d0d30072efc8637a3b64",
+        "schema_reviewed": true,
+        "columns": [
+          "AT",
+          "V",
+          "AP",
+          "RH",
+          "PE"
+        ],
+        "target_columns": [
+          "PE"
+        ],
+        "reported_rows": 9568,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "3c1fc11025f8424f8d95802d8b7086dffd3f73a552c6dcab3d973620986194b2",
+        "expected_rows": 9568
+      },
+      "evaluation_track": "iid_development",
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-combined-cycle-power",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "name": "uci-real-estate-sindian",
+      "family_id": "real-estate-sindian",
+      "provider": "uci",
+      "task": "regression",
+      "role": "inventory",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "Y house price of unit area",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [
+        "No"
+      ],
+      "split_policy": "iid",
+      "prediction_time": "Recorded Sindian transaction unit price from supplied property/location/date descriptors. Record ID excluded; retrospective appraisal, not future-market or unseen-building performance.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/477/real+estate+valuation+data+set",
+          "https://archive.ics.uci.edu/api/dataset?id=477"
+        ],
+        "primary_page_sha256": "00635fb538eccd2b3f7814a4c66411fcfbec7662278cdf16f8ca30df04190e63",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 477,
+        "data_url": "https://archive.ics.uci.edu/static/public/477/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=477",
+        "metadata_sha256": "fd8824fc1e6a17472c35d59d00e7b0845304eb394d5772be363f5925ff3f9c54",
+        "schema_reviewed": true,
+        "columns": [
+          "No",
+          "X1 transaction date",
+          "X2 house age",
+          "X3 distance to the nearest MRT station",
+          "X4 number of convenience stores",
+          "X5 latitude",
+          "X6 longitude",
+          "Y house price of unit area"
+        ],
+        "target_columns": [
+          "Y house price of unit area"
+        ],
+        "reported_rows": 414,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "0730a5687ec285a3c2f9921a808855bd1bde21fc53e6377561cbdce2dda9cbb1",
+        "expected_rows": 414
+      },
+      "evaluation_track": "iid_development",
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-real-estate-sindian",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "name": "uci-student-performance",
+      "family_id": "student-performance",
+      "provider": "uci",
+      "task": "regression",
+      "role": "inventory",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "G3",
+      "target_transform": "identity",
+      "categorical": [
+        "school",
+        "sex",
+        "address",
+        "famsize",
+        "Pstatus",
+        "Mjob",
+        "Fjob",
+        "reason",
+        "guardian",
+        "schoolsup",
+        "famsup",
+        "paid",
+        "activities",
+        "nursery",
+        "higher",
+        "internet",
+        "romantic"
+      ],
+      "drop_columns": [
+        "G1",
+        "G2"
+      ],
+      "split_policy": "iid",
+      "prediction_time": "Recorded final Portuguese-course grade from the school/questionnaire record; G1 and G2 are excluded as other targets. Retrospective association, not an asserted enrollment-time early-warning task.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/320/student+performance",
+          "https://archive.ics.uci.edu/api/dataset?id=320"
+        ],
+        "primary_page_sha256": "c5ffc9d89828e9f667e7fbe695e122d4d3a93f0324a387f6f271049b819a8191",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 320,
+        "data_url": "https://archive.ics.uci.edu/static/public/320/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=320",
+        "metadata_sha256": "cc52f5ef08ce63f13035d9290ba3c195b89e5bba33bece83288b0d97d421aaca",
+        "schema_reviewed": true,
+        "columns": [
+          "school",
+          "sex",
+          "age",
+          "address",
+          "famsize",
+          "Pstatus",
+          "Medu",
+          "Fedu",
+          "Mjob",
+          "Fjob",
+          "reason",
+          "guardian",
+          "traveltime",
+          "studytime",
+          "failures",
+          "schoolsup",
+          "famsup",
+          "paid",
+          "activities",
+          "nursery",
+          "higher",
+          "internet",
+          "romantic",
+          "famrel",
+          "freetime",
+          "goout",
+          "Dalc",
+          "Walc",
+          "health",
+          "absences",
+          "G1",
+          "G2",
+          "G3"
+        ],
+        "target_columns": [
+          "G1",
+          "G2",
+          "G3"
+        ],
+        "reported_rows": 649,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "5be7b02f13f5800fddd66e2c8d834cd00ece14c552fb404def2397b31b63236b",
+        "expected_rows": 649
+      },
+      "evaluation_track": "iid_development",
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-student-performance",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "name": "uci-chronic-kidney-disease",
+      "family_id": "chronic-kidney-disease",
+      "provider": "uci",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "class",
+      "target_transform": "identity",
+      "categorical": [
+        "sg",
+        "al",
+        "su",
+        "rbc",
+        "pc",
+        "pcc",
+        "ba",
+        "htn",
+        "dm",
+        "cad",
+        "appet",
+        "pe",
+        "ane"
+      ],
+      "drop_columns": [],
+      "split_policy": "iid",
+      "prediction_time": "Recorded CKD/non-CKD diagnosis from the supplied clinical measurements and symptom annotations. Static diagnosis classification, not future disease onset.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/336/chronic+kidney+disease",
+          "https://archive.ics.uci.edu/api/dataset?id=336"
+        ],
+        "primary_page_sha256": "d96e8235774d28897d6e1fae3ac435a88356fe98c8e21d806447e28affa0fe49",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 336,
+        "data_url": "https://archive.ics.uci.edu/static/public/336/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=336",
+        "metadata_sha256": "e30f1f6e3dae91c6924c6b2cdbdc9bda213680e552adc16146c72f9fd2bd7522",
+        "schema_reviewed": true,
+        "columns": [
+          "age",
+          "bp",
+          "sg",
+          "al",
+          "su",
+          "rbc",
+          "pc",
+          "pcc",
+          "ba",
+          "bgr",
+          "bu",
+          "sc",
+          "sod",
+          "pot",
+          "hemo",
+          "pcv",
+          "wbcc",
+          "rbcc",
+          "htn",
+          "dm",
+          "cad",
+          "appet",
+          "pe",
+          "ane",
+          "class"
+        ],
+        "target_columns": [
+          "class"
+        ],
+        "reported_rows": 400,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "target_value_map": {
+          "ckd": "ckd",
+          "ckd\t": "ckd",
+          "notckd": "notckd"
+        },
+        "sha256": "0eeea8d17f5ad8792d854999d6ddf1602ec4e116616f6ccdfdaef0ba8109e694",
+        "expected_rows": 400
+      },
+      "evaluation_track": "iid_development",
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-chronic-kidney-disease",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "name": "uci-musk-molecules",
+      "family_id": "musk-molecules",
+      "provider": "uci",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "class",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [
+        "molecule_name",
+        "conformation_name"
+      ],
+      "split_policy": "grouped",
+      "prediction_time": "Human musk/non-musk judgment from computed conformer descriptors. Split by original molecule_name; conformation IDs excluded, no random-conformer leakage. Versions 1/2 are one family.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/75/musk+version+2",
+          "https://archive.ics.uci.edu/api/dataset?id=75"
+        ],
+        "primary_page_sha256": "c64a952e8616a85a6698cc3affafe351b588664b53916ccf8d47df6317cace9f",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 75,
+        "data_url": "https://archive.ics.uci.edu/static/public/75/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=75",
+        "metadata_sha256": "841c93181d1e65136c199a367a9f9fe9722b38b1aa5cc2ed6e362c545d2d1ba9",
+        "schema_reviewed": true,
+        "columns": [
+          "molecule_name",
+          "conformation_name",
+          "f1",
+          "f2",
+          "f3",
+          "f4",
+          "f5",
+          "f6",
+          "f7",
+          "f8",
+          "f9",
+          "f10",
+          "f11",
+          "f12",
+          "f13",
+          "f14",
+          "f15",
+          "f16",
+          "f17",
+          "f18",
+          "f19",
+          "f20",
+          "f21",
+          "f22",
+          "f23",
+          "f24",
+          "f25",
+          "f26",
+          "f27",
+          "f28",
+          "f29",
+          "f30",
+          "f31",
+          "f32",
+          "f33",
+          "f34",
+          "f35",
+          "f36",
+          "f37",
+          "f38",
+          "f39",
+          "f40",
+          "f41",
+          "f42",
+          "f43",
+          "f44",
+          "f45",
+          "f46",
+          "f47",
+          "f48",
+          "f49",
+          "f50",
+          "f51",
+          "f52",
+          "f53",
+          "f54",
+          "f55",
+          "f56",
+          "f57",
+          "f58",
+          "f59",
+          "f60",
+          "f61",
+          "f62",
+          "f63",
+          "f64",
+          "f65",
+          "f66",
+          "f67",
+          "f68",
+          "f69",
+          "f70",
+          "f71",
+          "f72",
+          "f73",
+          "f74",
+          "f75",
+          "f76",
+          "f77",
+          "f78",
+          "f79",
+          "f80",
+          "f81",
+          "f82",
+          "f83",
+          "f84",
+          "f85",
+          "f86",
+          "f87",
+          "f88",
+          "f89",
+          "f90",
+          "f91",
+          "f92",
+          "f93",
+          "f94",
+          "f95",
+          "f96",
+          "f97",
+          "f98",
+          "f99",
+          "f100",
+          "f101",
+          "f102",
+          "f103",
+          "f104",
+          "f105",
+          "f106",
+          "f107",
+          "f108",
+          "f109",
+          "f110",
+          "f111",
+          "f112",
+          "f113",
+          "f114",
+          "f115",
+          "f116",
+          "f117",
+          "f118",
+          "f119",
+          "f120",
+          "f121",
+          "f122",
+          "f123",
+          "f124",
+          "f125",
+          "f126",
+          "f127",
+          "f128",
+          "f129",
+          "f130",
+          "f131",
+          "f132",
+          "f133",
+          "f134",
+          "f135",
+          "f136",
+          "f137",
+          "f138",
+          "f139",
+          "f140",
+          "f141",
+          "f142",
+          "f143",
+          "f144",
+          "f145",
+          "f146",
+          "f147",
+          "f148",
+          "f149",
+          "f150",
+          "f151",
+          "f152",
+          "f153",
+          "f154",
+          "f155",
+          "f156",
+          "f157",
+          "f158",
+          "f159",
+          "f160",
+          "f161",
+          "f162",
+          "f163",
+          "f164",
+          "f165",
+          "f166",
+          "class"
+        ],
+        "target_columns": [
+          "class"
+        ],
+        "reported_rows": 6598,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "029e743e24b4e58f35338021def28e12da9b0aeb866bbf86751b7b0d58f5232e",
+        "expected_rows": 6598
+      },
+      "evaluation_track": "nested_cv_stress",
+      "group_column": "molecule_name",
+      "stress_note": "Admitted development stress: requested nested split protocol is structurally infeasible for some outer folds. Preserve explicit failures; do not silently relax or relabel.",
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-musk-molecules",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "name": "uci-iris-anderson",
+      "family_id": "iris-anderson",
+      "provider": "uci",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "class",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "iid",
+      "prediction_time": "Original iris-species annotation from flower measurements. Small real-data regression-test panel, not fresh confirmation or a representative SOTA workload.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/53/iris",
+          "https://archive.ics.uci.edu/api/dataset?id=53"
+        ],
+        "primary_page_sha256": "6ab0f4258922783dc635a4ad9ab16ba49b95da6ef76c15f84c1ca2faeae36e67",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 53,
+        "data_url": "https://archive.ics.uci.edu/static/public/53/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=53",
+        "metadata_sha256": "0387b83840adbdefd10030c96e9e2ba80dc0419b6494efa7745d69bc927b9f15",
+        "schema_reviewed": true,
+        "columns": [
+          "sepal length",
+          "sepal width",
+          "petal length",
+          "petal width",
+          "class"
+        ],
+        "target_columns": [
+          "class"
+        ],
+        "reported_rows": 150,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "daaeb5e3e889d07fbdd44544f5a39fe2372a07172e25899d577be0ad74df9e65",
+        "expected_rows": 150
+      },
+      "evaluation_track": "fast_regression_realdata",
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-iris-anderson",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "name": "uci-optical-digits",
+      "family_id": "optical-digits",
+      "provider": "uci",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "class",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "iid",
+      "prediction_time": "Native digit class from 8x8 image-block counts. This combined development CSV does not reproduce the original 30-writer/13-writer split or establish unseen-writer generalization.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/80/optical+recognition+of+handwritten+digits",
+          "https://archive.ics.uci.edu/api/dataset?id=80"
+        ],
+        "primary_page_sha256": "e7e60b4405f1e1033a2c8258061c97a25c73d61c27f387d23c5251b0f4b9c4a4",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 80,
+        "data_url": "https://archive.ics.uci.edu/static/public/80/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=80",
+        "metadata_sha256": "3cd30d08daa235f503dee650d25ff4a8ae0088ffaaa01fa4712364ab872dc656",
+        "schema_reviewed": true,
+        "columns": [
+          "Attribute1",
+          "Attribute2",
+          "Attribute3",
+          "Attribute4",
+          "Attribute5",
+          "Attribute6",
+          "Attribute7",
+          "Attribute8",
+          "Attribute9",
+          "Attribute10",
+          "Attribute11",
+          "Attribute12",
+          "Attribute13",
+          "Attribute14",
+          "Attribute15",
+          "Attribute16",
+          "Attribute17",
+          "Attribute18",
+          "Attribute19",
+          "Attribute20",
+          "Attribute21",
+          "Attribute22",
+          "Attribute23",
+          "Attribute24",
+          "Attribute25",
+          "Attribute26",
+          "Attribute27",
+          "Attribute28",
+          "Attribute29",
+          "Attribute30",
+          "Attribute31",
+          "Attribute32",
+          "Attribute33",
+          "Attribute34",
+          "Attribute35",
+          "Attribute36",
+          "Attribute37",
+          "Attribute38",
+          "Attribute39",
+          "Attribute40",
+          "Attribute41",
+          "Attribute42",
+          "Attribute43",
+          "Attribute44",
+          "Attribute45",
+          "Attribute46",
+          "Attribute47",
+          "Attribute48",
+          "Attribute49",
+          "Attribute50",
+          "Attribute51",
+          "Attribute52",
+          "Attribute53",
+          "Attribute54",
+          "Attribute55",
+          "Attribute56",
+          "Attribute57",
+          "Attribute58",
+          "Attribute59",
+          "Attribute60",
+          "Attribute61",
+          "Attribute62",
+          "Attribute63",
+          "Attribute64",
+          "class"
+        ],
+        "target_columns": [
+          "class"
+        ],
+        "reported_rows": 5620,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "75fc37d1cb6590c84f567c6bd65c73051cdede2568f148a7b23ddd5ecbfdda2b",
+        "expected_rows": 5620
+      },
+      "evaluation_track": "iid_development",
+      "original_split_note": "Primary source describes distinct 30 training/13 testing writers. Combined CSV ordering/writer IDs are not verified, so shuffled development CV is not original-split reproduction.",
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-optical-digits",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "name": "uci-capital-bikeshare",
+      "family_id": "capital-bikeshare",
+      "provider": "uci",
+      "task": "regression",
+      "role": "inventory",
+      "prior_exposure": "exposed",
+      "origin_kind": "observational",
+      "target": "cnt",
+      "target_transform": "identity",
+      "categorical": [
+        "season",
+        "yr",
+        "mnth",
+        "hr",
+        "holiday",
+        "weekday",
+        "workingday",
+        "weathersit"
+      ],
+      "drop_columns": [
+        "instant",
+        "casual",
+        "registered"
+      ],
+      "split_policy": "temporal",
+      "prediction_time": "Retrospective completed-hour Capital Bikeshare counts conditional on observed weather/calendar fields. Casual and registered are excluded because they sum to cnt; whole-day forward buckets, not forecasting.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/275/bike+sharing+dataset",
+          "https://archive.ics.uci.edu/api/dataset?id=275"
+        ],
+        "primary_page_sha256": "e0fa30763f399b081ab17edc9b526bcd925d327f8c1f028f7e10e351f01146eb",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 275,
+        "data_url": "https://archive.ics.uci.edu/static/public/275/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=275",
+        "metadata_sha256": "ddae1c6bc628001a5c48ea53892f62e30dbbd6c4931ba00915adfdc520f9227b",
+        "schema_reviewed": true,
+        "columns": [
+          "instant",
+          "dteday",
+          "season",
+          "yr",
+          "mnth",
+          "hr",
+          "holiday",
+          "weekday",
+          "workingday",
+          "weathersit",
+          "temp",
+          "atemp",
+          "hum",
+          "windspeed",
+          "casual",
+          "registered",
+          "cnt"
+        ],
+        "target_columns": [
+          "cnt"
+        ],
+        "reported_rows": 17389,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "e03de4ee4ef4dc376ac6e04bf829673c6269e8eba5c60fa121640fa2f829504f",
+        "expected_rows": 17379,
+        "row_count_discrepancy": "Primary API headline differs from the complete normalized CSV. Actual payload length is pinned; no rows are dropped or invented."
+      },
+      "evaluation_track": "temporal_retrospective",
+      "time_column": "dteday",
+      "time_format": "%Y-%m-%d",
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-capital-bikeshare",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "name": "uci-appliances-energy",
+      "family_id": "appliances-energy",
+      "provider": "uci",
+      "task": "regression",
+      "role": "inventory",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "Appliances",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [
+        "lights",
+        "rv1",
+        "rv2"
+      ],
+      "split_policy": "temporal",
+      "prediction_time": "Retrospective completed 10-minute appliance-energy estimation conditional on observed/interpolated room and weather measurements. Other consumption lights and supplied random-noise controls are excluded; no ahead-of-time availability claim. The primary normalized CSV joins date and clock without a space; its explicit format was checked across all 19735 records.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/374/appliances+energy+prediction",
+          "https://archive.ics.uci.edu/api/dataset?id=374"
+        ],
+        "primary_page_sha256": "ef3d993ef7afad35e0c92d714e7c2ee779a2dbbbd83c74946f42210578cab4e4",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 374,
+        "data_url": "https://archive.ics.uci.edu/static/public/374/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=374",
+        "metadata_sha256": "449ebcbf2264f7be750c7b4762bc854fcf68c957b5acea52b88e0ad720d8bb5f",
+        "schema_reviewed": true,
+        "columns": [
+          "date",
+          "Appliances",
+          "lights",
+          "T1",
+          "RH_1",
+          "T2",
+          "RH_2",
+          "T3",
+          "RH_3",
+          "T4",
+          "RH_4",
+          "T5",
+          "RH_5",
+          "T6",
+          "RH_6",
+          "T7",
+          "RH_7",
+          "T8",
+          "RH_8",
+          "T9",
+          "RH_9",
+          "T_out",
+          "Press_mm_hg",
+          "RH_out",
+          "Windspeed",
+          "Visibility",
+          "Tdewpoint",
+          "rv1",
+          "rv2"
+        ],
+        "target_columns": [
+          "Appliances"
+        ],
+        "reported_rows": 19735,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "df49e914acd72504f1109bd9fdb4a6970cb0effc8c7e977c92f95295af350e24",
+        "expected_rows": 19735
+      },
+      "evaluation_track": "temporal_retrospective",
+      "time_column": "date",
+      "time_format": "%Y-%m-%d%H:%M:%S",
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-appliances-energy",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "name": "uci-auto-mpg",
+      "family_id": "auto-mpg",
+      "provider": "uci",
+      "task": "regression",
+      "role": "inventory",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "mpg",
+      "target_transform": "identity",
+      "categorical": [
+        "origin"
+      ],
+      "drop_columns": [
+        "car_name"
+      ],
+      "split_policy": "iid",
+      "prediction_time": "Measured city-cycle fuel consumption from vehicle specifications. Car-name identifier excluded; historical conditional estimation, not new-model/year generalization.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/9/auto+mpg",
+          "https://archive.ics.uci.edu/api/dataset?id=9"
+        ],
+        "primary_page_sha256": "2f6d657c61d53af832c50d409640493646a43a54972271b7c1822e56207cdccd",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 9,
+        "data_url": "https://archive.ics.uci.edu/static/public/9/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=9",
+        "metadata_sha256": "5d4ea416900f9ef70cf22f4afda4fdb55b187bc2c0e4ba6179a1219f61196f11",
+        "schema_reviewed": true,
+        "columns": [
+          "car_name",
+          "cylinders",
+          "displacement",
+          "horsepower",
+          "weight",
+          "acceleration",
+          "model_year",
+          "origin",
+          "mpg"
+        ],
+        "target_columns": [
+          "mpg"
+        ],
+        "reported_rows": 398,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "240f4657d747fe105f3c992251daba65f926ef54c4dec3cde34e398e8cf5da9c",
+        "expected_rows": 398
+      },
+      "evaluation_track": "iid_development",
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-auto-mpg",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "name": "uci-parkinsons-telemonitoring",
+      "family_id": "parkinsons-telemonitoring",
+      "provider": "uci",
+      "task": "regression",
+      "role": "inventory",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "motor_UPDRS",
+      "target_transform": "identity",
+      "categorical": [
+        "sex"
+      ],
+      "drop_columns": [
+        "subject#",
+        "total_UPDRS"
+      ],
+      "split_policy": "grouped",
+      "prediction_time": "The source's linearly interpolated motor-UPDRS severity annotation from voice measurements and visit context. total_UPDRS is excluded as another target; subject-disjoint grouped evaluation, not future symptom forecasting or a claim that every recording has a directly measured clinical score.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/189/parkinsons+telemonitoring",
+          "https://archive.ics.uci.edu/api/dataset?id=189"
+        ],
+        "primary_page_sha256": "2077eaac19cf6ef581ac61c5b298cd664a27285b9b1415b3fbcf6dbc9ad44250",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 189,
+        "data_url": "https://archive.ics.uci.edu/static/public/189/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=189",
+        "metadata_sha256": "f729e3a13f60e64fc00ff0af32bd258dee8a3156885d48fde8f606d65fe7d449",
+        "schema_reviewed": true,
+        "columns": [
+          "subject#",
+          "age",
+          "sex",
+          "test_time",
+          "Jitter(%)",
+          "Jitter(Abs)",
+          "Jitter:RAP",
+          "Jitter:PPQ5",
+          "Jitter:DDP",
+          "Shimmer",
+          "Shimmer(dB)",
+          "Shimmer:APQ3",
+          "Shimmer:APQ5",
+          "Shimmer:APQ11",
+          "Shimmer:DDA",
+          "NHR",
+          "HNR",
+          "RPDE",
+          "DFA",
+          "PPE",
+          "motor_UPDRS",
+          "total_UPDRS"
+        ],
+        "target_columns": [
+          "motor_UPDRS",
+          "total_UPDRS"
+        ],
+        "reported_rows": 5875,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "689fd221159cd78b07a50087992c9d9472a4eb26527cdc8e896a708a2013ebcf",
+        "expected_rows": 5875
+      },
+      "evaluation_track": "grouped_development",
+      "group_column": "subject#",
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-parkinsons-telemonitoring",
+      "admission_reference": "development_expansion_20260922.json"
+    },
+    {
+      "name": "uci-glass-identification",
+      "family_id": "glass-identification",
+      "provider": "uci",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "Type_of_glass",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [
+        "Id_number"
+      ],
+      "split_policy": "iid",
+      "prediction_time": "Native glass-type annotation from chemical composition, with sample ID excluded. Preserve rare classes and the absent native class; no forensic attribution claim.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/42/glass+identification",
+          "https://archive.ics.uci.edu/api/dataset?id=42"
+        ],
+        "primary_page_sha256": "d9446cdde9fc2e045095624ab0b0c9f27f6ef81f97b44912c5ec107655e5f923",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 42,
+        "data_url": "https://archive.ics.uci.edu/static/public/42/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=42",
+        "metadata_sha256": "67bcb40304226b900d8395160873e657c4e2972d864e500ee726bd5223688091",
+        "schema_reviewed": true,
+        "columns": [
+          "Id_number",
+          "RI",
+          "Na",
+          "Mg",
+          "Al",
+          "Si",
+          "K",
+          "Ca",
+          "Ba",
+          "Fe",
+          "Type_of_glass"
+        ],
+        "target_columns": [
+          "Type_of_glass"
+        ],
+        "reported_rows": 214,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "84e7e49a57bbd4cc46b2b9a5498a91ac8ea890e2adb988f3641e4a63ee079cb9",
+        "expected_rows": 214
+      },
+      "evaluation_track": "rare_class_stress",
+      "stress_note": "Native rare classes retained. Nested-CV fragility/infeasibility remains an explicit stress outcome; the reference seed-2026 probe is not a universal feasibility guarantee. No confirmation margin is imposed.",
+      "review_status": "admitted_origin",
+      "admitted_dataset_name": "uci-glass-identification",
+      "admission_reference": "development_expansion_20260922.json"
+    }
+  ]
+}

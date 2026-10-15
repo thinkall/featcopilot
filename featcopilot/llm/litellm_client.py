@@ -6,22 +6,29 @@ enabling flexible model selection without vendor lock-in.
 
 import asyncio
 import json
-from typing import Any
+from collections.abc import Coroutine
+from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
+from typing import Any, TypeVar
 
 from pydantic import BaseModel, Field
 
+from featcopilot.llm._execution import validate_feature_code
+from featcopilot.llm._types import LiteLLMProvider, feature_suggestions
 from featcopilot.utils.logger import get_logger
+from featcopilot.utils.models import DEFAULT_MODEL
 
 logger = get_logger(__name__)
+_T = TypeVar("_T")
 
 
 class LiteLLMConfig(BaseModel):
     """Configuration for LiteLLM client."""
 
-    model: str = Field(default="gpt-4o", description="Model identifier (e.g., gpt-4o, claude-3-opus)")
+    model: str = Field(default=DEFAULT_MODEL, description="Model identifier")
     temperature: float = Field(default=0.3, ge=0, le=2, description="Temperature for generation")
-    max_tokens: int = Field(default=4096, description="Maximum tokens in response")
-    timeout: float = Field(default=60.0, description="Timeout in seconds")
+    max_tokens: int = Field(default=4096, gt=0, description="Maximum tokens in response")
+    timeout: float = Field(default=60.0, gt=0, description="Timeout in seconds")
     api_key: str | None = Field(default=None, description="API key (uses env var if not provided)")
     api_base: str | None = Field(default=None, description="Custom API base URL")
 
@@ -37,8 +44,9 @@ class LiteLLMFeatureClient:
     ----------
     config : LiteLLMConfig, optional
         Configuration for the client
-    model : str, default='gpt-4o'
-        Model to use for generation (e.g., 'gpt-4o', 'claude-3-opus', 'gemini-pro')
+    model : str, optional
+        Model to use for generation. Defaults to the shared DEFAULT_MODEL;
+        specify a provider-supported identifier when using another backend.
     api_key : str, optional
         API key for the provider (uses environment variable if not provided)
     api_base : str, optional
@@ -69,7 +77,7 @@ class LiteLLMFeatureClient:
     def __init__(
         self,
         config: LiteLLMConfig | None = None,
-        model: str = "gpt-4o",
+        model: str = DEFAULT_MODEL,
         api_key: str | None = None,
         api_base: str | None = None,
         **kwargs,
@@ -77,7 +85,7 @@ class LiteLLMFeatureClient:
         self.config = config or LiteLLMConfig(model=model, api_key=api_key, api_base=api_base, **kwargs)
         self._is_started = False
         self._litellm_available = False
-        self._litellm = None
+        self._litellm: LiteLLMProvider | None = None
 
     async def start(self) -> "LiteLLMFeatureClient":
         """
@@ -94,36 +102,21 @@ class LiteLLMFeatureClient:
             self._litellm_available = True
             self._is_started = True
 
-            # Configure litellm settings
-            if self.config.api_key:
-                # Set API key based on model provider
-                model_lower = self.config.model.lower()
-                if "gpt" in model_lower or "openai" in model_lower:
-                    import os
-
-                    os.environ["OPENAI_API_KEY"] = self.config.api_key
-                elif "claude" in model_lower or "anthropic" in model_lower:
-                    import os
-
-                    os.environ["ANTHROPIC_API_KEY"] = self.config.api_key
-
             logger.info(f"LiteLLM client started with model: {self.config.model}")
 
         except ImportError:
             self._litellm_available = False
-            self._is_started = True
-            logger.warning("litellm not installed. Using mock LLM responses. Install with: pip install litellm")
-
-        except Exception as e:
-            self._litellm_available = False
-            self._is_started = True
-            logger.warning(f"Could not initialize LiteLLM: {e}. Using mock LLM responses.")
+            self._is_started = False
+            logger.error("LiteLLM is unavailable. Install featcopilot[litellm].")
+            raise
 
         return self
 
     async def stop(self) -> None:
         """Stop the LiteLLM client."""
         self._is_started = False
+        self._litellm_available = False
+        self._litellm = None
 
     async def send_prompt(self, prompt: str, system_prompt: str | None = None) -> str:
         """
@@ -144,8 +137,8 @@ class LiteLLMFeatureClient:
         if not self._is_started:
             await self.start()
 
-        if not self._litellm_available:
-            return self._mock_response(prompt)
+        if not self._litellm_available or self._litellm is None:
+            raise RuntimeError("LiteLLM client is unavailable")
 
         try:
             messages = []
@@ -164,18 +157,23 @@ class LiteLLMFeatureClient:
 
             if self.config.api_base:
                 kwargs["api_base"] = self.config.api_base
+            if self.config.api_key:
+                kwargs["api_key"] = self.config.api_key
 
             # Use async completion
             response = await self._litellm.acompletion(**kwargs)
 
-            return response.choices[0].message.content
+            content = response.choices[0].message.content if response.choices else None
+            if not isinstance(content, str) or not content.strip():
+                raise ValueError("LiteLLM returned an empty or non-text response")
+            return content
 
         except Exception as e:
             logger.error(f"LiteLLM request failed: {e}")
-            return self._mock_response(prompt)
+            raise
 
     def _mock_response(self, prompt: str) -> str:
-        """Generate mock response when LiteLLM is unavailable."""
+        """Generate synthetic responses for explicit test doubles only."""
         import re
 
         columns = re.findall(r"- (\w+) \(", prompt)
@@ -309,6 +307,10 @@ class LiteLLMFeatureClient:
 2. Provide Python code using pandas (assume df is the DataFrame)
 3. Explain why each feature might be useful
 4. Consider interactions, ratios, and domain-specific transformations
+5. Assign a one-dimensional result to `result`, retaining the input row index
+6. Use row-wise transformations only: do not recompute dataset/group statistics,
+   quantile bins, ranks, or learned mappings from the inference batch
+7. Do not mutate df; np and pd are available, without imports
 
 ## Output Format
 Return a JSON object with a "features" array, each element having:
@@ -342,7 +344,7 @@ Return ONLY the JSON object, no other text.
                 response = "\n".join(lines[1:-1])
 
             data = json.loads(response)
-            return data.get("features", [])
+            return feature_suggestions(data)
 
         except json.JSONDecodeError:
             import re
@@ -351,10 +353,11 @@ Return ONLY the JSON object, no other text.
             if json_match:
                 try:
                     data = json.loads(json_match.group())
-                    return data.get("features", [])
+                    return feature_suggestions(data)
                 except json.JSONDecodeError:
                     pass
 
+            logger.warning("LiteLLM returned invalid feature suggestion JSON")
             return []
 
     async def explain_feature(
@@ -461,6 +464,8 @@ result = df['col1'] / (df['col2'] + 1e-8)
                     code_lines.append(line)
             code = "\n".join(code_lines)
 
+        if not code.strip():
+            raise ValueError("LiteLLM returned an empty code response")
         return code
 
     async def validate_feature_code(self, code: str, sample_data: dict[str, list] | None = None) -> dict[str, Any]:
@@ -479,96 +484,39 @@ result = df['col1'] / (df['col2'] + 1e-8)
         result : dict
             Validation result with 'valid', 'error', and 'warnings' keys
         """
-        import numpy as np
-        import pandas as pd
-
-        result: dict[str, Any] = {"valid": True, "error": None, "warnings": []}
-
-        try:
-            compile(code, "<string>", "exec")
-        except SyntaxError as e:
-            result["valid"] = False
-            result["error"] = f"Syntax error: {e}"
-            return result
-
-        if sample_data:
-            try:
-                df = pd.DataFrame(sample_data)
-                local_vars: dict[str, Any] = {"df": df, "np": np, "pd": pd}
-                exec(
-                    code,
-                    {
-                        "__builtins__": {
-                            "len": len,
-                            "sum": sum,
-                            "max": max,
-                            "min": min,
-                            "int": int,
-                            "float": float,
-                            "str": str,
-                            "bool": bool,
-                            "abs": abs,
-                            "round": round,
-                            "pow": pow,
-                            "range": range,
-                            "list": list,
-                            "dict": dict,
-                            "set": set,
-                            "tuple": tuple,
-                            "sorted": sorted,
-                            "reversed": reversed,
-                            "enumerate": enumerate,
-                            "zip": zip,
-                            "any": any,
-                            "all": all,
-                            "map": map,
-                            "filter": filter,
-                            "isinstance": isinstance,
-                            "hasattr": hasattr,
-                            "getattr": getattr,
-                        }
-                    },
-                    local_vars,
-                )
-
-                if "result" not in local_vars:
-                    result["warnings"].append("Code does not assign to 'result' variable")
-
-            except Exception as e:
-                result["valid"] = False
-                result["error"] = f"Runtime error: {e}"
-
-        return result
+        return validate_feature_code(code, sample_data)
 
 
 class SyncLiteLLMFeatureClient:
-    """Synchronous wrapper for LiteLLMFeatureClient."""
+    """Own one loop/worker for nested and concurrent calls; stop must not overlap calls."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         self._async_client = LiteLLMFeatureClient(**kwargs)
         self._loop: asyncio.AbstractEventLoop | None = None
+        self._executor: ThreadPoolExecutor | None = None
+        self._executor_lock = Lock()
 
-    def _run_async(self, coro):
-        """Run an async coroutine, handling nested event loops (e.g., Jupyter)."""
-        try:
-            # Check if we're in a running event loop (e.g., Jupyter)
-            loop = asyncio.get_running_loop()
-            # We're in a running loop - use nest_asyncio if available
-            try:
-                import nest_asyncio
+    def _get_or_create_loop(self) -> asyncio.AbstractEventLoop:
+        """Keep pooled provider connections on one event loop."""
+        if self._loop is None or self._loop.is_closed():
+            self._loop = asyncio.new_event_loop()
+        return self._loop
 
-                nest_asyncio.apply()
-                return loop.run_until_complete(coro)
-            except ImportError:
-                # nest_asyncio not available, try alternative approach
-                import concurrent.futures
+    def _run_async(self, coro: Coroutine[Any, Any, _T]) -> _T:
+        """Keep construction, requests and closing on the provider's owned loop."""
+        with self._executor_lock:
+            if self._executor is None:
+                self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="featcopilot-litellm")
+            future = self._executor.submit(self._run_on_owned_loop, coro)
+        return future.result()
 
-                with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(asyncio.run, coro)
-                    return future.result()
-        except RuntimeError:
-            # No running event loop - safe to use asyncio.run
-            return asyncio.run(coro)
+    def _run_on_owned_loop(self, coro: Coroutine[Any, Any, _T]) -> _T:
+        return self._get_or_create_loop().run_until_complete(coro)
+
+    def _close_loop(self) -> None:
+        if self._loop is not None:
+            self._loop.close()
+            self._loop = None
 
     def start(self) -> "LiteLLMFeatureClient":
         """Start the client."""
@@ -576,7 +524,19 @@ class SyncLiteLLMFeatureClient:
 
     def stop(self) -> None:
         """Stop the client."""
-        return self._run_async(self._async_client.stop())
+        try:
+            self._run_async(self._async_client.stop())
+        finally:
+            if self._executor is not None:
+                try:
+                    self._executor.submit(self._close_loop).result()
+                finally:
+                    self._executor.shutdown(wait=True)
+                    self._executor = None
+
+    def send_prompt(self, prompt: str, system_prompt: str | None = None) -> str:
+        """Send a prompt and get a response."""
+        return self._run_async(self._async_client.send_prompt(prompt, system_prompt=system_prompt))
 
     def suggest_features(self, **kwargs) -> list[dict[str, Any]]:
         """Get feature suggestions."""

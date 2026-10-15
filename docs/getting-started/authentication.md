@@ -1,13 +1,17 @@
 # Authentication
 
-FeatCopilot supports two LLM backends:
+FeatCopilot supports three LLM backends:
 
 1. **GitHub Copilot SDK** (default) - Native integration with GitHub Copilot
 2. **LiteLLM** - Universal interface supporting 100+ providers
+3. **OpenAI SDK** - Direct OpenAI-compatible endpoints (`backend='openai'`)
 
 ## GitHub Copilot SDK (Default)
 
-The default backend uses GitHub Copilot SDK. If you have GitHub Copilot CLI installed and authenticated, it works automatically.
+The default backend uses GitHub Copilot SDK and the project model default
+`gpt-5.6-sol`. It requires an authenticated Copilot CLI and access to that model.
+An authenticated CLI alone does not establish model availability. Explicit model
+overrides are preserved; no model is silently substituted.
 
 ```python
 from featcopilot import AutoFeatureEngineer
@@ -15,9 +19,25 @@ from featcopilot import AutoFeatureEngineer
 # Uses GitHub Copilot SDK by default
 engineer = AutoFeatureEngineer(
     engines=['tabular', 'llm'],
-    llm_config={'model': 'gpt-5.2'}
+    llm_config={'model': 'gpt-5.6-sol'}
 )
 ```
+
+Missing SDKs, authentication failures, rejected models, timeouts, and empty
+responses are reported as errors rather than fabricated features. Model discovery
+through `featcopilot.utils.get_model_names()` queries Copilot, not every LiteLLM
+provider. If discovery fails, an empty list does not confirm that the requested
+model works.
+
+**Readiness observation (2026-09-16):** One bounded model-list check with
+`github-copilot-sdk==0.3.0` failed with
+`ValueError: Missing required field 'multiplier' in ModelBilling`.
+Subsequent direct requests using `gpt-5.6-sol` succeeded: a minimal response
+check and an end-to-end `SemanticEngine` run on synthetic sales data generated
+`revenue = unit_price * quantity`, preserved custom row indexes and produced
+matching training/inference schemas. The model is usable in this environment;
+the separate model-list metadata parsing issue remains. Availability still
+depends on the account and backend, and no fallback model is substituted.
 
 ## LiteLLM Backend
 
@@ -261,19 +281,14 @@ export HTTPS_PROXY=http://proxy.company.com:8080
     - Regularly rotate API keys
     - Review your provider's data handling policies
 
-## Offline/Mock Mode
+## Offline Feature Engineering
 
-If LLM is unavailable, FeatCopilot automatically falls back to mock responses:
+LLM backends do not silently enter mock mode. Without provider access, use the
+non-LLM engines explicitly:
 
 ```python
-# This works without authentication (uses mock LLM)
-engineer = AutoFeatureEngineer(engines=['tabular', 'llm'])
-
-# You'll see this warning:
-# "Warning: LLM not configured. Using mock responses."
-
-# Features will still be generated using heuristics
+engineer = AutoFeatureEngineer(engines=['tabular'])
 X_transformed = engineer.fit_transform(X, y)
 ```
 
-The mock mode generates context-aware features based on column names, but without the semantic understanding of a real LLM.
+These features use tabular transformations, not semantic LLM generation.

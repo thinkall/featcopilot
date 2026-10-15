@@ -1,0 +1,91 @@
+{
+  "promote": false,
+  "sota_demonstrated": false,
+  "decision": "Fixed learner-aware policy replicates matched-baseline gains but violates tail-harm criterion versus the existing single raw LightGBM baseline; do not promote or switch architectures by dataset.",
+  "policy": [
+    {
+      "seed": 137,
+      "learner": "linear",
+      "feature_method": "featcopilot-frequency-aligned-robust",
+      "matched_baseline": "baseline-robust",
+      "families": 9,
+      "matched_mean": 0.1795516406908214,
+      "matched_worst": -0.02351371196076446,
+      "single_raw_mean": 0.1795516406908214,
+      "single_raw_worst": -0.02351371196076446,
+      "matched_harms": [],
+      "single_raw_harms": []
+    },
+    {
+      "seed": 137,
+      "learner": "lightgbm",
+      "feature_method": "featcopilot-ensemble-robust",
+      "matched_baseline": "baseline-ensemble-robust",
+      "families": 9,
+      "matched_mean": 0.056267898392738776,
+      "matched_worst": -0.0318093791033951,
+      "single_raw_mean": 0.021738269618707246,
+      "single_raw_worst": -0.40130925645439786,
+      "matched_harms": [],
+      "single_raw_harms": [
+        "uci-chronic-kidney-disease"
+      ]
+    },
+    {
+      "seed": 2029,
+      "learner": "linear",
+      "feature_method": "featcopilot-frequency-aligned-robust",
+      "matched_baseline": "baseline-robust",
+      "families": 9,
+      "matched_mean": 0.1806333231004865,
+      "matched_worst": -0.0066862577873485485,
+      "single_raw_mean": 0.1806333231004865,
+      "single_raw_worst": -0.0066862577873485485,
+      "matched_harms": [],
+      "single_raw_harms": []
+    },
+    {
+      "seed": 2029,
+      "learner": "lightgbm",
+      "feature_method": "featcopilot-ensemble-robust",
+      "matched_baseline": "baseline-ensemble-robust",
+      "families": 9,
+      "matched_mean": 0.07923129393236757,
+      "matched_worst": -0.015354854529071815,
+      "single_raw_mean": 0.0690499107383253,
+      "single_raw_worst": -0.12469063425939786,
+      "matched_harms": [],
+      "single_raw_harms": [
+        "uci-chronic-kidney-disease"
+      ]
+    },
+    {
+      "seed": null,
+      "learner": "linear",
+      "feature_method": "featcopilot-frequency-aligned-robust",
+      "matched_baseline": "baseline-robust",
+      "families": 9,
+      "matched_mean": 0.18058632299414212,
+      "matched_worst": -0.01002779292491729,
+      "single_raw_mean": 0.18058632299414212,
+      "single_raw_worst": -0.01002779292491729,
+      "matched_harms": [],
+      "single_raw_harms": []
+    },
+    {
+      "seed": null,
+      "learner": "lightgbm",
+      "feature_method": "featcopilot-ensemble-robust",
+      "matched_baseline": "baseline-ensemble-robust",
+      "families": 9,
+      "matched_mean": 0.06885304736118988,
+      "matched_worst": -0.005911326206396339,
+      "single_raw_mean": 0.04901591593870098,
+      "single_raw_worst": -0.23655239572691533,
+      "matched_harms": [],
+      "single_raw_harms": [
+        "uci-chronic-kidney-disease"
+      ]
+    }
+  ]
+}

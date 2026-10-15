@@ -1,0 +1,119 @@
+{
+  "promote": false,
+  "sota_demonstrated": false,
+  "reason": "Boosted-model quality gates fail and AutoFeat comparison coverage is incomplete.",
+  "observational_strata": [
+    {
+      "task": "classification",
+      "learner": "lightgbm",
+      "families": 9,
+      "mean": 0.011273717035894464,
+      "median": 0.0,
+      "worst": 0.0,
+      "positive_mean": true,
+      "no_harm_above_5_percent": true,
+      "comparisons": [
+        {
+          "method": "openfe-inductive-native",
+          "families": 9,
+          "candidate_mean": 0.011273717035894464,
+          "reference_mean": 0.09389438322760138,
+          "not_worse": false,
+          "complete_coverage": true
+        },
+        {
+          "method": "autofeat-native",
+          "families": 6,
+          "candidate_mean": 0.003759802548503869,
+          "reference_mean": 0.026168059530707572,
+          "not_worse": false,
+          "complete_coverage": false
+        }
+      ]
+    },
+    {
+      "task": "classification",
+      "learner": "linear",
+      "families": 9,
+      "mean": 0.0708601826863432,
+      "median": 0.006782777454582667,
+      "worst": -0.0286834156419169,
+      "positive_mean": true,
+      "no_harm_above_5_percent": true,
+      "comparisons": [
+        {
+          "method": "openfe-inductive-native",
+          "families": 9,
+          "candidate_mean": 0.0708601826863432,
+          "reference_mean": -0.058609459152637836,
+          "not_worse": true,
+          "complete_coverage": true
+        },
+        {
+          "method": "autofeat-native",
+          "families": 6,
+          "candidate_mean": 0.06239316757283192,
+          "reference_mean": 0.06197850144393632,
+          "not_worse": true,
+          "complete_coverage": false
+        }
+      ]
+    },
+    {
+      "task": "regression",
+      "learner": "lightgbm",
+      "families": 2,
+      "mean": -0.00951365418184269,
+      "median": -0.00951365418184269,
+      "worst": -0.02334948973230122,
+      "positive_mean": false,
+      "no_harm_above_5_percent": true,
+      "comparisons": [
+        {
+          "method": "openfe-inductive-native",
+          "families": 2,
+          "candidate_mean": -0.00951365418184269,
+          "reference_mean": 0.021708831891685765,
+          "not_worse": false,
+          "complete_coverage": true
+        },
+        {
+          "method": "autofeat-native",
+          "families": 2,
+          "candidate_mean": -0.00951365418184269,
+          "reference_mean": 0.03237873177846151,
+          "not_worse": false,
+          "complete_coverage": true
+        }
+      ]
+    },
+    {
+      "task": "regression",
+      "learner": "linear",
+      "families": 2,
+      "mean": 0.0034449355921781777,
+      "median": 0.0034449355921781777,
+      "worst": 0.0,
+      "positive_mean": true,
+      "no_harm_above_5_percent": true,
+      "comparisons": [
+        {
+          "method": "openfe-inductive-native",
+          "families": 2,
+          "candidate_mean": 0.0034449355921781777,
+          "reference_mean": -0.013323633941977497,
+          "not_worse": true,
+          "complete_coverage": true
+        },
+        {
+          "method": "autofeat-native",
+          "families": 2,
+          "candidate_mean": 0.0034449355921781777,
+          "reference_mean": -0.07313229659335685,
+          "not_worse": true,
+          "complete_coverage": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "name": "seoul-temporal-inventory-v1",
+  "family_registry": "../families.json",
+  "purpose": "Inventory only until target-role conflict and prediction-time availability are reviewed and temporal evaluation is supported.",
+  "datasets": [
+    {
+      "name": "uci-seoul-bike",
+      "family_id": "seoul-bike",
+      "provider": "uci",
+      "task": "regression",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "observational",
+      "target": "Rented Bike Count",
+      "categorical": ["Seasons", "Holiday"],
+      "drop_columns": ["Functioning Day"],
+      "split_policy": "temporal",
+      "prediction_time": "Pending: weather/operating-status availability, hourly cutoff and day-blocked forward splits require review.",
+      "rights": {
+        "status": "pending_review",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "evidence": ["https://archive.ics.uci.edu/dataset/560/seoul+bike+sharing+demand"],
+        "note": "Official page license declaration is not permission to bypass unresolved task admission."
+      },
+      "source": {
+        "uci_id": 560,
+        "data_url": "https://archive.ics.uci.edu/static/public/560/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=560",
+        "schema_reviewed": false,
+        "reported_rows": 8760,
+        "reported_features": 13,
+        "target_columns": ["Functioning Day"],
+        "target_role_conflict": "UCI API marks Functioning Day Target and Rented Bike Count Feature; narrative describes hourly demand. Explicit review required, never guess from API roles.",
+        "time_policy": "Date plus Hour; format and prediction cutoff must be reviewed before acquisition."
+      }
+    }
+  ]
+}

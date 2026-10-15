@@ -1,0 +1,424 @@
+{
+  "not_confirmation": true,
+  "identity_and_archive_checks_passed": true,
+  "source_sha256": "f94e23533f6b4e24a64542c6a307abaa09a0439ca084ad3632e07c4024c5a3f7",
+  "results_sha256": "aaf0788d1d8b14ed366e53e273c0b7294d0e05cd7af92f2000257e4432fb8009",
+  "protocol_sha256": "929009d90b5019b25f4fb8d261e669fda29dd99cecd9b392fd72e3d5f5155c1d",
+  "successful_cells": 204,
+  "component_control_pairs": 136,
+  "component_control_mismatches": [],
+  "families": [
+    {
+      "learner": "linear",
+      "family_id": "concrete-strength",
+      "cohort": "primary",
+      "folds_per_method": 3,
+      "mean_rmse": {
+        "baseline-robust": 10.55851808128109,
+        "featcopilot-frequency-aligned-robust": 5.850408508582558,
+        "featcopilot-regression-average-robust": 7.289745550092397
+      },
+      "fe_gain_vs_raw": 0.4459062849970784,
+      "average_gain_vs_raw": 0.30958629857193787,
+      "average_gain_vs_fe": -0.24602333997674353,
+      "mean_pipeline_seconds": {
+        "baseline-robust": 2.306106899942582,
+        "featcopilot-frequency-aligned-robust": 8.981270166579634,
+        "featcopilot-regression-average-robust": 6.717582133132964
+      }
+    },
+    {
+      "learner": "linear",
+      "family_id": "energy-efficiency",
+      "cohort": "primary",
+      "folds_per_method": 3,
+      "mean_rmse": {
+        "baseline-robust": 2.844552334011984,
+        "featcopilot-frequency-aligned-robust": 0.529265341882849,
+        "featcopilot-regression-average-robust": 1.5076103373169403
+      },
+      "fe_gain_vs_raw": 0.813937210592161,
+      "average_gain_vs_raw": 0.4700008436158416,
+      "average_gain_vs_fe": -1.848496241891925,
+      "mean_pipeline_seconds": {
+        "baseline-robust": 2.259667433410262,
+        "featcopilot-frequency-aligned-robust": 7.99730876670219,
+        "featcopilot-regression-average-robust": 5.88664979999885
+      }
+    },
+    {
+      "learner": "linear",
+      "family_id": "combined-cycle-power",
+      "cohort": "primary",
+      "folds_per_method": 3,
+      "mean_rmse": {
+        "baseline-robust": 4.474864221527279,
+        "featcopilot-frequency-aligned-robust": 4.062885573236425,
+        "featcopilot-regression-average-robust": 4.169686506464661
+      },
+      "fe_gain_vs_raw": 0.09206506117189972,
+      "average_gain_vs_raw": 0.06819820668401433,
+      "average_gain_vs_fe": -0.026286965582237753,
+      "mean_pipeline_seconds": {
+        "baseline-robust": 2.315092966736605,
+        "featcopilot-frequency-aligned-robust": 9.247511866657684,
+        "featcopilot-regression-average-robust": 7.043483966573452
+      }
+    },
+    {
+      "learner": "linear",
+      "family_id": "real-estate-sindian",
+      "cohort": "primary",
+      "folds_per_method": 3,
+      "mean_rmse": {
+        "baseline-robust": 8.764502418322268,
+        "featcopilot-frequency-aligned-robust": 7.699601519844558,
+        "featcopilot-regression-average-robust": 7.914011276713486
+      },
+      "fe_gain_vs_raw": 0.1215015807687525,
+      "average_gain_vs_raw": 0.09703815470811239,
+      "average_gain_vs_fe": -0.027846864063850507,
+      "mean_pipeline_seconds": {
+        "baseline-robust": 2.216838533291593,
+        "featcopilot-frequency-aligned-robust": 6.073514966837441,
+        "featcopilot-regression-average-robust": 3.9966356665827334
+      }
+    },
+    {
+      "learner": "linear",
+      "family_id": "auto-mpg",
+      "cohort": "primary",
+      "folds_per_method": 3,
+      "mean_rmse": {
+        "baseline-robust": 3.366601347559648,
+        "featcopilot-frequency-aligned-robust": 2.9412789468885454,
+        "featcopilot-regression-average-robust": 3.0041143701310666
+      },
+      "fe_gain_vs_raw": 0.12633583746985855,
+      "average_gain_vs_raw": 0.10767148824773609,
+      "average_gain_vs_fe": -0.021363299563610605,
+      "mean_pipeline_seconds": {
+        "baseline-robust": 2.263061933297043,
+        "featcopilot-frequency-aligned-robust": 6.630195066798478,
+        "featcopilot-regression-average-robust": 4.547718099939327
+      }
+    },
+    {
+      "learner": "linear",
+      "family_id": "wine-quality",
+      "cohort": "primary",
+      "folds_per_method": 3,
+      "mean_rmse": {
+        "baseline-robust": 0.7370100306467517,
+        "featcopilot-frequency-aligned-robust": 0.7091451648277196,
+        "featcopilot-regression-average-robust": 0.7138769800569886
+      },
+      "fe_gain_vs_raw": 0.03780798721908807,
+      "average_gain_vs_raw": 0.031387701154437564,
+      "average_gain_vs_fe": -0.006672562211460065,
+      "mean_pipeline_seconds": {
+        "baseline-robust": 2.243314466516798,
+        "featcopilot-frequency-aligned-robust": 19.496117900125682,
+        "featcopilot-regression-average-robust": 17.040200400166214
+      }
+    },
+    {
+      "learner": "linear",
+      "family_id": "california-housing",
+      "cohort": "primary",
+      "folds_per_method": 3,
+      "mean_rmse": {
+        "baseline-robust": 0.33853370377566844,
+        "featcopilot-frequency-aligned-robust": 0.3132492293047152,
+        "featcopilot-regression-average-robust": 0.3180985574111163
+      },
+      "fe_gain_vs_raw": 0.07468820442087543,
+      "average_gain_vs_raw": 0.060363698316116876,
+      "average_gain_vs_fe": -0.01548073435699937,
+      "mean_pipeline_seconds": {
+        "baseline-robust": 2.3232944667494544,
+        "featcopilot-frequency-aligned-robust": 13.99469616659917,
+        "featcopilot-regression-average-robust": 11.758000099953884
+      }
+    },
+    {
+      "learner": "linear",
+      "family_id": "infrared-oral-temperature",
+      "cohort": "stress:infrared-oral-temperature",
+      "folds_per_method": 3,
+      "mean_rmse": {
+        "baseline-robust": 0.26212333708468666,
+        "featcopilot-frequency-aligned-robust": 0.25355747740324824,
+        "featcopilot-regression-average-robust": 0.2554052399193892
+      },
+      "fe_gain_vs_raw": 0.03267873733299431,
+      "average_gain_vs_raw": 0.02562952707689281,
+      "average_gain_vs_fe": -0.007287351708434642,
+      "mean_pipeline_seconds": {
+        "baseline-robust": 2.3839930999092758,
+        "featcopilot-frequency-aligned-robust": 21.359391066711396,
+        "featcopilot-regression-average-robust": 19.00399800001954
+      }
+    },
+    {
+      "learner": "linear",
+      "family_id": "computer-hardware-performance",
+      "cohort": "stress:computer-hardware-performance",
+      "folds_per_method": 10,
+      "mean_rmse": {
+        "baseline-robust": 68.54787119983162,
+        "featcopilot-frequency-aligned-robust": 42.087304066271265,
+        "featcopilot-regression-average-robust": 50.65023480240022
+      },
+      "fe_gain_vs_raw": 0.3860158845257524,
+      "average_gain_vs_raw": 0.26109689599631747,
+      "average_gain_vs_fe": -0.20345638491469176,
+      "mean_pipeline_seconds": {
+        "baseline-robust": 2.29619858993683,
+        "featcopilot-frequency-aligned-robust": 5.980740419984795,
+        "featcopilot-regression-average-robust": 3.84731068003457
+      }
+    },
+    {
+      "learner": "lightgbm",
+      "family_id": "concrete-strength",
+      "cohort": "primary",
+      "folds_per_method": 3,
+      "mean_rmse": {
+        "baseline-robust": 4.553619961971028,
+        "featcopilot-frequency-aligned-robust": 4.7412177753723155,
+        "featcopilot-regression-average-robust": 4.4771885334536785
+      },
+      "fe_gain_vs_raw": -0.04119751208225253,
+      "average_gain_vs_raw": 0.016784762267307407,
+      "average_gain_vs_fe": 0.05568806463396492,
+      "mean_pipeline_seconds": {
+        "baseline-robust": 4.176216599997133,
+        "featcopilot-frequency-aligned-robust": 18.790540699769434,
+        "featcopilot-regression-average-robust": 17.370517599939678
+      }
+    },
+    {
+      "learner": "lightgbm",
+      "family_id": "energy-efficiency",
+      "cohort": "primary",
+      "folds_per_method": 3,
+      "mean_rmse": {
+        "baseline-robust": 0.4797422639020634,
+        "featcopilot-frequency-aligned-robust": 0.44941198432676766,
+        "featcopilot-regression-average-robust": 0.45113221151929145
+      },
+      "fe_gain_vs_raw": 0.06322202953018852,
+      "average_gain_vs_raw": 0.059636297519562564,
+      "average_gain_vs_fe": -0.0038277287934382898,
+      "mean_pipeline_seconds": {
+        "baseline-robust": 3.475341299781576,
+        "featcopilot-frequency-aligned-robust": 14.967366033311313,
+        "featcopilot-regression-average-robust": 13.132995466701686
+      }
+    },
+    {
+      "learner": "lightgbm",
+      "family_id": "combined-cycle-power",
+      "cohort": "primary",
+      "folds_per_method": 3,
+      "mean_rmse": {
+        "baseline-robust": 3.3829047778034247,
+        "featcopilot-frequency-aligned-robust": 3.2245076024506436,
+        "featcopilot-regression-average-robust": 3.2369191830848694
+      },
+      "fe_gain_vs_raw": 0.04682283001049503,
+      "average_gain_vs_raw": 0.04315391780354694,
+      "average_gain_vs_fe": -0.003849139826742176,
+      "mean_pipeline_seconds": {
+        "baseline-robust": 3.861891566620519,
+        "featcopilot-frequency-aligned-robust": 30.220719433467213,
+        "featcopilot-regression-average-robust": 27.77276606679273
+      }
+    },
+    {
+      "learner": "lightgbm",
+      "family_id": "real-estate-sindian",
+      "cohort": "primary",
+      "folds_per_method": 3,
+      "mean_rmse": {
+        "baseline-robust": 7.4482759498215625,
+        "featcopilot-frequency-aligned-robust": 7.266136177458193,
+        "featcopilot-regression-average-robust": 7.30226793511668
+      },
+      "fe_gain_vs_raw": 0.02445395063104938,
+      "average_gain_vs_raw": 0.019602927669238768,
+      "average_gain_vs_fe": -0.004972623245154351,
+      "mean_pipeline_seconds": {
+        "baseline-robust": 3.3851176333458475,
+        "featcopilot-frequency-aligned-robust": 11.496133033341417,
+        "featcopilot-regression-average-robust": 9.463984466933956
+      }
+    },
+    {
+      "learner": "lightgbm",
+      "family_id": "auto-mpg",
+      "cohort": "primary",
+      "folds_per_method": 3,
+      "mean_rmse": {
+        "baseline-robust": 2.9242863652886495,
+        "featcopilot-frequency-aligned-robust": 3.00924867932216,
+        "featcopilot-regression-average-robust": 2.905666042797781
+      },
+      "fe_gain_vs_raw": -0.02905403350438429,
+      "average_gain_vs_raw": 0.006367475741053341,
+      "average_gain_vs_fe": 0.034421427925229175,
+      "mean_pipeline_seconds": {
+        "baseline-robust": 3.439625666709617,
+        "featcopilot-frequency-aligned-robust": 11.304846999933943,
+        "featcopilot-regression-average-robust": 9.582593399643278
+      }
+    },
+    {
+      "learner": "lightgbm",
+      "family_id": "wine-quality",
+      "cohort": "primary",
+      "folds_per_method": 3,
+      "mean_rmse": {
+        "baseline-robust": 0.6544168809210527,
+        "featcopilot-frequency-aligned-robust": 0.6531274150570032,
+        "featcopilot-regression-average-robust": 0.645436211801599
+      },
+      "fe_gain_vs_raw": 0.0019704043426180817,
+      "average_gain_vs_raw": 0.013723162377495268,
+      "average_gain_vs_fe": 0.01177596144043791,
+      "mean_pipeline_seconds": {
+        "baseline-robust": 3.81214666684779,
+        "featcopilot-frequency-aligned-robust": 49.18392763333395,
+        "featcopilot-regression-average-robust": 47.26956899976358
+      }
+    },
+    {
+      "learner": "lightgbm",
+      "family_id": "california-housing",
+      "cohort": "primary",
+      "folds_per_method": 3,
+      "mean_rmse": {
+        "baseline-robust": 0.24468070600641276,
+        "featcopilot-frequency-aligned-robust": 0.2250234626003019,
+        "featcopilot-regression-average-robust": 0.2261248343997355
+      },
+      "fe_gain_vs_raw": 0.08033834676607343,
+      "average_gain_vs_raw": 0.07583708543897594,
+      "average_gain_vs_fe": -0.004894475388061759,
+      "mean_pipeline_seconds": {
+        "baseline-robust": 3.840570700044433,
+        "featcopilot-frequency-aligned-robust": 41.672734533436596,
+        "featcopilot-regression-average-robust": 40.12133766679714
+      }
+    },
+    {
+      "learner": "lightgbm",
+      "family_id": "infrared-oral-temperature",
+      "cohort": "stress:infrared-oral-temperature",
+      "folds_per_method": 3,
+      "mean_rmse": {
+        "baseline-robust": 0.26389468120955717,
+        "featcopilot-frequency-aligned-robust": 0.2650006961668889,
+        "featcopilot-regression-average-robust": 0.26393634472982397
+      },
+      "fe_gain_vs_raw": -0.004191122580653683,
+      "average_gain_vs_raw": -0.0001578793482150953,
+      "average_gain_vs_fe": 0.004016409965937107,
+      "mean_pipeline_seconds": {
+        "baseline-robust": 3.8411775334582976,
+        "featcopilot-frequency-aligned-robust": 42.386911966682725,
+        "featcopilot-regression-average-robust": 40.85901083316033
+      }
+    },
+    {
+      "learner": "lightgbm",
+      "family_id": "computer-hardware-performance",
+      "cohort": "stress:computer-hardware-performance",
+      "folds_per_method": 10,
+      "mean_rmse": {
+        "baseline-robust": 68.79482971059281,
+        "featcopilot-frequency-aligned-robust": 69.83174380943836,
+        "featcopilot-regression-average-robust": 66.22772192994023
+      },
+      "fe_gain_vs_raw": -0.015072558551386228,
+      "average_gain_vs_raw": 0.03731541732789989,
+      "average_gain_vs_fe": 0.0516100799277337,
+      "mean_pipeline_seconds": {
+        "baseline-robust": 3.4351334100589157,
+        "featcopilot-frequency-aligned-robust": 10.56613914994523,
+        "featcopilot-regression-average-robust": 8.265278460015542
+      }
+    }
+  ],
+  "summaries": [
+    {
+      "learner": "linear",
+      "primary_families": 7,
+      "primary_average_gain_vs_raw": 0.16346377018545669,
+      "primary_fe_gain_vs_raw": 0.24460602380567337,
+      "primary_average_gain_vs_fe": -0.3131671439495467,
+      "primary_average_worst_relative_harm_vs_raw": 0.0,
+      "primary_fe_worst_relative_harm_vs_raw": 0.0,
+      "worst_relative_harm_including_separate_stress": 0.0,
+      "component_control_parity": true,
+      "eligible_for_followup": true
+    },
+    {
+      "learner": "lightgbm",
+      "primary_families": 7,
+      "primary_average_gain_vs_raw": 0.033586518402454316,
+      "primary_fe_gain_vs_raw": 0.020936573670541088,
+      "primary_average_gain_vs_fe": 0.012048783820890776,
+      "primary_average_worst_relative_harm_vs_raw": 0.0,
+      "primary_fe_worst_relative_harm_vs_raw": 0.04119751208225253,
+      "worst_relative_harm_including_separate_stress": 0.0001578793482150953,
+      "component_control_parity": true,
+      "eligible_for_followup": true
+    }
+  ],
+  "worst_individual_folds": [
+    {
+      "learner": "linear",
+      "method": "featcopilot-frequency-aligned-robust",
+      "dataset": "computer-hardware-performance",
+      "cohort": "stress:computer-hardware-performance",
+      "seed": 42,
+      "fold": 7,
+      "relative_rmse_change_vs_raw": 0.015640529153151173
+    },
+    {
+      "learner": "linear",
+      "method": "featcopilot-regression-average-robust",
+      "dataset": "infrared-oral-temperature",
+      "cohort": "stress:infrared-oral-temperature",
+      "seed": 42,
+      "fold": 1,
+      "relative_rmse_change_vs_raw": -0.02025217460587858
+    },
+    {
+      "learner": "lightgbm",
+      "method": "featcopilot-frequency-aligned-robust",
+      "dataset": "computer-hardware-performance",
+      "cohort": "stress:computer-hardware-performance",
+      "seed": 42,
+      "fold": 0,
+      "relative_rmse_change_vs_raw": 0.7393844352594798
+    },
+    {
+      "learner": "lightgbm",
+      "method": "featcopilot-regression-average-robust",
+      "dataset": "computer-hardware-performance",
+      "cohort": "stress:computer-hardware-performance",
+      "seed": 42,
+      "fold": 0,
+      "relative_rmse_change_vs_raw": 0.08970498450226416
+    }
+  ],
+  "physical_worker_seconds_sum": 7754.567011702107,
+  "measurement_hours": 3.3406180186111114,
+  "cycle_used_hours": 64.39349886077777,
+  "cycle_remaining_hours": 7.606501139222232,
+  "default_promotion": false,
+  "analysis_runner_sha256": "e72b650f73c451c9fd08d93fb389db56b8c8aed8071bfebbe7909b958f24e499"
+}

@@ -4,10 +4,12 @@ Generates polynomial features, interaction terms, and mathematical transformatio
 """
 
 from itertools import combinations
+from typing import Any
 
 import numpy as np
 import pandas as pd
 from pydantic import Field
+from sklearn.preprocessing import LabelEncoder
 
 from featcopilot.core.base import BaseEngine, EngineConfig
 from featcopilot.core.feature import Feature, FeatureOrigin, FeatureSet, FeatureType
@@ -38,6 +40,7 @@ class TabularEngineConfig(EngineConfig):
     target_encode_ratio_threshold: float = Field(
         default=0.5, description="Max n_unique/n_rows ratio for target encoding"
     )
+    target_encode_cv: int = Field(default=5, ge=2, description="Cross-fitting folds for target encoding")
     min_samples_per_category: int = Field(default=3, description="Min samples per category to include")
 
 
@@ -60,6 +63,8 @@ class TabularEngine(BaseEngine):
         If True, only generate interaction terms, not polynomial powers
     include_transforms : list, default=['log', 'sqrt', 'square']
         Mathematical transformations to apply
+    target_encode_cv : int, default=5
+        Number of folds used to create leakage-safe training target encodings
     max_features : int, optional
         Maximum number of features to generate
 
@@ -94,30 +99,41 @@ class TabularEngine(BaseEngine):
         onehot_ratio_threshold: float = 0.05,
         target_encode_ratio_threshold: float = 0.5,
         min_samples_per_category: int = 3,
+        *,
+        target_encode_cv: int = 5,
         **kwargs,
     ):
         config = TabularEngineConfig(
             polynomial_degree=polynomial_degree,
             interaction_only=interaction_only,
-            include_transforms=include_transforms or ["log", "sqrt", "square"],
+            include_transforms=include_transforms if include_transforms is not None else ["log", "sqrt", "square"],
             max_features=max_features,
             verbose=verbose,
             encode_categorical=encode_categorical,
             onehot_ratio_threshold=onehot_ratio_threshold,
             target_encode_ratio_threshold=target_encode_ratio_threshold,
+            target_encode_cv=target_encode_cv,
             min_samples_per_category=min_samples_per_category,
             **kwargs,
         )
         super().__init__(config=config)
         self.config: TabularEngineConfig = config
+        self._reset()
+
+    def _reset(self) -> None:
+        self._is_fitted = False
+        self._feature_names = []
+        self._feature_metadata = {}
         self._numeric_columns: list[str] = []
         self._feature_set = FeatureSet()
         # Categorical encoding state
+        self._categorical_columns: list[str] = []
         self._onehot_columns: list[str] = []
         self._target_encode_columns: list[str] = []
         self._onehot_categories: dict[str, list] = {}
         self._target_encode_maps: dict[str, dict] = {}
         self._target_encode_global_mean: float = 0.0
+        self._target_label_encoder: LabelEncoder | None = None
 
     def fit(
         self,
@@ -139,6 +155,7 @@ class TabularEngine(BaseEngine):
         -------
         self : TabularEngine
         """
+        self._reset()
         X = self._validate_input(X)
 
         # Identify numeric columns
@@ -155,6 +172,8 @@ class TabularEngine(BaseEngine):
         # Handle categorical columns
         if self.config.encode_categorical:
             self._fit_categorical_encoding(X, y)
+        if self._target_encode_columns and len(X) < 2:
+            raise ValueError("Target encoding requires at least two rows for own-target exclusion")
 
         # Plan features to generate
         self._plan_features(X)
@@ -164,6 +183,7 @@ class TabularEngine(BaseEngine):
 
     def _fit_categorical_encoding(self, X: pd.DataFrame, y: pd.Series | np.ndarray | None = None) -> None:
         """Fit categorical encoding based on cardinality ratio."""
+        self._categorical_columns = []
         self._onehot_columns = []
         self._target_encode_columns = []
         self._onehot_categories = {}
@@ -172,6 +192,7 @@ class TabularEngine(BaseEngine):
 
         # Find categorical columns (object or category dtype)
         cat_cols = X.select_dtypes(include=["object", "category", "string"]).columns.tolist()
+        self._categorical_columns = cat_cols
 
         if not cat_cols:
             return
@@ -179,18 +200,8 @@ class TabularEngine(BaseEngine):
         n_rows = len(X)
         y_encoded = None
         if y is not None:
-            y_series = pd.Series(y) if not isinstance(y, pd.Series) else y
-
-            # Check if target is string/categorical - encode it for target encoding
-            if pd.api.types.is_string_dtype(y_series) or y_series.dtype.name == "category":
-                from sklearn.preprocessing import LabelEncoder
-
-                self._target_label_encoder = LabelEncoder()
-                y_encoded = pd.Series(self._target_label_encoder.fit_transform(y_series.astype(str)))
-                self._target_encode_global_mean = float(y_encoded.mean())
-            else:
-                y_encoded = y_series
-                self._target_encode_global_mean = float(y_series.mean())
+            y_encoded = self._encode_target(y, X.index, fit_label_encoder=True)
+            self._target_encode_global_mean = float(y_encoded.mean())
 
         for col in cat_cols:
             n_unique = X[col].nunique()
@@ -219,11 +230,11 @@ class TabularEngine(BaseEngine):
             elif ratio <= self.config.target_encode_ratio_threshold and y_encoded is not None:
                 # Target encoding for medium cardinality
                 self._target_encode_columns.append(col)
-                # Compute target mean per category (using encoded target for string labels)
-                df_temp = pd.DataFrame({"col": X[col], "y": y_encoded})
-                target_means = df_temp.groupby("col")["y"].mean().to_dict()
-                # Only keep valid categories
-                self._target_encode_maps[col] = {k: v for k, v in target_means.items() if k in valid_categories}
+                self._target_encode_maps[col] = self._build_target_encoding_map(
+                    X[col],
+                    y_encoded,
+                    valid_categories=set(valid_categories),
+                )
                 if self.config.verbose:
                     logger.info(
                         f"TabularEngine: Target encoding '{col}' "
@@ -236,6 +247,81 @@ class TabularEngine(BaseEngine):
                     logger.info(
                         f"TabularEngine: Skipping '{col}' - high cardinality " f"({n_unique} unique, ratio={ratio:.4f})"
                     )
+
+    def _encode_target(
+        self,
+        y: pd.Series | np.ndarray,
+        index: pd.Index,
+        *,
+        fit_label_encoder: bool,
+    ) -> pd.Series:
+        """Convert a target to a positionally aligned numeric Series."""
+        y_array = np.asarray(y)
+        if y_array.ndim != 1:
+            raise ValueError(f"y must be one-dimensional, got shape {y_array.shape}")
+        if len(y_array) != len(index):
+            raise ValueError(f"X and y must contain the same number of rows, got {len(index)} and {len(y_array)}")
+
+        y_series = pd.Series(y.array if isinstance(y, pd.Series) else y_array, index=index)
+        is_categorical = pd.api.types.is_string_dtype(y_series) or isinstance(y_series.dtype, pd.CategoricalDtype)
+        if is_categorical:
+            labels = y_series.astype(str)
+            if fit_label_encoder or self._target_label_encoder is None:
+                self._target_label_encoder = LabelEncoder().fit(labels)
+            assert self._target_label_encoder is not None
+            encoded = self._target_label_encoder.transform(labels)
+            return pd.Series(encoded, index=index, dtype=float)
+
+        return pd.to_numeric(y_series, errors="raise").astype(float)
+
+    def _build_target_encoding_map(
+        self,
+        categories: pd.Series,
+        target: pd.Series,
+        valid_categories: set[Any] | None = None,
+    ) -> dict[Any, float]:
+        """Build category means from positionally aligned category/target values."""
+        frame = pd.DataFrame(
+            {
+                "category": categories.to_numpy(),
+                "target": target.to_numpy(),
+            }
+        )
+        grouped = frame.groupby("category", observed=True)["target"].agg(["mean", "count"])
+        grouped = grouped[grouped["count"] >= self.config.min_samples_per_category]
+        if valid_categories is not None:
+            grouped = grouped[grouped.index.isin(valid_categories)]
+        return {category: float(mean) for category, mean in grouped["mean"].items()}
+
+    def _cross_fit_target_encodings(self, X: pd.DataFrame, y_encoded: pd.Series) -> dict[str, pd.Series]:
+        """Encode training rows from folds that exclude each encoded row."""
+        from sklearn.model_selection import KFold
+
+        if not self._target_encode_columns:
+            return {}
+
+        n_splits = min(self.config.target_encode_cv, len(X))
+        if n_splits < 2:
+            raise ValueError("Target encoding requires at least two rows for own-target exclusion")
+
+        splits = list(KFold(n_splits=n_splits, shuffle=True, random_state=42).split(X))
+        encoded_columns: dict[str, pd.Series] = {}
+
+        for col in self._target_encode_columns:
+            if col not in X.columns:
+                continue
+
+            encoded = pd.Series(index=X.index, dtype=float)
+            for train_idx, validation_idx in splits:
+                fold_target = y_encoded.iloc[train_idx]
+                fold_global_mean = float(fold_target.mean())
+                fold_map = self._build_target_encoding_map(X[col].iloc[train_idx], fold_target)
+                fold_values = X[col].iloc[validation_idx].map(fold_map).astype(float).fillna(fold_global_mean)
+                encoded.iloc[validation_idx] = fold_values.to_numpy()
+
+            encoded_columns[col] = encoded
+
+        return encoded_columns
 
     def _plan_features(self, X: pd.DataFrame) -> None:
         """Plan which features to generate."""
@@ -332,12 +418,38 @@ class TabularEngine(BaseEngine):
             raise RuntimeError("Engine must be fitted before transform")
 
         X = self._validate_input(X)
+        return self._transform_validated(X)
+
+    def _transform_fit_data(
+        self,
+        X: pd.DataFrame | np.ndarray,
+        y: pd.Series | np.ndarray | None = None,
+        **kwargs,
+    ) -> pd.DataFrame:
+        """Transform training rows with out-of-fold target encodings."""
+        if not self._is_fitted:
+            raise RuntimeError("Engine must be fitted before transform")
+
+        X = self._validate_input(X)
+        if y is None or not self._target_encode_columns:
+            return self._transform_validated(X)
+
+        y_encoded = self._encode_target(y, X.index, fit_label_encoder=False)
+        target_encoded_values = self._cross_fit_target_encodings(X, y_encoded)
+        return self._transform_validated(X, target_encoded_values=target_encoded_values)
+
+    def _transform_validated(
+        self,
+        X: pd.DataFrame,
+        target_encoded_values: dict[str, pd.Series] | None = None,
+    ) -> pd.DataFrame:
+        """Transform a validated DataFrame."""
         result = X.copy()
         original_columns = set(X.columns)
 
         # Apply categorical encoding first
         if self.config.encode_categorical:
-            result = self._transform_categorical(result)
+            result = self._transform_categorical(result, target_encoded_values=target_encoded_values)
 
         cols = self._numeric_columns
         max_features = self.config.max_features
@@ -401,9 +513,14 @@ class TabularEngine(BaseEngine):
 
         return result
 
-    def _transform_categorical(self, X: pd.DataFrame) -> pd.DataFrame:
+    def _transform_categorical(
+        self,
+        X: pd.DataFrame,
+        target_encoded_values: dict[str, pd.Series] | None = None,
+    ) -> pd.DataFrame:
         """Apply categorical encoding to DataFrame."""
         result = X.copy()
+        target_encoded_values = target_encoded_values or {}
 
         # One-hot encoding
         for col in self._onehot_columns:
@@ -416,20 +533,21 @@ class TabularEngine(BaseEngine):
             # Add "other" column for rare categories
             col_other = f"{col}_other"
             result[col_other] = (~result[col].isin(categories)).astype(int)
-            # Drop original column only if not keeping original categorical
-            if not self.config.keep_original_categorical:
-                result = result.drop(columns=[col])
 
         # Target encoding
         for col in self._target_encode_columns:
             if col not in result.columns:
                 continue
-            encode_map = self._target_encode_maps.get(col, {})
             col_name = f"{col}_target_encoded"
-            result[col_name] = result[col].map(encode_map).fillna(self._target_encode_global_mean)
-            # Drop original column only if not keeping original categorical
-            if not self.config.keep_original_categorical:
-                result = result.drop(columns=[col])
+            if col in target_encoded_values:
+                result[col_name] = target_encoded_values[col]
+            else:
+                encode_map = self._target_encode_maps.get(col, {})
+                result[col_name] = result[col].map(encode_map).astype(float).fillna(self._target_encode_global_mean)
+
+        if not self.config.keep_original_categorical:
+            columns_to_drop = [col for col in self._categorical_columns if col in result.columns]
+            result = result.drop(columns=columns_to_drop)
 
         return result
 

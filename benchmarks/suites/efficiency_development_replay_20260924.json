@@ -1,0 +1,547 @@
+{
+  "schema_version": 1,
+  "name": "efficiency-development-replay-20260924",
+  "family_registry": "../families.json",
+  "purpose": "Exact three-family exposed-development replay for output/timing parity of the LogisticRegression single-task joblib-pool overhead fix. Selection is independent of new confirmation; this is not a new accuracy or SOTA experiment.",
+  "replay_scope": {
+    "source_manifest": "development_expansion_20260922.json",
+    "source_manifest_sha256": "49a8d02f411d456abe4747026ec26762648fceefc03a722a1fc47ac3cadb4969",
+    "selected_dataset_names": [
+      "uci-german-credit",
+      "uci-banknote-authentication",
+      "uci-chronic-kidney-disease"
+    ],
+    "dataset_entry_changes": [],
+    "reason_for_subset": "The historical whole development manifest contains unrelated families whose current registry admission/exposure now differs after confirmation release. Keep that history intact and retain strict gates; validate only these three unchanged reviewed development entries.",
+    "expected_protocol": {
+      "folds": 3,
+      "seeds": [
+        42
+      ],
+      "methods": [
+        "baseline",
+        "featcopilot-importance-paired"
+      ],
+      "learners": [
+        "linear"
+      ],
+      "expected_cells": 18,
+      "formula": "3 original development families * 3 folds * 1 seed * 2 methods * 1 learner",
+      "scope": "Output/timing parity only; no task, learner, source or feature-schema changes."
+    },
+    "exposure_policy": "Original entries are copied exactly; current registry normalization marks all three exposed/development. No rights, role or exposure widening and no confirmation access are granted."
+  },
+  "datasets": [
+    {
+      "provider": "uci",
+      "role": "development",
+      "prior_exposure": "exposed",
+      "origin_kind": "observational",
+      "split_policy": "iid",
+      "target_transform": "identity",
+      "categorical": [
+        "Attribute1",
+        "Attribute3",
+        "Attribute4",
+        "Attribute6",
+        "Attribute7",
+        "Attribute9",
+        "Attribute10",
+        "Attribute12",
+        "Attribute14",
+        "Attribute15",
+        "Attribute17",
+        "Attribute19",
+        "Attribute20"
+      ],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/144/statlog+german+credit+data",
+          "https://archive.ics.uci.edu/api/dataset?id=144"
+        ],
+        "primary_page_sha256": "ce366571de03f3ece443fe364196baf0ca8625ac86328c2124f87d4f058b2cce",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "name": "uci-german-credit",
+      "family_id": "german-credit",
+      "task": "classification",
+      "target": "class",
+      "prediction_time": "Credit application attributes predict good/bad credit risk; no outcomes are predictors.",
+      "evaluation_notes": "Use repeated stratification for low-N development. Native class 1=good, 2=bad; numeric recoding is not a second family.",
+      "source": {
+        "uci_id": 144,
+        "data_url": "https://archive.ics.uci.edu/static/public/144/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=144",
+        "schema_reviewed": true,
+        "expected_rows": 1000,
+        "columns": [
+          "Attribute1",
+          "Attribute2",
+          "Attribute3",
+          "Attribute4",
+          "Attribute5",
+          "Attribute6",
+          "Attribute7",
+          "Attribute8",
+          "Attribute9",
+          "Attribute10",
+          "Attribute11",
+          "Attribute12",
+          "Attribute13",
+          "Attribute14",
+          "Attribute15",
+          "Attribute16",
+          "Attribute17",
+          "Attribute18",
+          "Attribute19",
+          "Attribute20",
+          "class"
+        ],
+        "target_columns": [
+          "class"
+        ],
+        "feature_descriptions": {
+          "Attribute1": "Status of existing checking account",
+          "Attribute2": "Duration in months",
+          "Attribute3": "Credit history",
+          "Attribute4": "Purpose",
+          "Attribute5": "Credit amount",
+          "Attribute6": "Savings account/bonds",
+          "Attribute7": "Present employment since",
+          "Attribute8": "Installment rate as percent of disposable income",
+          "Attribute9": "Personal status and sex",
+          "Attribute10": "Other debtors/guarantors",
+          "Attribute11": "Present residence since",
+          "Attribute12": "Property",
+          "Attribute13": "Age in years",
+          "Attribute14": "Other installment plans",
+          "Attribute15": "Housing",
+          "Attribute16": "Number of existing credits at this bank",
+          "Attribute17": "Job",
+          "Attribute18": "Number of people liable to provide maintenance for",
+          "Attribute19": "Telephone",
+          "Attribute20": "Foreign worker"
+        },
+        "label_meanings": {
+          "1": "good",
+          "2": "bad"
+        },
+        "sha256": "f985b42636c9e28ce4fb3913738d1ebfd0f7947fda8d4406fe2ded5d84295acb"
+      },
+      "evaluation_track": "iid_development",
+      "admission_profile": {
+        "validated_on": "2026-09-22",
+        "raw_sha256": "f985b42636c9e28ce4fb3913738d1ebfd0f7947fda8d4406fe2ded5d84295acb",
+        "shape": [
+          1000,
+          20
+        ],
+        "class_labels": [
+          1,
+          2
+        ],
+        "profile": {
+          "rows": 1000,
+          "features": 20,
+          "missingness": {
+            "Attribute1": 0.0,
+            "Attribute2": 0.0,
+            "Attribute3": 0.0,
+            "Attribute4": 0.0,
+            "Attribute5": 0.0,
+            "Attribute6": 0.0,
+            "Attribute7": 0.0,
+            "Attribute8": 0.0,
+            "Attribute9": 0.0,
+            "Attribute10": 0.0,
+            "Attribute11": 0.0,
+            "Attribute12": 0.0,
+            "Attribute13": 0.0,
+            "Attribute14": 0.0,
+            "Attribute15": 0.0,
+            "Attribute16": 0.0,
+            "Attribute17": 0.0,
+            "Attribute18": 0.0,
+            "Attribute19": 0.0,
+            "Attribute20": 0.0
+          },
+          "cardinality": {
+            "Attribute1": 4,
+            "Attribute2": 33,
+            "Attribute3": 5,
+            "Attribute4": 10,
+            "Attribute5": 921,
+            "Attribute6": 5,
+            "Attribute7": 5,
+            "Attribute8": 4,
+            "Attribute9": 4,
+            "Attribute10": 3,
+            "Attribute11": 4,
+            "Attribute12": 4,
+            "Attribute13": 53,
+            "Attribute14": 3,
+            "Attribute15": 3,
+            "Attribute16": 4,
+            "Attribute17": 4,
+            "Attribute18": 2,
+            "Attribute19": 2,
+            "Attribute20": 2
+          },
+          "duplicate_feature_rows": 0,
+          "class_counts": {
+            "0": 700,
+            "1": 300
+          },
+          "class_prevalence": {
+            "0": 0.7,
+            "1": 0.3
+          },
+          "n_classes": 2
+        },
+        "split_support": {
+          "outer_splits": 3,
+          "official": false,
+          "all_rows_retained": true,
+          "minimum_outer_train_class_count": 200,
+          "minimum_outer_test_class_count": 100,
+          "nested_split_check": {
+            "policy": "3-fold outer or all official folds; one tuning holdout, 3 stability holdouts, 3 screening folds and 2 residual folds; seed 2026. Structural feasibility only, no model evaluation.",
+            "failing_outer_folds": 0,
+            "errors": []
+          }
+        },
+        "groups": null,
+        "time_buckets": null,
+        "model_calls": 0,
+        "observed_class_counts": {
+          "1": 700,
+          "2": 300
+        },
+        "prevalence_scope": "Pinned source/curated distribution after documented target normalization, without catalog resampling. This is not an upstream population-rate claim; curator sampling/deduplication remains disclosed.",
+        "missingness_scope": "Parsed missing values only. Original categorical placeholders such as Diabetes130US '?' and NULL codes may remain distinct source categories; curation notes disclose this.",
+        "duplicate_scope": "Duplicate reviewed predictor vectors after declared exclusions, not proof of duplicate entities. No additional deduplication or row deletion was performed.",
+        "split_check_limitations": "Structural reference check at seed 2026 only, not a guarantee for every learner/tuning seed or nested pipeline. No estimators, predictions or evaluation scores were computed."
+      }
+    },
+    {
+      "name": "uci-banknote-authentication",
+      "family_id": "banknote-authentication",
+      "provider": "uci",
+      "task": "classification",
+      "role": "development",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "class",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "iid",
+      "prediction_time": "Genuine/forged banknote-specimen annotation from measured image wavelet statistics. Real specimen measurements, not generated classification substitutes.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/267/banknote+authentication",
+          "https://archive.ics.uci.edu/api/dataset?id=267"
+        ],
+        "primary_page_sha256": "711135258ade545edd3b1faba0cc1e62d2554c31fdcf7b1da3b66753ba9dd75b",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 267,
+        "data_url": "https://archive.ics.uci.edu/static/public/267/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=267",
+        "metadata_sha256": "786ce14b24eb567f99ce77afe0525508ae351ae547d4beff72172849144cf63b",
+        "schema_reviewed": true,
+        "columns": [
+          "variance",
+          "skewness",
+          "curtosis",
+          "entropy",
+          "class"
+        ],
+        "target_columns": [
+          "class"
+        ],
+        "reported_rows": 1372,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "0787e50299c198e919276660edf98dd5dcb94951ad81435b3ab61afb666936c9",
+        "expected_rows": 1372
+      },
+      "evaluation_track": "iid_development",
+      "admission_profile": {
+        "validated_on": "2026-09-22",
+        "raw_sha256": "0787e50299c198e919276660edf98dd5dcb94951ad81435b3ab61afb666936c9",
+        "shape": [
+          1372,
+          4
+        ],
+        "class_labels": [
+          0,
+          1
+        ],
+        "profile": {
+          "rows": 1372,
+          "features": 4,
+          "missingness": {
+            "variance": 0.0,
+            "skewness": 0.0,
+            "curtosis": 0.0,
+            "entropy": 0.0
+          },
+          "cardinality": {
+            "variance": 1338,
+            "skewness": 1256,
+            "curtosis": 1270,
+            "entropy": 1156
+          },
+          "duplicate_feature_rows": 24,
+          "class_counts": {
+            "0": 762,
+            "1": 610
+          },
+          "class_prevalence": {
+            "0": 0.5553935860058309,
+            "1": 0.4446064139941691
+          },
+          "n_classes": 2
+        },
+        "split_support": {
+          "outer_splits": 3,
+          "official": false,
+          "all_rows_retained": true,
+          "minimum_outer_train_class_count": 406,
+          "minimum_outer_test_class_count": 203,
+          "nested_split_check": {
+            "policy": "3-fold outer or all official folds; one tuning holdout, 3 stability holdouts, 3 screening folds and 2 residual folds; seed 2026. Structural feasibility only, no model evaluation.",
+            "failing_outer_folds": 0,
+            "errors": []
+          }
+        },
+        "groups": null,
+        "time_buckets": null,
+        "model_calls": 0,
+        "observed_class_counts": {
+          "0": 762,
+          "1": 610
+        },
+        "prevalence_scope": "Pinned source/curated distribution after documented target normalization, without catalog resampling. This is not an upstream population-rate claim; curator sampling/deduplication remains disclosed.",
+        "missingness_scope": "Parsed missing values only. Original categorical placeholders such as Diabetes130US '?' and NULL codes may remain distinct source categories; curation notes disclose this.",
+        "duplicate_scope": "Duplicate reviewed predictor vectors after declared exclusions, not proof of duplicate entities. No additional deduplication or row deletion was performed.",
+        "split_check_limitations": "Structural reference check at seed 2026 only, not a guarantee for every learner/tuning seed or nested pipeline. No estimators, predictions or evaluation scores were computed."
+      }
+    },
+    {
+      "name": "uci-chronic-kidney-disease",
+      "family_id": "chronic-kidney-disease",
+      "provider": "uci",
+      "task": "classification",
+      "role": "development",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "class",
+      "target_transform": "identity",
+      "categorical": [
+        "sg",
+        "al",
+        "su",
+        "rbc",
+        "pc",
+        "pcc",
+        "ba",
+        "htn",
+        "dm",
+        "cad",
+        "appet",
+        "pe",
+        "ane"
+      ],
+      "drop_columns": [],
+      "split_policy": "iid",
+      "prediction_time": "Recorded CKD/non-CKD diagnosis from the supplied clinical measurements and symptom annotations. Static diagnosis classification, not future disease onset.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/336/chronic+kidney+disease",
+          "https://archive.ics.uci.edu/api/dataset?id=336"
+        ],
+        "primary_page_sha256": "d96e8235774d28897d6e1fae3ac435a88356fe98c8e21d806447e28affa0fe49",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 336,
+        "data_url": "https://archive.ics.uci.edu/static/public/336/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=336",
+        "metadata_sha256": "e30f1f6e3dae91c6924c6b2cdbdc9bda213680e552adc16146c72f9fd2bd7522",
+        "schema_reviewed": true,
+        "columns": [
+          "age",
+          "bp",
+          "sg",
+          "al",
+          "su",
+          "rbc",
+          "pc",
+          "pcc",
+          "ba",
+          "bgr",
+          "bu",
+          "sc",
+          "sod",
+          "pot",
+          "hemo",
+          "pcv",
+          "wbcc",
+          "rbcc",
+          "htn",
+          "dm",
+          "cad",
+          "appet",
+          "pe",
+          "ane",
+          "class"
+        ],
+        "target_columns": [
+          "class"
+        ],
+        "reported_rows": 400,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "target_value_map": {
+          "ckd": "ckd",
+          "ckd\t": "ckd",
+          "notckd": "notckd"
+        },
+        "sha256": "0eeea8d17f5ad8792d854999d6ddf1602ec4e116616f6ccdfdaef0ba8109e694",
+        "expected_rows": 400
+      },
+      "evaluation_track": "iid_development",
+      "admission_profile": {
+        "validated_on": "2026-09-22",
+        "raw_sha256": "0eeea8d17f5ad8792d854999d6ddf1602ec4e116616f6ccdfdaef0ba8109e694",
+        "shape": [
+          400,
+          24
+        ],
+        "class_labels": [
+          "ckd",
+          "notckd"
+        ],
+        "profile": {
+          "rows": 400,
+          "features": 24,
+          "missingness": {
+            "age": 0.0225,
+            "bp": 0.03,
+            "sg": 0.1175,
+            "al": 0.115,
+            "su": 0.1225,
+            "rbc": 0.38,
+            "pc": 0.1625,
+            "pcc": 0.01,
+            "ba": 0.01,
+            "bgr": 0.11,
+            "bu": 0.0475,
+            "sc": 0.0425,
+            "sod": 0.2175,
+            "pot": 0.22,
+            "hemo": 0.13,
+            "pcv": 0.1775,
+            "wbcc": 0.265,
+            "rbcc": 0.3275,
+            "htn": 0.005,
+            "dm": 0.005,
+            "cad": 0.005,
+            "appet": 0.0025,
+            "pe": 0.0025,
+            "ane": 0.0025
+          },
+          "cardinality": {
+            "age": 77,
+            "bp": 11,
+            "sg": 6,
+            "al": 7,
+            "su": 7,
+            "rbc": 3,
+            "pc": 3,
+            "pcc": 3,
+            "ba": 3,
+            "bgr": 147,
+            "bu": 119,
+            "sc": 85,
+            "sod": 35,
+            "pot": 41,
+            "hemo": 116,
+            "pcv": 43,
+            "wbcc": 90,
+            "rbcc": 46,
+            "htn": 3,
+            "dm": 4,
+            "cad": 3,
+            "appet": 3,
+            "pe": 3,
+            "ane": 3
+          },
+          "duplicate_feature_rows": 0,
+          "class_counts": {
+            "0": 250,
+            "1": 150
+          },
+          "class_prevalence": {
+            "0": 0.625,
+            "1": 0.375
+          },
+          "n_classes": 2
+        },
+        "split_support": {
+          "outer_splits": 3,
+          "official": false,
+          "all_rows_retained": true,
+          "minimum_outer_train_class_count": 100,
+          "minimum_outer_test_class_count": 50,
+          "nested_split_check": {
+            "policy": "3-fold outer or all official folds; one tuning holdout, 3 stability holdouts, 3 screening folds and 2 residual folds; seed 2026. Structural feasibility only, no model evaluation.",
+            "failing_outer_folds": 0,
+            "errors": []
+          }
+        },
+        "groups": null,
+        "time_buckets": null,
+        "model_calls": 0,
+        "observed_class_counts": {
+          "ckd": 250,
+          "notckd": 150
+        },
+        "prevalence_scope": "Pinned source/curated distribution after documented target normalization, without catalog resampling. This is not an upstream population-rate claim; curator sampling/deduplication remains disclosed.",
+        "missingness_scope": "Parsed missing values only. Original categorical placeholders such as Diabetes130US '?' and NULL codes may remain distinct source categories; curation notes disclose this.",
+        "duplicate_scope": "Duplicate reviewed predictor vectors after declared exclusions, not proof of duplicate entities. No additional deduplication or row deletion was performed.",
+        "split_check_limitations": "Structural reference check at seed 2026 only, not a guarantee for every learner/tuning seed or nested pipeline. No estimators, predictions or evaluation scores were computed."
+      }
+    }
+  ]
+}

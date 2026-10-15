@@ -4,11 +4,12 @@ Provides drop-in sklearn transformers for feature engineering pipelines.
 """
 
 import warnings
-from typing import Any
+from copy import deepcopy
+from typing import Any, Literal, cast
 
 import numpy as np
 import pandas as pd
-from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.base import BaseEstimator, TransformerMixin, clone
 
 from featcopilot.core.feature import FeatureSet
 from featcopilot.engines.relational import RelationalEngine
@@ -18,6 +19,7 @@ from featcopilot.engines.timeseries import TimeSeriesEngine
 from featcopilot.selection.unified import FeatureSelector
 from featcopilot.utils.logger import get_logger
 from featcopilot.utils.models import DEFAULT_MODEL
+from featcopilot.utils.task import resolve_task, validate_task
 from featcopilot.utils.validation import find_potential_leakage_columns
 
 logger = get_logger(__name__)
@@ -52,6 +54,18 @@ class FeatureEngineerTransformer(BaseEstimator, TransformerMixin):
 
     def _create_engine(self):
         """Create the appropriate engine instance."""
+        if self.engine == "point_in_time":
+            from featcopilot.engines.point_in_time import PointInTimeRelationalEngine
+
+            return PointInTimeRelationalEngine(**self.engine_kwargs)
+        if self.engine == "fitted_rules":
+            from featcopilot.engines.fitted_rules import FittedRuleEngine
+
+            return FittedRuleEngine(**self.engine_kwargs)
+        if self.engine == "predictive":
+            from featcopilot.engines.predictive import PredictiveTabularEngine
+
+            return PredictiveTabularEngine(**self.engine_kwargs)
         engines = {
             "tabular": TabularEngine,
             "timeseries": TimeSeriesEngine,
@@ -76,11 +90,48 @@ class FeatureEngineerTransformer(BaseEstimator, TransformerMixin):
             raise RuntimeError("Transformer must be fitted before transform")
         return self._engine_instance.transform(X, **transform_params)
 
+    def fit_transform(self, X, y=None, **fit_params):
+        """Fit and transform while preserving engine-specific training semantics."""
+        self._engine_instance = self._create_engine()
+        return self._engine_instance.fit_transform(X, y, **fit_params)
+
     def get_feature_names_out(self, input_features=None):
         """Get output feature names."""
         if self._engine_instance is None:
             return []
         return self._engine_instance.get_feature_names()
+
+    def get_params(self, deep=True):
+        """Return cloneable sklearn parameters, including engine options."""
+        params = {"engine": self.engine, **self.engine_kwargs}
+        if deep:
+            for name, value in self.engine_kwargs.items():
+                if hasattr(value, "get_params"):
+                    params.update({f"{name}__{key}": item for key, item in value.get_params(deep=True).items()})
+        return params
+
+    def set_params(self, **params):
+        """Set the engine name or engine-specific options."""
+        if not params:
+            return self
+        engine = params.pop("engine", self.engine)
+        options = self.engine_kwargs.copy()
+        nested: dict[str, dict[str, Any]] = {}
+        for name, value in params.items():
+            parameter, separator, sub_parameter = name.partition("__")
+            if separator:
+                nested.setdefault(parameter, {})[sub_parameter] = value
+            else:
+                options[name] = value
+        for parameter, updates in nested.items():
+            estimator = options.get(parameter)
+            if not hasattr(estimator, "set_params"):
+                raise ValueError(f"{parameter!r} is not a configured sklearn estimator")
+            options[parameter] = clone(estimator).set_params(**updates)
+        self.engine = engine
+        self.engine_kwargs = options
+        self._engine_instance = None
+        return self
 
 
 class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
@@ -111,7 +162,48 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         models (RandomForest). Defaults to ``1`` (sequential) to avoid CPU
         oversubscription when ``AutoFeatureEngineer`` is wrapped in an outer
         parallel CV / grid-search. Set to ``-1`` to use all cores when running
-        standalone.
+        standalone. With ``selection_strategy="predictive"``, this same
+        parameter controls the predictive engine's native thread limit and
+        injected learner worker settings; the legacy gate does not run.
+    task : {'auto', 'classification', 'regression'}, default='auto'
+        Explicit task override for selection and gate models. Set 'regression'
+        for integer-valued regression targets. 'auto' preserves legacy heuristics.
+    selection_strategy : {'legacy', 'predictive'}, default='legacy'
+        Opt-in predictive tabular selection uses an internal training holdout
+        and the configured estimator instead of the legacy selector/gate.
+        Currently requires engines=['tabular'] and a target.
+    selection_estimator : sklearn estimator, optional
+        Bare downstream learner used by the predictive strategy. It is cloned
+        and receives internally preprocessed numeric data. Defaults to sklearn
+        histogram gradient boosting. Ignored estimators are rejected in legacy mode.
+    max_candidates : int, default=1000
+        Maximum candidate additions considered by the predictive strategy.
+    random_state : int, default=42
+        Seed for the predictive strategy's internal splitting and selection.
+    stability_repeats : int, default=3
+        Internal training-only validation repeats for predictive subset selection.
+    screening : {'auto', 'linear', 'tree', 'importance'}, default='auto'
+        Residual-screening learner. Automatic selection uses linear screening
+        for supported bare linear estimators and tree screening otherwise.
+        Importance mode requires an explicitly supplied compatible learner.
+    selection_rule : {'one_se', 'paired_gain'}, default='one_se'
+        Predictive subset rule. The experimental paired-gain rule uses loss
+        differences on matching internal repeats, not absolute loss variation.
+    candidate_set : {'standard', 'extended'}, default='standard'
+        Predictive candidate vocabulary. Extended adds sums/minima/maxima and
+        frozen training-observed categorical-pair indicators with balanced coverage.
+    include_frequency : bool, default=False
+        Include bounded training-fitted unary frequency candidates. Requires
+        predictive selection with explicit importance screening and a compatible learner.
+    numeric_clip_quantiles : tuple[float, float], optional
+        Train-fitted numeric clipping for predictive importance screening.
+        Feature outputs remain unchanged; apply the same clipper in the downstream model.
+    importance_resamples : {1, 5}, default=1
+        Joint-importance ranking fits. Five enables empirical mean-rank
+        aggregation over training-only IID subsamples; one preserves existing behavior.
+    categorical_encoding : {"one_hot", "target"}, default="one_hot"
+        Model-input encoding for predictive importance screening. Target mode
+        requires IID classification and a matching downstream encoding policy.
 
     Other Parameters
     ----------------
@@ -127,7 +219,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
     >>> engineer = AutoFeatureEngineer(
     ...     engines=['tabular', 'llm'],
     ...     max_features=100,
-    ...     llm_config={'model': 'gpt-5.2', 'enable_semantic': True}
+    ...     llm_config={'model': 'gpt-5.6-sol', 'validate_features': True}
     ... )
     >>> X_transformed = engineer.fit_transform(X, y, target_name='label')
     """
@@ -135,6 +227,28 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
     SUPPORTED_ENGINES = {"tabular", "timeseries", "relational", "text", "llm"}
     SUPPORTED_SELECTION_METHODS = {"mutual_info", "importance", "f_test", "chi2", "correlation", "xgboost"}
     SUPPORTED_LEAKAGE_GUARDS = {"off", "warn", "raise"}
+    SUPPORTED_TASKS = {"auto", "classification", "regression"}
+    SUPPORTED_SELECTION_STRATEGIES = {"legacy", "predictive"}
+    SUPPORTED_LLM_CONFIG_KEYS = {
+        "model",
+        "max_suggestions",
+        "validate_features",
+        "domain",
+        "verbose",
+        "backend",
+        "api_key",
+        "api_base",
+        "api_version",
+        "enable_text_features",
+        "text_feature_types",
+        "keep_text_columns",
+        "temperature",
+        "timeout",
+        "max_tokens",
+        "feature_format",
+        "rules",
+        "target_cv",
+    }
 
     def __init__(
         self,
@@ -146,6 +260,19 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         verbose: bool = False,
         leakage_guard: str = "warn",
         gate_n_jobs: int = 1,
+        task: str = "auto",
+        selection_strategy: str = "legacy",
+        selection_estimator: BaseEstimator | None = None,
+        max_candidates: int = 1000,
+        random_state: int = 42,
+        stability_repeats: int = 3,
+        screening: str = "auto",
+        selection_rule: str = "one_se",
+        candidate_set: str = "standard",
+        include_frequency: bool = False,
+        numeric_clip_quantiles: tuple[float, float] | None = None,
+        importance_resamples: int = 1,
+        categorical_encoding: str = "one_hot",
     ):
         # Use ``is not None`` defaulting (rather than ``or``) so that explicit
         # empty containers and identity-bearing arguments are preserved. This
@@ -159,6 +286,19 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         self.verbose = verbose
         self.leakage_guard = leakage_guard
         self.gate_n_jobs = gate_n_jobs
+        self.task = task
+        self.selection_strategy = selection_strategy
+        self.selection_estimator = selection_estimator
+        self.max_candidates = max_candidates
+        self.random_state = random_state
+        self.stability_repeats = stability_repeats
+        self.screening = screening
+        self.selection_rule = selection_rule
+        self.candidate_set = candidate_set
+        self.include_frequency = include_frequency
+        self.numeric_clip_quantiles = numeric_clip_quantiles
+        self.importance_resamples = importance_resamples
+        self.categorical_encoding = categorical_encoding
 
         self._validate_configuration()
 
@@ -168,9 +308,91 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         self._is_fitted = False
         self._column_descriptions: dict[str, str] = {}
         self._task_description: str = ""
+        self.selection_report_: dict[str, Any] | None = None
 
     def _validate_configuration(self) -> None:
         """Validate user-facing configuration early."""
+        from featcopilot.utils.numeric_clipping import validate_clip_quantiles
+
+        if self.categorical_encoding not in ("one_hot", "target"):
+            raise ValueError("categorical_encoding must be 'one_hot' or 'target'")
+        if self.categorical_encoding == "target":
+            if self.selection_strategy != "predictive" or self.screening != "importance":
+                raise ValueError("categorical_encoding='target' requires predictive importance screening")
+            if self.task == "regression":
+                raise ValueError("categorical_encoding='target' supports classification only")
+        validate_clip_quantiles(self.numeric_clip_quantiles)
+        if self.numeric_clip_quantiles is not None and self.selection_strategy != "predictive":
+            raise ValueError("numeric_clip_quantiles requires selection_strategy='predictive'")
+        if self.numeric_clip_quantiles is not None and self.screening != "importance":
+            raise ValueError("numeric_clip_quantiles requires screening='importance'")
+        if (
+            isinstance(self.importance_resamples, bool)
+            or not isinstance(self.importance_resamples, (int, np.integer))
+            or self.importance_resamples not in (1, 5)
+        ):
+            raise ValueError("importance_resamples must be 1 or 5")
+        if self.importance_resamples > 1 and (
+            self.selection_strategy != "predictive" or self.screening != "importance"
+        ):
+            raise ValueError("importance_resamples=5 requires predictive selection with screening='importance'")
+        validate_task(self.task)
+        if (
+            not isinstance(self.selection_strategy, str)
+            or self.selection_strategy not in self.SUPPORTED_SELECTION_STRATEGIES
+        ):
+            raise ValueError(f"selection_strategy must be one of {sorted(self.SUPPORTED_SELECTION_STRATEGIES)}")
+        if self.selection_strategy == "predictive" and self.engines not in (["tabular"], ("tabular",)):
+            raise ValueError("The predictive strategy currently requires engines=['tabular']")
+        if self.selection_estimator is not None:
+            if self.selection_strategy != "predictive":
+                raise ValueError("selection_estimator requires selection_strategy='predictive'")
+            if not all(
+                callable(getattr(self.selection_estimator, name, None)) for name in ("get_params", "fit", "predict")
+            ):
+                raise ValueError("selection_estimator must be a cloneable sklearn estimator")
+            try:
+                clone(self.selection_estimator)
+            except (TypeError, RuntimeError) as exc:
+                raise ValueError("selection_estimator must be a cloneable sklearn estimator") from exc
+        for name, value in (
+            ("max_candidates", self.max_candidates),
+            ("random_state", self.random_state),
+            ("stability_repeats", self.stability_repeats),
+        ):
+            if isinstance(value, bool) or not isinstance(value, (int, np.integer)):
+                raise ValueError(f"{name} must be an integer")
+        if self.max_candidates < 1:
+            raise ValueError("max_candidates must be positive")
+        if self.stability_repeats < 1:
+            raise ValueError("stability_repeats must be positive")
+        if self.selection_strategy == "predictive" and (self.stability_repeats > 10 or self.max_candidates > 1000):
+            raise ValueError(
+                "Predictive selection supports at most 10 stability repeats and 1000 candidates per repeat"
+            )
+        if self.screening not in ("auto", "linear", "tree", "importance"):
+            raise ValueError("screening must be 'auto', 'linear', 'tree' or 'importance'")
+        if not isinstance(self.include_frequency, bool):
+            raise ValueError("include_frequency must be a boolean")
+        if self.include_frequency and (self.selection_strategy != "predictive" or self.screening != "importance"):
+            raise ValueError("include_frequency requires predictive selection with screening='importance'")
+        if (
+            self.selection_strategy == "predictive"
+            and self.screening == "importance"
+            and self.selection_estimator is None
+        ):
+            raise ValueError("Importance screening requires an explicit compatible selection_estimator")
+        if self.selection_rule not in ("one_se", "paired_gain"):
+            raise ValueError("selection_rule must be 'one_se' or 'paired_gain'")
+        if self.candidate_set not in ("standard", "extended"):
+            raise ValueError("candidate_set must be 'standard' or 'extended'")
+        if not 0 <= self.random_state < 2**32:
+            raise ValueError("random_state must be between 0 and 2**32 - 1")
+        if not isinstance(self.llm_config, dict):
+            raise ValueError("llm_config must be a dictionary")
+        unknown_llm_keys = set(self.llm_config) - self.SUPPORTED_LLM_CONFIG_KEYS
+        if unknown_llm_keys:
+            raise ValueError(f"Unknown llm_config keys: {sorted(map(str, unknown_llm_keys))}")
         # Reject non-sequence containers (and ``str``/``bytes``, which are
         # technically iterable but would be iterated character-by-character)
         # before any iteration so that the downstream non-string-entry,
@@ -267,6 +489,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         self._is_fitted = False
         self._column_descriptions = {}
         self._task_description = ""
+        self.selection_report_ = None
 
     def fit(
         self,
@@ -309,6 +532,15 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         # error, leakage_guard='raise', engine fit failure) leaves the estimator
         # in a clean, unfitted state rather than a partially-fitted one.
         self._reset_fit_state()
+        self._validate_configuration()
+        if self.selection_strategy == "predictive" and y is None:
+            raise ValueError("The predictive strategy requires a target y")
+        if y is not None and self.task != "auto":
+            resolve_task(y, self.task)
+        split_metadata = any(fit_params.get(name) is not None for name in ("groups", "timestamps", "label_end_times"))
+        if split_metadata and self.selection_strategy != "predictive":
+            if self.engines != ["llm"] or self.llm_config.get("feature_format") != "plan":
+                raise ValueError("Group/time metadata requires predictive selection or the fitted LLM plan path")
 
         # Convert to DataFrame if needed
         if isinstance(X, np.ndarray):
@@ -344,6 +576,8 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
                 engine.fit(X, y, **fit_params)
 
             self._engine_instances[engine_name] = engine
+            if self.selection_strategy == "predictive":
+                self.selection_report_ = deepcopy(engine.selection_report_)
 
             if self.verbose:
                 logger.info(f"Fitted {engine_name} engine")
@@ -354,6 +588,26 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
     def _create_engine(self, engine_name: str):
         """Create an engine instance."""
         if engine_name == "tabular":
+            if self.selection_strategy == "predictive":
+                from featcopilot.engines.predictive import PredictiveTabularEngine
+
+                return PredictiveTabularEngine(
+                    max_features=self.max_features,
+                    max_candidates=self.max_candidates,
+                    task=self.task,
+                    estimator=self.selection_estimator,
+                    random_state=self.random_state,
+                    n_jobs=self.gate_n_jobs,
+                    verbose=self.verbose,
+                    stability_repeats=self.stability_repeats,
+                    screening=self.screening,
+                    selection_rule=self.selection_rule,
+                    candidate_set=self.candidate_set,
+                    include_frequency=self.include_frequency,
+                    numeric_clip_quantiles=self.numeric_clip_quantiles,
+                    importance_resamples=self.importance_resamples,
+                    categorical_encoding=self.categorical_encoding,
+                )
             return TabularEngine(max_features=self.max_features, verbose=self.verbose)
         elif engine_name == "timeseries":
             return TimeSeriesEngine(max_features=self.max_features, verbose=self.verbose)
@@ -368,14 +622,75 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
                 model=self.llm_config.get("model", DEFAULT_MODEL),
                 max_suggestions=self.llm_config.get("max_suggestions", 20),
                 domain=self.llm_config.get("domain"),
-                verbose=self.verbose,
+                verbose=self.llm_config.get("verbose", self.verbose),
                 backend=self.llm_config.get("backend", "copilot"),
                 api_key=self.llm_config.get("api_key"),
                 api_base=self.llm_config.get("api_base"),
                 api_version=self.llm_config.get("api_version"),
+                validate_features=self.llm_config.get("validate_features", True),
+                temperature=self.llm_config.get("temperature", 0.3),
+                timeout=self.llm_config.get("timeout", 60.0),
+                max_tokens=self.llm_config.get("max_tokens", 4096),
+                enable_text_features=self.llm_config.get("enable_text_features", True),
+                keep_text_columns=self.llm_config.get("keep_text_columns", True),
+                text_feature_types=self.llm_config.get("text_feature_types"),
+                feature_format=self.llm_config.get("feature_format", "code"),
+                rules=self.llm_config.get("rules"),
+                task=cast(Literal["auto", "classification", "regression"], self.task),
+                random_state=self.random_state,
+                target_cv=self.llm_config.get("target_cv", 5),
             )
         else:
             raise ValueError(f"Unknown engine: {engine_name}")
+
+    def _transform_fitted_engines(
+        self,
+        X: pd.DataFrame | np.ndarray,
+        transform_params: dict[str, Any],
+        training_target: pd.Series | np.ndarray | None = None,
+        *,
+        training: bool = False,
+    ) -> pd.DataFrame:
+        """Transform with fitted engines, optionally using training-safe semantics."""
+        if isinstance(X, np.ndarray):
+            X = pd.DataFrame(X, columns=[f"feature_{i}" for i in range(X.shape[1])])
+
+        if self.selection_strategy == "predictive":
+            inference_params = {
+                key: value
+                for key, value in transform_params.items()
+                if not training or key not in {"groups", "timestamps", "label_end_times"}
+            }
+            return self._engine_instances["tabular"].transform(X, **inference_params)
+
+        result = X.copy()
+        dropped_originals: set[Any] = set()
+
+        for engine_name, engine in self._engine_instances.items():
+            if not training:
+                transformed = engine.transform(X, **transform_params)
+            else:
+                transformed = engine._transform_fit_data(X, training_target, **transform_params)
+            if engine_name == "llm" and not self.llm_config.get("keep_text_columns", True):
+                dropped_originals.update(col for col in X.columns if col not in transformed.columns)
+
+            new_cols = [c for c in transformed.columns if c not in result.columns]
+            for col in new_cols:
+                result[col] = transformed[col]
+
+            if self.verbose:
+                logger.info(f"{engine_name}: Added {len(new_cols)} features")
+
+        if dropped_originals:
+            result = result.drop(columns=list(dropped_originals))
+        result = result.replace([np.inf, -np.inf], np.nan)
+
+        if self._selector is not None:
+            selected_features = self._selector.get_selected_features()
+            available = [f for f in selected_features if f in result.columns]
+            result = result[available]
+
+        return result
 
     def transform(self, X: pd.DataFrame | np.ndarray, **transform_params) -> pd.DataFrame:
         """
@@ -396,34 +711,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         if not self._is_fitted:
             raise RuntimeError("Must call fit before transform")
 
-        if isinstance(X, np.ndarray):
-            X = pd.DataFrame(X, columns=[f"feature_{i}" for i in range(X.shape[1])])
-
-        result = X.copy()
-
-        # Transform with each engine
-        for engine_name, engine in self._engine_instances.items():
-            transformed = engine.transform(X, **transform_params)
-
-            # Add new features to result
-            new_cols = [c for c in transformed.columns if c not in result.columns]
-            for col in new_cols:
-                result[col] = transformed[col]
-
-            if self.verbose:
-                logger.info(f"{engine_name}: Added {len(new_cols)} features")
-
-        # Handle infinities and NaNs
-        result = result.replace([np.inf, -np.inf], np.nan)
-
-        # Apply selection if selector was fitted
-        if self._selector is not None:
-            selected_features = self._selector.get_selected_features()
-            # Keep only selected features that exist in result
-            available = [f for f in selected_features if f in result.columns]
-            result = result[available]
-
-        return result
+        return self._transform_fitted_engines(X, transform_params)
 
     def fit_transform(
         self,
@@ -433,6 +721,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         task_description: str = "prediction task",
         target_name: Any | None = None,
         apply_selection: bool = True,
+        apply_gate: bool = True,
         **fit_params,
     ) -> pd.DataFrame:
         """
@@ -455,6 +744,9 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             leakage helper normalizes labels via ``str(...)`` before matching.
         apply_selection : bool, default=True
             Whether to apply feature selection
+        apply_gate : bool, default=True
+            Apply the legacy post-selection validation gate. Disable explicitly
+            for selection-only ablation; predictive selection has its own rule.
         **fit_params : dict
             Additional parameters
 
@@ -463,24 +755,40 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         X_transformed : DataFrame
             Transformed data with generated features
         """
+        if self.selection_strategy == "predictive" and not apply_selection:
+            raise ValueError("apply_selection=False requires selection_strategy='legacy'")
+        if self.selection_strategy == "predictive" and not apply_gate:
+            raise ValueError("apply_gate=False is a legacy-only ablation, not a predictive selection override")
+        if (
+            self.selection_strategy == "legacy"
+            and apply_selection
+            and y is not None
+            and self.max_features
+            and any(fit_params.get(name) is not None for name in ("groups", "timestamps", "label_end_times"))
+        ):
+            raise ValueError(
+                "Legacy selection is not group/time-aware; use apply_selection=False for fitted plans with metadata"
+            )
         self.fit(X, y, column_descriptions, task_description, target_name=target_name, **fit_params)
-        # Reuse transform-relevant kwargs (e.g. text_columns, related_tables) during fit_transform.
-        result = self.transform(X, **fit_params)
+        # Reuse transform-relevant kwargs (e.g. text_columns, related_tables)
+        # while allowing supervised engines to cross-fit training-only features.
+        result = self._transform_fitted_engines(X, fit_params, training_target=y, training=True)
 
         # Track original features (input columns) vs derived features
         if isinstance(X, np.ndarray):
             original_features = {f"feature_{i}" for i in range(X.shape[1])}
         else:
-            original_features = set(X.columns)
+            original_features = set(X.columns).intersection(result.columns)
 
         # Apply feature selection if enabled and y is provided
-        if apply_selection and y is not None and self.max_features:
+        if self.selection_strategy == "legacy" and apply_selection and y is not None and self.max_features:
             self._selector = FeatureSelector(
                 methods=self.selection_methods,
                 max_features=self.max_features,
                 correlation_threshold=self.correlation_threshold,
                 original_features=original_features,
                 verbose=self.verbose,
+                task=self.task,
             )
             result = self._selector.fit_transform(result, y)
 
@@ -490,8 +798,11 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
         # Do-no-harm gate: validate derived features help via held-out validation.
         # Only run when selection actually fitted a selector — otherwise this is a
         # no-op for users who explicitly opt out of selection (e.g., max_features=None).
-        if apply_selection and y is not None and self._selector is not None:
-            result = self._do_no_harm_gate(result, X, y, original_features)
+        if apply_gate and apply_selection and y is not None and self._selector is not None:
+            original_for_gate = X
+            if isinstance(X, pd.DataFrame) and len(original_features) != X.shape[1]:
+                original_for_gate = X.loc[:, [col for col in X.columns if col in original_features]]
+            result = self._do_no_harm_gate(result, original_for_gate, y, original_features)
 
         return result
 
@@ -722,6 +1033,8 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             except (ValueError, TypeError):
                 target_type = "unknown"
             is_classification = target_type in {"binary", "multiclass"}
+            if self.task != "auto":
+                is_classification = resolve_task(y_arr, self.task) == "classification"
             if is_classification:
                 model_cls = RandomForestClassifier
                 splitter = StratifiedShuffleSplit(n_splits=5, test_size=0.2, random_state=42)
@@ -855,6 +1168,18 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
 
         return code
 
+    def get_fitted_rules(self) -> dict[str, Any] | None:
+        """Get serialized fitted LLM rules when plan mode is enabled."""
+        engine = self._engine_instances.get("llm")
+        if engine is None or self.llm_config.get("feature_format", "code") != "plan":
+            return None
+        rules = engine.get_fitted_rules()
+        if rules is None:
+            return None
+        if not isinstance(rules, dict):
+            raise TypeError("The fitted rule engine returned an invalid serialized plan")
+        return rules
+
     def generate_custom_features(self, prompt: str, n_features: int = 5) -> list[dict[str, Any]]:
         """
         Generate custom features via LLM prompt.
@@ -875,7 +1200,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             raise RuntimeError("LLM engine not enabled. Add 'llm' to engines list.")
 
         llm_engine = self._engine_instances["llm"]
-        return llm_engine.suggest_more_features(prompt, n_features)
+        return cast(list[dict[str, Any]], llm_engine.suggest_more_features(prompt, n_features))
 
     @property
     def feature_importances_(self) -> dict[str, float] | None:
@@ -886,16 +1211,7 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
 
     def get_params(self, deep=True):
         """Get parameters for sklearn compatibility."""
-        return {
-            "engines": self.engines,
-            "max_features": self.max_features,
-            "selection_methods": self.selection_methods,
-            "correlation_threshold": self.correlation_threshold,
-            "llm_config": self.llm_config,
-            "verbose": self.verbose,
-            "leakage_guard": self.leakage_guard,
-            "gate_n_jobs": self.gate_n_jobs,
-        }
+        return super().get_params(deep=deep)
 
     def set_params(self, **params):
         """
@@ -934,7 +1250,19 @@ class AutoFeatureEngineer(BaseEstimator, TransformerMixin):
             failure the estimator's parameters are restored to the values
             they held before the call.
         """
-        valid_params = self.get_params(deep=True)
+        estimator_params = {
+            key.removeprefix("selection_estimator__"): value
+            for key, value in params.items()
+            if key.startswith("selection_estimator__")
+        }
+        if estimator_params:
+            estimator = params.get("selection_estimator", self.selection_estimator)
+            if estimator is None:
+                raise ValueError("Set selection_estimator before updating its nested parameters")
+            updated_estimator = clone(estimator).set_params(**estimator_params)
+            params = {key: value for key, value in params.items() if not key.startswith("selection_estimator__")}
+            params["selection_estimator"] = updated_estimator
+        valid_params = self.get_params(deep=False)
         invalid_keys = sorted(set(params) - set(valid_params))
         if invalid_keys:
             raise ValueError(

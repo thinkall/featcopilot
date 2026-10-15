@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "name": "seoul-retrospective-development-v1",
+  "family_registry": "../families.json",
+  "purpose": "First real temporal development track: retrospective completed-hour/day rental-demand estimation conditional on observed weather. NOT ahead-of-time forecasting, official benchmark replication, or fresh confirmation.",
+  "historical_inventory": {
+    "path": "seoul_inventory.json",
+    "sha256": "8f861070d84577f8a77d6135c61980d6bd24be4eb7f3099dda6256bc22ec5dd5",
+    "policy": "Keep the original pending inventory unchanged as review history."
+  },
+  "admission_review": {
+    "reviewed_on": "2026-09-20",
+    "status": "approved_development_only",
+    "model_runs": 0,
+    "scope": "Public primary metadata, license notice and one bounded 598942-byte public CSV audit; no models or performance inspection.",
+    "family_identity": "UCI 560 Seoul, not the historically exposed INRIA/Capital Bikeshare origin. This distinction is not a confirmation-freshness claim.",
+    "target_decision": "The official narrative describes hourly rented-bike count. Override the API's erroneous Functioning Day target role explicitly; exclude that operating-status column from all predictors.",
+    "time_decision": "The complete CSV uses day/month/year, despite the metadata narrative saying year-month-day. Exactly 365 calendar days each contain all 24 distinct integer Hour values. Return Date-only timestamps: all 24 hourly rows in a calendar day share one indivisible forward-split bucket. Do not return separate groups or add Hour to timestamps.",
+    "availability_limit": "Date-at-midnight values are ordering markers, not exact feature/label publication times. No intraday availability, timezone, reporting lag or label-end timestamp is inferred. Observed contemporaneous weather is allowed only because the task is explicitly retrospective.",
+    "runner_requirement": "Route Date-only timestamps through every outer and inner forward split with groups=None and label_end_times=None. The shared splitter keeps equal timestamp blocks together. No shuffled CV, same-day train/test overlap or pooling with IID confirmation scores.",
+    "row_cap": 0
+  },
+  "datasets": [
+    {
+      "name": "uci-seoul-bike",
+      "family_id": "seoul-bike",
+      "provider": "uci",
+      "task": "regression",
+      "role": "development",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "observational",
+      "target": "Rented Bike Count",
+      "target_transform": "identity",
+      "categorical": ["Seasons", "Holiday"],
+      "drop_columns": ["Functioning Day"],
+      "split_policy": "temporal",
+      "time_column": "Date",
+      "time_format": "%d/%m/%Y",
+      "prediction_time": "Retrospective estimation of a completed hour's rented-bike count using that hour's observed weather and calendar context. Whole-day-blocked forward evaluation assesses transfer to later recorded days, NOT what could have been predicted before the weather/day was observed.",
+      "time_policy": {
+        "outer_and_inner_splits": "whole-calendar-day-blocked forward evaluation",
+        "groups": null,
+        "blocking_key": "Date-only timestamps shared by all 24 rows of the calendar day",
+        "timestamp": "Strictly parsed Date only; midnight is a day-bucket marker, not an availability time",
+        "hour_retained_as_predictor": true,
+        "label_end_times": null,
+        "label_availability": "No separate availability column exists; do not infer one from Date, Hour or a horizon.",
+        "completed_day_assumption": "Rows scored for a day represent completed hourly observations; use earlier whole days for training. All 24 hours of a day remain on one side of every split. Calendar ordering establishes neither intraday availability nor operational publication times or delays.",
+        "ahead_of_time_forecasting_approved": false,
+        "timezone_localization_applied": false
+      },
+      "evaluation_notes": "Retain all 8760 rows, including zero counts on non-functioning periods; do not condition row inclusion on the dropped operating-status field. Date supplies day-bucket timestamps only, groups=None, and Hour remains a predictor. This is a separate retrospective temporal-development scoreboard, not forecasting.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "The original UCI dataset publication explicitly grants CC BY 4.0; the user approved this bounded retrospective development admission after review of the target and time policy.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/560/seoul+bike+sharing+demand",
+          "https://archive.ics.uci.edu/api/dataset?id=560",
+          "https://creativecommons.org/licenses/by/4.0/legalcode",
+          "benchmarks/IMPROVEMENT_PLAN.md"
+        ],
+        "primary_page_sha256": "49004f397076767f1a90dbbf9af024a9e867a939187abaa15c0cb392d7c86de8",
+        "obligations": "Retain the UCI dataset/original-contributor citation and disclose the target-role override and retrospective framing. No hosted row sharing is approved."
+      },
+      "source": {
+        "uci_id": 560,
+        "data_url": "https://archive.ics.uci.edu/static/public/560/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=560",
+        "metadata_sha256": "1de15e20d832f9dc7be131ae15302ffc62a0df4014586574ab277346eca7166c",
+        "sha256": "e392e3be042e7c0e58b48329a777206acb7f3400da95ee7cf405da5eb99d283e",
+        "schema_reviewed": true,
+        "expected_rows": 8760,
+        "columns": ["Date", "Rented Bike Count", "Hour", "Temperature", "Humidity", "Wind speed", "Visibility", "Dew point temperature", "Solar Radiation", "Rainfall", "Snowfall", "Seasons", "Holiday", "Functioning Day"],
+        "target_columns": ["Rented Bike Count", "Functioning Day"],
+        "target_role_override": {
+          "status": "reviewed",
+          "selected_target": "Rented Bike Count",
+          "metadata_selected_target_role": "Feature",
+          "metadata_target_columns": ["Functioning Day"],
+          "rationale": "UCI's task narrative explicitly describes hourly rented-bike demand, but its API marks Functioning Day Target and Rented Bike Count Feature. Treat the count as the reviewed regression target and exclude the entire original metadata-target field. Neither role nor target is guessed at load time.",
+          "evidence": [
+            "https://archive.ics.uci.edu/dataset/560/seoul+bike+sharing+demand",
+            "https://archive.ics.uci.edu/api/dataset?id=560",
+            "benchmarks/IMPROVEMENT_PLAN.md"
+          ]
+        },
+        "time_audit": {
+          "date_format": "%d/%m/%Y",
+          "first_day": "2017-12-01",
+          "last_day": "2018-11-30",
+          "calendar_days": 365,
+          "rows_per_day": 24,
+          "unique_hours_per_day": 24,
+          "hour_min": 0,
+          "hour_max": 23,
+          "duplicate_date_hour_pairs": 0,
+          "missing_dates": 0,
+          "missing_targets": 0,
+          "target_nonnegative_integer": true,
+          "verified_payload_bytes": 598942,
+          "provider_policy": "Return Date-only day buckets and groups=None; retain Hour solely as a predictor. Never synthesize intraday or label-availability times."
+        }
+      }
+    }
+  ]
+}

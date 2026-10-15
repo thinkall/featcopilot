@@ -1,0 +1,38 @@
+{
+  "source_sha256": "f94e23533f6b4e24a64542c6a307abaa09a0439ca084ad3632e07c4024c5a3f7",
+  "protocol_sha256": "929009d90b5019b25f4fb8d261e669fda29dd99cecd9b392fd72e3d5f5155c1d",
+  "runner_sha256": "11c54376749b067326d608d54926085db5eb0ba2b52b79b6a997df5c5b35fe4a",
+  "started_utc": "2026-10-08T00:11:00.018581+00:00",
+  "stages": {
+    "iid": {
+      "prepared_sha256": {
+        "uci-concrete-strength": "02a860c2dd49dfef6acead8614e9fcaa434ae3905b988b1d80a8cad4dc8b7d1d",
+        "uci-energy-efficiency": "1659c4234c49b1bec321c44c37338ca06258ca57daf203996da903213a504378",
+        "uci-combined-cycle-power": "c0fd7be32fd4defb8497137a05fcc39e226bcfb142d6365e21952218fc8165a4",
+        "uci-real-estate-sindian": "a6f35796afdad6997c86c09243be1650a24f825fe65b425ef5c31b6478fddccf",
+        "uci-auto-mpg": "5a3ed1638a86100661f3fbb62fb15841943c27056432537ba0fa2c17e5c7bf4c",
+        "wine": "15805dc9ccf41c2e740c5cdda65d58849d8d040e543bcea38fd3269bf61c10b0",
+        "houses": "155415f87aa20455b0d1a2ad55f70bbdf3d63a87dddbc040e96f8a21966bfe36",
+        "infrared-oral-temperature": "012d2275bae0d129729c3c55a5884eb9e3203052806fcd3900265690a125bdc6"
+      },
+      "source_archive_sha256": "9573260a69bad0703dee4f2290a93293320c3a7d4672de311982c0567905e8e9",
+      "effective_budget_seconds": 10800,
+      "exit_code": 0
+    },
+    "hardware-official": {
+      "prepared_sha256": {
+        "computer-hardware-performance": "9b41a54261472f08dcc0d9996c7c8080d0bfb3f50923144c68ca71f2fc967f0c"
+      },
+      "source_archive_sha256": "dd8769590090c5740280c2854e20c50810146f9ef37ac569642512c0521db920",
+      "effective_budget_seconds": 3600,
+      "exit_code": 0
+    }
+  },
+  "scored_cells": 204,
+  "expected_cells": 204,
+  "source_sha256_at_finish": "f94e23533f6b4e24a64542c6a307abaa09a0439ca084ad3632e07c4024c5a3f7",
+  "source_changed": false,
+  "active_seconds": 12024.508354699938,
+  "budget_overshoot_seconds": 0.0,
+  "finished_utc": "2026-10-08T03:30:48.593771+00:00"
+}

@@ -1,0 +1,561 @@
+{
+  "protocol": {
+    "version": 1,
+    "role": "development",
+    "dataset": "uci-online-retail-352",
+    "task": "next_7_day_net_line_item_spend_returning_customers",
+    "source": "https://archive.ics.uci.edu/dataset/352/online+retail",
+    "data_url": "https://archive.ics.uci.edu/static/public/352/data.csv",
+    "attribution": "Daqing Chen, Online Retail, UCI, DOI:10.24432/C5BW33",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0/legalcode",
+    "config": {
+      "customers": 200,
+      "threads": 8,
+      "case_timeout": 480.0,
+      "total_seconds": 7000.0,
+      "memory_limit_mb": 4096
+    },
+    "seed": 42,
+    "cohort": "Uniform seeded sample of sorted unique cleaned December 2010 CustomerIDs, no future filtering",
+    "cohort_start": "2010-12-01T00:00:00",
+    "cohort_end_exclusive": "2011-01-01T00:00:00",
+    "cutoffs": "Mondays 2011-01-03 through 2011-12-05, dropping label ends after coverage_end",
+    "coverage_end_exclusive": "2011-12-09T00:00:00",
+    "label": "Sum Quantity*UnitPrice in [cutoff, cutoff+7 days), zero if no recorded line items",
+    "availability": "Invoice-generated time assumed immediately available; no posting-delay metadata",
+    "clock": "Unshifted source wall clock; UTC normalization is arithmetic only, not a timezone claim",
+    "duplicates": "Retain all exact duplicate records; no source line-item key resolves legitimate repeats",
+    "refunds": "Keep signed Quantity including cancellations; do not flip signs using InvoiceNo",
+    "missing_history": "Empty count/sum = 0; other aggregates missing; train-only median/zero imputation",
+    "outer": "3 expanding forward folds via make_cv_splits; entire equal-time blocks retained",
+    "inner": "1 forward 25% holdout per outer train via make_holdout_splits; 3 HPO candidates",
+    "purge": "Training label_end_times must be strictly before validation cutoff; equality is purged",
+    "entity_scope": "Same-customer future-period prediction, not unseen-entity transfer",
+    "methods": [
+      "simple_history",
+      "expanded_pit"
+    ],
+    "method_description": "Fixed relational aggregation library; no learned feature or multi-hop discovery",
+    "precomputation": "Label-free PIT features are computed once; each query independently excludes all later rows",
+    "timing": "Shared PIT preparation counts toward the total budget; per-cell FE time measures only train-only imputation",
+    "windows_days": [
+      7,
+      30,
+      90
+    ],
+    "aggregations": [
+      "count",
+      "sum",
+      "mean",
+      "std",
+      "max",
+      "last"
+    ],
+    "std": "Population standard deviation (ddof=0)",
+    "last_ties": "Stable original CSV row order for equal invoice timestamps",
+    "learners": [
+      "linear",
+      "lightgbm"
+    ],
+    "candidate_parameters": {
+      "linear": [
+        {
+          "regularization": 0.1
+        },
+        {
+          "regularization": 1.0
+        },
+        {
+          "regularization": 10.0
+        }
+      ],
+      "lightgbm": [
+        {
+          "num_leaves": 7
+        },
+        {
+          "num_leaves": 15
+        },
+        {
+          "num_leaves": 31
+        }
+      ]
+    },
+    "primary_metric": "RMSE in recorded sterling net line-item spend (lower is better)",
+    "secondary_metrics": [
+      "MAE",
+      "R2"
+    ],
+    "expected_cells": 12,
+    "max_model_fits": 48,
+    "interpretation": [
+      "Recorded net spend is a proxy, not profit, invoice totals, or complete customer purchasing activity.",
+      "Zero means no qualifying recorded spend, not proof of no purchases.",
+      "Source coverage boundaries are provider dates, not inferred from sampled customer activity.",
+      "Historical prefix includes December 2010; early 90-day windows are necessarily left-truncated.",
+      "Known line items may update between query cutoffs within a held-out block; models do not refit.",
+      "One small preselected cohort, one seed, one source; no population or multi-dataset claims.",
+      "Repeated-customer/time errors are dependent; fold summaries are descriptive, not IID intervals."
+    ]
+  },
+  "source_fingerprint": "a338181986db23f5c4987c505e0a36fe2d08fb0ceb2d880374fc5185f258c5b7",
+  "source_files": {
+    "featcopilot\\__init__.py": "d7a20f170237e49f2212cf89f4500a2fffe8e435f070c22ac3520bce87e1a7d5",
+    "featcopilot\\__main__.py": "c611ec939f2980817f48ade768a985c27df0de80c01cdab119d0b414d4dcf167",
+    "featcopilot\\cli.py": "13b6ce5aa8b3af96cba325107f4fc0afb6ac7f9ed23ef1cbf241dff1ee2a1a17",
+    "featcopilot\\core\\__init__.py": "afff319cc8b291957eda39510c6aebce34c67cb93352a079465779c39b9df22b",
+    "featcopilot\\core\\base.py": "a1d6df6996292527fd2ca940a81799d0c34ae2760c619b2d639d8be0b2b99fb5",
+    "featcopilot\\core\\feature.py": "13dd58a1d567979bc73ce0a5eaf190a1c188f1be54043f610d54193d468dab0f",
+    "featcopilot\\core\\fitted_rule.py": "281be32c8f7dcce8aee5788267d39276d7bdda52036a2a9134c8f206fce21d9d",
+    "featcopilot\\core\\registry.py": "c29e11714acf93b8d82c44c51d0030041c7bb27596a8aef01ecbdc2f86dd97c3",
+    "featcopilot\\core\\transform_rule.py": "776eee162114f706613ebe022dcdadbba2d4e9ba39099675500bf7b31c18d913",
+    "featcopilot\\engines\\__init__.py": "811e0a1ba61df8511828bfe7e5153beafc08e4e3bcd03d630d9df798c00b2381",
+    "featcopilot\\engines\\fitted_rules.py": "ba23e794b50703e068e4eb25bdc0213ce90a6cbdb34fc2b679ebcbbba47c2171",
+    "featcopilot\\engines\\point_in_time.py": "41fbebbc3578cc3d699dd16d87e5f80b31c96d9e4ff924c01ce41f10cd5c582b",
+    "featcopilot\\engines\\predictive.py": "e88debfd237d822042dbd56045494a8b5abb233142d380f6d666b31812e2d70e",
+    "featcopilot\\engines\\relational.py": "3c392671967698ea79eafb20efa50be2074d7e4d42248d10e1982053932c811f",
+    "featcopilot\\engines\\tabular.py": "4a1caa090bd35c90c71f18f00976f47cfcdcd92cb0c7f43b36eec106e0ed6b0e",
+    "featcopilot\\engines\\text.py": "1c31bdfb2d953bc4ad8a0e8c3ec11d4e78942267e4439619f1adc7cbc59e59e5",
+    "featcopilot\\engines\\timeseries.py": "0b2e92f03606ce631ea58bde943673c398e8def9b3672c18babae189e456ee65",
+    "featcopilot\\llm\\__init__.py": "bae86974c22ebec8268f79ca8749c50dc724b0d12e132774c1371f1280a33e80",
+    "featcopilot\\llm\\_execution.py": "a0e4691d717fcef5c03bcc184a7d4db6c6a5af2b5153a603b519667b64e53d18",
+    "featcopilot\\llm\\_types.py": "9e5719defc338ebb582ae3126dbb9e6e3d276610b7a2e3e15b3c77483ac18486",
+    "featcopilot\\llm\\code_generator.py": "ba99a61a4c8f144ce21f984dc0b2010e3a7ad6646e764b2a7fc35b7ae9829675",
+    "featcopilot\\llm\\copilot_client.py": "77d60a0b87e3ae679188155640fa01644942b768108077c73b925bbf1b300f2b",
+    "featcopilot\\llm\\explainer.py": "6880369af84b1cd7893681e5a91816f3bc516efdb5698d16350c0cbec97c31c6",
+    "featcopilot\\llm\\litellm_client.py": "424cbcb9be402ee4cff839d7f53145ea7c93bbabc7f606284162db64ee631a69",
+    "featcopilot\\llm\\openai_client.py": "510fd8fd7049ffb0c38baa3ad05458034b7e50eedfa4c47fd135c6af09fd3676",
+    "featcopilot\\llm\\plan_generator.py": "0d85a2176c675339bb45fca12f85c034fd93cfcdf7356ddd0b21edd451676465",
+    "featcopilot\\llm\\semantic_engine.py": "79db9ec29f08f42dc643d990db0323ad80979b2efa4f592b7ac19feaa6657b6c",
+    "featcopilot\\llm\\transform_rule_generator.py": "ece5130c613d30e7394271df2dc980ffad4bdaf896c59a14617e825196d3757f",
+    "featcopilot\\selection\\__init__.py": "269ab639757058cf8af0cee964144f241743ee71436169b7e70f8422e4fd1d79",
+    "featcopilot\\selection\\importance.py": "cbda4b90067fadf18bbef88bbc0a7ab4e1db9af206dbb4d271a9f95602df4181",
+    "featcopilot\\selection\\redundancy.py": "14a1c25e1e4a1fd5b67647289a367e2553c694825d238bef51d159b5f3d7102e",
+    "featcopilot\\selection\\statistical.py": "efef08c1dea38e9f8b3fd8d92e43b5b9714a4e5a1846fb9e9ea687103f0a5e96",
+    "featcopilot\\selection\\unified.py": "a36cbad3b3a7c837c29d72005808bae8a2879dd011990d37fd029ee5593ca520",
+    "featcopilot\\stores\\__init__.py": "96017014a618189b3bdf6eae7ef11afcf37d2420b14f291a91db41e51079a751",
+    "featcopilot\\stores\\base.py": "037668ab4c8dc92a053e2fb1b5e43faf451331f06fc701cfa64595cc5b1f45f8",
+    "featcopilot\\stores\\feast_store.py": "10e80625b4e834d2028e59a62493d45b2f600fdacea944eb53a92aa1d79374c6",
+    "featcopilot\\stores\\rule_store.py": "455c856e9e12dab1e803d435a307ae0de4415eac5a289ee855c5be0fca01b9f9",
+    "featcopilot\\transformers\\__init__.py": "269bcf042502acb8cfacb1b670d70379e86bba67131229e13ba1a80b5bc637a5",
+    "featcopilot\\transformers\\sklearn_compat.py": "a5121d73337e18692cab8fbb497c72baf33843b3190b9e8c5efe85fad37a22af",
+    "featcopilot\\utils\\__init__.py": "26b35e639d160f644b105f5b4b115b71a80fa3f51802248d816bf2d8ccd1b8fc",
+    "featcopilot\\utils\\cache.py": "17f4a2fc4b0e732cad1be10f913a98c47a0d9e609399be10066f5699e158fd9f",
+    "featcopilot\\utils\\logger.py": "60f51f751fd21794adad07285be920e92223f5885bd8ca11349946ec770d7415",
+    "featcopilot\\utils\\models.py": "b72ce17e9556aa568cdf705a3b763545bca97dd29809af90e310a5a3e6d89c74",
+    "featcopilot\\utils\\parallel.py": "5246d5e602ac743b2dbc3f30cb194e01d2361b6a14e456109d8f141cb6b7bbae",
+    "featcopilot\\utils\\splitting.py": "43681cc65f66fb2a88db7df3b4f3e6f971e4c44fb8ca0bbc7a28a3e24c060da2",
+    "featcopilot\\utils\\task.py": "b030483443c02bb2cc46af4a665eb7c95819521166f12898d0b72a2579f7cee8",
+    "featcopilot\\utils\\validation.py": "c2430609c4fd5e79f3e1aab5264bf199873dce266d91694fdfef2b4c8b084388",
+    "benchmarks\\__init__.py": "1ba21c47ac8237196be2ff71c8776fcd26f817a43f034f65af3b09d91e58d4be",
+    "benchmarks\\automl\\__init__.py": "cbf999ebf261a1387cae444d49eef8f79cfb547fa05b7f920ba158dae40997d7",
+    "benchmarks\\automl\\run_automl_benchmark.py": "3772de2657cf5df5e8bf77d3a76177117b722209f2e36bef88ad438e3bde77c2",
+    "benchmarks\\catalog.py": "813d304e299d52ea31d5802d2d4975226d9eb006513bc8e9704baa1c441fb31a",
+    "benchmarks\\compare_tools\\__init__.py": "922af2170bdae14582492ae2e40877e109d8b9e14fb400e78b31e0cd4913370c",
+    "benchmarks\\compare_tools\\run_fe_tools_comparison.py": "290e1b02f2f29bdcc11d8056e86b5cfecd18bb544a38d7044ba0601682289e84",
+    "benchmarks\\datasets.py": "c9558c81f8243459099b50ad11234a7d05d28c8f964ddacdb446e4e42c7171dc",
+    "benchmarks\\execution.py": "3cf2da7fe0dafabd1b4442b43acfae2eabf9fe17417900d1442b59dc2938a761",
+    "benchmarks\\feature_cache.py": "5b20d04de56cf620953a909b3623e4df494a996bbb1bbda306ba008fced10269",
+    "benchmarks\\llm_evaluation.py": "68e5989878bcd92a02d295a0229887f4e3bfb654ac3f1217a79be0a8b72c98fd",
+    "benchmarks\\relational_evaluation.py": "3734c206faea8f3e94552dc015959740d9161722f92ee6a69ec458e40b873fcf",
+    "benchmarks\\run_state.py": "71d7d2c7f0be47b6d285c8263e28231e390c0e306d4dd469e13c969f159e6de6",
+    "benchmarks\\simple_models\\__init__.py": "93d1432d55cb479a52aeaf56371a67beb0e51c6a79710166cd0dfdc2207959bd",
+    "benchmarks\\simple_models\\run_simple_models_benchmark.py": "40c79959151ee2bf773f8c73a6575e50d95fcf5dffe25e5cacea04d38507df76",
+    "benchmarks\\splits.py": "45e1854861bbf9eceb1bf162f5e92287028ada2399881c5eac735902bb3cc642",
+    "benchmarks\\tabular.py": "459a68517a53b447cb50d3f56b7ec0fcae4f5876755325c46f9779940b2053bb",
+    "benchmarks\\tabular_openfe.py": "1077d5690bdbf4238775733f145d5f313b6b7affede99f11c87f559aa12d6b66",
+    "benchmarks\\use_cases\\run_auto_feature_engineering_benchmark.py": "cb30c170d74761533553b41d25966baaf147abcfd8db557c61f7c914b1221885",
+    "pyproject.toml": "f2639c695a8307d3be9198ef5067e65720e5574c7d11aec19b48d721c8d6bce8",
+    "benchmarks\\tabular_suite.json": "6046eb87f51ce42c6d0969a87cbbf368d0fba32b1ee7a4c4b2c43c066e8591e6",
+    "benchmarks\\families.json": "0443a41f8b202a0939646f4c7396dd1afeba39acf60f7bfa6cf955977f85e058",
+    "benchmarks\\suites\\seoul_development.json": "eb949eb6de7a77d39e5dbf4d2026cad6163d47f4fd837e686310bd2f2b1b3f48",
+    "benchmarks\\suites\\seoul_inventory.json": "8f861070d84577f8a77d6135c61980d6bd24be4eb7f3099dda6256bc22ec5dd5",
+    "benchmarks\\suites\\tabarena_confirmation_candidates_20260920.json": "db4bafa21d2697c4b19955e031440b55fdd33bd068fd08866cee70e5943d9b00",
+    "benchmarks\\suites\\tabarena_confirmation_completion_repair_20260921.json": "85035ccd8290a105d87b05e2aebc8cd0193a9c81776a9e367f0d4cba9fe0253b",
+    "benchmarks\\suites\\tabarena_v01_audit_20260920.json": "6a4f6f2c9dbaf222dd3b991fbef291e88d2a30833da4f4e86b1d7cfbe65063c9",
+    "benchmarks\\suites\\tabarena_v01_inventory.json": "92dc0e6e58e09422104735cbe049dd42eca559acca3808a6abee55e9cf870243",
+    "benchmarks\\suites\\uci_development.json": "72b5257603de43b1653c00449f0dfd3279a7dea3fa53c5f036d70e5e3443ee7d"
+  },
+  "versions": {
+    "python": "3.13.13 | packaged by conda-forge | (main, Apr  8 2026, 01:56:49) [MSC v.1944 64 bit (AMD64)]",
+    "numpy": "2.4.4",
+    "pandas": "2.3.3",
+    "scikit-learn": "1.7.2",
+    "lightgbm": "4.6.0",
+    "pydantic": "2.13.3",
+    "threadpoolctl": "3.6.0",
+    "psutil": "7.2.2"
+  },
+  "dataset": {
+    "source_url": "https://archive.ics.uci.edu/dataset/352/online+retail",
+    "api_url": "https://archive.ics.uci.edu/api/dataset?id=352",
+    "data_url": "https://archive.ics.uci.edu/static/public/352/data.csv",
+    "attribution": "Daqing Chen, Online Retail, DOI:10.24432/C5BW33",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0/legalcode",
+    "license_statement": "This dataset is licensed under a Creative Commons Attribution 4.0 International (CC BY 4.0) license.",
+    "rights_page_sha256": "f7674fbfe555162fb881c39dd603b6ce7814def4d935333d35a43cfc2635520c",
+    "api_sha256": "9b1a75b4ee044da8b2f108c31acf6ebf3fe5eddce75a1fe03032c6781b80f2e1",
+    "raw_sha256": "a2f79bbdd4463df6db8a3f5a50b9c980ae8f645a370bf5e2c0d6097f9e817b05",
+    "raw_bytes": 45038760,
+    "provider_rows": 541909,
+    "retrieved_utc": "2026-09-20T21:25:52.168393+00:00"
+  },
+  "preparation": {
+    "cleaning": {
+      "input_rows": 541909,
+      "exact_duplicate_rows_retained_raw": 5268,
+      "removed_missing_customer": 135080,
+      "removed_nonpositive_or_nonfinite_price_after_missing_customer": 40,
+      "retained_rows": 406789,
+      "retained_exact_duplicates": 5225,
+      "retained_negative_quantity": 8905,
+      "retained_zero_quantity": 0,
+      "retained_cancellation_rows": 8905,
+      "exclusion_order": [
+        "missing_customer",
+        "nonpositive_or_nonfinite_price"
+      ]
+    },
+    "cohort_customers": 200,
+    "cohort_sha256": "156db2007c9ec96f59fd9994034d4cce97f2e685b14d41a44dabd6f05b37e442",
+    "cohort_history_rows": 41064,
+    "requested_cutoffs": 49,
+    "retained_cutoffs": 48,
+    "end_censored_queries_removed": 200,
+    "query_rows": 9600,
+    "first_cutoff": "2011-01-03T00:00:00",
+    "last_cutoff": "2011-11-28T00:00:00",
+    "last_label_end": "2011-12-05T00:00:00",
+    "aggregations": [
+      {
+        "name": "spend_7d_count",
+        "table": "line_items",
+        "entity_column": "CustomerID",
+        "available_at": "InvoiceDate",
+        "aggregation": "count",
+        "value_column": null,
+        "window": "7D"
+      },
+      {
+        "name": "spend_7d_sum",
+        "table": "line_items",
+        "entity_column": "CustomerID",
+        "available_at": "InvoiceDate",
+        "aggregation": "sum",
+        "value_column": "net_spend",
+        "window": "7D"
+      },
+      {
+        "name": "spend_7d_mean",
+        "table": "line_items",
+        "entity_column": "CustomerID",
+        "available_at": "InvoiceDate",
+        "aggregation": "mean",
+        "value_column": "net_spend",
+        "window": "7D"
+      },
+      {
+        "name": "spend_7d_std",
+        "table": "line_items",
+        "entity_column": "CustomerID",
+        "available_at": "InvoiceDate",
+        "aggregation": "std",
+        "value_column": "net_spend",
+        "window": "7D"
+      },
+      {
+        "name": "spend_7d_max",
+        "table": "line_items",
+        "entity_column": "CustomerID",
+        "available_at": "InvoiceDate",
+        "aggregation": "max",
+        "value_column": "net_spend",
+        "window": "7D"
+      },
+      {
+        "name": "spend_7d_last",
+        "table": "line_items",
+        "entity_column": "CustomerID",
+        "available_at": "InvoiceDate",
+        "aggregation": "last",
+        "value_column": "net_spend",
+        "window": "7D"
+      },
+      {
+        "name": "spend_30d_count",
+        "table": "line_items",
+        "entity_column": "CustomerID",
+        "available_at": "InvoiceDate",
+        "aggregation": "count",
+        "value_column": null,
+        "window": "30D"
+      },
+      {
+        "name": "spend_30d_sum",
+        "table": "line_items",
+        "entity_column": "CustomerID",
+        "available_at": "InvoiceDate",
+        "aggregation": "sum",
+        "value_column": "net_spend",
+        "window": "30D"
+      },
+      {
+        "name": "spend_30d_mean",
+        "table": "line_items",
+        "entity_column": "CustomerID",
+        "available_at": "InvoiceDate",
+        "aggregation": "mean",
+        "value_column": "net_spend",
+        "window": "30D"
+      },
+      {
+        "name": "spend_30d_std",
+        "table": "line_items",
+        "entity_column": "CustomerID",
+        "available_at": "InvoiceDate",
+        "aggregation": "std",
+        "value_column": "net_spend",
+        "window": "30D"
+      },
+      {
+        "name": "spend_30d_max",
+        "table": "line_items",
+        "entity_column": "CustomerID",
+        "available_at": "InvoiceDate",
+        "aggregation": "max",
+        "value_column": "net_spend",
+        "window": "30D"
+      },
+      {
+        "name": "spend_30d_last",
+        "table": "line_items",
+        "entity_column": "CustomerID",
+        "available_at": "InvoiceDate",
+        "aggregation": "last",
+        "value_column": "net_spend",
+        "window": "30D"
+      },
+      {
+        "name": "spend_90d_count",
+        "table": "line_items",
+        "entity_column": "CustomerID",
+        "available_at": "InvoiceDate",
+        "aggregation": "count",
+        "value_column": null,
+        "window": "90D"
+      },
+      {
+        "name": "spend_90d_sum",
+        "table": "line_items",
+        "entity_column": "CustomerID",
+        "available_at": "InvoiceDate",
+        "aggregation": "sum",
+        "value_column": "net_spend",
+        "window": "90D"
+      },
+      {
+        "name": "spend_90d_mean",
+        "table": "line_items",
+        "entity_column": "CustomerID",
+        "available_at": "InvoiceDate",
+        "aggregation": "mean",
+        "value_column": "net_spend",
+        "window": "90D"
+      },
+      {
+        "name": "spend_90d_std",
+        "table": "line_items",
+        "entity_column": "CustomerID",
+        "available_at": "InvoiceDate",
+        "aggregation": "std",
+        "value_column": "net_spend",
+        "window": "90D"
+      },
+      {
+        "name": "spend_90d_max",
+        "table": "line_items",
+        "entity_column": "CustomerID",
+        "available_at": "InvoiceDate",
+        "aggregation": "max",
+        "value_column": "net_spend",
+        "window": "90D"
+      },
+      {
+        "name": "spend_90d_last",
+        "table": "line_items",
+        "entity_column": "CustomerID",
+        "available_at": "InvoiceDate",
+        "aggregation": "last",
+        "value_column": "net_spend",
+        "window": "90D"
+      },
+      {
+        "name": "first_invoice_days",
+        "table": "line_items",
+        "entity_column": "CustomerID",
+        "available_at": "InvoiceDate",
+        "aggregation": "min",
+        "value_column": "invoice_days",
+        "window": null
+      },
+      {
+        "name": "last_invoice_days",
+        "table": "line_items",
+        "entity_column": "CustomerID",
+        "available_at": "InvoiceDate",
+        "aggregation": "last",
+        "value_column": "invoice_days",
+        "window": null
+      }
+    ],
+    "feature_columns": {
+      "simple_history": [
+        "annual_sin",
+        "annual_cos",
+        "spend_7d_count",
+        "spend_7d_sum",
+        "recency_days",
+        "tenure_days"
+      ],
+      "expanded_pit": [
+        "annual_sin",
+        "annual_cos",
+        "spend_7d_count",
+        "spend_7d_sum",
+        "recency_days",
+        "tenure_days",
+        "spend_7d_mean",
+        "spend_7d_std",
+        "spend_7d_max",
+        "spend_7d_last",
+        "spend_30d_count",
+        "spend_30d_sum",
+        "spend_30d_mean",
+        "spend_30d_std",
+        "spend_30d_max",
+        "spend_30d_last",
+        "spend_90d_count",
+        "spend_90d_sum",
+        "spend_90d_mean",
+        "spend_90d_std",
+        "spend_90d_max",
+        "spend_90d_last"
+      ]
+    },
+    "feature_sha256": {
+      "simple_history": "2823eb9ce4c9f8d0337de3963a1dcdd074c9c56ba0eb07437cdf40317e74ad82",
+      "expanded_pit": "8e8e017208bd49485d27be775e101df738d3e609e61d4ac4786883a215a5c32b"
+    },
+    "queries_sha256": "427c6268fd13ae6fa1d8f3ef69339d78d1e095b834db63b21c3c1a91050f208b",
+    "target_sha256": "ce5dd0c6a4818b61f15a1ecd1e531e546cea09cd94edce6a074f3eba09433d8e"
+  },
+  "folds": [
+    {
+      "fold": 0,
+      "train": {
+        "rows": 4600,
+        "position_sha256": "1be50e6f9f7120c9ca05e339058f9cd9c5e62f0f5fcfb733c07d0b4f2e6788b6",
+        "first_cutoff": "2011-01-03T00:00:00",
+        "last_cutoff": "2011-06-06T00:00:00",
+        "last_label_end": "2011-06-13T00:00:00",
+        "customers": 200
+      },
+      "test": {
+        "rows": 1600,
+        "position_sha256": "04ab937a00bcc718ab54e61c82f00c6ae11fbe45c3b4f60d3b5fe31b1a308198",
+        "first_cutoff": "2011-06-20T00:00:00",
+        "last_cutoff": "2011-08-08T00:00:00",
+        "last_label_end": "2011-08-15T00:00:00",
+        "customers": 200
+      },
+      "inner_train": {
+        "rows": 3400,
+        "position_sha256": "f019baf8d52d7e745248c7d93a4f437450f80e3185469abc3bf4fdb88f87fb46",
+        "first_cutoff": "2011-01-03T00:00:00",
+        "last_cutoff": "2011-04-25T00:00:00",
+        "last_label_end": "2011-05-02T00:00:00",
+        "customers": 200
+      },
+      "inner_valid": {
+        "rows": 1000,
+        "position_sha256": "fe228574f21418297e907c8e61bf589d691bb8aeae023b51fa9e5fbe00f0ac0d",
+        "first_cutoff": "2011-05-09T00:00:00",
+        "last_cutoff": "2011-06-06T00:00:00",
+        "last_label_end": "2011-06-13T00:00:00",
+        "customers": 200
+      }
+    },
+    {
+      "fold": 1,
+      "train": {
+        "rows": 6200,
+        "position_sha256": "3ee26a08274e5dad679e3219d16acf8b9579a353c63454a4ed216d7bffc4fed0",
+        "first_cutoff": "2011-01-03T00:00:00",
+        "last_cutoff": "2011-08-01T00:00:00",
+        "last_label_end": "2011-08-08T00:00:00",
+        "customers": 200
+      },
+      "test": {
+        "rows": 1600,
+        "position_sha256": "258b6c81d01b3cdb783c098b238de63e649882f74fdf3ec19e95a84576900ea9",
+        "first_cutoff": "2011-08-15T00:00:00",
+        "last_cutoff": "2011-10-03T00:00:00",
+        "last_label_end": "2011-10-10T00:00:00",
+        "customers": 200
+      },
+      "inner_train": {
+        "rows": 4600,
+        "position_sha256": "1be50e6f9f7120c9ca05e339058f9cd9c5e62f0f5fcfb733c07d0b4f2e6788b6",
+        "first_cutoff": "2011-01-03T00:00:00",
+        "last_cutoff": "2011-06-06T00:00:00",
+        "last_label_end": "2011-06-13T00:00:00",
+        "customers": 200
+      },
+      "inner_valid": {
+        "rows": 1400,
+        "position_sha256": "68cdf6e15d1f2b5b1b0c062d9ef519aff0d388dbe34a1c3d195accb12baa02b0",
+        "first_cutoff": "2011-06-20T00:00:00",
+        "last_cutoff": "2011-08-01T00:00:00",
+        "last_label_end": "2011-08-08T00:00:00",
+        "customers": 200
+      }
+    },
+    {
+      "fold": 2,
+      "train": {
+        "rows": 7800,
+        "position_sha256": "1ddf7e5643f59719627f7c4779d7d1c85882464aaef05460172c0196f50468d5",
+        "first_cutoff": "2011-01-03T00:00:00",
+        "last_cutoff": "2011-09-26T00:00:00",
+        "last_label_end": "2011-10-03T00:00:00",
+        "customers": 200
+      },
+      "test": {
+        "rows": 1600,
+        "position_sha256": "30a7c7002aca6be7cb441c1f848f848a4fe6d50aa5bad333ec0928edfd7fe769",
+        "first_cutoff": "2011-10-10T00:00:00",
+        "last_cutoff": "2011-11-28T00:00:00",
+        "last_label_end": "2011-12-05T00:00:00",
+        "customers": 200
+      },
+      "inner_train": {
+        "rows": 5800,
+        "position_sha256": "91a0d8c7769420fa45928ae50caf5ea97907bac16f1bf78fc961b084fa0e8e30",
+        "first_cutoff": "2011-01-03T00:00:00",
+        "last_cutoff": "2011-07-18T00:00:00",
+        "last_label_end": "2011-07-25T00:00:00",
+        "customers": 200
+      },
+      "inner_valid": {
+        "rows": 1800,
+        "position_sha256": "15132c3fafa36e0220728d6d7d3c63dabf3bdb29f623af7ea68f67e9b0bc6ac7",
+        "first_cutoff": "2011-08-01T00:00:00",
+        "last_cutoff": "2011-09-26T00:00:00",
+        "last_label_end": "2011-10-03T00:00:00",
+        "customers": 200
+      }
+    }
+  ]
+}

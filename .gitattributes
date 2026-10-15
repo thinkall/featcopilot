@@ -1,0 +1,7 @@
+# Benchmark provenance and archive reconstruction depend on exact file bytes.
+benchmarks/families.json -text
+benchmarks/suites/*.json -text
+benchmarks/tabular-results/** -text
+# Historical exposure proofs also checksum these legacy cache descriptors.
+benchmarks/simple_models/SIMPLE_MODELS_CACHE.json -text whitespace=cr-at-eol
+benchmarks/simple_models/SIMPLE_MODELS_CACHE_LLM.json -text whitespace=cr-at-eol

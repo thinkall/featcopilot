@@ -1,0 +1,185 @@
+{
+  "protocol": {
+    "protocol": "regression_train_only_numerical_audit_v1",
+    "declared_on": "2026-10-08",
+    "role": "retrospective_training_diagnostic",
+    "not_confirmation": true,
+    "not_scored_evaluation": true,
+    "dataset": "computer-hardware-performance",
+    "family_id": "computer-hardware-performance",
+    "seeds": [
+      42,
+      137,
+      2029
+    ],
+    "official_folds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "expected_jobs": 30,
+    "learner": "linear",
+    "component_methods": [
+      "baseline-robust",
+      "featcopilot-frequency-aligned-robust"
+    ],
+    "selection_policy": "All ten official hardware outer-TRAIN partitions at all three previously measured seeds, without selecting only failed folds.",
+    "worker_data_boundary": "Controller extracts original outer-TRAIN X/y in original order and writes a checksummed training-only payload. Workers never receive outer-test rows, labels, predictions or test scores.",
+    "algorithm_policy": "Reproduce unchanged canonical 75/25 inner tuning and final full-TRAIN refit for raw and aligned FE. No changed estimator parameters, feature operators, subset gates, mixture weights or selection rules.",
+    "reference_parity_fields": [
+      "parameters",
+      "inner_losses",
+      "outer_feature_names_sha256",
+      "n_output_features"
+    ],
+    "diagnostics": [
+      "Winning inner and final ordered selected feature-name identities and turnover",
+      "Scaled training design singular values, numerical rank and conditioning status",
+      "Ridge coefficient L2/Linf norms",
+      "In-sample training residual RMSE, explicitly not an evaluation score",
+      "Train-fitted numeric clipping boundary counts with constant/undefined cases separate"
+    ],
+    "diagnostic_limitations": [
+      "Retrospective dataset choice follows exposed failures; this is not independently selected evidence.",
+      "Conditioning and coefficient magnitude alone do not establish causality or a safe selection threshold.",
+      "Training residual RMSE is not outer-test performance and must not be combined with benchmark scores.",
+      "Training min/max saturation counts describe observed boundaries; they are not future clipping or extrapolation rates.",
+      "No clinical, generalization, no-harm, default-promotion or SOTA claim is authorized."
+    ],
+    "reference_runs": {
+      "42": "2026-10-08-regression-average-development",
+      "137": "2026-10-08-regression-policy-replication",
+      "2029": "2026-10-08-regression-policy-replication"
+    },
+    "threads": 8,
+    "case_timeout_seconds": 180,
+    "memory_limit_mb": 4096,
+    "combined_ceiling_seconds": 3600,
+    "publication_reserve_seconds": 120,
+    "max_candidates": 1000,
+    "max_added_features": 50,
+    "stability_repeats": 3,
+    "numeric_clip_quantiles": [
+      0.0,
+      1.0
+    ],
+    "categorical_encoding": "one_hot",
+    "target_transform": "identity",
+    "prior_cycle_used_hours": 69.96195105372222,
+    "cycle_total_hours": 72,
+    "new_llm_calls": 0
+  },
+  "source_sha256": "3ec8d9c2f8bfc02dd70ce35774d1a1cfd1dc43adca2cc793e3f8c5550a39b535",
+  "versions": {
+    "featcopilot": "0.4.0",
+    "numpy": "2.4.4",
+    "pandas": "2.3.3",
+    "scipy": "1.17.1",
+    "scikit-learn": "1.7.2",
+    "lightgbm": "4.6.0",
+    "catboost": "1.2.10",
+    "xgboost": "3.3.0",
+    "openfe": "0.0.12",
+    "autofeat": "2.1.1",
+    "openml": "0.15.1",
+    "psutil": "7.2.2",
+    "joblib": "1.3.2",
+    "threadpoolctl": "3.6.0",
+    "pydantic": "2.13.3",
+    "sympy": "1.14.0",
+    "numba": "0.65.1"
+  },
+  "reference_artifact_sha256": {
+    "2026-10-08-regression-average-development": {
+      "results.json": "aaf0788d1d8b14ed366e53e273c0b7294d0e05cd7af92f2000257e4432fb8009",
+      "controller.json": "bf618631121d33e87bb9259ce94c94b7a0742c3c64065b948802a7cff66477c7",
+      "protocol.json": "929009d90b5019b25f4fb8d261e669fda29dd99cecd9b392fd72e3d5f5155c1d"
+    },
+    "2026-10-08-regression-policy-replication": {
+      "results.json": "7f315b3f190fa6c542f86a70b72f4a0d0f37f0e45096254d5ee130123d5fd582",
+      "controller.json": "ecd1d6ab9e1e1638d6686160bd0f55a7f947994004d2bd365a35dc05345c7646",
+      "protocol.json": "66374f399b619e086e75e93e959e8b295abc1927a3008d3396c0a64638295c2d"
+    }
+  },
+  "training_preparation": {
+    "0": {
+      "training_rows": 188,
+      "original_train_indices_sha256": "da28234c4b39c03b5cba0144de6ddef19a9cb1d160ac8fd6d38d14222d0fb44c",
+      "original_split_sha256": "faa43fe41ad3d7b9820fd5b16df4f0860b3d66896221330658cb367acb497e2d",
+      "prepared_sha256": "2cfa56b180f3b308a96c16a860ba5a416a5379ef65dcd6f54984aa8ceedc0182"
+    },
+    "1": {
+      "training_rows": 188,
+      "original_train_indices_sha256": "344e63a3ff44d41b2f56888d842a1da7f93eed51ac4c4ee2801f9cce2cde3dd0",
+      "original_split_sha256": "9239c74213eb9bf1dea2f2529a770828bba78a0d7791b2434f9a8f9ecafeaed0",
+      "prepared_sha256": "dd1884c1d482f422e922b75d08d213bd1f1b2f769a15044e61af758ec51addd2"
+    },
+    "2": {
+      "training_rows": 188,
+      "original_train_indices_sha256": "c55cf7540c9a0a838dbac5c081886e7612f1f2e79b7e96fd4214b6174d47dd27",
+      "original_split_sha256": "3542641a4fe3fd937d4a5f41824f075954ba65ac7a2c3b39655d6ac0cfb5229f",
+      "prepared_sha256": "38690a9aa030df246626c6fabbe001fef1e516b44d10da1fea490cd093b13753"
+    },
+    "3": {
+      "training_rows": 188,
+      "original_train_indices_sha256": "02b5c51cc560c4861d9222c1848f8d9a24d72ed9d14da2e76260ce466745a11c",
+      "original_split_sha256": "9aa2dc08263e0b70549764d017bd147e74d15a4c6e635f8798dc8b114b9b1230",
+      "prepared_sha256": "fdf655bb9cdb5f2fe7f1a6e3b6f2038f947ce2849d389d2dd934c9937cbee8ef"
+    },
+    "4": {
+      "training_rows": 188,
+      "original_train_indices_sha256": "1964bba3f3b13ff2544dd2a6a8487c7133d6b5aab7ff7c72dddad791a3eeee08",
+      "original_split_sha256": "9baed45e9fb4f070f05ff0a388ad07321abd46cf7040deeb8c2deff47ef01afd",
+      "prepared_sha256": "28c322f586d839bcd4141576a547d608d2ca36ff6e29a27c437987ca54bde3d9"
+    },
+    "5": {
+      "training_rows": 188,
+      "original_train_indices_sha256": "9f7acdf07b964ce253c823b7bbb6419396796a3d6611c6e66e8a7e6d9ddabad3",
+      "original_split_sha256": "898fdd6cca3dfa368739d5f0780e8d5064d0463bc4d2b82c608ed8de659b11ea",
+      "prepared_sha256": "26ecb5dc577b8e3a732df1acb8fbf02a6ecc2745b0d7bc3aa89157dc241c7a1a"
+    },
+    "6": {
+      "training_rows": 188,
+      "original_train_indices_sha256": "f18286bc1d4386a47b378bc06d2b76585d854ff0998c80f06ea90fb71694a3dd",
+      "original_split_sha256": "c3f03e3e7a3bb5791f7e98d377d94c766128fd31f25d9c13ca92054081739d4f",
+      "prepared_sha256": "e12b77728450262ad9ff944711f1d9c6919ba40fff9ab54b2b8ba0f68c7f9b49"
+    },
+    "7": {
+      "training_rows": 188,
+      "original_train_indices_sha256": "8232559f7f97fdbf85b8b473ee595de27ca1f9df34bd2b0eca8ef31c81bd550a",
+      "original_split_sha256": "7aea34e5a08b86f32daa7e6f66594123a58daf34df845e1a39c82fcf0dbfed33",
+      "prepared_sha256": "cd2b580482690fe3d516f79c36269092d7cc45db899a63ae22bb2a2303a03eb5"
+    },
+    "8": {
+      "training_rows": 188,
+      "original_train_indices_sha256": "97ace5583dce553a3c538a7b84ee4e21070834d7e4fb0bfddf8a5cd307a19b38",
+      "original_split_sha256": "8bf7781a1ebdd057f2e9fe6a0550b704365e83ef63eb76c9b0cddfb1f8c0363b",
+      "prepared_sha256": "f2aa910f46308041b1f2b4ab440551df83db9084ebb5fccb6125020a5c7c332c"
+    },
+    "9": {
+      "training_rows": 189,
+      "original_train_indices_sha256": "68b745c30f7e4071eba132c53945a4432f1c625f15f50fa160d680fd130f4443",
+      "original_split_sha256": "9a13f698469586b6c70f8ae77671f24e2e5d09cecace4b5550af4072609fa35d",
+      "prepared_sha256": "6a05c0c8b4a95034cc4aae30e057160f1c94d96e88b7c69ad6bfeee3f753d2ea"
+    }
+  },
+  "protocol_sha256": "8b2a037bbb83e854fb6cd8d933c141e4b632e4db76bc0e02dfcaf495ee863d91",
+  "runner_sha256": "88a95eb13e4f203470a7903718b024862278091026d9a2973fbe6ef40c679698",
+  "run_id": "460c112a06b33cb3edd7557881f8fd8c19b118394b3ebb2e07e2061cd3518ace",
+  "started_utc": "2026-10-08T10:04:39.137548+00:00",
+  "source_archive_sha256": "0f4b4b509dd39f64f0b3ecbd475588d9210d7c527e6fa8b29a0e2a4d76ddadfa",
+  "source_sha256_at_finish": "3ec8d9c2f8bfc02dd70ce35774d1a1cfd1dc43adca2cc793e3f8c5550a39b535",
+  "source_changed": false,
+  "active_seconds": 1318.9156124000438,
+  "budget_overshoot_seconds": 0.0,
+  "finished_utc": "2026-10-08T10:26:02.878557+00:00",
+  "completed_jobs": 30,
+  "successful_jobs": 30
+}

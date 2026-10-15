@@ -4,10 +4,12 @@ Provides integration with Feast (https://feast.dev) for saving
 and retrieving engineered features.
 """
 
+from __future__ import annotations
+
 import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
 from pydantic import Field
@@ -15,6 +17,9 @@ from pydantic import Field
 from featcopilot.core.feature import FeatureSet, FeatureType
 from featcopilot.stores.base import BaseFeatureStore, FeatureStoreConfig
 from featcopilot.utils.logger import get_logger
+
+if TYPE_CHECKING:
+    from feast import Entity, FeatureStore, FeatureView, ValueType
 
 logger = get_logger(__name__)
 
@@ -120,11 +125,11 @@ class FeastFeatureStore(BaseFeatureStore):
         )
         super().__init__(config)
         self.config: FeastConfig = config
-        self._feast_store = None
+        self._feast_store: FeatureStore | None = None
         self._repo_path: Path | None = None
         self._temp_dir: tempfile.TemporaryDirectory | None = None
-        self._feature_views: dict[str, Any] = {}
-        self._entities: dict[str, Any] = {}
+        self._feature_views: dict[str, FeatureView] = {}
+        self._entities: dict[str, Entity] = {}
 
     def initialize(self) -> None:
         """
@@ -159,6 +164,20 @@ class FeastFeatureStore(BaseFeatureStore):
         self._is_initialized = True
 
         logger.info(f"Feast feature store initialized at {self._repo_path}")
+
+    def _get_store(self) -> FeatureStore:
+        """Get the initialized optional Feast client."""
+        if not self._is_initialized:
+            self.initialize()
+        if self._feast_store is None:
+            raise RuntimeError("Feast store initialization did not create a client")
+        return self._feast_store
+
+    def _get_repo_path(self) -> Path:
+        """Get the repository path after initialization."""
+        if self._repo_path is None:
+            raise RuntimeError("Feast repository path is not initialized")
+        return self._repo_path
 
     def _create_feast_config(self, config_path: Path) -> None:
         """Create Feast feature_store.yaml configuration."""
@@ -199,7 +218,7 @@ entity_key_serialization_version: 2
         else:
             return f"  type: {self.config.offline_store_type}"
 
-    def _infer_feast_dtype(self, pandas_dtype: str, feat_type: FeatureType | None = None) -> str:
+    def _infer_feast_dtype(self, pandas_dtype: str, feat_type: FeatureType | None = None) -> ValueType:
         """Infer Feast data type from pandas dtype."""
         from feast import ValueType
 
@@ -261,8 +280,7 @@ entity_key_serialization_version: 2
             if col not in df.columns:
                 raise ValueError(f"Entity column '{col}' not found in DataFrame")
 
-        if not self._is_initialized:
-            self.initialize()
+        store = self._get_store()
 
         from feast import Entity, FeatureView, Field, FileSource
         from feast.types import Float64, Int64, String
@@ -277,7 +295,7 @@ entity_key_serialization_version: 2
             df[ts_col] = datetime.now()
 
         # Save DataFrame to parquet (use absolute path for Feast compatibility)
-        data_path = (self._repo_path / f"{feature_view_name}.parquet").resolve()
+        data_path = (self._get_repo_path() / f"{feature_view_name}.parquet").resolve()
         df.to_parquet(data_path, index=False)
 
         # Create entities
@@ -345,7 +363,7 @@ entity_key_serialization_version: 2
         self._feature_views[feature_view_name] = feature_view
 
         # Apply to Feast
-        self._feast_store.apply([*entities, feature_view])
+        store.apply([*entities, feature_view])
 
         logger.info(f"Saved {len(feature_cols)} features to Feast view '{feature_view_name}'")
 
@@ -359,7 +377,7 @@ entity_key_serialization_version: 2
             end_date = datetime.now()
             start_date = end_date - timedelta(days=self.config.ttl_days)
 
-            self._feast_store.materialize(
+            self._get_store().materialize(
                 start_date=start_date,
                 end_date=end_date,
                 feature_views=[feature_view_name],
@@ -395,8 +413,7 @@ entity_key_serialization_version: 2
         DataFrame
             DataFrame with requested features
         """
-        if not self._is_initialized:
-            self.initialize()
+        store = self._get_store()
 
         # Format feature references
         feature_refs = [f"{feature_view_name}:{name}" for name in feature_names]
@@ -404,18 +421,18 @@ entity_key_serialization_version: 2
         if online:
             # Get from online store
             entity_rows = entity_df.to_dict("records")
-            result = self._feast_store.get_online_features(
+            result = store.get_online_features(
                 features=feature_refs,
                 entity_rows=entity_rows,
             )
             return pd.DataFrame(result.to_dict())
         else:
             # Get from offline store (historical)
-            result = self._feast_store.get_historical_features(
+            historical_result = store.get_historical_features(
                 entity_df=entity_df,
                 features=feature_refs,
             )
-            return result.to_df()
+            return historical_result.to_df()
 
     def get_online_features(
         self,
@@ -440,8 +457,7 @@ entity_key_serialization_version: 2
         dict
             Features as dictionary
         """
-        if not self._is_initialized:
-            self.initialize()
+        store = self._get_store()
 
         if isinstance(entity_dict, pd.DataFrame):
             entity_rows = entity_dict.to_dict("records")
@@ -453,11 +469,11 @@ entity_key_serialization_version: 2
 
         feature_refs = [f"{feature_view_name}:{name}" for name in feature_names]
 
-        result = self._feast_store.get_online_features(
+        result = store.get_online_features(
             features=feature_refs,
             entity_rows=entity_rows,
         )
-        return result.to_dict()
+        return dict(result.to_dict())
 
     def push_features(
         self,
@@ -474,27 +490,24 @@ entity_key_serialization_version: 2
         feature_view_name : str
             Name of the feature view
         """
-        if not self._is_initialized:
-            self.initialize()
+        store = self._get_store()
 
-        self._feast_store.push(feature_view_name, df)
+        store.push(feature_view_name, df)
         logger.info(f"Pushed {len(df)} rows to '{feature_view_name}'")
 
     def list_feature_views(self) -> list[str]:
         """List all feature views in the store."""
-        if not self._is_initialized:
-            self.initialize()
+        store = self._get_store()
 
-        views = self._feast_store.list_feature_views()
+        views = store.list_feature_views()
         return [v.name for v in views]
 
     def get_feature_view_schema(self, feature_view_name: str) -> dict[str, Any]:
         """Get schema/metadata for a feature view."""
-        if not self._is_initialized:
-            self.initialize()
+        store = self._get_store()
 
         try:
-            fv = self._feast_store.get_feature_view(feature_view_name)
+            fv = store.get_feature_view(feature_view_name)
             return {
                 "name": fv.name,
                 "entities": list(fv.entities),
@@ -509,16 +522,15 @@ entity_key_serialization_version: 2
 
     def delete_feature_view(self, feature_view_name: str) -> bool:
         """Delete a feature view."""
-        if not self._is_initialized:
-            self.initialize()
+        store = self._get_store()
 
         try:
-            self._feast_store.get_feature_view(feature_view_name)  # Verify it exists
-            self._feast_store.delete_feature_view(feature_view_name)
+            store.get_feature_view(feature_view_name)  # Verify it exists
+            store.delete_feature_view(feature_view_name)
             self._feature_views.pop(feature_view_name, None)
 
             # Clean up data file
-            data_path = self._repo_path / f"{feature_view_name}.parquet"
+            data_path = self._get_repo_path() / f"{feature_view_name}.parquet"
             if data_path.exists():
                 data_path.unlink()
 

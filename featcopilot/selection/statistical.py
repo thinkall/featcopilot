@@ -5,6 +5,7 @@ import pandas as pd
 
 from featcopilot.core.base import BaseSelector
 from featcopilot.utils.logger import get_logger
+from featcopilot.utils.task import prepare_target, validate_task
 
 logger = get_logger(__name__)
 
@@ -27,6 +28,10 @@ class StatisticalSelector(BaseSelector):
         Maximum features to select
     threshold : float, optional
         Minimum score threshold
+    task : {'auto', 'classification', 'regression'}, default='auto'
+        Supervised task. Auto preserves the historical target heuristic.
+        Explicit regression requires finite numeric targets; classification
+        requires discrete labels. Chi-square does not support explicit regression.
 
     Examples
     --------
@@ -42,16 +47,19 @@ class StatisticalSelector(BaseSelector):
         max_features: int | None = None,
         threshold: float | None = None,
         verbose: bool = False,
+        task: str = "auto",
         **kwargs,
     ):
         super().__init__(**kwargs)
         if method not in self.METHODS:
             raise ValueError(f"Method must be one of {self.METHODS}")
+        validate_task(task)
 
         self.method = method
         self.max_features = max_features
         self.threshold = threshold
         self.verbose = verbose
+        self.task = task
 
     def fit(self, X: pd.DataFrame | np.ndarray, y: pd.Series | np.ndarray, **kwargs) -> "StatisticalSelector":
         """
@@ -68,8 +76,11 @@ class StatisticalSelector(BaseSelector):
         -------
         self : StatisticalSelector
         """
+        self._is_fitted = False
+        self._feature_scores = {}
+        self._selected_features = []
         X = self._validate_input(X)
-        y = np.array(y)
+        y = prepare_target(y, self.task)
 
         # Compute scores based on method
         if self.method == "mutual_info":
@@ -110,6 +121,8 @@ class StatisticalSelector(BaseSelector):
             or y.dtype.kind in ("U", "S")
             or (pd.api.types.is_integer_dtype(y_encoded) and unique_y <= len(y_encoded) * 0.1)
         )
+        if self.task != "auto":
+            is_classification = self.task == "classification"
 
         # Filter to numeric columns only
         numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
@@ -147,6 +160,8 @@ class StatisticalSelector(BaseSelector):
             or y.dtype.kind in ("U", "S")
             or (pd.api.types.is_integer_dtype(y_encoded) and unique_y <= len(y_encoded) * 0.1)
         )
+        if self.task != "auto":
+            is_classification = self.task == "classification"
 
         # Filter to numeric columns only
         numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
@@ -162,7 +177,7 @@ class StatisticalSelector(BaseSelector):
                 numeric_scores, _ = f_regression(X_numeric, y_encoded)
 
             # Handle NaN scores
-            numeric_scores = np.nan_to_num(numeric_scores, 0)
+            numeric_scores = np.nan_to_num(numeric_scores, nan=0.0)
 
             for i, idx in enumerate(numeric_indices):
                 scores[idx] = numeric_scores[i]
@@ -173,6 +188,9 @@ class StatisticalSelector(BaseSelector):
         """Compute chi-square scores (for non-negative features)."""
         from sklearn.feature_selection import chi2
         from sklearn.preprocessing import LabelEncoder
+
+        if self.task == "regression":
+            raise ValueError("method='chi2' requires classification; use 'mutual_info' or 'f_test' for regression")
 
         # Encode string labels if needed
         y_encoded = y
@@ -193,8 +211,11 @@ class StatisticalSelector(BaseSelector):
 
             try:
                 numeric_scores, _ = chi2(X_positive, y_encoded)
-                numeric_scores = np.nan_to_num(numeric_scores, 0)
-            except Exception:
+                numeric_scores = np.nan_to_num(numeric_scores, nan=0.0)
+            except Exception as exc:
+                if self.task != "auto":
+                    raise
+                logger.warning(f"Chi-square scoring failed; falling back to mutual information: {exc}")
                 # Fallback to mutual information
                 return self._compute_mutual_info(X, y)
 
@@ -215,14 +236,25 @@ class StatisticalSelector(BaseSelector):
 
         numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
         scores = np.zeros(len(X.columns))
+        target_values = np.asarray(y_encoded, dtype=float)
 
         for col in numeric_cols:
             try:
                 idx = X.columns.get_loc(col)
-                corr = np.abs(np.corrcoef(X[col].fillna(0).values, y_encoded)[0, 1])
-                scores[idx] = corr if not np.isnan(corr) else 0
-            except Exception:
-                pass
+                feature_values = pd.to_numeric(X[col], errors="coerce").to_numpy(dtype=float)
+                valid = np.isfinite(feature_values) & np.isfinite(target_values)
+                if valid.sum() < 2:
+                    continue
+
+                feature_valid = feature_values[valid]
+                target_valid = target_values[valid]
+                if np.ptp(feature_valid) == 0 or np.ptp(target_valid) == 0:
+                    continue
+
+                corr = float(np.abs(np.corrcoef(feature_valid, target_valid)[0, 1]))
+                scores[idx] = corr if np.isfinite(corr) else 0.0
+            except (TypeError, ValueError, FloatingPointError) as exc:
+                logger.warning(f"Could not compute correlation for feature {col!r}: {exc}")
 
         return scores
 

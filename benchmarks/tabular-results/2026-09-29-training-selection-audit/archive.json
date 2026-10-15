@@ -1,0 +1,7 @@
+{
+  "format": "concatenated-gzip-v1",
+  "parts": [
+    "results.json.gz.part1"
+  ],
+  "uncompressed_sha256": "6603fe38a3b5958c51310df46f0df6f195994fed5bc8d133dad2b53273a56f09"
+}

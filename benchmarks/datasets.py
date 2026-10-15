@@ -2737,7 +2737,10 @@ def load_dataset(name: str, **kwargs) -> tuple:
         raise ValueError(f"Unknown dataset: '{name}'. Available: {available[:10]}... ({len(available)} total)")
 
     loader, _category, _desc = DATASET_REGISTRY[name]
-    return loader(**kwargs) if kwargs else loader()
+    result = loader(**kwargs) if kwargs else loader()
+    if not isinstance(result, tuple) or len(result) != 4:
+        raise TypeError(f"Dataset loader {name!r} must return (X, y, task_type, dataset_name)")
+    return result
 
 
 def load_datasets(category: str | None = None, **kwargs) -> list[tuple]:

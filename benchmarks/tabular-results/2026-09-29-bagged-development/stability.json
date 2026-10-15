@@ -1,0 +1,901 @@
+{
+  "definition": "Mean pairwise outer-fold selected-name Jaccard; empty/empty=1; population count standard deviation.",
+  "families": [
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "lightgbm",
+      "dataset": "uci-adult",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.3333333333333333,
+      "selected_count_std": 0.4714045207910317,
+      "counts": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "lightgbm",
+      "dataset": "uci-adult",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.03333333333333333,
+      "selected_count_std": 22.484562605386735,
+      "counts": [
+        5,
+        0,
+        50
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "lightgbm",
+      "dataset": "uci-banknote-authentication",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.5363247863247863,
+      "selected_count_std": 11.785113019775793,
+      "counts": [
+        50,
+        25,
+        25
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "lightgbm",
+      "dataset": "uci-banknote-authentication",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.4669446966894248,
+      "selected_count_std": 11.785113019775793,
+      "counts": [
+        50,
+        25,
+        25
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "lightgbm",
+      "dataset": "uci-chronic-kidney-disease",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.06896551724137931,
+      "selected_count_std": 10.274023338281628,
+      "counts": [
+        10,
+        0,
+        25
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "lightgbm",
+      "dataset": "uci-chronic-kidney-disease",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.037037037037037035,
+      "selected_count_std": 21.602468994692867,
+      "counts": [
+        50,
+        0,
+        10
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "lightgbm",
+      "dataset": "uci-dry-bean",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.2222222222222222,
+      "selected_count_std": 2.3570226039551585,
+      "counts": [
+        5,
+        0,
+        5
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "lightgbm",
+      "dataset": "uci-dry-bean",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.3333333333333333,
+      "selected_count_std": 0.4714045207910317,
+      "counts": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "lightgbm",
+      "dataset": "uci-german-credit",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.3333333333333333,
+      "selected_count_std": 0.4714045207910317,
+      "counts": [
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "lightgbm",
+      "dataset": "uci-german-credit",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.3333333333333333,
+      "selected_count_std": 0.4714045207910317,
+      "counts": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "lightgbm",
+      "dataset": "uci-online-shoppers",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.3333333333333333,
+      "selected_count_std": 0.4714045207910317,
+      "counts": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "lightgbm",
+      "dataset": "uci-online-shoppers",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.06666666666666667,
+      "selected_count_std": 2.160246899469287,
+      "counts": [
+        1,
+        0,
+        5
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "lightgbm",
+      "dataset": "uci-spambase",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.3333333333333333,
+      "selected_count_std": 0.4714045207910317,
+      "counts": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "lightgbm",
+      "dataset": "uci-spambase",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.3333333333333333,
+      "selected_count_std": 0.4714045207910317,
+      "counts": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "lightgbm",
+      "dataset": "uci-steel-faults",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.3333333333333333,
+      "selected_count_std": 0.4714045207910317,
+      "counts": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "lightgbm",
+      "dataset": "uci-steel-faults",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 1.0,
+      "selected_count_std": 0.0,
+      "counts": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "lightgbm",
+      "dataset": "uci-wisconsin-diagnostic",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.3333333333333333,
+      "selected_count_std": 2.3570226039551585,
+      "counts": [
+        0,
+        5,
+        0
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "lightgbm",
+      "dataset": "uci-wisconsin-diagnostic",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.3333333333333333,
+      "selected_count_std": 4.714045207910317,
+      "counts": [
+        0,
+        10,
+        0
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "linear",
+      "dataset": "uci-adult",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.05037037037037037,
+      "selected_count_std": 10.498677165349081,
+      "counts": [
+        25,
+        1,
+        5
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "linear",
+      "dataset": "uci-adult",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.11212861212861212,
+      "selected_count_std": 9.428090415820634,
+      "counts": [
+        25,
+        5,
+        5
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "linear",
+      "dataset": "uci-banknote-authentication",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.6172839506172839,
+      "selected_count_std": 11.785113019775793,
+      "counts": [
+        50,
+        25,
+        25
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "linear",
+      "dataset": "uci-banknote-authentication",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.26666666666666666,
+      "selected_count_std": 18.408935028645434,
+      "counts": [
+        50,
+        5,
+        25
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "linear",
+      "dataset": "uci-chronic-kidney-disease",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 1.0,
+      "selected_count_std": 0.0,
+      "counts": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "linear",
+      "dataset": "uci-chronic-kidney-disease",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.4,
+      "selected_count_std": 4.242640687119285,
+      "counts": [
+        10,
+        1,
+        1
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "linear",
+      "dataset": "uci-dry-bean",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.1794871794871795,
+      "selected_count_std": 4.714045207910317,
+      "counts": [
+        0,
+        10,
+        10
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "linear",
+      "dataset": "uci-dry-bean",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.2222222222222222,
+      "selected_count_std": 2.3570226039551585,
+      "counts": [
+        0,
+        5,
+        5
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "linear",
+      "dataset": "uci-german-credit",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 1.0,
+      "selected_count_std": 0.0,
+      "counts": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "linear",
+      "dataset": "uci-german-credit",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 1.0,
+      "selected_count_std": 0.0,
+      "counts": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "linear",
+      "dataset": "uci-online-shoppers",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.2761904761904762,
+      "selected_count_std": 1.8856180831641267,
+      "counts": [
+        1,
+        5,
+        5
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "linear",
+      "dataset": "uci-online-shoppers",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.4666666666666667,
+      "selected_count_std": 1.8856180831641267,
+      "counts": [
+        1,
+        5,
+        1
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "linear",
+      "dataset": "uci-spambase",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.26774590757641603,
+      "selected_count_std": 11.785113019775793,
+      "counts": [
+        50,
+        50,
+        25
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "linear",
+      "dataset": "uci-spambase",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.3057136083451873,
+      "selected_count_std": 11.785113019775793,
+      "counts": [
+        50,
+        50,
+        25
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "linear",
+      "dataset": "uci-steel-faults",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.35555555555555557,
+      "selected_count_std": 1.8856180831641267,
+      "counts": [
+        1,
+        5,
+        5
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "linear",
+      "dataset": "uci-steel-faults",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.39285714285714285,
+      "selected_count_std": 2.3570226039551585,
+      "counts": [
+        5,
+        5,
+        10
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "linear",
+      "dataset": "uci-wisconsin-diagnostic",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.0,
+      "selected_count_std": 4.4969125210773475,
+      "counts": [
+        1,
+        0,
+        10
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "classification",
+      "learner": "linear",
+      "dataset": "uci-wisconsin-diagnostic",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.3333333333333333,
+      "selected_count_std": 4.714045207910317,
+      "counts": [
+        0,
+        0,
+        10
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "lightgbm",
+      "dataset": "houses",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.7446633825944171,
+      "selected_count_std": 0.0,
+      "counts": [
+        25,
+        25,
+        25
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "lightgbm",
+      "dataset": "houses",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.6666666666666666,
+      "selected_count_std": 0.0,
+      "counts": [
+        25,
+        25,
+        25
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "lightgbm",
+      "dataset": "uci-auto-mpg",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.006666666666666667,
+      "selected_count_std": 23.338094752285727,
+      "counts": [
+        50,
+        1,
+        0
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "lightgbm",
+      "dataset": "uci-auto-mpg",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.06666666666666667,
+      "selected_count_std": 10.801234497346433,
+      "counts": [
+        25,
+        5,
+        0
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "lightgbm",
+      "dataset": "uci-combined-cycle-power",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.5393939393939394,
+      "selected_count_std": 7.0710678118654755,
+      "counts": [
+        10,
+        10,
+        25
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "lightgbm",
+      "dataset": "uci-combined-cycle-power",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.4530190239867659,
+      "selected_count_std": 7.0710678118654755,
+      "counts": [
+        10,
+        25,
+        25
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "lightgbm",
+      "dataset": "uci-concrete-strength",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.03333333333333333,
+      "selected_count_std": 22.484562605386735,
+      "counts": [
+        50,
+        5,
+        0
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "lightgbm",
+      "dataset": "uci-concrete-strength",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.24743589743589745,
+      "selected_count_std": 18.408935028645434,
+      "counts": [
+        50,
+        5,
+        25
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "lightgbm",
+      "dataset": "uci-real-estate-sindian",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.3333333333333333,
+      "selected_count_std": 2.3570226039551585,
+      "counts": [
+        5,
+        0,
+        0
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "lightgbm",
+      "dataset": "uci-real-estate-sindian",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.0,
+      "selected_count_std": 1.8856180831641267,
+      "counts": [
+        5,
+        1,
+        1
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "lightgbm",
+      "dataset": "wine",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.14962962962962964,
+      "selected_count_std": 20.00555478416488,
+      "counts": [
+        50,
+        1,
+        25
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "lightgbm",
+      "dataset": "wine",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.1412121212121212,
+      "selected_count_std": 20.00555478416488,
+      "counts": [
+        50,
+        1,
+        25
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "linear",
+      "dataset": "houses",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.24992001243235337,
+      "selected_count_std": 11.785113019775793,
+      "counts": [
+        25,
+        25,
+        50
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "linear",
+      "dataset": "houses",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.26427532603771786,
+      "selected_count_std": 11.785113019775793,
+      "counts": [
+        25,
+        25,
+        50
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "linear",
+      "dataset": "uci-auto-mpg",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.128640541848089,
+      "selected_count_std": 20.138409955990955,
+      "counts": [
+        50,
+        10,
+        5
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "linear",
+      "dataset": "uci-auto-mpg",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.18703703703703703,
+      "selected_count_std": 9.428090415820634,
+      "counts": [
+        25,
+        5,
+        5
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "linear",
+      "dataset": "uci-combined-cycle-power",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.8751455858374098,
+      "selected_count_std": 0.0,
+      "counts": [
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "linear",
+      "dataset": "uci-combined-cycle-power",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.8751455858374098,
+      "selected_count_std": 0.0,
+      "counts": [
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "linear",
+      "dataset": "uci-concrete-strength",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.45502645502645506,
+      "selected_count_std": 0.0,
+      "counts": [
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "linear",
+      "dataset": "uci-concrete-strength",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.4486844966297021,
+      "selected_count_std": 0.0,
+      "counts": [
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "linear",
+      "dataset": "uci-real-estate-sindian",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.21794871794871795,
+      "selected_count_std": 2.3570226039551585,
+      "counts": [
+        10,
+        10,
+        5
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "linear",
+      "dataset": "uci-real-estate-sindian",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.2774725274725275,
+      "selected_count_std": 2.3570226039551585,
+      "counts": [
+        5,
+        10,
+        10
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "linear",
+      "dataset": "wine",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.2767042245879849,
+      "selected_count_std": 11.785113019775793,
+      "counts": [
+        50,
+        25,
+        50
+      ]
+    },
+    {
+      "source": "real_world",
+      "task": "regression",
+      "learner": "linear",
+      "dataset": "wine",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.37655502309177785,
+      "selected_count_std": 0.0,
+      "counts": [
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "source": "simulation",
+      "task": "regression",
+      "learner": "lightgbm",
+      "dataset": "uci-energy-efficiency",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.2585034013605442,
+      "selected_count_std": 20.51016008388688,
+      "counts": [
+        43,
+        0,
+        44
+      ]
+    },
+    {
+      "source": "simulation",
+      "task": "regression",
+      "learner": "lightgbm",
+      "dataset": "uci-energy-efficiency",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.25146198830409355,
+      "selected_count_std": 23.570226039551585,
+      "counts": [
+        50,
+        0,
+        50
+      ]
+    },
+    {
+      "source": "simulation",
+      "task": "regression",
+      "learner": "linear",
+      "dataset": "uci-energy-efficiency",
+      "method": "featcopilot-bagged-aligned-robust",
+      "jaccard": 0.5279347143753923,
+      "selected_count_std": 11.785113019775793,
+      "counts": [
+        50,
+        25,
+        50
+      ]
+    },
+    {
+      "source": "simulation",
+      "task": "regression",
+      "learner": "linear",
+      "dataset": "uci-energy-efficiency",
+      "method": "featcopilot-frequency-aligned-robust",
+      "jaccard": 0.8194070080862533,
+      "selected_count_std": 0.0,
+      "counts": [
+        50,
+        50,
+        50
+      ]
+    }
+  ]
+}

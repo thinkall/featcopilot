@@ -1,0 +1,5 @@
+{
+  "exit_code": 0,
+  "scope": "Interpreter startup, frozen-reference verification, all four preparations, canonical workers and initial publication archives; final analysis verification is separate.",
+  "whole_process_seconds": 20046.4278946
+}

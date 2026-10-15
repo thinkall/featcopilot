@@ -1,0 +1,18 @@
+{
+  "format": "concatenated-gzip-v1",
+  "parts": [
+    "results.json.gz.part1",
+    "results.json.gz.part2",
+    "results.json.gz.part3",
+    "results.json.gz.part4",
+    "results.json.gz.part5",
+    "results.json.gz.part6",
+    "results.json.gz.part7",
+    "results.json.gz.part8",
+    "results.json.gz.part9",
+    "results.json.gz.part10",
+    "results.json.gz.part11",
+    "results.json.gz.part12"
+  ],
+  "uncompressed_sha256": "f5791625b0eeff6bd9727dd9fc1e3db08be58ff2c6f810d48dba095da81c2944"
+}

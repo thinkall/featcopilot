@@ -1,0 +1,2570 @@
+{
+  "schema_version": 1,
+  "name": "cycle2-robust-confirmation-release-20260930",
+  "family_registry": "../families.json",
+  "purpose": "Append-only metadata release evidence; no payloads, reserved outcomes or real model runs.",
+  "authorization": {
+    "timestamp": "2026-09-30T08:50:06.297+08:00",
+    "selected_family_ids": [
+      "facebook-cosmetics-posts",
+      "differentiated-thyroid-recurrence",
+      "assam-medical-entrance",
+      "personality-drug-consumption"
+    ],
+    "executable_suite": "cycle2_robust_confirmation_20260930.json",
+    "conditions_satisfied": "Primary rights/schema/timing and recorded exposure audited; exact robust names registered with q0/1 final learner support; validate_config and bind_preregistration pass before release."
+  },
+  "metadata_reviews": [
+    {
+      "family_id": "facebook-cosmetics-posts",
+      "provider": "uci",
+      "source_policy": "iid",
+      "experiment_policy": {
+        "policy": "iid",
+        "folds": 3
+      },
+      "target": "Total Interactions",
+      "drop_columns": [
+        "Lifetime Post Total Reach",
+        "Lifetime Post Total Impressions",
+        "Lifetime Engaged Users",
+        "Lifetime Post Consumers",
+        "Lifetime Post Consumptions",
+        "Lifetime Post Impressions by people who have liked your Page",
+        "Lifetime Post reach by people who like your Page",
+        "Lifetime People who have liked your Page and engaged with your post",
+        "comment",
+        "like",
+        "share"
+      ],
+      "categorical_columns": [
+        "Type",
+        "Category",
+        "Paid"
+      ],
+      "string_predictors_declared_categorical": [],
+      "reported_rows": 500,
+      "reported_minimum_class_count": null,
+      "expected_three_fold_minimum_test_count": null,
+      "payload_checked": false,
+      "primary_evidence": [
+        {
+          "kind": "primary_schema",
+          "url": "https://archive.ics.uci.edu/api/dataset?id=368",
+          "sha256": "495b11fd903a364ffb4f923b90ee133f6240ee73109b6cf12b7302f6de7f92a4"
+        },
+        {
+          "kind": "primary_rights",
+          "url": "https://archive.ics.uci.edu/dataset/368/facebook+metrics",
+          "sha256": "2cde9f5288853db46958792bc5cd7cc1a6968b9bece9471e64f27ccd965b6b89"
+        }
+      ],
+      "iid_timing_review": {
+        "observation_unit_basis": "Primary metadata identifies rows as distinct posts from one known cosmetics page during2014. IID here is explicitly within that fixed page/year post-record population, conditional on the supplied calendar attributes; not independent brands, unseen pages or forward-time generalization.",
+        "target_timing": "All eleven other post-impact/engagement columns are excluded, including comment/like/share components of the target. No precise cumulative-observation horizon is invented.",
+        "not_claimed": "Unseen subjects/entities beyond the declared row unit, future-period transfer, causal effects or individual deployment."
+      }
+    },
+    {
+      "family_id": "differentiated-thyroid-recurrence",
+      "provider": "openml_task",
+      "source_policy": "official",
+      "experiment_policy": {
+        "policy": "iid",
+        "folds": 3
+      },
+      "target": "Recurred",
+      "drop_columns": [
+        "Response",
+        "Risk"
+      ],
+      "categorical_columns": [
+        "Gender",
+        "Smoking",
+        "Hx Smoking",
+        "Hx Radiothreapy",
+        "Thyroid Function",
+        "Physical Examination",
+        "Adenopathy",
+        "Pathology",
+        "Focality",
+        "T",
+        "N",
+        "M",
+        "Stage"
+      ],
+      "string_predictors_declared_categorical": [
+        "Gender",
+        "Smoking",
+        "Hx Smoking",
+        "Hx Radiothreapy",
+        "Thyroid Function",
+        "Physical Examination",
+        "Adenopathy",
+        "Pathology",
+        "Focality",
+        "T",
+        "N",
+        "M",
+        "Stage"
+      ],
+      "reported_rows": 383,
+      "reported_minimum_class_count": 108,
+      "expected_three_fold_minimum_test_count": 36,
+      "payload_checked": false,
+      "primary_evidence": [
+        {
+          "kind": "primary_schema",
+          "url": "https://archive.ics.uci.edu/api/dataset?id=915",
+          "sha256": "5f914b819a58761e8ddbe1ba49cd134e19e7d8472613ecd108872d7d5acd2664"
+        },
+        {
+          "kind": "primary_rights",
+          "url": "https://archive.ics.uci.edu/dataset/915/differentiated+thyroid+cancer+recurrence",
+          "sha256": "06ee50ce30f22f8e295e37dc56b1db9cf97769ea29d0e9d60dc80718599283f4"
+        },
+        {
+          "kind": "official_features",
+          "url": "https://www.openml.org/api/v1/json/data/features/46605",
+          "sha256": "76e2e55798725b1b3381dbef0109ddffa511fa5560d3c904111139e3a82c3fe4"
+        },
+        {
+          "kind": "official_task",
+          "url": "https://www.openml.org/api/v1/json/task/363410",
+          "sha256": "e75843d3e53030c5f73fd81e8cb10c9d116f36a356ab640226456f3fd7fd697f"
+        },
+        {
+          "kind": "official_qualities",
+          "url": "https://www.openml.org/api/v1/json/data/qualities/46605",
+          "sha256": "516313828a3d79dbf245a43f8a823510069824ee35aeb9a85f28514aae37daa7"
+        }
+      ],
+      "iid_timing_review": {
+        "observation_unit_basis": "Primary metadata explicitly identifies instances as individual patients, each followed for at least10years. Patient-record IID evaluation within the source cohort is declared, not longitudinal visits treated as independent rows or future-era transportability.",
+        "target_timing": "A long follow-up cohort does not establish a common baseline for every predictor. Do not call this prospective prognosis; post-treatment response and risk-summary fields are excluded before any models.",
+        "not_claimed": "Unseen subjects/entities beyond the declared row unit, future-period transfer, causal effects or individual deployment."
+      }
+    },
+    {
+      "family_id": "assam-medical-entrance",
+      "provider": "openml_task",
+      "source_policy": "official",
+      "experiment_policy": {
+        "policy": "iid",
+        "folds": 3
+      },
+      "target": "Performance",
+      "drop_columns": [
+        "time"
+      ],
+      "categorical_columns": [
+        "Gender",
+        "Caste",
+        "coaching",
+        "Class_ten_education",
+        "twelve_education",
+        "medium",
+        "Class_X_Percentage",
+        "Class_XII_Percentage",
+        "Father_occupation",
+        "Mother_occupation"
+      ],
+      "string_predictors_declared_categorical": [
+        "Gender",
+        "Caste",
+        "coaching",
+        "Class_ten_education",
+        "twelve_education",
+        "medium",
+        "Class_X_Percentage",
+        "Class_XII_Percentage",
+        "Father_occupation",
+        "Mother_occupation"
+      ],
+      "reported_rows": 666,
+      "reported_minimum_class_count": 101,
+      "expected_three_fold_minimum_test_count": 33,
+      "payload_checked": false,
+      "primary_evidence": [
+        {
+          "kind": "primary_schema",
+          "url": "https://archive.ics.uci.edu/api/dataset?id=582",
+          "sha256": "1e5c10e6f64bc90829b9b4841d05eb395340a6f607760db569205206b8fefd14"
+        },
+        {
+          "kind": "primary_rights",
+          "url": "https://archive.ics.uci.edu/dataset/582/student+performance+on+an+entrance+examination",
+          "sha256": "fe8c69ac33ebca6136ce4fa36e5c53d3158dcfe171c462a7eb0900756bfc394e"
+        },
+        {
+          "kind": "official_features",
+          "url": "https://www.openml.org/api/v1/json/data/features/46584",
+          "sha256": "edc039edd2beab6d94c7a8d87b69a703f899f27d0fe4360d806648ea9b20c08b"
+        },
+        {
+          "kind": "official_task",
+          "url": "https://www.openml.org/api/v1/json/task/363402",
+          "sha256": "6fbab3f467724e4ebcde1d1245ba89a34227176e62a1b0388b66dac669852547"
+        },
+        {
+          "kind": "official_qualities",
+          "url": "https://www.openml.org/api/v1/json/data/qualities/46584",
+          "sha256": "47b87138005edef8ef1224f089b3273f0cd8ed0642dfb44c40970364e9381166"
+        }
+      ],
+      "iid_timing_review": {
+        "observation_unit_basis": "Primary metadata defines the unit as a candidate in one medical entrance examination/year, not multiple longitudinal exams or repeated course-evaluation rows. The qualified-only source population and its selection bias remain explicit.",
+        "target_timing": "The ambiguous time field is excluded. Class X/XII results precede the entrance examination; the selected endpoint is the later native Performance annotation. No thresholds or new outcome classes are invented.",
+        "not_claimed": "Unseen subjects/entities beyond the declared row unit, future-period transfer, causal effects or individual deployment."
+      }
+    },
+    {
+      "family_id": "personality-drug-consumption",
+      "provider": "uci",
+      "source_policy": "iid",
+      "experiment_policy": {
+        "policy": "iid",
+        "folds": 3
+      },
+      "target": "cannabis",
+      "drop_columns": [
+        "id",
+        "alcohol",
+        "amphet",
+        "amyl",
+        "benzos",
+        "caff",
+        "choc",
+        "coke",
+        "crack",
+        "ecstasy",
+        "heroin",
+        "ketamine",
+        "legalh",
+        "lsd",
+        "meth",
+        "mushrooms",
+        "nicotine",
+        "semer",
+        "vsa"
+      ],
+      "categorical_columns": [
+        "gender",
+        "country",
+        "ethnicity"
+      ],
+      "string_predictors_declared_categorical": [],
+      "reported_rows": 1885,
+      "reported_minimum_class_count": 140,
+      "expected_three_fold_minimum_test_count": 46,
+      "payload_checked": false,
+      "primary_evidence": [
+        {
+          "kind": "primary_schema",
+          "url": "https://archive.ics.uci.edu/api/dataset?id=373",
+          "sha256": "f969924b97dde9b1c1fe88dcef52c2c210d8a970e8d3c45f8ccf0e27d36dd6b7"
+        },
+        {
+          "kind": "primary_rights",
+          "url": "https://archive.ics.uci.edu/dataset/373/drug+consumption+quantified",
+          "sha256": "efa13f4934924587a0e42496c3e7e20914cb0c023c7b2ab7d1a0e01eaa326dc7"
+        }
+      ],
+      "iid_timing_review": {
+        "observation_unit_basis": "The primary description states one record for each of1885 respondents with one questionnaire; the native id is reference-only and cannot identify participants. IID is respondent-level within this sampled survey, not a population-representative or causal claim.",
+        "target_timing": "Personality/demographic measurements and historical consumption are from the survey. Associations are retrospective, not a claim that the measurements predate reported drug use. Quantified source values are retained; gender/country/ethnicity remain nominal by their documented meanings.",
+        "not_claimed": "Unseen subjects/entities beyond the declared row unit, future-period transfer, causal effects or individual deployment."
+      }
+    }
+  ],
+  "personal_data_and_timing_exclusions": {
+    "facebook-cosmetics-posts": {
+      "removed": [
+        "Lifetime Post Total Reach",
+        "Lifetime Post Total Impressions",
+        "Lifetime Engaged Users",
+        "Lifetime Post Consumers",
+        "Lifetime Post Consumptions",
+        "Lifetime Post Impressions by people who have liked your Page",
+        "Lifetime Post reach by people who like your Page",
+        "Lifetime People who have liked your Page and engaged with your post",
+        "comment",
+        "like",
+        "share"
+      ],
+      "retained": [
+        "Page total likes",
+        "Type",
+        "Category",
+        "Post Month",
+        "Post Weekday",
+        "Post Hour",
+        "Paid"
+      ],
+      "meaning": "Seven source-documented prepublication descriptors only; all11 measured impact/engagement fields including target components excluded. No post text, account/user identifier or raw interaction records are present in this reviewed table.",
+      "limits": "Response is later cumulative recorded engagement with no uniform follow-up horizon. IID is within the fixed page/year record population; no unseen-brand or forward-time claim."
+    },
+    "differentiated-thyroid-recurrence": {
+      "removed": [
+        "Response",
+        "Risk"
+      ],
+      "sensitive_fields_retained": "Age, gender, smoking and clinical/pathology/staging fields, as originally approved. No direct patient ID is in the reviewed schema; combinations are not claimed anonymous merely because ID is absent.",
+      "meaning": "Retrospective patient-record recurrence annotation. Remaining after-treatment or clinical-stage information is not claimed known at an initial prognostic baseline.",
+      "limits": "No fixed prediction horizon, clinical recommendations, causal claims or transportability across care settings."
+    },
+    "assam-medical-entrance": {
+      "removed": [
+        "time"
+      ],
+      "sensitive_fields_retained": "Gender, Caste, schooling/coaching and parental occupations remain in the originally approved academic research schema.",
+      "meaning": "Class X/XII performance predictors precede the later native entrance-exam Performance label; no future admission decision or benefit allocation is authorized.",
+      "limits": "Qualified-only candidate population from one exam/year; not a general admissions model or causal use of caste/gender."
+    },
+    "personality-drug-consumption": {
+      "removed": [
+        "id",
+        "alcohol",
+        "amphet",
+        "amyl",
+        "benzos",
+        "caff",
+        "choc",
+        "coke",
+        "crack",
+        "ecstasy",
+        "heroin",
+        "ketamine",
+        "legalh",
+        "lsd",
+        "meth",
+        "mushrooms",
+        "nicotine",
+        "semer",
+        "vsa"
+      ],
+      "sensitive_fields_retained": "Quantified demographic/personality survey features; no retained record id. Cannabis recency is the sole outcome.",
+      "meaning": "Retrospective self-report. Every other substance outcome, including fictitious Semeron, is excluded rather than used to infer the label.",
+      "limits": "No prospective drug-use prediction, diagnosis, individual profiling, reidentification or hosted-row transfer."
+    }
+  },
+  "exposure_check": {
+    "ledger": "benchmarks/.cache/exposure.sqlite",
+    "access": "SQLite URI mode=ro; no writes",
+    "query": "SELECT family_id,run_id,role,created_at FROM exposure ORDER BY family_id,run_id",
+    "row_count": 176,
+    "logical_rows_sha256": "47423caaaf3b92bf598094963a182df2ff01490ae783211cf70fc01a9fba3cff",
+    "rows": [
+      {
+        "family_id": "adult",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:27.167775+00:00"
+      },
+      {
+        "family_id": "adult",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.215108+00:00"
+      },
+      {
+        "family_id": "adult",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:06.294233+00:00"
+      },
+      {
+        "family_id": "adult",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.023155+00:00"
+      },
+      {
+        "family_id": "adult",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:00.887532+00:00"
+      },
+      {
+        "family_id": "adult",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.185731+00:00"
+      },
+      {
+        "family_id": "adult",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:40.271692+00:00"
+      },
+      {
+        "family_id": "adult",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:12.461344+00:00"
+      },
+      {
+        "family_id": "adult",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:48.246107+00:00"
+      },
+      {
+        "family_id": "australian-credit-approval",
+        "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+        "role": "confirmation",
+        "created_at": "2026-09-28T01:38:21.590842+00:00"
+      },
+      {
+        "family_id": "auto-mpg",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.964361+00:00"
+      },
+      {
+        "family_id": "auto-mpg",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.773312+00:00"
+      },
+      {
+        "family_id": "auto-mpg",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.545256+00:00"
+      },
+      {
+        "family_id": "auto-mpg",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.687185+00:00"
+      },
+      {
+        "family_id": "auto-mpg",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.939782+00:00"
+      },
+      {
+        "family_id": "auto-mpg",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.714926+00:00"
+      },
+      {
+        "family_id": "auto-mpg",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:13.223339+00:00"
+      },
+      {
+        "family_id": "auto-mpg",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:49.014516+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.838852+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.408141+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.174076+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.558957+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.819951+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.375998+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "b75e94b7e74c0b95fd38a4f237ac3a31b3e9894166a27c70f85423fd4982fefd",
+        "role": "development",
+        "created_at": "2026-09-24T02:04:38.040577+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:13.100572+00:00"
+      },
+      {
+        "family_id": "banknote-authentication",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:48.892234+00:00"
+      },
+      {
+        "family_id": "california-housing",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:28.301260+00:00"
+      },
+      {
+        "family_id": "california-housing",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:57.141987+00:00"
+      },
+      {
+        "family_id": "california-housing",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.873285+00:00"
+      },
+      {
+        "family_id": "california-housing",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.640344+00:00"
+      },
+      {
+        "family_id": "california-housing",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.869282+00:00"
+      },
+      {
+        "family_id": "california-housing",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:40.116662+00:00"
+      },
+      {
+        "family_id": "california-housing",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.809720+00:00"
+      },
+      {
+        "family_id": "california-housing",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:13.396378+00:00"
+      },
+      {
+        "family_id": "california-housing",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:49.190989+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:57.015859+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.692856+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.454403+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.735052+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.987584+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.643585+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "b75e94b7e74c0b95fd38a4f237ac3a31b3e9894166a27c70f85423fd4982fefd",
+        "role": "development",
+        "created_at": "2026-09-24T02:04:38.130018+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:13.269857+00:00"
+      },
+      {
+        "family_id": "chronic-kidney-disease",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:49.062194+00:00"
+      },
+      {
+        "family_id": "combined-cycle-power",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.893944+00:00"
+      },
+      {
+        "family_id": "combined-cycle-power",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.510790+00:00"
+      },
+      {
+        "family_id": "combined-cycle-power",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.274612+00:00"
+      },
+      {
+        "family_id": "combined-cycle-power",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.613922+00:00"
+      },
+      {
+        "family_id": "combined-cycle-power",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.873295+00:00"
+      },
+      {
+        "family_id": "combined-cycle-power",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.471117+00:00"
+      },
+      {
+        "family_id": "combined-cycle-power",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:13.153186+00:00"
+      },
+      {
+        "family_id": "combined-cycle-power",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:48.945925+00:00"
+      },
+      {
+        "family_id": "communities-crime",
+        "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+        "role": "confirmation",
+        "created_at": "2026-09-28T01:38:21.049218+00:00"
+      },
+      {
+        "family_id": "computer-hardware-performance",
+        "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+        "role": "confirmation",
+        "created_at": "2026-09-28T01:38:21.210509+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "12de448078245ea61495c6e442b7f81d9e6907edbc0c15b553448004ba9ebda3",
+        "role": "development",
+        "created_at": "2026-09-20T08:52:54.881121+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:28.075106+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.636965+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:06.960342+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.711007+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.340820+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "7bf61e7cf3f0c03687d21bfb072f1054f9df4d9f1ee8f1c2969fa45b8d357bad",
+        "role": "development",
+        "created_at": "2026-09-17T06:51:56.088888+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.617367+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:40.938193+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "a5c05d09c00626a942851f70d680f8a121cb0c6f5840c2e8a7715db4cdbf30ec",
+        "role": "development",
+        "created_at": "2026-09-17T07:23:12.228125+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:12.896687+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:48.682243+00:00"
+      },
+      {
+        "family_id": "concrete-strength",
+        "run_id": "f1113556c7db1d80a1b00fd28f006515bf715c8a9af875df1d517ea2f03af17b",
+        "role": "development",
+        "created_at": "2026-09-17T07:19:07.259838+00:00"
+      },
+      {
+        "family_id": "contraceptive-method-choice",
+        "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+        "role": "confirmation",
+        "created_at": "2026-09-28T01:38:22.149323+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:27.795029+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.524043+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:06.749764+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.497413+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.211800+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "7bf61e7cf3f0c03687d21bfb072f1054f9df4d9f1ee8f1c2969fa45b8d357bad",
+        "role": "development",
+        "created_at": "2026-09-17T06:51:56.059433+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.499043+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:40.728420+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:12.780967+00:00"
+      },
+      {
+        "family_id": "dry-bean",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:48.563764+00:00"
+      },
+      {
+        "family_id": "energy-efficiency",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:28.176485+00:00"
+      },
+      {
+        "family_id": "energy-efficiency",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.671956+00:00"
+      },
+      {
+        "family_id": "energy-efficiency",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.037263+00:00"
+      },
+      {
+        "family_id": "energy-efficiency",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.789596+00:00"
+      },
+      {
+        "family_id": "energy-efficiency",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.379160+00:00"
+      },
+      {
+        "family_id": "energy-efficiency",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.652188+00:00"
+      },
+      {
+        "family_id": "energy-efficiency",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.016341+00:00"
+      },
+      {
+        "family_id": "energy-efficiency",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:12.930733+00:00"
+      },
+      {
+        "family_id": "energy-efficiency",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:48.716880+00:00"
+      },
+      {
+        "family_id": "forest-fires-montesinho",
+        "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+        "role": "confirmation",
+        "created_at": "2026-09-28T01:38:21.294153+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:27.349190+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.274808+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:06.405585+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.137742+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:00.953898+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "7bf61e7cf3f0c03687d21bfb072f1054f9df4d9f1ee8f1c2969fa45b8d357bad",
+        "role": "development",
+        "created_at": "2026-09-17T06:51:55.935561+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.245561+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:40.382260+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "b75e94b7e74c0b95fd38a4f237ac3a31b3e9894166a27c70f85423fd4982fefd",
+        "role": "development",
+        "created_at": "2026-09-24T02:04:37.962546+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:12.522152+00:00"
+      },
+      {
+        "family_id": "german-credit",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:48.310127+00:00"
+      },
+      {
+        "family_id": "heart-failure-clinical",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:43.781894+00:00"
+      },
+      {
+        "family_id": "indian-liver-patients",
+        "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+        "role": "confirmation",
+        "created_at": "2026-09-28T01:38:21.766292+00:00"
+      },
+      {
+        "family_id": "infrared-oral-temperature",
+        "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+        "role": "confirmation",
+        "created_at": "2026-09-28T01:38:21.402442+00:00"
+      },
+      {
+        "family_id": "ionosphere-radar",
+        "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+        "role": "confirmation",
+        "created_at": "2026-09-28T01:38:21.936026+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "12de448078245ea61495c6e442b7f81d9e6907edbc0c15b553448004ba9ebda3",
+        "role": "development",
+        "created_at": "2026-09-20T08:52:54.782252+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:27.523781+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.375148+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:06.549907+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.289717+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.057339+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.345665+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:40.531157+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:12.622127+00:00"
+      },
+      {
+        "family_id": "online-shoppers",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:48.412439+00:00"
+      },
+      {
+        "family_id": "real-estate-sindian",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.931755+00:00"
+      },
+      {
+        "family_id": "real-estate-sindian",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.597870+00:00"
+      },
+      {
+        "family_id": "real-estate-sindian",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.364126+00:00"
+      },
+      {
+        "family_id": "real-estate-sindian",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.654644+00:00"
+      },
+      {
+        "family_id": "real-estate-sindian",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.909251+00:00"
+      },
+      {
+        "family_id": "real-estate-sindian",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.554520+00:00"
+      },
+      {
+        "family_id": "real-estate-sindian",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:13.193460+00:00"
+      },
+      {
+        "family_id": "real-estate-sindian",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:48.983932+00:00"
+      },
+      {
+        "family_id": "seoul-bike",
+        "run_id": "37b08f9e0d0c0482c06a31727c593d3c24c7a69a859891dfcd592ca31617ea1c",
+        "role": "development",
+        "created_at": "2026-09-20T10:09:12.059098+00:00"
+      },
+      {
+        "family_id": "spambase",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.791233+00:00"
+      },
+      {
+        "family_id": "spambase",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.306397+00:00"
+      },
+      {
+        "family_id": "spambase",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.068277+00:00"
+      },
+      {
+        "family_id": "spambase",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.504887+00:00"
+      },
+      {
+        "family_id": "spambase",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.772491+00:00"
+      },
+      {
+        "family_id": "spambase",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.274182+00:00"
+      },
+      {
+        "family_id": "spambase",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:13.049823+00:00"
+      },
+      {
+        "family_id": "spambase",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:48.841265+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:27.990273+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:56.598695+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:06.873999+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.625443+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.293853+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:39.576893+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:40.855516+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:12.857768+00:00"
+      },
+      {
+        "family_id": "steel-faults",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:48.641715+00:00"
+      },
+      {
+        "family_id": "student-performance",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:45.017687+00:00"
+      },
+      {
+        "family_id": "tabarena-46904",
+        "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+        "role": "confirmation",
+        "created_at": "2026-09-20T10:14:48.511575+00:00"
+      },
+      {
+        "family_id": "tabarena-46907",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:46.824642+00:00"
+      },
+      {
+        "family_id": "tabarena-46913",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:45.259114+00:00"
+      },
+      {
+        "family_id": "tabarena-46916",
+        "run_id": "fbfa458ef79c8fae0ed44da73fcb1ada89468d3c7ea5b7aadc12d3ecda99c581",
+        "role": "confirmation",
+        "created_at": "2026-09-20T21:42:54.263178+00:00"
+      },
+      {
+        "family_id": "tabarena-46930",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:47.358962+00:00"
+      },
+      {
+        "family_id": "tabarena-46937",
+        "run_id": "fbfa458ef79c8fae0ed44da73fcb1ada89468d3c7ea5b7aadc12d3ecda99c581",
+        "role": "confirmation",
+        "created_at": "2026-09-20T21:42:57.385423+00:00"
+      },
+      {
+        "family_id": "tabarena-46941",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:44.921408+00:00"
+      },
+      {
+        "family_id": "tabarena-46949",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:55.236359+00:00"
+      },
+      {
+        "family_id": "tabarena-46950",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:56.541063+00:00"
+      },
+      {
+        "family_id": "tabarena-46954",
+        "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+        "role": "confirmation",
+        "created_at": "2026-09-20T10:15:10.740949+00:00"
+      },
+      {
+        "family_id": "tabarena-46956",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:57.110080+00:00"
+      },
+      {
+        "family_id": "tabarena-46958",
+        "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+        "role": "confirmation",
+        "created_at": "2026-09-20T10:15:15.995406+00:00"
+      },
+      {
+        "family_id": "tabarena-46960",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:46.410078+00:00"
+      },
+      {
+        "family_id": "tabarena-46962",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:58.913018+00:00"
+      },
+      {
+        "family_id": "tabarena-46963",
+        "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+        "role": "confirmation",
+        "created_at": "2026-09-23T20:56:47.689276+00:00"
+      },
+      {
+        "family_id": "tabarena-46969",
+        "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+        "role": "confirmation",
+        "created_at": "2026-09-20T10:15:24.009024+00:00"
+      },
+      {
+        "family_id": "vertebral-column",
+        "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+        "role": "confirmation",
+        "created_at": "2026-09-28T01:38:22.292973+00:00"
+      },
+      {
+        "family_id": "wall-following-robot",
+        "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+        "role": "confirmation",
+        "created_at": "2026-09-28T01:38:22.785467+00:00"
+      },
+      {
+        "family_id": "wine-quality",
+        "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+        "role": "development",
+        "created_at": "2026-09-17T07:38:28.244611+00:00"
+      },
+      {
+        "family_id": "wine-quality",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:57.100621+00:00"
+      },
+      {
+        "family_id": "wine-quality",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.816767+00:00"
+      },
+      {
+        "family_id": "wine-quality",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:42.587084+00:00"
+      },
+      {
+        "family_id": "wine-quality",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.824897+00:00"
+      },
+      {
+        "family_id": "wine-quality",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:40.074131+00:00"
+      },
+      {
+        "family_id": "wine-quality",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.756758+00:00"
+      },
+      {
+        "family_id": "wine-quality",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:13.355445+00:00"
+      },
+      {
+        "family_id": "wine-quality",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:49.148966+00:00"
+      },
+      {
+        "family_id": "wisconsin-diagnostic",
+        "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+        "role": "development",
+        "created_at": "2026-09-28T19:59:57.069462+00:00"
+      },
+      {
+        "family_id": "wisconsin-diagnostic",
+        "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+        "role": "development",
+        "created_at": "2026-09-22T10:10:07.134785+00:00"
+      },
+      {
+        "family_id": "wisconsin-diagnostic",
+        "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+        "role": "development",
+        "created_at": "2026-09-23T10:25:41.892925+00:00"
+      },
+      {
+        "family_id": "wisconsin-diagnostic",
+        "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+        "role": "development",
+        "created_at": "2026-09-29T18:59:01.791228+00:00"
+      },
+      {
+        "family_id": "wisconsin-diagnostic",
+        "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+        "role": "development",
+        "created_at": "2026-09-29T11:30:40.042228+00:00"
+      },
+      {
+        "family_id": "wisconsin-diagnostic",
+        "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+        "role": "development",
+        "created_at": "2026-09-22T22:34:41.110435+00:00"
+      },
+      {
+        "family_id": "wisconsin-diagnostic",
+        "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+        "role": "development",
+        "created_at": "2026-09-24T04:06:13.321931+00:00"
+      },
+      {
+        "family_id": "wisconsin-diagnostic",
+        "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+        "role": "development",
+        "created_at": "2026-09-29T02:35:49.116535+00:00"
+      }
+    ],
+    "selected_family_matches": [],
+    "historical_cache_identity_checks": [
+      {
+        "path": "benchmarks/simple_models/SIMPLE_MODELS_CACHE.json",
+        "sha256": "77d41190780af6414ba81c8c29bfa95baaccc6af209154aaccbebd660d599141",
+        "dataset_identifiers": [
+          "abalone",
+          "albert",
+          "allstate_claims",
+          "bank_marketing",
+          "bike_sharing",
+          "bike_sharing_inria",
+          "bioresponse",
+          "brazilian_houses",
+          "california",
+          "complex_classification",
+          "complex_regression",
+          "covertype",
+          "covertype_cat",
+          "cpu_act",
+          "credit",
+          "credit_card_fraud",
+          "credit_risk",
+          "customer_churn",
+          "customer_support",
+          "delays_zurich",
+          "diabetes",
+          "diamonds",
+          "ecommerce_product",
+          "electricity",
+          "elevators",
+          "employee_attrition",
+          "eye_movements",
+          "fake_news",
+          "higgs",
+          "house_prices",
+          "house_sales",
+          "houses",
+          "insurance_claims",
+          "interaction_classification",
+          "jannis",
+          "job_postings",
+          "magic_telescope",
+          "medical_diagnosis",
+          "medical_notes",
+          "mercedes_benz",
+          "miami_housing",
+          "miniboone",
+          "news_classification",
+          "nonlinear_regression",
+          "nyc_taxi",
+          "pairwise_product_regression",
+          "polynomial_classification",
+          "polynomial_regression",
+          "product_reviews",
+          "quadratic_heavy_regression",
+          "ratio_regression",
+          "retail_demand",
+          "road_safety",
+          "sensor_anomaly",
+          "server_latency",
+          "spotify_tracks",
+          "sqrt_log_regression",
+          "superconduct",
+          "titanic",
+          "triple_interaction_regression",
+          "wine_quality",
+          "xor_classification",
+          "xor_regression"
+        ]
+      },
+      {
+        "path": "benchmarks/simple_models/SIMPLE_MODELS_CACHE_LLM.json",
+        "sha256": "f34f28b7d96bbac7eaa1173649629d90997997094dda329209c0ac40add4d538",
+        "dataset_identifiers": [
+          "abalone",
+          "albert",
+          "allstate_claims",
+          "bank_marketing",
+          "bike_sharing",
+          "bike_sharing_inria",
+          "bioresponse",
+          "brazilian_houses",
+          "california",
+          "complex_classification",
+          "complex_regression",
+          "covertype",
+          "covertype_cat",
+          "cpu_act",
+          "credit",
+          "credit_card_fraud",
+          "credit_risk",
+          "customer_churn",
+          "customer_support",
+          "delays_zurich",
+          "diabetes",
+          "diamonds",
+          "ecommerce_product",
+          "electricity",
+          "elevators",
+          "employee_attrition",
+          "eye_movements",
+          "fake_news",
+          "higgs",
+          "house_prices",
+          "house_sales",
+          "houses",
+          "insurance_claims",
+          "interaction_classification",
+          "jannis",
+          "job_postings",
+          "magic_telescope",
+          "medical_diagnosis",
+          "medical_notes",
+          "mercedes_benz",
+          "miami_housing",
+          "miniboone",
+          "news_classification",
+          "nonlinear_regression",
+          "nyc_taxi",
+          "pairwise_product_regression",
+          "polynomial_classification",
+          "polynomial_regression",
+          "product_reviews",
+          "quadratic_heavy_regression",
+          "ratio_regression",
+          "retail_demand",
+          "road_safety",
+          "sensor_anomaly",
+          "server_latency",
+          "spotify_tracks",
+          "sqrt_log_regression",
+          "superconduct",
+          "titanic",
+          "triple_interaction_regression",
+          "wine_quality",
+          "xor_classification",
+          "xor_regression"
+        ]
+      }
+    ],
+    "prior_canonical_audit": "cycle2_origin_reservation_audit_20260929.json#/exposure_audit",
+    "scope": "All selected original-family identities have no recorded project model use; absence from public pretraining or unrecorded external work is not asserted."
+  },
+  "protocol_summary": {
+    "families": 4,
+    "classification_families": 3,
+    "binary_families": 1,
+    "multiclass_families": 2,
+    "regression_families": 1,
+    "iid_splits": 12,
+    "cells": 192,
+    "seed": 2028,
+    "sample_seed": 2026,
+    "methods": [
+      "baseline-robust",
+      "featcopilot-frequency-aligned-robust",
+      "openfe-inductive-native-robust",
+      "autofeat-native-robust"
+    ],
+    "learners": [
+      "linear",
+      "lightgbm",
+      "catboost",
+      "xgboost"
+    ],
+    "class_margins": {
+      "min_total": 30,
+      "min_outer_train": 20,
+      "min_outer_test": 10
+    },
+    "source_official_dimensions_unchanged": true,
+    "official_fold_reproduction_claim": false,
+    "final_clip_quantiles": [
+      0.0,
+      1.0
+    ],
+    "reference_generation_clipping": false,
+    "native_output_feature_cap": null,
+    "seconds_ceiling": 43200
+  },
+  "method_semantics_documentation_only": {
+    "interpretation": "Documentation only, not a method-overrides runtime schema. Exact registered method names and frozen source/config/manifest identities bind the actual implementations.",
+    "all_final_learners": {
+      "numeric_clip_quantiles": [
+        0.0,
+        1.0
+      ],
+      "policy": "Same training-support NumericQuantileClipper for all four method final learner pipelines. Numeric bounds are fitted on the current training partition only, before downstream imputation/scaling/native handling; no held-out quantiles."
+    },
+    "baseline-robust": {
+      "feature_generation": false,
+      "description": "Reviewed raw predictors with the same final training-support clipping as all three engineered methods."
+    },
+    "featcopilot-frequency-aligned-robust": {
+      "candidate_set": "extended",
+      "include_frequency": true,
+      "screening": "importance",
+      "importance_resamples": 1,
+      "selection_rule": "paired_gain",
+      "numeric_clip_quantiles": [
+        0.0,
+        1.0
+      ],
+      "aligned_search": "Existing aligned path evaluates FE+learner pipelines for each of the same three settings, and refits selected features using the chosen training-only setting. Not a permanently middle-setting selector.",
+      "not_used": [
+        "five-bag importance aggregation",
+        "plan-gated discovery/refit protocol",
+        "new candidate operators",
+        "dataset/learner-specific method switches"
+      ]
+    },
+    "openfe-inductive-native-robust": {
+      "generation_adapter": "openfe-inductive",
+      "native_package": "OpenFE0.0.12",
+      "generation": "Identical existing first-order full numeric/categorical candidate generation, training-only inductive DAG transforms and native selected width. Existing training-median generation preparation; original numeric missingness restored afterward.",
+      "max_added_features": null,
+      "clipping_scope": "final_matched_learner_only",
+      "internal_ranking_clipping": false,
+      "not_claimed": "No clipping retrofit into OpenFE internal ranking, no stock transductive transform, no new operator filtering."
+    },
+    "autofeat-native-robust": {
+      "generation_adapter": "autofeat-native",
+      "native_package": "AutoFeat2.1.1",
+      "generation": "Identical existing native generation/selection and train-fitted one-hot adapter; original numeric missingness restored before the matched final learner.",
+      "feateng_steps": 2,
+      "featsel_runs": 5,
+      "max_gb": null,
+      "max_added_features": null,
+      "clipping_scope": "final_matched_learner_only",
+      "internal_ranking_clipping": false
+    },
+    "catboost_representation_caveat": "The existing candidate-selection CatBoost estimator drops cat_features and is evaluated through numeric candidate-engine preprocessing. Final CatBoost retains native categorical handling with the shared final clipper. This known mismatch is disclosed; no runtime rewrite or categorical conversion experiment.",
+    "failure_policy": "No native-reference error-to-baseline substitution, narrowing of feature output, retries with easier algorithms, or outcome-based dataset replacement."
+  },
+  "claim_gate": {
+    "candidate": "featcopilot-frequency-aligned-robust",
+    "raw_control": "baseline-robust",
+    "strong_references": [
+      "openfe-inductive-native-robust",
+      "autofeat-native-robust"
+    ],
+    "primary_family_ids": [
+      "facebook-cosmetics-posts",
+      "differentiated-thyroid-recurrence",
+      "assam-medical-entrance",
+      "personality-drug-consumption"
+    ],
+    "classification_family_ids": [
+      "differentiated-thyroid-recurrence",
+      "assam-medical-entrance",
+      "personality-drug-consumption"
+    ],
+    "regression_family_ids": [
+      "facebook-cosmetics-posts"
+    ],
+    "family_loss": "Arithmetic mean primary loss over ALL three preregistered splits for each family/method/learner; any missing/nonfinite split makes that paired family-method loss incomplete.",
+    "primary_metrics": {
+      "classification": "log_loss",
+      "regression": "rmse"
+    },
+    "relative_gain": "G(f,r,l)=1-L(f,candidate,l)/L(f,reference,l); use family-mean losses before ratios.",
+    "aggregation": "Equal-family mean/median relative gains per classification/regression x learner stratum; report family raw losses separately. Do not pool unscaled losses across tasks.",
+    "positive_vs_raw": "Strictly positive mean G versus baseline-robust in EACH of eight task/learner strata.",
+    "family_harm": "No family/learner loss worsening above5% relative to baseline-robust.",
+    "reference_gate": "Mean G >=0 against EACH of the two complete paired robust native references in EACH task/learner stratum; no selecting the easier reference after results.",
+    "numeric_gate": {
+      "raw_mean_gain_threshold": 0.0,
+      "raw_mean_comparison": "strictly_greater",
+      "maximum_raw_family_harm": 0.05,
+      "reference_mean_gain_threshold": 0.0,
+      "reference_mean_comparison": "greater_than_or_equal",
+      "required_complete_cells": 192,
+      "required_completion_fraction": 1.0
+    },
+    "failure_gate": "Failures, RSS kills, timeouts, incomplete pairs, unsupported tasks, budget skips and missing/nonfinite losses block broad claims. Report all planned denominators; no successful-case-only promotion.",
+    "zero_denominator": "No artificial epsilon or family deletion. Zero/nonfinite reference losses make the relative gate indeterminate; report absolute losses and block automatic passage.",
+    "win_tie_loss": "Per family/learner/reference: win if G>1%, loss if G<-1%, tie otherwise.",
+    "intervals": {
+      "method": "Descriptive paired family-block percentile intervals, seed2028,10000 resamples,95% level.",
+      "limits": "Only three classification families and one regression family. No between-family regression confidence interval can be estimated from one family; do not bootstrap folds as independent families or claim significance."
+    },
+    "scope": "Four predetermined observational source families, including ONE regression origin. This can only test a narrowly defined held-out cohort; it cannot establish broad SOTA, general regression superiority, cross-modality leadership or default promotion.",
+    "automatic_sota": false,
+    "automatic_promotion": false,
+    "resources": "Report expected/successful/failed cells and complete paired families per method/task/learner, elapsed active time, per-cell timing, peak RSS and remaining budget."
+  },
+  "registry_transition": {
+    "before_sha256": "43ecbb90372fab398e2c3397c736b31f5db796c72b185a6434ebe830ecf125cb",
+    "after_sha256": "f1fa6a08eaddc0852c3ceb756df2c9dec4a2ce96bf934f2b473ad0951e3fa3c3",
+    "before": {
+      "facebook-cosmetics-posts": {
+        "family_id": "facebook-cosmetics-posts",
+        "aliases": [
+          "facebook-metrics-cosmetics"
+        ],
+        "source_ids": [
+          "uci:368"
+        ],
+        "upstream_origin": "Original Moro/Rita/Vala 2014 cosmetics-brand Facebook post collection, not Mashable news or Thai sellers.",
+        "prior_exposure": "unknown",
+        "role": "inventory",
+        "exposure_review": {
+          "status": "no_recorded_project_model_match",
+          "evidence": [
+            "benchmarks/suites/cycle2_origin_reservation_audit_20260929.json#/exposure_audit"
+          ],
+          "scope": "Metadata-only recorded-project audit, not a pretraining or unlogged-exposure guarantee."
+        },
+        "reservation": {
+          "id": "cycle2-origin-reservation-20260929",
+          "status": "active",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-29",
+          "manifest": "benchmarks/suites/cycle2_origin_reservation_20260929.json",
+          "audit": "benchmarks/suites/cycle2_origin_reservation_audit_20260929.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze, renewed live exposure audit and later mandatory payload/schema/split checks. No model access now."
+        }
+      },
+      "differentiated-thyroid-recurrence": {
+        "family_id": "differentiated-thyroid-recurrence",
+        "aliases": [
+          "differentiated_thyroid_cancer_recurrence"
+        ],
+        "source_ids": [
+          "uci:915",
+          "openml:46605",
+          "openml-task:363410"
+        ],
+        "upstream_origin": "Original Borzooei et al. individual-patient differentiated-thyroid-cancer cohort collected over15years, with at least10years follow-up per patient.",
+        "prior_exposure": "unknown",
+        "role": "inventory",
+        "exposure_review": {
+          "status": "no_recorded_project_model_match",
+          "evidence": [
+            "benchmarks/suites/cycle2_origin_reservation_audit_20260929.json#/exposure_audit"
+          ],
+          "scope": "Metadata-only recorded-project audit, not a pretraining or unlogged-exposure guarantee."
+        },
+        "reservation": {
+          "id": "cycle2-origin-reservation-20260929",
+          "status": "active",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-29",
+          "manifest": "benchmarks/suites/cycle2_origin_reservation_20260929.json",
+          "audit": "benchmarks/suites/cycle2_origin_reservation_audit_20260929.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze, renewed live exposure audit and later mandatory payload/schema/split checks. No model access now."
+        }
+      },
+      "assam-medical-entrance": {
+        "family_id": "assam-medical-entrance",
+        "aliases": [
+          "assam-entrance-exam",
+          "Student_Performance_on_an_Entrance_Examination"
+        ],
+        "source_ids": [
+          "uci:582",
+          "openml:46584",
+          "openml-task:363402"
+        ],
+        "upstream_origin": "Prof. Jiten Hazarika's candidates who qualified a medical entrance examination in Assam in one specified study year.",
+        "prior_exposure": "unknown",
+        "role": "inventory",
+        "exposure_review": {
+          "status": "no_recorded_project_model_match",
+          "evidence": [
+            "benchmarks/suites/cycle2_origin_reservation_audit_20260929.json#/exposure_audit"
+          ],
+          "scope": "Metadata-only recorded-project audit, not a pretraining or unlogged-exposure guarantee."
+        },
+        "reservation": {
+          "id": "cycle2-origin-reservation-20260929",
+          "status": "active",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-29",
+          "manifest": "benchmarks/suites/cycle2_origin_reservation_20260929.json",
+          "audit": "benchmarks/suites/cycle2_origin_reservation_audit_20260929.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze, renewed live exposure audit and later mandatory payload/schema/split checks. No model access now."
+        }
+      },
+      "personality-drug-consumption": {
+        "family_id": "personality-drug-consumption",
+        "aliases": [
+          "drug-consumption-quantified",
+          "personality-drug-survey"
+        ],
+        "source_ids": [
+          "uci:373"
+        ],
+        "upstream_origin": "Fehrman et al. original1885-respondent personality/self-reported drug-consumption survey.",
+        "prior_exposure": "unknown",
+        "role": "inventory",
+        "exposure_review": {
+          "status": "no_recorded_project_model_match",
+          "evidence": [
+            "benchmarks/suites/cycle2_origin_reservation_audit_20260929.json#/exposure_audit"
+          ],
+          "scope": "Metadata-only recorded-project audit, not a pretraining or unlogged-exposure guarantee."
+        },
+        "reservation": {
+          "id": "cycle2-origin-reservation-20260929",
+          "status": "active",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-29",
+          "manifest": "benchmarks/suites/cycle2_origin_reservation_20260929.json",
+          "audit": "benchmarks/suites/cycle2_origin_reservation_audit_20260929.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze, renewed live exposure audit and later mandatory payload/schema/split checks. No model access now."
+        }
+      }
+    },
+    "after": {
+      "facebook-cosmetics-posts": {
+        "family_id": "facebook-cosmetics-posts",
+        "aliases": [
+          "facebook-metrics-cosmetics"
+        ],
+        "source_ids": [
+          "uci:368"
+        ],
+        "upstream_origin": "Original Moro/Rita/Vala 2014 cosmetics-brand Facebook post collection, not Mashable news or Thai sellers.",
+        "prior_exposure": "audited_unexposed",
+        "role": "confirmation",
+        "exposure_review": {
+          "status": "no_recorded_project_model_match",
+          "evidence": [
+            "benchmarks/suites/cycle2_origin_reservation_audit_20260929.json#/exposure_audit"
+          ],
+          "scope": "Metadata-only recorded-project audit, not a pretraining or unlogged-exposure guarantee."
+        },
+        "reservation": {
+          "id": "cycle2-origin-reservation-20260929",
+          "status": "released",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-29",
+          "manifest": "benchmarks/suites/cycle2_origin_reservation_20260929.json",
+          "audit": "benchmarks/suites/cycle2_origin_reservation_audit_20260929.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze, renewed live exposure audit and later mandatory payload/schema/split checks. No model access now.",
+          "released_on": "2026-09-30",
+          "authorized_by": "Explicit parent instruction2026-09-30T08:50:06.297+08:00, contingent on completed metadata and binding checks",
+          "released_suite": "benchmarks/suites/cycle2_robust_confirmation_20260930.json",
+          "release_evidence": "benchmarks/suites/cycle2_robust_confirmation_release_20260930.json"
+        },
+        "exposure_audit": {
+          "status": "complete",
+          "audited_on": "2026-09-30",
+          "scope": "Recorded project model exposure only; no public-pretraining or unlogged external-use guarantee. Candidate payloads have not been opened by this audit.",
+          "evidence": [
+            "benchmarks/suites/cycle2_robust_confirmation_release_20260930.json#/exposure_check",
+            "benchmarks/suites/cycle2_origin_reservation_audit_20260929.json#/exposure_audit"
+          ]
+        }
+      },
+      "differentiated-thyroid-recurrence": {
+        "family_id": "differentiated-thyroid-recurrence",
+        "aliases": [
+          "differentiated_thyroid_cancer_recurrence"
+        ],
+        "source_ids": [
+          "uci:915",
+          "openml:46605",
+          "openml-task:363410"
+        ],
+        "upstream_origin": "Original Borzooei et al. individual-patient differentiated-thyroid-cancer cohort collected over15years, with at least10years follow-up per patient.",
+        "prior_exposure": "audited_unexposed",
+        "role": "confirmation",
+        "exposure_review": {
+          "status": "no_recorded_project_model_match",
+          "evidence": [
+            "benchmarks/suites/cycle2_origin_reservation_audit_20260929.json#/exposure_audit"
+          ],
+          "scope": "Metadata-only recorded-project audit, not a pretraining or unlogged-exposure guarantee."
+        },
+        "reservation": {
+          "id": "cycle2-origin-reservation-20260929",
+          "status": "released",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-29",
+          "manifest": "benchmarks/suites/cycle2_origin_reservation_20260929.json",
+          "audit": "benchmarks/suites/cycle2_origin_reservation_audit_20260929.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze, renewed live exposure audit and later mandatory payload/schema/split checks. No model access now.",
+          "released_on": "2026-09-30",
+          "authorized_by": "Explicit parent instruction2026-09-30T08:50:06.297+08:00, contingent on completed metadata and binding checks",
+          "released_suite": "benchmarks/suites/cycle2_robust_confirmation_20260930.json",
+          "release_evidence": "benchmarks/suites/cycle2_robust_confirmation_release_20260930.json"
+        },
+        "exposure_audit": {
+          "status": "complete",
+          "audited_on": "2026-09-30",
+          "scope": "Recorded project model exposure only; no public-pretraining or unlogged external-use guarantee. Candidate payloads have not been opened by this audit.",
+          "evidence": [
+            "benchmarks/suites/cycle2_robust_confirmation_release_20260930.json#/exposure_check",
+            "benchmarks/suites/cycle2_origin_reservation_audit_20260929.json#/exposure_audit"
+          ]
+        }
+      },
+      "assam-medical-entrance": {
+        "family_id": "assam-medical-entrance",
+        "aliases": [
+          "assam-entrance-exam",
+          "Student_Performance_on_an_Entrance_Examination"
+        ],
+        "source_ids": [
+          "uci:582",
+          "openml:46584",
+          "openml-task:363402"
+        ],
+        "upstream_origin": "Prof. Jiten Hazarika's candidates who qualified a medical entrance examination in Assam in one specified study year.",
+        "prior_exposure": "audited_unexposed",
+        "role": "confirmation",
+        "exposure_review": {
+          "status": "no_recorded_project_model_match",
+          "evidence": [
+            "benchmarks/suites/cycle2_origin_reservation_audit_20260929.json#/exposure_audit"
+          ],
+          "scope": "Metadata-only recorded-project audit, not a pretraining or unlogged-exposure guarantee."
+        },
+        "reservation": {
+          "id": "cycle2-origin-reservation-20260929",
+          "status": "released",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-29",
+          "manifest": "benchmarks/suites/cycle2_origin_reservation_20260929.json",
+          "audit": "benchmarks/suites/cycle2_origin_reservation_audit_20260929.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze, renewed live exposure audit and later mandatory payload/schema/split checks. No model access now.",
+          "released_on": "2026-09-30",
+          "authorized_by": "Explicit parent instruction2026-09-30T08:50:06.297+08:00, contingent on completed metadata and binding checks",
+          "released_suite": "benchmarks/suites/cycle2_robust_confirmation_20260930.json",
+          "release_evidence": "benchmarks/suites/cycle2_robust_confirmation_release_20260930.json"
+        },
+        "exposure_audit": {
+          "status": "complete",
+          "audited_on": "2026-09-30",
+          "scope": "Recorded project model exposure only; no public-pretraining or unlogged external-use guarantee. Candidate payloads have not been opened by this audit.",
+          "evidence": [
+            "benchmarks/suites/cycle2_robust_confirmation_release_20260930.json#/exposure_check",
+            "benchmarks/suites/cycle2_origin_reservation_audit_20260929.json#/exposure_audit"
+          ]
+        }
+      },
+      "personality-drug-consumption": {
+        "family_id": "personality-drug-consumption",
+        "aliases": [
+          "drug-consumption-quantified",
+          "personality-drug-survey"
+        ],
+        "source_ids": [
+          "uci:373"
+        ],
+        "upstream_origin": "Fehrman et al. original1885-respondent personality/self-reported drug-consumption survey.",
+        "prior_exposure": "audited_unexposed",
+        "role": "confirmation",
+        "exposure_review": {
+          "status": "no_recorded_project_model_match",
+          "evidence": [
+            "benchmarks/suites/cycle2_origin_reservation_audit_20260929.json#/exposure_audit"
+          ],
+          "scope": "Metadata-only recorded-project audit, not a pretraining or unlogged-exposure guarantee."
+        },
+        "reservation": {
+          "id": "cycle2-origin-reservation-20260929",
+          "status": "released",
+          "role": "confirmation_candidate",
+          "reserved_on": "2026-09-29",
+          "manifest": "benchmarks/suites/cycle2_origin_reservation_20260929.json",
+          "audit": "benchmarks/suites/cycle2_origin_reservation_audit_20260929.json",
+          "release_requirement": "Explicit parent algorithm/protocol freeze, renewed live exposure audit and later mandatory payload/schema/split checks. No model access now.",
+          "released_on": "2026-09-30",
+          "authorized_by": "Explicit parent instruction2026-09-30T08:50:06.297+08:00, contingent on completed metadata and binding checks",
+          "released_suite": "benchmarks/suites/cycle2_robust_confirmation_20260930.json",
+          "release_evidence": "benchmarks/suites/cycle2_robust_confirmation_release_20260930.json"
+        },
+        "exposure_audit": {
+          "status": "complete",
+          "audited_on": "2026-09-30",
+          "scope": "Recorded project model exposure only; no public-pretraining or unlogged external-use guarantee. Candidate payloads have not been opened by this audit.",
+          "evidence": [
+            "benchmarks/suites/cycle2_robust_confirmation_release_20260930.json#/exposure_check",
+            "benchmarks/suites/cycle2_origin_reservation_audit_20260929.json#/exposure_audit"
+          ]
+        }
+      }
+    },
+    "changed_family_ids": [
+      "facebook-cosmetics-posts",
+      "differentiated-thyroid-recurrence",
+      "assam-medical-entrance",
+      "personality-drug-consumption"
+    ],
+    "allowed_fields": [
+      "role",
+      "prior_exposure",
+      "reservation",
+      "exposure_audit"
+    ],
+    "nonselected_family_records_changed": false,
+    "registry_top_level_changed": false
+  },
+  "preserved_prior_manifest_sha256": {
+    "confirmation_candidate_reservation_20260923.json": "c7ad92d890362d82bdb6f8e75d1024c9500f4c956aae56fb861015c559c73547",
+    "confirmation_candidate_reservation_audit_20260923.json": "43f9a662bfa51c8eec94db4df3b305d8e316b717cf8b9d80878acea6b231827a",
+    "cycle2_origin_reservation_20260929.json": "3e35dacd0c0a9e946240081dc403dcdb538e775da775f9da76485bef88f03ca1",
+    "cycle2_origin_reservation_audit_20260929.json": "0ecb15a705db9d088b503e80a23126e20d8a58357bf6c79e3d6ddec8c07c5230",
+    "development_expansion_20260922.json": "49a8d02f411d456abe4747026ec26762648fceefc03a722a1fc47ac3cadb4969",
+    "development_expansion_audit_20260922.json": "6782e17e825319394f4885137bc6e6832155317a12f4223b27ca8df722c150b6",
+    "efficiency_development_replay_20260924.json": "b5e691e270f0fd7209f1f09c4a4c2020300883d114fea6b2a6a40e545c07b480",
+    "final_reserved_confirmation_20260924.json": "6e7f603655e624ae18c3949c7a73dace77f1da513200cb41a4e13c63f33e7f78",
+    "final_reserved_confirmation_audit_20260924.json": "39e98397a3901063057e8bffd00b1e7dbaa51b32393bc8dc531424f2433ed93a",
+    "final_reserved_confirmation_draft_20260924.json": "90da2bbc93900155aee2dffd09bbbeb057bed541fe366dcc500a57adc433fa6e",
+    "final_reserved_confirmation_release_20260924.json": "c3ecbba219c1f840b1e7f721285eb7767c24a79a2851d443187cb20883d92eee",
+    "frequency_development_replay_20260924.json": "1f7d95ba7ada0bbd188d575756dc7ce6a8da8d55d1fb1963a1bcc222df7d0d84",
+    "frequency_fresh_confirmation_blocked_audit_20260924.json": "c48f7829337ee6d31dd9fd4a95b199b8ef47d705ce3501093d7a6acba7c16a9e",
+    "frequency_fresh_confirmation_iid_20260928.json": "ecabf7db78b914bc100e7bd1c8179cf98f709f6973279b48b44f6cbd7ec4240b",
+    "frequency_fresh_confirmation_iid_release_20260928.json": "e437580a21894aa9f675fa0648d58e8d198f4f94840c276916114dcf0ac160fb",
+    "fresh_origin_reservation_20260924.json": "3b4d567eba819cc9875c1ba525abaeb421763ed2a995a1300c1ea07232935e0f",
+    "fresh_origin_reservation_audit_20260924.json": "a6188bf87c976de7c7e52dfeb1e0d9f8854cc3a1bd3ffd1ad0cf2f5932bcb836",
+    "seoul_development.json": "eb949eb6de7a77d39e5dbf4d2026cad6163d47f4fd837e686310bd2f2b1b3f48",
+    "seoul_inventory.json": "8f861070d84577f8a77d6135c61980d6bd24be4eb7f3099dda6256bc22ec5dd5",
+    "tabarena_confirmation_candidates_20260920.json": "db4bafa21d2697c4b19955e031440b55fdd33bd068fd08866cee70e5943d9b00",
+    "tabarena_confirmation_completion_repair_20260921.json": "85035ccd8290a105d87b05e2aebc8cd0193a9c81776a9e367f0d4cba9fe0253b",
+    "tabarena_v01_audit_20260920.json": "6a4f6f2c9dbaf222dd3b991fbef291e88d2a30833da4f4e86b1d7cfbe65063c9",
+    "tabarena_v01_inventory.json": "92dc0e6e58e09422104735cbe049dd42eca559acca3808a6abee55e9cf870243",
+    "uci_development.json": "72b5257603de43b1653c00449f0dfd3279a7dea3fa53c5f036d70e5e3443ee7d"
+  },
+  "frozen_runtime_source_sha256": {
+    "featcopilot/__init__.py": "d7a20f170237e49f2212cf89f4500a2fffe8e435f070c22ac3520bce87e1a7d5",
+    "featcopilot/__main__.py": "c611ec939f2980817f48ade768a985c27df0de80c01cdab119d0b414d4dcf167",
+    "featcopilot/cli.py": "86e739577f4e9a58c0e5b0b8d06479fa6a102b72482c40021f2dd770ed871f0e",
+    "featcopilot/core/__init__.py": "afff319cc8b291957eda39510c6aebce34c67cb93352a079465779c39b9df22b",
+    "featcopilot/core/base.py": "a1d6df6996292527fd2ca940a81799d0c34ae2760c619b2d639d8be0b2b99fb5",
+    "featcopilot/core/feature.py": "13dd58a1d567979bc73ce0a5eaf190a1c188f1be54043f610d54193d468dab0f",
+    "featcopilot/core/fitted_rule.py": "281be32c8f7dcce8aee5788267d39276d7bdda52036a2a9134c8f206fce21d9d",
+    "featcopilot/core/registry.py": "e026486bc99a966d74131bebb0a8d62bd0ac3c07f1fa26546a97a7bbe68a43c1",
+    "featcopilot/core/transform_rule.py": "776eee162114f706613ebe022dcdadbba2d4e9ba39099675500bf7b31c18d913",
+    "featcopilot/engines/__init__.py": "811e0a1ba61df8511828bfe7e5153beafc08e4e3bcd03d630d9df798c00b2381",
+    "featcopilot/engines/fitted_rules.py": "40451f8871ae22cd217739bf92eed4a4d7b4b1764205bc0eb76cb7eb54420288",
+    "featcopilot/engines/point_in_time.py": "41fbebbc3578cc3d699dd16d87e5f80b31c96d9e4ff924c01ce41f10cd5c582b",
+    "featcopilot/engines/predictive.py": "46eeb9d38ce01715fcc1d0a4dbb838b74ad9a1ed4ba728d8f6c322c69c168ccd",
+    "featcopilot/engines/relational.py": "3c392671967698ea79eafb20efa50be2074d7e4d42248d10e1982053932c811f",
+    "featcopilot/engines/tabular.py": "4a1caa090bd35c90c71f18f00976f47cfcdcd92cb0c7f43b36eec106e0ed6b0e",
+    "featcopilot/engines/text.py": "1c31bdfb2d953bc4ad8a0e8c3ec11d4e78942267e4439619f1adc7cbc59e59e5",
+    "featcopilot/engines/timeseries.py": "0b2e92f03606ce631ea58bde943673c398e8def9b3672c18babae189e456ee65",
+    "featcopilot/llm/__init__.py": "bae86974c22ebec8268f79ca8749c50dc724b0d12e132774c1371f1280a33e80",
+    "featcopilot/llm/_execution.py": "a0e4691d717fcef5c03bcc184a7d4db6c6a5af2b5153a603b519667b64e53d18",
+    "featcopilot/llm/_types.py": "9e5719defc338ebb582ae3126dbb9e6e3d276610b7a2e3e15b3c77483ac18486",
+    "featcopilot/llm/code_generator.py": "ba99a61a4c8f144ce21f984dc0b2010e3a7ad6646e764b2a7fc35b7ae9829675",
+    "featcopilot/llm/copilot_client.py": "77d60a0b87e3ae679188155640fa01644942b768108077c73b925bbf1b300f2b",
+    "featcopilot/llm/explainer.py": "6880369af84b1cd7893681e5a91816f3bc516efdb5698d16350c0cbec97c31c6",
+    "featcopilot/llm/litellm_client.py": "424cbcb9be402ee4cff839d7f53145ea7c93bbabc7f606284162db64ee631a69",
+    "featcopilot/llm/openai_client.py": "510fd8fd7049ffb0c38baa3ad05458034b7e50eedfa4c47fd135c6af09fd3676",
+    "featcopilot/llm/plan_generator.py": "0d85a2176c675339bb45fca12f85c034fd93cfcdf7356ddd0b21edd451676465",
+    "featcopilot/llm/semantic_engine.py": "79db9ec29f08f42dc643d990db0323ad80979b2efa4f592b7ac19feaa6657b6c",
+    "featcopilot/llm/transform_rule_generator.py": "ece5130c613d30e7394271df2dc980ffad4bdaf896c59a14617e825196d3757f",
+    "featcopilot/selection/__init__.py": "269ab639757058cf8af0cee964144f241743ee71436169b7e70f8422e4fd1d79",
+    "featcopilot/selection/importance.py": "cbda4b90067fadf18bbef88bbc0a7ab4e1db9af206dbb4d271a9f95602df4181",
+    "featcopilot/selection/redundancy.py": "14a1c25e1e4a1fd5b67647289a367e2553c694825d238bef51d159b5f3d7102e",
+    "featcopilot/selection/statistical.py": "efef08c1dea38e9f8b3fd8d92e43b5b9714a4e5a1846fb9e9ea687103f0a5e96",
+    "featcopilot/selection/unified.py": "a36cbad3b3a7c837c29d72005808bae8a2879dd011990d37fd029ee5593ca520",
+    "featcopilot/stores/__init__.py": "96017014a618189b3bdf6eae7ef11afcf37d2420b14f291a91db41e51079a751",
+    "featcopilot/stores/base.py": "037668ab4c8dc92a053e2fb1b5e43faf451331f06fc701cfa64595cc5b1f45f8",
+    "featcopilot/stores/feast_store.py": "10e80625b4e834d2028e59a62493d45b2f600fdacea944eb53a92aa1d79374c6",
+    "featcopilot/stores/rule_store.py": "455c856e9e12dab1e803d435a307ae0de4415eac5a289ee855c5be0fca01b9f9",
+    "featcopilot/transformers/__init__.py": "269bcf042502acb8cfacb1b670d70379e86bba67131229e13ba1a80b5bc637a5",
+    "featcopilot/transformers/sklearn_compat.py": "b9c7efc0b802099c21597566f19270ef4eaa64a836f70af84439bd6e715eff19",
+    "featcopilot/utils/__init__.py": "26b35e639d160f644b105f5b4b115b71a80fa3f51802248d816bf2d8ccd1b8fc",
+    "featcopilot/utils/cache.py": "17f4a2fc4b0e732cad1be10f913a98c47a0d9e609399be10066f5699e158fd9f",
+    "featcopilot/utils/frequency.py": "27a68a81d0f0e13023def4f4312cb1230d01f1bd9ee6ff9dfb2faf3b34d179d9",
+    "featcopilot/utils/logger.py": "60f51f751fd21794adad07285be920e92223f5885bd8ca11349946ec770d7415",
+    "featcopilot/utils/models.py": "b72ce17e9556aa568cdf705a3b763545bca97dd29809af90e310a5a3e6d89c74",
+    "featcopilot/utils/numeric_clipping.py": "2ed05255ca5a9f56f1c8682ecc2841c7c30d0f5d84347413264439c4fa5ce79e",
+    "featcopilot/utils/parallel.py": "5246d5e602ac743b2dbc3f30cb194e01d2361b6a14e456109d8f141cb6b7bbae",
+    "featcopilot/utils/splitting.py": "43681cc65f66fb2a88db7df3b4f3e6f971e4c44fb8ca0bbc7a28a3e24c060da2",
+    "featcopilot/utils/task.py": "b030483443c02bb2cc46af4a665eb7c95819521166f12898d0b72a2579f7cee8",
+    "featcopilot/utils/validation.py": "c2430609c4fd5e79f3e1aab5264bf199873dce266d91694fdfef2b4c8b084388",
+    "benchmarks/__init__.py": "1ba21c47ac8237196be2ff71c8776fcd26f817a43f034f65af3b09d91e58d4be",
+    "benchmarks/automl/__init__.py": "cbf999ebf261a1387cae444d49eef8f79cfb547fa05b7f920ba158dae40997d7",
+    "benchmarks/automl/run_automl_benchmark.py": "3772de2657cf5df5e8bf77d3a76177117b722209f2e36bef88ad438e3bde77c2",
+    "benchmarks/catalog.py": "04858a8e592b78d9dc6ebab8d251bcc36b05f72f8dd630134d3bec724dd17ca0",
+    "benchmarks/compare_tools/__init__.py": "922af2170bdae14582492ae2e40877e109d8b9e14fb400e78b31e0cd4913370c",
+    "benchmarks/compare_tools/run_fe_tools_comparison.py": "290e1b02f2f29bdcc11d8056e86b5cfecd18bb544a38d7044ba0601682289e84",
+    "benchmarks/datasets.py": "c9558c81f8243459099b50ad11234a7d05d28c8f964ddacdb446e4e42c7171dc",
+    "benchmarks/execution.py": "8611bcb7569ae626038f7eb2109a658146a3255f1f5ea5c64450e69c43a24dd2",
+    "benchmarks/feature_cache.py": "5b20d04de56cf620953a909b3623e4df494a996bbb1bbda306ba008fced10269",
+    "benchmarks/llm_evaluation.py": "54ff2b1335f41b14533be833ebda697e2796a72333f2dab11a676757580c1e20",
+    "benchmarks/plan_validation.py": "769dfbe67d3a5b4f16d5d9d50ec0c7a68b360b4ad577309b58e5400cb83f15ea",
+    "benchmarks/reference_methods.py": "577e817b8f83cd31f9ceb81183ac8e8e28cd773353084643055f9c37f26623ea",
+    "benchmarks/relational_evaluation.py": "3734c206faea8f3e94552dc015959740d9161722f92ee6a69ec458e40b873fcf",
+    "benchmarks/run_state.py": "71d7d2c7f0be47b6d285c8263e28231e390c0e306d4dd469e13c969f159e6de6",
+    "benchmarks/simple_models/__init__.py": "93d1432d55cb479a52aeaf56371a67beb0e51c6a79710166cd0dfdc2207959bd",
+    "benchmarks/simple_models/run_simple_models_benchmark.py": "40c79959151ee2bf773f8c73a6575e50d95fcf5dffe25e5cacea04d38507df76",
+    "benchmarks/splits.py": "45e1854861bbf9eceb1bf162f5e92287028ada2399881c5eac735902bb3cc642",
+    "benchmarks/tabular.py": "93b7181b78bc64c3d7c97118355c92426eaa79e6d1ac10d2021f039350f1d96f",
+    "benchmarks/tabular_openfe.py": "1077d5690bdbf4238775733f145d5f313b6b7affede99f11c87f559aa12d6b66",
+    "benchmarks/use_cases/run_auto_feature_engineering_benchmark.py": "cb30c170d74761533553b41d25966baaf147abcfd8db557c61f7c914b1221885"
+  },
+  "runtime_verification_scope": "Existing registered method dispatch/clipping and frozen source identities inspected, plus metadata-only configuration binding. No estimator fitting or reserved-payload execution.",
+  "datasets_changed_fields": [
+    "role",
+    "prior_exposure"
+  ],
+  "no_payload_reads": true,
+  "no_real_model_calls": true,
+  "no_llm_calls": true,
+  "no_ledger_writes": true,
+  "datasets": [
+    {
+      "name": "facebook-cosmetics-posts",
+      "family_id": "facebook-cosmetics-posts",
+      "provider": "uci",
+      "task": "regression",
+      "role": "inventory",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "cycle2-origin-reservation-20260929",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "target": "Total Interactions",
+      "target_transform": "identity",
+      "categorical": [
+        "Type",
+        "Category",
+        "Paid"
+      ],
+      "drop_columns": [
+        "Lifetime Post Total Reach",
+        "Lifetime Post Total Impressions",
+        "Lifetime Engaged Users",
+        "Lifetime Post Consumers",
+        "Lifetime Post Consumptions",
+        "Lifetime Post Impressions by people who have liked your Page",
+        "Lifetime Post reach by people who like your Page",
+        "Lifetime People who have liked your Page and engaged with your post",
+        "comment",
+        "like",
+        "share"
+      ],
+      "split_policy": "iid",
+      "prediction_time": "Recorded cumulative total interactions for the supplied Facebook posts, using only the seven variables documented as available before publication. Retrospective post-level response regression, not a fixed-horizon engagement forecast.",
+      "iid_suitability_review": {
+        "observation_unit_basis": "Primary metadata identifies rows as distinct posts from one known cosmetics page during2014. IID here is explicitly within that fixed page/year post-record population, conditional on the supplied calendar attributes; not independent brands, unseen pages or forward-time generalization.",
+        "target_timing": "All eleven other post-impact/engagement columns are excluded, including comment/like/share components of the target. No precise cumulative-observation horizon is invented.",
+        "not_claimed": "Unseen subjects/entities beyond the declared row unit, future-period transfer, causal effects or individual deployment."
+      },
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI publication explicitly grants CC-BY-4.0. OpenML badges are not used as a blanket data-use permission.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/368/facebook+metrics",
+          "https://archive.ics.uci.edu/api/dataset?id=368"
+        ],
+        "primary_page_sha256": "2cde9f5288853db46958792bc5cd7cc1a6968b9bece9471e64f27ccd965b6b89",
+        "reviewed_on": "2026-09-29",
+        "scope": "Metadata-only reservation now. Later local research only after explicit freeze/release; no hosted row sharing, reidentification, clinical/admissions/individual high-stakes deployment or additional redistribution approval.",
+        "obligations": "Retain source/contributor attribution and disclose sampling, timing, quantification, annotation and single-cohort limits."
+      },
+      "source": {
+        "uci_id": 368,
+        "data_url": "https://archive.ics.uci.edu/static/public/368/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=368",
+        "metadata_sha256": "495b11fd903a364ffb4f923b90ee133f6240ee73109b6cf12b7302f6de7f92a4",
+        "schema_reviewed": true,
+        "columns": [
+          "Page total likes",
+          "Type",
+          "Category",
+          "Post Month",
+          "Post Weekday",
+          "Post Hour",
+          "Paid",
+          "Lifetime Post Total Reach",
+          "Lifetime Post Total Impressions",
+          "Lifetime Engaged Users",
+          "Lifetime Post Consumers",
+          "Lifetime Post Consumptions",
+          "Lifetime Post Impressions by people who have liked your Page",
+          "Lifetime Post reach by people who like your Page",
+          "Lifetime People who have liked your Page and engaged with your post",
+          "comment",
+          "like",
+          "share",
+          "Total Interactions"
+        ],
+        "target_columns": [
+          "Total Interactions"
+        ],
+        "expected_rows": 500,
+        "payload_integrity": "Not acquired; no actual data SHA-256 or payload class/duplicate validation is claimed."
+      },
+      "metadata_profile": {
+        "stratum": "regression",
+        "rows": 500,
+        "predictors": 7,
+        "classes": null,
+        "minimum_class_count": null,
+        "class_counts": null,
+        "expected_three_fold_minimum_test_count": null,
+        "basis": "Official metadata/descriptive class-count tables only; not actual payload validation.",
+        "payload_checked": false,
+        "selected_fold_support_checked": false
+      }
+    },
+    {
+      "name": "differentiated-thyroid-recurrence",
+      "family_id": "differentiated-thyroid-recurrence",
+      "provider": "openml_task",
+      "task": "classification",
+      "role": "inventory",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "cycle2-origin-reservation-20260929",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "target": "Recurred",
+      "target_transform": "identity",
+      "categorical": [
+        "Gender",
+        "Smoking",
+        "Hx Smoking",
+        "Hx Radiothreapy",
+        "Thyroid Function",
+        "Physical Examination",
+        "Adenopathy",
+        "Pathology",
+        "Focality",
+        "T",
+        "N",
+        "M",
+        "Stage"
+      ],
+      "drop_columns": [
+        "Response",
+        "Risk"
+      ],
+      "split_policy": "official",
+      "prediction_time": "Retrospective classification of the recorded Recurred annotation from the remaining clinical/pathology record. Response and Risk summaries are conservatively excluded; no uniform prediction horizon, baseline availability, causal risk or clinical deployment claim.",
+      "iid_suitability_review": {
+        "observation_unit_basis": "Primary metadata explicitly identifies instances as individual patients, each followed for at least10years. Patient-record IID evaluation within the source cohort is declared, not longitudinal visits treated as independent rows or future-era transportability.",
+        "target_timing": "A long follow-up cohort does not establish a common baseline for every predictor. Do not call this prospective prognosis; post-treatment response and risk-summary fields are excluded before any models.",
+        "not_claimed": "Unseen subjects/entities beyond the declared row unit, future-period transfer, causal effects or individual deployment."
+      },
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI publication explicitly grants CC-BY-4.0. OpenML badges are not used as a blanket data-use permission.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/915/differentiated+thyroid+cancer+recurrence",
+          "https://archive.ics.uci.edu/api/dataset?id=915"
+        ],
+        "primary_page_sha256": "06ee50ce30f22f8e295e37dc56b1db9cf97769ea29d0e9d60dc80718599283f4",
+        "reviewed_on": "2026-09-29",
+        "scope": "Metadata-only reservation now. Later local research only after explicit freeze/release; no hosted row sharing, reidentification, clinical/admissions/individual high-stakes deployment or additional redistribution approval.",
+        "obligations": "Retain source/contributor attribution and disclose sampling, timing, quantification, annotation and single-cohort limits."
+      },
+      "source": {
+        "uci_id": 915,
+        "dataset_id": 46605,
+        "dataset_version": 1,
+        "task_id": 363410,
+        "schema_reviewed": true,
+        "columns": [
+          "Age",
+          "Gender",
+          "Smoking",
+          "Hx Smoking",
+          "Hx Radiothreapy",
+          "Thyroid Function",
+          "Physical Examination",
+          "Adenopathy",
+          "Pathology",
+          "Focality",
+          "Risk",
+          "T",
+          "N",
+          "M",
+          "Stage",
+          "Response",
+          "Recurred"
+        ],
+        "target_columns": [
+          "Recurred"
+        ],
+        "expected_rows": 383,
+        "md5_checksum": "c07f07c281263f4b2408e4e356018107",
+        "official_split_dimensions": {
+          "repeats": 1,
+          "folds": 10,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=915",
+        "primary_metadata_sha256": "5f914b819a58761e8ddbe1ba49cd134e19e7d8472613ecd108872d7d5acd2664",
+        "openml_description_sha256": "eab8a3abb2774480b67ed1cd78b9ddac6846bc4193e36dc7edc84f7fa4ecbbae",
+        "openml_features_sha256": "76e2e55798725b1b3381dbef0109ddffa511fa5560d3c904111139e3a82c3fe4",
+        "openml_qualities_sha256": "516313828a3d79dbf245a43f8a823510069824ee35aeb9a85f28514aae37daa7",
+        "openml_task_sha256": "e75843d3e53030c5f73fd81e8cb10c9d116f36a356ab640226456f3fd7fd697f",
+        "categorical_rule": "All NOMINAL and STRING fields are categorical unless explicitly excluded.",
+        "payload_integrity": "Not acquired; publisher MD5 is a metadata pin only, not payload verification."
+      },
+      "metadata_profile": {
+        "stratum": "binary",
+        "rows": 383,
+        "predictors": 14,
+        "classes": 2,
+        "minimum_class_count": 108,
+        "class_counts": null,
+        "expected_three_fold_minimum_test_count": 36,
+        "basis": "Official metadata/descriptive class-count tables only; not actual payload validation.",
+        "payload_checked": false,
+        "selected_fold_support_checked": false
+      }
+    },
+    {
+      "name": "assam-medical-entrance",
+      "family_id": "assam-medical-entrance",
+      "provider": "openml_task",
+      "task": "classification",
+      "role": "inventory",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "cycle2-origin-reservation-20260929",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "target": "Performance",
+      "target_transform": "identity",
+      "categorical": [
+        "Gender",
+        "Caste",
+        "coaching",
+        "Class_ten_education",
+        "twelve_education",
+        "medium",
+        "Class_X_Percentage",
+        "Class_XII_Percentage",
+        "Father_occupation",
+        "Mother_occupation"
+      ],
+      "drop_columns": [
+        "time"
+      ],
+      "split_policy": "official",
+      "prediction_time": "Recorded categorical Common Entrance Examination performance from demographic, schooling, coaching and prior Class X/XII grade bands. Retrospective qualified-candidate classification, not a recommendation for admissions decisions.",
+      "iid_suitability_review": {
+        "observation_unit_basis": "Primary metadata defines the unit as a candidate in one medical entrance examination/year, not multiple longitudinal exams or repeated course-evaluation rows. The qualified-only source population and its selection bias remain explicit.",
+        "target_timing": "The ambiguous time field is excluded. Class X/XII results precede the entrance examination; the selected endpoint is the later native Performance annotation. No thresholds or new outcome classes are invented.",
+        "not_claimed": "Unseen subjects/entities beyond the declared row unit, future-period transfer, causal effects or individual deployment."
+      },
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI publication explicitly grants CC-BY-4.0. OpenML badges are not used as a blanket data-use permission.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/582/student+performance+on+an+entrance+examination",
+          "https://archive.ics.uci.edu/api/dataset?id=582"
+        ],
+        "primary_page_sha256": "fe8c69ac33ebca6136ce4fa36e5c53d3158dcfe171c462a7eb0900756bfc394e",
+        "reviewed_on": "2026-09-29",
+        "scope": "Metadata-only reservation now. Later local research only after explicit freeze/release; no hosted row sharing, reidentification, clinical/admissions/individual high-stakes deployment or additional redistribution approval.",
+        "obligations": "Retain source/contributor attribution and disclose sampling, timing, quantification, annotation and single-cohort limits."
+      },
+      "source": {
+        "uci_id": 582,
+        "dataset_id": 46584,
+        "dataset_version": 1,
+        "task_id": 363402,
+        "schema_reviewed": true,
+        "columns": [
+          "Gender",
+          "Caste",
+          "coaching",
+          "Class_ten_education",
+          "twelve_education",
+          "medium",
+          "Class_X_Percentage",
+          "Class_XII_Percentage",
+          "Father_occupation",
+          "Mother_occupation",
+          "time",
+          "Performance"
+        ],
+        "target_columns": [
+          "Performance"
+        ],
+        "expected_rows": 666,
+        "md5_checksum": "20a17f6a2bec9b966f4dbc76141a14bb",
+        "official_split_dimensions": {
+          "repeats": 1,
+          "folds": 10,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=582",
+        "primary_metadata_sha256": "1e5c10e6f64bc90829b9b4841d05eb395340a6f607760db569205206b8fefd14",
+        "openml_description_sha256": "7f8c7fa3108613c530f7bf41d07c7f5f53153cd2719f996d81a82aef405f5976",
+        "openml_features_sha256": "edc039edd2beab6d94c7a8d87b69a703f899f27d0fe4360d806648ea9b20c08b",
+        "openml_qualities_sha256": "47b87138005edef8ef1224f089b3273f0cd8ed0642dfb44c40970364e9381166",
+        "openml_task_sha256": "6fbab3f467724e4ebcde1d1245ba89a34227176e62a1b0388b66dac669852547",
+        "categorical_rule": "All NOMINAL and STRING fields are categorical unless explicitly excluded.",
+        "payload_integrity": "Not acquired; publisher MD5 is a metadata pin only, not payload verification."
+      },
+      "metadata_profile": {
+        "stratum": "multiclass",
+        "rows": 666,
+        "predictors": 10,
+        "classes": 4,
+        "minimum_class_count": 101,
+        "class_counts": null,
+        "expected_three_fold_minimum_test_count": 33,
+        "basis": "Official metadata/descriptive class-count tables only; not actual payload validation.",
+        "payload_checked": false,
+        "selected_fold_support_checked": false
+      }
+    },
+    {
+      "name": "personality-drug-consumption",
+      "family_id": "personality-drug-consumption",
+      "provider": "uci",
+      "task": "classification",
+      "role": "inventory",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "cycle2-origin-reservation-20260929",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "target": "cannabis",
+      "target_transform": "identity",
+      "categorical": [
+        "gender",
+        "country",
+        "ethnicity"
+      ],
+      "drop_columns": [
+        "id",
+        "alcohol",
+        "amphet",
+        "amyl",
+        "benzos",
+        "caff",
+        "choc",
+        "coke",
+        "crack",
+        "ecstasy",
+        "heroin",
+        "ketamine",
+        "legalh",
+        "lsd",
+        "meth",
+        "mushrooms",
+        "nicotine",
+        "semer",
+        "vsa"
+      ],
+      "split_policy": "iid",
+      "prediction_time": "Native seven-way self-reported cannabis recency annotation. Exclude every other drug-use outcome and the record identifier; no binary relabeling, diagnosis, future-use prediction or individual profiling.",
+      "iid_suitability_review": {
+        "observation_unit_basis": "The primary description states one record for each of1885 respondents with one questionnaire; the native id is reference-only and cannot identify participants. IID is respondent-level within this sampled survey, not a population-representative or causal claim.",
+        "target_timing": "Personality/demographic measurements and historical consumption are from the survey. Associations are retrospective, not a claim that the measurements predate reported drug use. Quantified source values are retained; gender/country/ethnicity remain nominal by their documented meanings.",
+        "not_claimed": "Unseen subjects/entities beyond the declared row unit, future-period transfer, causal effects or individual deployment."
+      },
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Original UCI publication explicitly grants CC-BY-4.0. OpenML badges are not used as a blanket data-use permission.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/373/drug+consumption+quantified",
+          "https://archive.ics.uci.edu/api/dataset?id=373"
+        ],
+        "primary_page_sha256": "efa13f4934924587a0e42496c3e7e20914cb0c023c7b2ab7d1a0e01eaa326dc7",
+        "reviewed_on": "2026-09-29",
+        "scope": "Metadata-only reservation now. Later local research only after explicit freeze/release; no hosted row sharing, reidentification, clinical/admissions/individual high-stakes deployment or additional redistribution approval.",
+        "obligations": "Retain source/contributor attribution and disclose sampling, timing, quantification, annotation and single-cohort limits."
+      },
+      "source": {
+        "uci_id": 373,
+        "data_url": "https://archive.ics.uci.edu/static/public/373/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=373",
+        "metadata_sha256": "f969924b97dde9b1c1fe88dcef52c2c210d8a970e8d3c45f8ccf0e27d36dd6b7",
+        "schema_reviewed": true,
+        "columns": [
+          "id",
+          "age",
+          "gender",
+          "education",
+          "country",
+          "ethnicity",
+          "nscore",
+          "escore",
+          "oscore",
+          "ascore",
+          "cscore",
+          "impuslive",
+          "ss",
+          "alcohol",
+          "amphet",
+          "amyl",
+          "benzos",
+          "caff",
+          "cannabis",
+          "choc",
+          "coke",
+          "crack",
+          "ecstasy",
+          "heroin",
+          "ketamine",
+          "legalh",
+          "lsd",
+          "meth",
+          "mushrooms",
+          "nicotine",
+          "semer",
+          "vsa"
+        ],
+        "target_columns": [
+          "alcohol",
+          "amphet",
+          "amyl",
+          "benzos",
+          "caff",
+          "cannabis",
+          "choc",
+          "coke",
+          "crack",
+          "ecstasy",
+          "heroin",
+          "ketamine",
+          "legalh",
+          "lsd",
+          "meth",
+          "mushrooms",
+          "nicotine",
+          "semer",
+          "vsa"
+        ],
+        "expected_rows": 1885,
+        "payload_integrity": "Not acquired; no actual data SHA-256 or payload class/duplicate validation is claimed."
+      },
+      "metadata_profile": {
+        "stratum": "multiclass",
+        "rows": 1885,
+        "predictors": 12,
+        "classes": 7,
+        "minimum_class_count": 140,
+        "class_counts": {
+          "CL0": 413,
+          "CL1": 207,
+          "CL2": 266,
+          "CL3": 211,
+          "CL4": 140,
+          "CL5": 185,
+          "CL6": 463
+        },
+        "expected_three_fold_minimum_test_count": 46,
+        "basis": "Official metadata/descriptive class-count tables only; not actual payload validation.",
+        "payload_checked": false,
+        "selected_fold_support_checked": false
+      }
+    }
+  ]
+}

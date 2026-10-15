@@ -1,0 +1,388 @@
+{
+  "schema_version": 1,
+  "name": "thoracic-fixed-average-confirmation-20261004",
+  "family_registry": "../families.json",
+  "purpose": "Conditionally authorized fixed50:50 raw/FE probability-average qualification on Thoracic Surgery only, with strict restricted-tier claim boundaries.",
+  "evaluation_tier": "standard_iid_unverified_entity",
+  "claim_boundary": {
+    "evaluation_tier": "standard_iid_unverified_entity",
+    "claim_scope": "Row-level standard public IID benchmark evidence only, under explicitly unresolved patient/entity mapping.",
+    "patient_entity_independence_verified": false,
+    "patient_entity_disjoint_claims_allowed": false,
+    "clinical_generalization_claims_allowed": false,
+    "pool_with_verified_entity_cohorts": false,
+    "prospective_clinical_decision_use_authorized": false,
+    "known_group_time_constraints_must_be_preserved": true,
+    "future_confirmation_requires_explicit_tier_binding": true,
+    "limits": "This is not a waiver for known repeat-entity or temporal leakage. If later evidence identifies available group IDs, repeated-entity links or mandatory temporal boundaries, stop and review; do not drop or ignore them to preserve IID eligibility."
+  },
+  "release_state": {
+    "status": "authorized_after_pinned_controller_binding",
+    "release_audit": "thoracic_fixed_average_confirmation_release_20261004.json",
+    "source_schema_targets_unchanged": true,
+    "no_payload_or_model_access_in_metadata_task": true,
+    "actual_payload_and_experiment_split_checks_required": true
+  },
+  "preregistration": {
+    "status": "locked_before_confirmation_model_execution",
+    "controller_protocol": "classification-fixed-average-qualified-confirmation-v1",
+    "evaluation_tier": "standard_iid_unverified_entity",
+    "claim_boundary": {
+      "evaluation_tier": "standard_iid_unverified_entity",
+      "claim_scope": "Row-level standard public IID benchmark evidence only, under explicitly unresolved patient/entity mapping.",
+      "patient_entity_independence_verified": false,
+      "patient_entity_disjoint_claims_allowed": false,
+      "clinical_generalization_claims_allowed": false,
+      "pool_with_verified_entity_cohorts": false,
+      "prospective_clinical_decision_use_authorized": false,
+      "known_group_time_constraints_must_be_preserved": true,
+      "future_confirmation_requires_explicit_tier_binding": true,
+      "limits": "This is not a waiver for known repeat-entity or temporal leakage. If later evidence identifies available group IDs, repeated-entity links or mandatory temporal boundaries, stop and review; do not drop or ignore them to preserve IID eligibility."
+    },
+    "dataset_names": [
+      "thoracic-surgery"
+    ],
+    "family_ids": [
+      "thoracic-surgery"
+    ],
+    "methods": [
+      "baseline-robust",
+      "featcopilot-frequency-aligned-robust",
+      "prediction-average-robust",
+      "openfe-inductive-native-robust",
+      "autofeat-native-robust"
+    ],
+    "learners": [
+      "lightgbm"
+    ],
+    "learner_search": {
+      "lightgbm": {
+        "num_leaves": [
+          7,
+          15,
+          31
+        ],
+        "selection_estimator_num_leaves": 15
+      }
+    },
+    "selection_parameters": {
+      "max_candidates": 1000,
+      "max_added_features": 50,
+      "stability_repeats": 3,
+      "screening": "auto",
+      "blend_mode": "fixed_average",
+      "categorical_encoding": "one_hot",
+      "numeric_clip_quantiles": [
+        0.0,
+        1.0
+      ]
+    },
+    "blend_mode": "fixed_average",
+    "primary_method": "prediction-average-robust",
+    "primary_method_by_learner": {
+      "lightgbm": "prediction-average-robust"
+    },
+    "fixed_weight": 0.5,
+    "resplit_official_as_iid": true,
+    "split_plan": {
+      "thoracic-surgery": {
+        "policy": "iid",
+        "folds": 3
+      }
+    },
+    "seeds": [
+      2031
+    ],
+    "sample_seed": 2026,
+    "folds": 3,
+    "max_rows": 0,
+    "threads": 8,
+    "memory_limit_mb": 4096,
+    "case_timeout_seconds": 900,
+    "total_active_seconds_ceiling": 14400,
+    "expected_cells": 15,
+    "expected_physical_jobs": 9,
+    "classification_admission_margin": {
+      "min_total": 30,
+      "min_outer_train": 20,
+      "min_outer_test": 10
+    },
+    "dataset_spec_sha256": {
+      "thoracic-surgery": "9bff7a76aa57c3d1cd45d5e909b2214c07311b73d6b2c89adc04051c574cde0b"
+    },
+    "experiment_claim": "Single source-qualified row-IID case. Original OpenML10fold source IDs/dimensions remain checked and preserved, but experiment uses explicit newIID3; not official-fold reproduction.",
+    "prediction_rule": {
+      "formula": "p_average = 0.5*p_full_training_raw + 0.5*p_full_training_FE",
+      "weight_learning": false,
+      "oof": false,
+      "calibration": false,
+      "sharing": "Raw, FE and fixed-average outcomes reuse the same two complete full-outer-training fitted pipelines. No extra dataset/learner-specific branch or learned-weight arm.",
+      "references": "Native OpenFE/AutoFeat generation/selection remain unchanged. Each reference uses the matched final training-support q0/1 clipper; no upstream-internal clipping, width reduction or native-ensemble claim.",
+      "physical_jobs_per_fold": [
+        "shared-full-raw-fe-average",
+        "single-openfe-native",
+        "single-autofeat-native"
+      ]
+    },
+    "reporting_and_acceptance": {
+      "evaluation_tier": "standard_iid_unverified_entity",
+      "frozen_primary_method_by_learner": {
+        "lightgbm": "prediction-average-robust"
+      },
+      "primary_loss": "log_loss",
+      "primary_raw_comparators": [
+        "baseline-robust"
+      ],
+      "paired_fe_comparators": [
+        "featcopilot-frequency-aligned-robust"
+      ],
+      "native_fe_comparators": [
+        "openfe-inductive-native-robust",
+        "autofeat-native-robust"
+      ],
+      "acceptance": {
+        "positive_vs_raw": true,
+        "max_raw_family_relative_harm": 0.05,
+        "nonnegative_gain_vs_fe": true,
+        "nonnegative_gain_vs_each_native": true,
+        "complete_prediction_rows": 15,
+        "complete_physical_jobs": 9,
+        "zero_reference_loss": "block_relative_claim_report_absolute",
+        "automatic_sota": false,
+        "automatic_default_promotion": false
+      }
+    },
+    "budget_note": "4h/14400s cumulative hard ceiling within the parent's11.4217h remaining allowance. Nine jobs at900s nominally total2.25h before controller overhead; no completion guarantee or extension is authorized.",
+    "reporting_notes": {
+      "family_mean_loss": "Arithmetic mean over all3 scheduled IID folds for each method. All15 outcome losses must be finite and complete; incomplete pairs/folds cannot be dropped.",
+      "relative_gain": "1 - mean_loss(candidate)/mean_loss(comparator)",
+      "failure_gate": "Any failed, missing, timeout, RSS, budget-skip or nonfinite outcome blocks the complete-case claim; no comparator/fold deletion or success-only aggregation.",
+      "scope": "One small clinical source does not support patient/entity-independent, clinical, prospective, general-SOTA or default-promotion claims. No pooling with verified-entity cohorts, prior runs or development evidence.",
+      "intervals": "Descriptive only. Do not turn the three correlated folds or one family into a population-level independence/significance claim.",
+      "automatic_sota": false,
+      "automatic_default_promotion": false,
+      "resources": "Count9 physical jobs, not15 independent model fits. Shared raw/FE costs are charged once per bundle; retain every failed outcome and actual controller timing/RSS."
+    }
+  },
+  "datasets": [
+    {
+      "name": "thoracic-surgery",
+      "family_id": "thoracic-surgery",
+      "provider": "openml_task",
+      "task": "classification",
+      "role": "confirmation",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "qualified-binary-reservation-20261004",
+      "prior_exposure": "audited_unexposed",
+      "origin_kind": "observational",
+      "evaluation_tier": "standard_iid_unverified_entity",
+      "claim_boundary": {
+        "evaluation_tier": "standard_iid_unverified_entity",
+        "claim_scope": "Row-level standard public IID benchmark evidence only, under explicitly unresolved patient/entity mapping.",
+        "patient_entity_independence_verified": false,
+        "patient_entity_disjoint_claims_allowed": false,
+        "clinical_generalization_claims_allowed": false,
+        "pool_with_verified_entity_cohorts": false,
+        "prospective_clinical_decision_use_authorized": false,
+        "known_group_time_constraints_must_be_preserved": true,
+        "future_confirmation_requires_explicit_tier_binding": true,
+        "limits": "This is not a waiver for known repeat-entity or temporal leakage. If later evidence identifies available group IDs, repeated-entity links or mandatory temporal boundaries, stop and review; do not drop or ignore them to preserve IID eligibility."
+      },
+      "target": "Class",
+      "target_transform": "identity",
+      "categorical": [
+        "V1",
+        "V4",
+        "V5",
+        "V6",
+        "V7",
+        "V8",
+        "V9",
+        "V10",
+        "V11",
+        "V12",
+        "V13",
+        "V14",
+        "V15"
+      ],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Original binary one-year outcome, OpenML Class1=death within one year after surgery, Class2=survival; same native Risk1Yr meaning. No relabeling, transformation or alternative horizon. This is retrospective record-level annotation classification, not an established baseline prognostic or clinical-use model. PRE19's 'MI up to6months' wording is retained without inventing a precise reference-time definition for it or a universal feature-availability cutoff.",
+      "timing_and_entity_review": {
+        "collection": "Retrospective Wroclaw Thoracic Surgery Centre cases for major lung resections for primary lung cancer in2007-2011; part of the Polish National Lung Cancer Registry.",
+        "endpoint": "Original binary one-year outcome, OpenML Class1=death within one year after surgery, Class2=survival; same native Risk1Yr meaning. No relabeling, transformation or alternative horizon.",
+        "predictors": "Diagnosis, FVC/FEV1, Zubrod status, documented pre-surgery pain/haemoptysis/dyspnoea/cough/weakness, clinical tumour-size category, diabetes/MI/PAD/smoking/asthma and age at surgery.",
+        "no_target_components": "The reviewed16predictor fields contain no death/survival indicator, one-year outcome component, follow-up length or other result target. No postoperative survival proxy is inserted.",
+        "timing_limit": "This is retrospective record-level annotation classification, not an established baseline prognostic or clinical-use model. PRE19's 'MI up to6months' wording is retained without inventing a precise reference-time definition for it or a universal feature-availability cutoff.",
+        "entity_limit": "Primary metadata calls instances individual patients, but identifiers/record linkage needed to independently certify patient-disjointness are not provided. The qualified tier, not a verified-entity claim, applies.",
+        "known_boundaries": "No supplied patient/group/time keys or mandatory split constraints are discarded. Original official source splits remain intact; any experimental IID3 override requires a separately frozen protocol."
+      },
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Explicit primary UCI277 CC-BY-4.0 grant; OpenML's host license badge is not the basis.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/277/thoracic+surgery+data",
+          "https://archive.ics.uci.edu/api/dataset?id=277"
+        ],
+        "primary_page_sha256": "aa65f88359c4a42acc56ef59d48a6959b5e36b98a1010bd84b6babb334a77f45",
+        "reviewed_on": "2026-10-04",
+        "scope": "Metadata-only reservation now. Later local research only after an explicitly qualified cohort freeze/release; no clinical deployment, reidentification, hosted-row sharing or additional redistribution approval.",
+        "obligations": "Retain source/contributor attribution and disclose retrospective collection, native coding, class imbalance and unresolved independent-patient mapping."
+      },
+      "source": {
+        "uci_id": 277,
+        "dataset_id": 1506,
+        "dataset_version": 1,
+        "task_id": 9969,
+        "schema_reviewed": true,
+        "columns": [
+          "V1",
+          "V2",
+          "V3",
+          "V4",
+          "V5",
+          "V6",
+          "V7",
+          "V8",
+          "V9",
+          "V10",
+          "V11",
+          "V12",
+          "V13",
+          "V14",
+          "V15",
+          "V16",
+          "Class"
+        ],
+        "target_columns": [
+          "Class"
+        ],
+        "expected_rows": 470,
+        "md5_checksum": "1a00c945a6c5d87cb5a5f234649bcbb0",
+        "official_split_dimensions": {
+          "repeats": 1,
+          "folds": 10,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=277",
+        "primary_metadata_sha256": "9c79770b224d89ccf0f24ce66f11550e0d2f2183bd9f44cadde729aeb551a795",
+        "openml_description_sha256": "d2fe797d3b88ccf71dd378bf9ce439eba4171e70bfd32d092ac01715e56592cb",
+        "openml_features_sha256": "47f788ed204cab95fed1b9b303ed98b2281a431ed1df2c6f81c4fb6f5d54bec8",
+        "openml_qualities_sha256": "30d131c6bac4507c759db11ba638ff428ce544418ce6fa8952494780194d295e",
+        "openml_task_sha256": "7b688395eeed4b891c3956748b85e25e6f314b84224201466800608f638110de",
+        "label_meanings": {
+          "1": "death within one year after surgery",
+          "2": "survival"
+        },
+        "native_target_name": "Risk1Yr",
+        "column_semantics": {
+          "V1": {
+            "native_name": "DGN",
+            "meaning": "Diagnosis - specific combination of ICD-10 codes for primary and secondary as well multiple tumours if any",
+            "native_role": "Feature"
+          },
+          "V2": {
+            "native_name": "PRE4",
+            "meaning": "Forced vital capacity - FVC (numeric)",
+            "native_role": "Feature"
+          },
+          "V3": {
+            "native_name": "PRE5",
+            "meaning": "Volume that has been exhaled at the end of the first second of forced expiration - FEV1 (numeric)",
+            "native_role": "Feature"
+          },
+          "V4": {
+            "native_name": "PRE6",
+            "meaning": "Performance status - Zubrod scale (PRZ2,PRZ1,PRZ0)",
+            "native_role": "Feature"
+          },
+          "V5": {
+            "native_name": "PRE7",
+            "meaning": "Pain before surgery (T,F)",
+            "native_role": "Feature"
+          },
+          "V6": {
+            "native_name": "PRE8",
+            "meaning": "Haemoptysis before surgery (T,F)",
+            "native_role": "Feature"
+          },
+          "V7": {
+            "native_name": "PRE9",
+            "meaning": "Dyspnoea before surgery (T,F)",
+            "native_role": "Feature"
+          },
+          "V8": {
+            "native_name": "PRE10",
+            "meaning": "Cough before surgery (T,F)",
+            "native_role": "Feature"
+          },
+          "V9": {
+            "native_name": "PRE11",
+            "meaning": "Weakness before surgery (T,F)",
+            "native_role": "Feature"
+          },
+          "V10": {
+            "native_name": "PRE14",
+            "meaning": "T in clinical TNM - size of the original tumour, from OC11 (smallest) to OC14 (largest) (OC11,OC14,OC12,OC13)",
+            "native_role": "Feature"
+          },
+          "V11": {
+            "native_name": "PRE17",
+            "meaning": "Type 2 DM - diabetes mellitus (T,F)",
+            "native_role": "Feature"
+          },
+          "V12": {
+            "native_name": "PRE19",
+            "meaning": "MI up to 6 months (T,F)",
+            "native_role": "Feature"
+          },
+          "V13": {
+            "native_name": "PRE25",
+            "meaning": "PAD - peripheral arterial diseases (T,F)",
+            "native_role": "Feature"
+          },
+          "V14": {
+            "native_name": "PRE30",
+            "meaning": "Smoking (T,F)",
+            "native_role": "Feature"
+          },
+          "V15": {
+            "native_name": "PRE32",
+            "meaning": "Asthma (T,F)",
+            "native_role": "Feature"
+          },
+          "V16": {
+            "native_name": "AGE",
+            "meaning": "Age at surgery (numeric)",
+            "native_role": "Feature"
+          },
+          "Class": {
+            "native_name": "Risk1Yr",
+            "meaning": "1 year survival period - (T)rue value if died (T,F)",
+            "native_role": "Target"
+          }
+        },
+        "categorical_rule": "All source NOMINAL and STRING predictors are declared categorical. Numeric FVC, FEV1 and age remain numeric.",
+        "payload_integrity_status": "No payloads or labels acquired. The publisher MD5 pins the representation metadata, not verified downloaded bytes."
+      },
+      "metadata_profile": {
+        "rows": 470,
+        "predictors": 16,
+        "classes": 2,
+        "class_counts": {
+          "1": 70,
+          "2": 400
+        },
+        "minimum_class_count": 70,
+        "expected_three_fold_minimum_test_count": 23,
+        "source_ten_fold_minority_test_count_expectation": 7,
+        "basis": "Primary descriptive counts and official OpenML metadata only, no payload recomputation.",
+        "payload_verified": false,
+        "entity_independence_verified": false,
+        "warning": "Metadata size/class eligibility is not proof of later fold support. Existing official10fold minority tests are expected to have7rows; a later required>=10 test margin needs an explicit allowed IID3 experiment policy and actual checks, never an implicit replacement."
+      }
+    }
+  ]
+}

@@ -533,6 +533,20 @@ class TestRegistryGenerators:
 class TestRegistryCreateFeature:
     """Tests for FeatureRegistry.create_feature."""
 
+    def test_every_default_transformation_supports_unary_feature_creation(self, monkeypatch):
+        registry = FeatureRegistry()
+        monkeypatch.setattr(registry, "_transformations", {})
+        registry._init_default_transformations()
+        frame = pd.DataFrame({"value": [-2.0, 0.0, 3.0]}, index=[5, 8, 13])
+
+        for transformation in registry.list_transformations():
+            feature = registry.create_feature(
+                name=f"value_{transformation}", transformation=transformation, source_columns=["value"]
+            )
+            result = feature.compute(frame)
+            expected = registry.get_transformation(transformation)(frame["value"])
+            pd.testing.assert_series_equal(result, expected)
+
     def test_create_feature_valid(self):
         """Test creating a feature with a valid transformation."""
         registry = FeatureRegistry()
@@ -544,6 +558,19 @@ class TestRegistryCreateFeature:
         assert feature.name == "col1_sqrt"
         assert feature.transformation == "sqrt"
         assert feature.origin == FeatureOrigin.POLYNOMIAL
+
+    def test_create_feature_can_compute_registered_transformation(self):
+        """Registry-created features should execute the registered callable."""
+        registry = FeatureRegistry()
+        feature = registry.create_feature(
+            name="col1_squared",
+            transformation="square",
+            source_columns=["col1"],
+        )
+
+        result = feature.compute(pd.DataFrame({"col1": [2, 3, 4]}))
+
+        assert result.tolist() == [4, 9, 16]
 
     def test_create_feature_unknown_transformation(self):
         """Test that unknown transformation raises ValueError."""

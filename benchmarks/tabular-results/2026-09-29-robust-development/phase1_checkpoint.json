@@ -1,0 +1,63 @@
+{
+  "format": "bounded-lossless-artifacts-v1",
+  "phase": "original-five-hour-ceiling",
+  "files": [
+    {
+      "name": "manifest.json",
+      "compression": "gzip",
+      "parts": [
+        "phase1-manifest.json.gz.part1"
+      ],
+      "sha256": "5c2494cd82fed87384311eca0aaf8f9fa18c241c46d58e55ff8b70fda2aa0e1a"
+    },
+    {
+      "name": "results.json",
+      "compression": "gzip",
+      "parts": [
+        "phase1-results.json.gz.part1",
+        "phase1-results.json.gz.part2",
+        "phase1-results.json.gz.part3",
+        "phase1-results.json.gz.part4",
+        "phase1-results.json.gz.part5",
+        "phase1-results.json.gz.part6",
+        "phase1-results.json.gz.part7"
+      ],
+      "sha256": "f514c51dc79c5ae62b9b59ae53202bf11b1c312b16e07719885eae524bd2062b"
+    },
+    {
+      "name": "state.json",
+      "compression": "gzip",
+      "parts": [
+        "phase1-state.json.gz.part1"
+      ],
+      "sha256": "a5f861fcf11a808428559b824389075a461d09db8252a892f7db6da9d7a27128"
+    },
+    {
+      "name": "REPORT.md",
+      "compression": "gzip",
+      "parts": [
+        "phase1-REPORT.md.gz.part1"
+      ],
+      "sha256": "012a5d016203b5986841960075945bcc2c8be04cb3e47018ade680e4b15ff00e"
+    },
+    {
+      "name": "archive.json",
+      "compression": "gzip",
+      "parts": [
+        "phase1-archive.json.gz.part1"
+      ],
+      "sha256": "7cf0d8670978b80897c869efbedcaaec04174880c1412e948512115a6d263c81"
+    }
+  ],
+  "successful_cells": 351,
+  "budget_exhausted_cells": 32,
+  "budget_limited_timeout_cells": 1,
+  "measured_seconds": 18234.351508000167,
+  "continuation": {
+    "total_active_seconds_ceiling": 20160,
+    "only_change": "Operational total-time ceiling; source/data/methods/splits/learners/case/RSS/thread limits unchanged. Retry all 33 unscored cells, not a performance-selected subset.",
+    "retain_successful_cells": true,
+    "audit_max_seconds_after_completion": 1500,
+    "user_total_measurement_hours": 72
+  }
+}

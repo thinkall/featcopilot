@@ -1,0 +1,10 @@
+{
+  "entire_audit_process_seconds": 602.7417017,
+  "finished_utc": "2026-09-29T00:10:26.2362756+00:00",
+  "native_threads": 8,
+  "exit_code": 0,
+  "includes": "Interpreter startup, preparation,18 isolated benchmark calls,validation and summary writing",
+  "synthetic_safety_test_process_seconds": 24.6757808,
+  "started_utc": "2026-09-29T00:00:23.4789426+00:00",
+  "ceiling_seconds": 3600
+}

@@ -4,14 +4,31 @@ Guidelines for getting the most out of FeatCopilot.
 
 ## Data Preparation
 
-### Handle Missing Values First
+### Keep Learned Preprocessing Inside the Pipeline
 
 ```python
-# FeatCopilot handles NaN in generated features,
-# but input data should be reasonably clean
-X = X.dropna()  # or
-X = X.fillna(X.median())
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+
+from featcopilot import FeatureEngineerTransformer
+
+pipeline = Pipeline([
+    ('features', FeatureEngineerTransformer(
+        engine='tabular',
+        max_features=30,
+        keep_original_categorical=False,
+    )),
+    ('imputer', SimpleImputer(strategy='median', add_indicator=True)),
+    ('scaler', StandardScaler()),
+    ('model', LogisticRegression(max_iter=1000)),
+])
 ```
+
+Imputation, encoding, feature generation, and scaling should be fitted on training
+rows only. Putting them in one pipeline preserves that rule during
+cross-validation and grid search.
 
 ### Identify Column Types
 
@@ -21,20 +38,6 @@ numeric_cols = X.select_dtypes(include=['number']).columns
 
 # Text columns are processed by TextEngine
 text_cols = X.select_dtypes(include=['object']).columns
-```
-
-### Scale Appropriately
-
-```python
-# Feature engineering before scaling is usually better
-# Scale after feature generation if needed
-from sklearn.preprocessing import StandardScaler
-
-engineer = AutoFeatureEngineer(engines=['tabular'])
-X_fe = engineer.fit_transform(X, y)
-
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X_fe.fillna(0))
 ```
 
 ## Feature Engineering
@@ -94,24 +97,35 @@ X_fe = engineer.fit_transform(
 ### Sklearn Pipeline
 
 ```python
-from sklearn.pipeline import Pipeline
-from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
 
-# Handle the full pipeline
+from featcopilot import FeatureEngineerTransformer
+
 pipeline = Pipeline([
-    ('imputer', SimpleImputer(strategy='median')),
-    ('features', AutoFeatureEngineer(engines=['tabular'], max_features=30)),
-    ('model', RandomForestClassifier())
+    ('features', FeatureEngineerTransformer(
+        engine='tabular',
+        max_features=30,
+        keep_original_categorical=False,
+    )),
+    ('imputer', SimpleImputer(strategy='median', add_indicator=True)),
+    ('model', RandomForestClassifier(random_state=42)),
 ])
-
-# Note: AutoFeatureEngineer outputs may contain NaN
-# Add imputation after if needed
 ```
+
+`keep_original_categorical=False` prevents unencoded string columns from
+reaching estimators that require numeric input. One-hot columns use categories
+learned during `fit`; target-encoded training rows are cross-fitted so each row
+is encoded without its own target.
 
 ### Train/Test Split
 
 ```python
+from sklearn.model_selection import train_test_split
+
+from featcopilot import AutoFeatureEngineer
+
 # Always split BEFORE feature engineering
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
@@ -121,31 +135,33 @@ X_train_fe = engineer.fit_transform(X_train, y_train)
 
 # Transform test data (no y needed)
 X_test_fe = engineer.transform(X_test)
-
-# Align columns
-common_cols = [c for c in X_train_fe.columns if c in X_test_fe.columns]
-X_train_fe = X_train_fe[common_cols]
-X_test_fe = X_test_fe[common_cols]
 ```
+
+`fit_transform` may intentionally produce different target-encoded values than
+`transform` on the same rows: training values are out-of-fold, while later
+transforms use mappings learned from the full training set.
 
 ### Cross-Validation
 
 ```python
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.impute import SimpleImputer
 from sklearn.model_selection import cross_val_score
+from sklearn.pipeline import Pipeline
 
-# Feature engineering inside CV to prevent leakage
-def feature_engineer_cv(X, y, cv=5):
-    scores = []
-    for train_idx, val_idx in KFold(cv).split(X):
-        X_train, X_val = X.iloc[train_idx], X.iloc[val_idx]
-        y_train, y_val = y.iloc[train_idx], y.iloc[val_idx]
+from featcopilot import FeatureEngineerTransformer
 
-        engineer = AutoFeatureEngineer(engines=['tabular'])
-        X_train_fe = engineer.fit_transform(X_train, y_train)
-        X_val_fe = engineer.transform(X_val)
+pipeline = Pipeline([
+    ('features', FeatureEngineerTransformer(
+        engine='tabular',
+        max_features=30,
+        keep_original_categorical=False,
+    )),
+    ('imputer', SimpleImputer(strategy='median', add_indicator=True)),
+    ('model', RandomForestClassifier(random_state=42)),
+])
 
-        # ... train and evaluate model
-    return scores
+scores = cross_val_score(pipeline, X, y, cv=5, scoring='roc_auc')
 ```
 
 ## LLM Features
@@ -281,12 +297,12 @@ print(X_fe.describe())
 ### 1. Data Leakage
 
 ```python
-# ❌ Wrong: fitting on all data
-engineer.fit_transform(X, y)  # Before split!
+# ❌ Wrong: engineer once, then cross-validate the already transformed data
+X_fe = engineer.fit_transform(X, y)
+scores = cross_val_score(model, X_fe, y, cv=5)
 
-# ✅ Correct: fit on train only
-X_train, X_test = train_test_split(X)
-engineer.fit(X_train, y_train)
+# ✅ Correct: cross-validate the complete pipeline
+scores = cross_val_score(pipeline, X, y, cv=5)
 ```
 
 ### 2. Feature Explosion

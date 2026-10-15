@@ -87,7 +87,21 @@ class BaseEngine(ABC):
         **kwargs,
     ) -> pd.DataFrame:
         """Fit and transform in one step."""
-        return self.fit(X, y, **kwargs).transform(X, **kwargs)
+        self.fit(X, y, **kwargs)
+        return self._transform_fit_data(X, y, **kwargs)
+
+    def _transform_fit_data(
+        self,
+        X: pd.DataFrame | np.ndarray,
+        y: pd.Series | np.ndarray | None = None,
+        **kwargs,
+    ) -> pd.DataFrame:
+        """Transform the rows used during fitting.
+
+        Supervised engines can override this hook when training rows require
+        leakage-safe behavior that differs from inference-time ``transform``.
+        """
+        return self.transform(X, **kwargs)
 
     def get_feature_names(self) -> list[str]:
         """Get names of generated features."""

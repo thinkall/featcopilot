@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "name": "regression-exposed-stress-replay-audit-20261008",
+  "authorization": "Parent instruction 2026-10-08T07:46:34.971+08:00: exposed development reuse with hardware official10/uncapped and infrared IID3; no runtime resplitting changes.",
+  "replay_manifest": "regression_exposed_stress_replay_20261008.json",
+  "replay_manifest_sha256": "d61adf7d50b6e0372bbe1b0805893973ffe37dad070a240f5baf08c4b8d1e92f",
+  "source_manifest": "frequency_fresh_confirmation_iid_20260928.json",
+  "source_manifest_sha256": "ecabf7db78b914bc100e7bd1c8179cf98f709f6973279b48b44f6cbd7ec4240b",
+  "exposure_evidence": {
+    "ledger_path": "benchmarks/.cache/exposure.sqlite",
+    "access": "SQLite URI mode=ro; no writes",
+    "query": "SELECT family_id,run_id,role,created_at FROM exposure WHERE family_id IN ('computer-hardware-performance','infrared-oral-temperature') ORDER BY family_id,run_id",
+    "rows": [
+      {
+        "family_id": "computer-hardware-performance",
+        "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+        "role": "confirmation",
+        "created_at": "2026-09-28T01:38:21.210509+00:00"
+      },
+      {
+        "family_id": "infrared-oral-temperature",
+        "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+        "role": "confirmation",
+        "created_at": "2026-09-28T01:38:21.402442+00:00"
+      }
+    ],
+    "conclusion": "Both origins are already exposed. This is development/stress reuse, never fresh confirmation."
+  },
+  "registry_delta": {
+    "path": "benchmarks/families.json",
+    "before_file_sha256": "8c5b1380d990aebcc22074eb8be2db9969d0f7aa0ffb65ba2f855658ead8aa5a",
+    "after_file_sha256": "a077798a444bedda66cc6f575e5d4a4859cc1d1b34b0e81d06a44642882c4bec",
+    "family_count_unchanged": 94,
+    "changed_family_ids": ["computer-hardware-performance", "infrared-oral-temperature"],
+    "changed_existing_fields": {
+      "role": {"before": "confirmation", "after": "development"},
+      "prior_exposure": {"before": "audited_unexposed", "after": "exposed"}
+    },
+    "added_fields": ["development_reuse_audit"],
+    "added_audit_value": {
+      "authorized_on": "2026-10-08T07:46:34.971+08:00",
+      "audit": "benchmarks/suites/regression_exposed_stress_replay_audit_20261008.json",
+      "basis": "Recorded confirmation-model exposure in run 4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446; reuse is exposed development/stress, never fresh confirmation."
+    },
+    "preserved_fields": ["aliases", "source_ids", "upstream_origin", "exposure_review", "reservation", "exposure_audit"],
+    "record_fingerprints": {
+      "computer-hardware-performance": {
+        "before": "54b09dacabb25d5563fa22942f32ada2e7a768be2ba746dca1af2314f3ed0fe6",
+        "after": "1e649f3678f40f6bb9efc608f09a45f66c902c5d39072d011dc0b8bac08a9e1f"
+      },
+      "infrared-oral-temperature": {
+        "before": "0cd432d3295c0f088f476bc7149aacf6d88ad0c3b241fa40f3bb24efd395d676",
+        "after": "7ff976571f58660998e4f2fa7b8f3210424e847e482f869caf0405f3027ad958"
+      }
+    },
+    "unchanged_registry_projection_sha256": "a3914b24a992b123720e8ddc48ac1711af747aad803b1862d8a5c32fe1e2a1b6",
+    "projection_definition": "Complete registry object with only the two selected family records removed; top-level fields and all other records/order retained."
+  },
+  "dataset_delta": {
+    "changed_fields_only": ["role", "prior_exposure"],
+    "source_target_transform_categorical_drop_rights_profiles_preserved": true,
+    "normalized_public_fingerprints": {
+      "computer-hardware-performance": {
+        "before": "470962569036a471485ccb17bc159b48da5f6f71a29e1baded35221d06957580",
+        "after": "fa1332ad17c278c0f606b2f9741cfb4a35c258f23667f2198281d9cd9b599a37"
+      },
+      "infrared-oral-temperature": {
+        "before": "58c446b621e981a847e2fe0b33f99025decd324995b556c3769306074d4a81d2",
+        "after": "004bc24ae71ded024a44e3fc4fcdf29620fd43949bd23a18badb5269a14e9ea9"
+      }
+    },
+    "private_normalization_context": "Current _family reflects the audited registry transition. Public normalized specs preserve every original field except role/prior_exposure."
+  },
+  "preserved_source_manifests": {
+    "count": 35,
+    "sha256_of_path_checksum_map": "e2db46e87ef0cc4ee6ab0815bc00ac93e8d2192e01bd66ea2a0cabb623e1c4e0",
+    "definition": "Map Windows-style repository-relative paths to SHA-256 of raw bytes for every existing benchmarks/suites/*.json, excluding only this new audit and its new replay manifest.",
+    "primary_five_source_sha256": "1f7d95ba7ada0bbd188d575756dc7ce6a8da8d55d1fb1963a1bcc222df7d0d84"
+  },
+  "fingerprint_encoding": "Object fingerprints use SHA-256 of UTF-8 json.dumps(value,sort_keys=True,separators=(',',':'),ensure_ascii=True,allow_nan=False). File hashes use exact bytes. Public spec fingerprints omit underscore-prefixed keys.",
+  "study_restrictions": {
+    "role": "development",
+    "fresh": false,
+    "methods_count": 3,
+    "learners": ["linear", "lightgbm"],
+    "seed": 42,
+    "primary": {"families": 7, "folds": 3, "max_rows": 5000, "cells": 126},
+    "infrared_stress": {"family_id": "infrared-oral-temperature", "folds": 3, "split_policy": "iid", "max_rows": 5000, "cells": 18},
+    "hardware_stress": {"family_id": "computer-hardware-performance", "folds": 10, "split_policy": "official", "max_rows": 0, "cells": 60, "replicates_previous_iid_failure": false},
+    "expected_total_cells": 204,
+    "shared_total_seconds_ceiling": 14400,
+    "budget_applies_to": "Sum across all executions/scopes, not independently per run",
+    "separate_hardware_execution_required": true,
+    "explicit_dataset_filtering_required": true,
+    "stress_in_primary_mean": false,
+    "pool_stress_split_designs": false,
+    "clinical_or_entity_disjoint_claims": false,
+    "legacy_rights_labels_unchanged": true,
+    "new_resplitting_policy": false
+  },
+  "validation_scope": "Metadata normalization, exact field/fingerprint preservation, source-policy counts and read-only exposure evidence. Actual payload/cache integrity and model execution remain the parent's later preparation task.",
+  "unchanged_catalog_sha256": "04858a8e592b78d9dc6ebab8d251bcc36b05f72f8dd630134d3bec724dd17ca0",
+  "downloads": 0,
+  "payload_acquisition_calls": 0,
+  "model_calls": 0,
+  "performance_inspection": false,
+  "ledger_writes": 0,
+  "runtime_or_test_file_changes": false
+}

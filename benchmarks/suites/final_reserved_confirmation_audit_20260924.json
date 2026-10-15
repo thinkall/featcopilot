@@ -1,0 +1,3241 @@
+{
+  "schema_version": 1,
+  "name": "final-reserved-confirmation-audit-20260924",
+  "family_registry": "../families.json",
+  "purpose": "Metadata-only source/schema/rights/exposure and workload audit for the proposed final reserved confirmation. Active reservations are not released.",
+  "draft_manifest": "final_reserved_confirmation_draft_20260924.json",
+  "release_state": {
+    "status": "awaiting_explicit_parent_authorization",
+    "model_execution_authorized": false,
+    "reservation_state": "active",
+    "registry_modified_by_this_draft": false,
+    "required_actions_before_execution": [
+      "Parent explicitly approves the protocol/claim draft and authorizes reservation release.",
+      "Recheck the live exposure ledger for all 12 canonical family IDs; any intervening model exposure blocks their independent-confirmation use.",
+      "Write the new executed confirmation suite and registry admission: reviewed exposure evidence, prior_exposure=audited_unexposed, role=confirmation, reservation.status=released. Preserve this draft and original reservation inventory as review history.",
+      "Freeze execution-agent split_plan/memory/method binding, the unchanged model implementations, runtime dependencies and code fingerprints before any reserved payload preparation or model execution.",
+      "Use a fresh output directory and revalidate pinned payload/schema, class support and the exact planned split IDs after release; do not relax failures or switch tasks/methods/learners."
+    ]
+  },
+  "summary": {
+    "families": 12,
+    "classification": 9,
+    "binary": 6,
+    "multiclass": 3,
+    "regression": 3,
+    "primary_observational_families": 11,
+    "secondary_simulation_families": 1,
+    "official_tasks": 10,
+    "iid_tasks": 2,
+    "planned_splits": 16,
+    "planned_cells": 128,
+    "primary_observational_cells": 120,
+    "secondary_simulation_cells": 8,
+    "smallest_total_class_count": 96,
+    "smallest_previously_verified_outer_train_class_count": 64,
+    "smallest_previously_verified_outer_test_class_count": 32,
+    "model_calls": 0,
+    "payload_reads": 0,
+    "source_downloads": 0
+  },
+  "evidence": {
+    "as_of": "2026-09-24",
+    "reservation_manifest": "benchmarks/suites/confirmation_candidate_reservation_20260923.json",
+    "reservation_manifest_sha256": "c7ad92d890362d82bdb6f8e75d1024c9500f4c956aae56fb861015c559c73547",
+    "reservation_audit_sha256": "43f9a662bfa51c8eec94db4df3b305d8e316b717cf8b9d80878acea6b231827a",
+    "source_profile_manifest": "benchmarks/suites/development_expansion_20260922.json",
+    "source_profile_manifest_sha256": "49a8d02f411d456abe4747026ec26762648fceefc03a722a1fc47ac3cadb4969",
+    "prior_identity_exposure_audit": "confirmation_candidate_reservation_audit_20260923.json#/exposure_proof",
+    "current_ledger": {
+      "path": "benchmarks/.cache/exposure.sqlite",
+      "access": "SQLite URI mode=ro; no writes",
+      "query": "SELECT family_id,run_id,role,created_at FROM exposure ORDER BY family_id,run_id",
+      "row_count": 71,
+      "logical_rows_sha256": "cd99e7ef281fa178961b4d9ef8580ff76c706d15a787cdb25953cd9e686b8ea1",
+      "logical_hash_encoding": "SHA-256 of UTF-8 compact JSON encoding of query rows in query order.",
+      "rows": [
+        {
+          "family_id": "adult",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:27.167775+00:00"
+        },
+        {
+          "family_id": "adult",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:06.294233+00:00"
+        },
+        {
+          "family_id": "adult",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.023155+00:00"
+        },
+        {
+          "family_id": "adult",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:40.271692+00:00"
+        },
+        {
+          "family_id": "auto-mpg",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.773312+00:00"
+        },
+        {
+          "family_id": "auto-mpg",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.545256+00:00"
+        },
+        {
+          "family_id": "auto-mpg",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.714926+00:00"
+        },
+        {
+          "family_id": "banknote-authentication",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.408141+00:00"
+        },
+        {
+          "family_id": "banknote-authentication",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.174076+00:00"
+        },
+        {
+          "family_id": "banknote-authentication",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.375998+00:00"
+        },
+        {
+          "family_id": "california-housing",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:28.301260+00:00"
+        },
+        {
+          "family_id": "california-housing",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.873285+00:00"
+        },
+        {
+          "family_id": "california-housing",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.640344+00:00"
+        },
+        {
+          "family_id": "california-housing",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.809720+00:00"
+        },
+        {
+          "family_id": "chronic-kidney-disease",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.692856+00:00"
+        },
+        {
+          "family_id": "chronic-kidney-disease",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.454403+00:00"
+        },
+        {
+          "family_id": "chronic-kidney-disease",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.643585+00:00"
+        },
+        {
+          "family_id": "combined-cycle-power",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.510790+00:00"
+        },
+        {
+          "family_id": "combined-cycle-power",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.274612+00:00"
+        },
+        {
+          "family_id": "combined-cycle-power",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.471117+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "12de448078245ea61495c6e442b7f81d9e6907edbc0c15b553448004ba9ebda3",
+          "role": "development",
+          "created_at": "2026-09-20T08:52:54.881121+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:28.075106+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:06.960342+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.711007+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "7bf61e7cf3f0c03687d21bfb072f1054f9df4d9f1ee8f1c2969fa45b8d357bad",
+          "role": "development",
+          "created_at": "2026-09-17T06:51:56.088888+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:40.938193+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "a5c05d09c00626a942851f70d680f8a121cb0c6f5840c2e8a7715db4cdbf30ec",
+          "role": "development",
+          "created_at": "2026-09-17T07:23:12.228125+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "f1113556c7db1d80a1b00fd28f006515bf715c8a9af875df1d517ea2f03af17b",
+          "role": "development",
+          "created_at": "2026-09-17T07:19:07.259838+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:27.795029+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:06.749764+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.497413+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "7bf61e7cf3f0c03687d21bfb072f1054f9df4d9f1ee8f1c2969fa45b8d357bad",
+          "role": "development",
+          "created_at": "2026-09-17T06:51:56.059433+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:40.728420+00:00"
+        },
+        {
+          "family_id": "energy-efficiency",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:28.176485+00:00"
+        },
+        {
+          "family_id": "energy-efficiency",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.037263+00:00"
+        },
+        {
+          "family_id": "energy-efficiency",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.789596+00:00"
+        },
+        {
+          "family_id": "energy-efficiency",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.016341+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:27.349190+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:06.405585+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.137742+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "7bf61e7cf3f0c03687d21bfb072f1054f9df4d9f1ee8f1c2969fa45b8d357bad",
+          "role": "development",
+          "created_at": "2026-09-17T06:51:55.935561+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:40.382260+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "12de448078245ea61495c6e442b7f81d9e6907edbc0c15b553448004ba9ebda3",
+          "role": "development",
+          "created_at": "2026-09-20T08:52:54.782252+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:27.523781+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:06.549907+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.289717+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:40.531157+00:00"
+        },
+        {
+          "family_id": "real-estate-sindian",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.597870+00:00"
+        },
+        {
+          "family_id": "real-estate-sindian",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.364126+00:00"
+        },
+        {
+          "family_id": "real-estate-sindian",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.554520+00:00"
+        },
+        {
+          "family_id": "seoul-bike",
+          "run_id": "37b08f9e0d0c0482c06a31727c593d3c24c7a69a859891dfcd592ca31617ea1c",
+          "role": "development",
+          "created_at": "2026-09-20T10:09:12.059098+00:00"
+        },
+        {
+          "family_id": "spambase",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.306397+00:00"
+        },
+        {
+          "family_id": "spambase",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.068277+00:00"
+        },
+        {
+          "family_id": "spambase",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.274182+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:27.990273+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:06.873999+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.625443+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:40.855516+00:00"
+        },
+        {
+          "family_id": "tabarena-46904",
+          "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+          "role": "confirmation",
+          "created_at": "2026-09-20T10:14:48.511575+00:00"
+        },
+        {
+          "family_id": "tabarena-46916",
+          "run_id": "fbfa458ef79c8fae0ed44da73fcb1ada89468d3c7ea5b7aadc12d3ecda99c581",
+          "role": "confirmation",
+          "created_at": "2026-09-20T21:42:54.263178+00:00"
+        },
+        {
+          "family_id": "tabarena-46937",
+          "run_id": "fbfa458ef79c8fae0ed44da73fcb1ada89468d3c7ea5b7aadc12d3ecda99c581",
+          "role": "confirmation",
+          "created_at": "2026-09-20T21:42:57.385423+00:00"
+        },
+        {
+          "family_id": "tabarena-46954",
+          "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+          "role": "confirmation",
+          "created_at": "2026-09-20T10:15:10.740949+00:00"
+        },
+        {
+          "family_id": "tabarena-46958",
+          "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+          "role": "confirmation",
+          "created_at": "2026-09-20T10:15:15.995406+00:00"
+        },
+        {
+          "family_id": "tabarena-46969",
+          "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+          "role": "confirmation",
+          "created_at": "2026-09-20T10:15:24.009024+00:00"
+        },
+        {
+          "family_id": "wine-quality",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:28.244611+00:00"
+        },
+        {
+          "family_id": "wine-quality",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.816767+00:00"
+        },
+        {
+          "family_id": "wine-quality",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.587084+00:00"
+        },
+        {
+          "family_id": "wine-quality",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.756758+00:00"
+        },
+        {
+          "family_id": "wisconsin-diagnostic",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.134785+00:00"
+        },
+        {
+          "family_id": "wisconsin-diagnostic",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.892925+00:00"
+        },
+        {
+          "family_id": "wisconsin-diagnostic",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.110435+00:00"
+        }
+      ],
+      "selected_family_matches": []
+    },
+    "active_registry_reservations": [
+      "heart-failure-clinical",
+      "tabarena-46941",
+      "student-performance",
+      "tabarena-46913",
+      "tabarena-46960",
+      "tabarena-46907",
+      "tabarena-46930",
+      "tabarena-46963",
+      "tabarena-46949",
+      "tabarena-46950",
+      "tabarena-46956",
+      "tabarena-46962"
+    ],
+    "registry_sha256": "562a5b742a97a14123eb638f51b065fe93b200ccc856926ac18cd908ce8c2249",
+    "model_and_catalog_source_sha256": {
+      "benchmarks/catalog.py": "04858a8e592b78d9dc6ebab8d251bcc36b05f72f8dd630134d3bec724dd17ca0",
+      "benchmarks/tabular.py": "314638abf0d55d679a48fb927c322fd31e262b77a3d3ddee34d0b3ff8c4c9b91",
+      "benchmarks/reference_methods.py": "577e817b8f83cd31f9ceb81183ac8e8e28cd773353084643055f9c37f26623ea",
+      "featcopilot/engines/predictive.py": "043294b14ce1c7e888f1d40308b77848818e1fc25ac429546ae66e315a9a8b75"
+    },
+    "source_hash_scope": "Recorded existing model/catalog files only, not a final aggregate execution fingerprint. The execution agent is adding protocol plumbing; parent must capture the final runtime snapshot after review.",
+    "privacy": "No raw data, splits ARFF, labels, predictions, model output records, reports or score files were opened. Only already-approved metadata/primary-license pages and profile summaries were read.",
+    "rights_scope": "Ten UCI CC-BY-4.0 origins, original collector CC0 Fiat table, and original donor CC-BY-SA microwave table. Existing local-only/no-conveyance restrictions remain; no LLM/cloud row transfer or redistribution is newly approved.",
+    "no_model_calls": true,
+    "no_llm_calls": true,
+    "no_downloads": true
+  },
+  "additional_preacquisition_timing_review": {
+    "reviewed_on": "2026-09-24",
+    "scope": "Primary cached UCI metadata only; no payloads, labels, outcomes or performance values inspected.",
+    "schema_changes": false,
+    "method_or_split_changes": false,
+    "runtime_code_changes": false,
+    "heart_failure": {
+      "endpoint": "Recorded death during each patient's observed follow-up, not a common-horizon or baseline prognostic endpoint.",
+      "time": "Follow-up period in days remains excluded as originally reviewed.",
+      "task_framing": "Retrospective patient-record outcome classification using the remaining clinical fields. Their common-baseline availability is not established merely by removing time; no survival/censoring or deployment claim.",
+      "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=519",
+      "primary_metadata_sha256": "abb8ed505b926e5033e1adc6bbe5ab6658041ee065d8c181bf1dc16558264338"
+    },
+    "student_performance": {
+      "endpoint": "G3 final-year Portuguese-course grade, issued in the third period on its original 0-20 scale.",
+      "prior_period_grades": "G1 (first period) and G2 (second period) remain excluded; neither is a predictor.",
+      "task_framing": "Retrospective school-record regression with recorded absences and questionnaire fields; no assertion that the remaining fields were all available at enrollment or before an earlier term.",
+      "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=320",
+      "primary_metadata_sha256": "cc52f5ef08ce63f13035d9290ba3c195b89e5bba33bece83288b0d97d421aaca"
+    }
+  },
+  "per_family": [
+    {
+      "family_id": "heart-failure-clinical",
+      "dataset_name": "uci-heart-failure-clinical",
+      "stratum": "binary",
+      "origin_kind": "observational",
+      "claim_track": "primary_observational_tabular_candidate",
+      "rows": 299,
+      "predictors": 11,
+      "class_labels": [
+        0,
+        1
+      ],
+      "observed_class_counts": {
+        "0": 203,
+        "1": 96
+      },
+      "minimum_total_class_count": 96,
+      "minimum_previously_verified_outer_train_class_count": 64,
+      "minimum_previously_verified_outer_test_class_count": 32,
+      "class_support_evidence_scope": "Already-approved profile across the source's previous reference outer splits; no labels or split-index payloads opened for this proposal. Final selected-split support must be revalidated after explicit release.",
+      "categorical_columns": [
+        "anaemia",
+        "diabetes",
+        "high_blood_pressure",
+        "sex",
+        "smoking"
+      ],
+      "string_predictors_included_as_categorical": [],
+      "target": "death_event",
+      "target_columns": [
+        "death_event"
+      ],
+      "drop_columns": [
+        "time"
+      ],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/519/heart+failure+clinical+records",
+          "https://archive.ics.uci.edu/api/dataset?id=519"
+        ],
+        "primary_page_sha256": "caa73aecc3ba74ec93c547aa360c69d5351d2561b1e31165342a06081ac43f39",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "metadata_evidence": [
+        {
+          "kind": "primary_uci_metadata",
+          "url": "https://archive.ics.uci.edu/api/dataset?id=519",
+          "sha256": "abb8ed505b926e5033e1adc6bbe5ab6658041ee065d8c181bf1dc16558264338"
+        },
+        {
+          "kind": "primary_rights",
+          "url": "https://archive.ics.uci.edu/dataset/519/heart+failure+clinical+records",
+          "sha256": "caa73aecc3ba74ec93c547aa360c69d5351d2561b1e31165342a06081ac43f39"
+        }
+      ],
+      "source_official_split_count": null,
+      "planned_split_count": 3,
+      "planned_cells": 24,
+      "split_plan": {
+        "policy": "iid",
+        "folds": 3
+      },
+      "reservation_status": "active",
+      "ledger_matches": [],
+      "review_status": "schema_rights_and_exposure_reverified_metadata_only"
+    },
+    {
+      "family_id": "tabarena-46941",
+      "dataset_name": "tabarena-46941",
+      "stratum": "multiclass",
+      "origin_kind": "observational",
+      "claim_track": "primary_observational_tabular_candidate",
+      "rows": 1014,
+      "predictors": 6,
+      "class_labels": [
+        "high risk",
+        "low risk",
+        "mid risk"
+      ],
+      "observed_class_counts": {
+        "high risk": 272,
+        "low risk": 406,
+        "mid risk": 336
+      },
+      "minimum_total_class_count": 272,
+      "minimum_previously_verified_outer_train_class_count": 181,
+      "minimum_previously_verified_outer_test_class_count": 90,
+      "class_support_evidence_scope": "Already-approved profile across the source's previous reference outer splits; no labels or split-index payloads opened for this proposal. Final selected-split support must be revalidated after explicit release.",
+      "categorical_columns": [],
+      "string_predictors_included_as_categorical": [],
+      "target": "RiskLevel",
+      "target_columns": [
+        "RiskLevel"
+      ],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/863/maternal+health+risk",
+          "https://archive.ics.uci.edu/api/dataset?id=863"
+        ],
+        "primary_page_sha256": "9f76f92ef2c3ba763bf9927f63388c17cdb23658fb2904475b19ed8d9d29e2e8",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "metadata_evidence": [
+        {
+          "kind": "official_features",
+          "url": "https://www.openml.org/api/v1/json/data/features/46941",
+          "sha256": "b63a0a250c73beec10ce67d35468d8a1b8abce08004ee4bf1e2fc391f1143bd5"
+        },
+        {
+          "kind": "official_dataset",
+          "url": "https://www.openml.org/api/v1/json/data/46941",
+          "sha256": "c0d11a1f69566d87bd806e6bcdfdd9d414cd27205535a3fe9236a4f025ea016d"
+        },
+        {
+          "kind": "official_task",
+          "url": "https://www.openml.org/api/v1/json/task/363685",
+          "sha256": "a0f5f0f83bca48f510b6b5113a72ea662ea4ddcd7986fb4a2a19a1a506aadd79"
+        },
+        {
+          "kind": "primary_rights",
+          "url": "https://archive.ics.uci.edu/dataset/863/maternal+health+risk",
+          "sha256": "9f76f92ef2c3ba763bf9927f63388c17cdb23658fb2904475b19ed8d9d29e2e8"
+        }
+      ],
+      "source_official_split_count": 30,
+      "planned_split_count": 1,
+      "planned_cells": 8,
+      "split_plan": {
+        "policy": "official",
+        "official_split_ids": [
+          {
+            "repeat": 0,
+            "fold": 0,
+            "sample": 0
+          }
+        ]
+      },
+      "reservation_status": "active",
+      "ledger_matches": [],
+      "review_status": "schema_rights_and_exposure_reverified_metadata_only"
+    },
+    {
+      "family_id": "student-performance",
+      "dataset_name": "uci-student-performance",
+      "stratum": "regression",
+      "origin_kind": "observational",
+      "claim_track": "primary_observational_tabular_candidate",
+      "rows": 649,
+      "predictors": 30,
+      "class_labels": null,
+      "observed_class_counts": null,
+      "minimum_total_class_count": null,
+      "minimum_previously_verified_outer_train_class_count": null,
+      "minimum_previously_verified_outer_test_class_count": null,
+      "class_support_evidence_scope": "Already-approved profile across the source's previous reference outer splits; no labels or split-index payloads opened for this proposal. Final selected-split support must be revalidated after explicit release.",
+      "categorical_columns": [
+        "school",
+        "sex",
+        "address",
+        "famsize",
+        "Pstatus",
+        "Mjob",
+        "Fjob",
+        "reason",
+        "guardian",
+        "schoolsup",
+        "famsup",
+        "paid",
+        "activities",
+        "nursery",
+        "higher",
+        "internet",
+        "romantic"
+      ],
+      "string_predictors_included_as_categorical": [],
+      "target": "G3",
+      "target_columns": [
+        "G1",
+        "G2",
+        "G3"
+      ],
+      "drop_columns": [
+        "G1",
+        "G2"
+      ],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/320/student+performance",
+          "https://archive.ics.uci.edu/api/dataset?id=320"
+        ],
+        "primary_page_sha256": "c5ffc9d89828e9f667e7fbe695e122d4d3a93f0324a387f6f271049b819a8191",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "metadata_evidence": [
+        {
+          "kind": "primary_uci_metadata",
+          "url": "https://archive.ics.uci.edu/api/dataset?id=320",
+          "sha256": "cc52f5ef08ce63f13035d9290ba3c195b89e5bba33bece83288b0d97d421aaca"
+        },
+        {
+          "kind": "primary_rights",
+          "url": "https://archive.ics.uci.edu/dataset/320/student+performance",
+          "sha256": "c5ffc9d89828e9f667e7fbe695e122d4d3a93f0324a387f6f271049b819a8191"
+        }
+      ],
+      "source_official_split_count": null,
+      "planned_split_count": 3,
+      "planned_cells": 24,
+      "split_plan": {
+        "policy": "iid",
+        "folds": 3
+      },
+      "reservation_status": "active",
+      "ledger_matches": [],
+      "review_status": "schema_rights_and_exposure_reverified_metadata_only"
+    },
+    {
+      "family_id": "tabarena-46913",
+      "dataset_name": "tabarena-46913",
+      "stratum": "binary",
+      "origin_kind": "observational",
+      "claim_track": "primary_observational_tabular_candidate",
+      "rows": 748,
+      "predictors": 4,
+      "class_labels": [
+        "No",
+        "Yes"
+      ],
+      "observed_class_counts": {
+        "No": 570,
+        "Yes": 178
+      },
+      "minimum_total_class_count": 178,
+      "minimum_previously_verified_outer_train_class_count": 118,
+      "minimum_previously_verified_outer_test_class_count": 59,
+      "class_support_evidence_scope": "Already-approved profile across the source's previous reference outer splits; no labels or split-index payloads opened for this proposal. Final selected-split support must be revalidated after explicit release.",
+      "categorical_columns": [],
+      "string_predictors_included_as_categorical": [],
+      "target": "DonatedBloodInMarch2007",
+      "target_columns": [
+        "DonatedBloodInMarch2007"
+      ],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/176/blood+transfusion+service+center",
+          "https://archive.ics.uci.edu/api/dataset?id=176"
+        ],
+        "primary_page_sha256": "4620fd103accca27d4f6a5a85c6b18b77bd552f0bf737f0f4e3814e3c7bbb8b0",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "metadata_evidence": [
+        {
+          "kind": "official_features",
+          "url": "https://www.openml.org/api/v1/json/data/features/46913",
+          "sha256": "68b1424a0a46c91e2092c47073346ff0c1dc9d35d6e001fb58b3f59f3ed7d179"
+        },
+        {
+          "kind": "official_dataset",
+          "url": "https://www.openml.org/api/v1/json/data/46913",
+          "sha256": "4b922b3596aac64603c20a8c579b2139e3258c5fcec819037c9bda55f4652113"
+        },
+        {
+          "kind": "official_task",
+          "url": "https://www.openml.org/api/v1/json/task/363621",
+          "sha256": "c409777eae9e8bad2cdf1dc115421ba605e9a6bd1d5575c2ad104a91bc7dad61"
+        },
+        {
+          "kind": "primary_rights",
+          "url": "https://archive.ics.uci.edu/dataset/176/blood+transfusion+service+center",
+          "sha256": "4620fd103accca27d4f6a5a85c6b18b77bd552f0bf737f0f4e3814e3c7bbb8b0"
+        }
+      ],
+      "source_official_split_count": 30,
+      "planned_split_count": 1,
+      "planned_cells": 8,
+      "split_plan": {
+        "policy": "official",
+        "official_split_ids": [
+          {
+            "repeat": 0,
+            "fold": 0,
+            "sample": 0
+          }
+        ]
+      },
+      "reservation_status": "active",
+      "ledger_matches": [],
+      "review_status": "schema_rights_and_exposure_reverified_metadata_only"
+    },
+    {
+      "family_id": "tabarena-46960",
+      "dataset_name": "tabarena-46960",
+      "stratum": "multiclass",
+      "origin_kind": "observational",
+      "claim_track": "primary_observational_tabular_candidate",
+      "rows": 4424,
+      "predictors": 18,
+      "class_labels": [
+        "Dropout",
+        "Enrolled",
+        "Graduate"
+      ],
+      "observed_class_counts": {
+        "Dropout": 1421,
+        "Enrolled": 794,
+        "Graduate": 2209
+      },
+      "minimum_total_class_count": 794,
+      "minimum_previously_verified_outer_train_class_count": 529,
+      "minimum_previously_verified_outer_test_class_count": 264,
+      "class_support_evidence_scope": "Already-approved profile across the source's previous reference outer splits; no labels or split-index payloads opened for this proposal. Final selected-split support must be revalidated after explicit release.",
+      "categorical_columns": [
+        "Marital_status",
+        "Application_mode",
+        "Course",
+        "Daytimeevening_attendance",
+        "Previous_qualification",
+        "Nationality",
+        "Mothers_qualification",
+        "Fathers_qualification",
+        "Mothers_occupation",
+        "Fathers_occupation",
+        "Displaced",
+        "Educational_special_needs",
+        "Gender",
+        "International"
+      ],
+      "string_predictors_included_as_categorical": [],
+      "target": "AcademicOutcome",
+      "target_columns": [
+        "AcademicOutcome"
+      ],
+      "drop_columns": [
+        "Curricular_units_1st_sem_credited",
+        "Curricular_units_1st_sem_enrolled",
+        "Curricular_units_1st_sem_evaluations",
+        "Curricular_units_1st_sem_approved",
+        "Curricular_units_1st_sem_grade",
+        "Curricular_units_1st_sem_without_evaluations",
+        "Curricular_units_2nd_sem_credited",
+        "Curricular_units_2nd_sem_enrolled",
+        "Curricular_units_2nd_sem_evaluations",
+        "Curricular_units_2nd_sem_approved",
+        "Curricular_units_2nd_sem_grade",
+        "Curricular_units_2nd_sem_without_evaluations",
+        "Debtor",
+        "Tuition_fees_up_to_date",
+        "Scholarship_holder",
+        "Unemployment_rate",
+        "Inflation_rate",
+        "GDP"
+      ],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/697/predict+students+dropout+and+academic+success",
+          "https://archive.ics.uci.edu/api/dataset?id=697"
+        ],
+        "primary_page_sha256": "dbaf9cf267f1200f153f430e71b5da1d2d50ea71be0ef56b70cfc345c6c9dcbf",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "metadata_evidence": [
+        {
+          "kind": "official_features",
+          "url": "https://www.openml.org/api/v1/json/data/features/46960",
+          "sha256": "1e357584712d9f5186cc09759a6beffff7bc2d86db43c22fae48f8ae4b9138e9"
+        },
+        {
+          "kind": "official_dataset",
+          "url": "https://www.openml.org/api/v1/json/data/46960",
+          "sha256": "24e23b35b9e847d34e51c5ce3577d43452769229df838bda28180fdeec2f8b78"
+        },
+        {
+          "kind": "official_task",
+          "url": "https://www.openml.org/api/v1/json/task/363704",
+          "sha256": "712af4ba7fbba4060e7a10e39628119076f879ae915cdc344a0c5a95e0151c76"
+        },
+        {
+          "kind": "primary_rights",
+          "url": "https://archive.ics.uci.edu/dataset/697/predict+students+dropout+and+academic+success",
+          "sha256": "dbaf9cf267f1200f153f430e71b5da1d2d50ea71be0ef56b70cfc345c6c9dcbf"
+        }
+      ],
+      "source_official_split_count": 30,
+      "planned_split_count": 1,
+      "planned_cells": 8,
+      "split_plan": {
+        "policy": "official",
+        "official_split_ids": [
+          {
+            "repeat": 0,
+            "fold": 0,
+            "sample": 0
+          }
+        ]
+      },
+      "reservation_status": "active",
+      "ledger_matches": [],
+      "review_status": "schema_rights_and_exposure_reverified_metadata_only"
+    },
+    {
+      "family_id": "tabarena-46907",
+      "dataset_name": "tabarena-46907",
+      "stratum": "regression",
+      "origin_kind": "observational",
+      "claim_track": "primary_observational_tabular_candidate",
+      "rows": 1538,
+      "predictors": 7,
+      "class_labels": null,
+      "observed_class_counts": null,
+      "minimum_total_class_count": null,
+      "minimum_previously_verified_outer_train_class_count": null,
+      "minimum_previously_verified_outer_test_class_count": null,
+      "class_support_evidence_scope": "Already-approved profile across the source's previous reference outer splits; no labels or split-index payloads opened for this proposal. Final selected-split support must be revalidated after explicit release.",
+      "categorical_columns": [
+        "model"
+      ],
+      "string_predictors_included_as_categorical": [],
+      "target": "price",
+      "target_columns": [
+        "price"
+      ],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC0-1.0",
+        "access": "public",
+        "approval_basis": "The original dataset collector explicitly publishes this collected listing table under CC0 on Kaggle and invites regression research. This is a first-party publisher grant, not the TabArena badge alone.",
+        "evidence": [
+          "https://www.kaggle.com/datasets/paolocons/another-fiat-500-dataset-1538-rows",
+          "https://www.kaggle.com/api/v1/datasets/view/paolocons/another-fiat-500-dataset-1538-rows",
+          "https://creativecommons.org/publicdomain/zero/1.0/legalcode"
+        ],
+        "primary_metadata_sha256": "a1ec9d92040e61050fa6c75c6c74b9864998dbc1e2d893c258ca3097665c99ab",
+        "reviewed_on": "2026-09-22",
+        "scope": "Existing public table, local benchmarking only; no new listing-site scraping, seller reidentification, hosted row sharing or row redistribution is approved by this admission.",
+        "provenance_limit": "The collector describes querying a used-car website without naming it. The recorded grant is the collector's CC0 declaration for this table; no broader permission for the unnamed website is asserted.",
+        "obligations": "Retain collector and curated-task attribution for scientific provenance; report listing-price and origin limitations."
+      },
+      "metadata_evidence": [
+        {
+          "kind": "official_features",
+          "url": "https://www.openml.org/api/v1/json/data/features/46907",
+          "sha256": "a474407d62a6a5510de34ca8ecf7bf154a26d1a0745c6d981649e23f5c74ce22"
+        },
+        {
+          "kind": "official_dataset",
+          "url": "https://www.openml.org/api/v1/json/data/46907",
+          "sha256": "79b880e49658adcac52debae13d5214fbeae37de1cab4e6cfe871b11daa9eb9f"
+        },
+        {
+          "kind": "official_task",
+          "url": "https://www.openml.org/api/v1/json/task/363615",
+          "sha256": "284552dc65f25719eb39b7f9fb66597711751ac40d37acd5477f9ab8b1103a17"
+        },
+        {
+          "kind": "original_collector_rights",
+          "url": "https://www.kaggle.com/api/v1/datasets/view/paolocons/another-fiat-500-dataset-1538-rows",
+          "sha256": "a1ec9d92040e61050fa6c75c6c74b9864998dbc1e2d893c258ca3097665c99ab"
+        }
+      ],
+      "source_official_split_count": 30,
+      "planned_split_count": 1,
+      "planned_cells": 8,
+      "split_plan": {
+        "policy": "official",
+        "official_split_ids": [
+          {
+            "repeat": 0,
+            "fold": 0,
+            "sample": 0
+          }
+        ]
+      },
+      "reservation_status": "active",
+      "ledger_matches": [],
+      "review_status": "schema_rights_and_exposure_reverified_metadata_only"
+    },
+    {
+      "family_id": "tabarena-46930",
+      "dataset_name": "tabarena-46930",
+      "stratum": "binary",
+      "origin_kind": "observational",
+      "claim_track": "primary_observational_tabular_candidate",
+      "rows": 2400,
+      "predictors": 30,
+      "class_labels": [
+        "0",
+        "1"
+      ],
+      "observed_class_counts": {
+        "0": 1200,
+        "1": 1200
+      },
+      "minimum_total_class_count": 1200,
+      "minimum_previously_verified_outer_train_class_count": 800,
+      "minimum_previously_verified_outer_test_class_count": 400,
+      "class_support_evidence_scope": "Already-approved profile across the source's previous reference outer splits; no labels or split-index payloads opened for this proposal. Final selected-split support must be revalidated after explicit release.",
+      "categorical_columns": [],
+      "string_predictors_included_as_categorical": [],
+      "target": "Contaminated",
+      "target_columns": [
+        "Contaminated"
+      ],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-SA (version unspecified by original donor)",
+        "access": "public",
+        "approval_basis": "Original study dataset 45538 is published with creator Luca Urbinati, the cited paper's author, and an express CC BY-SA grant. Approval is limited to local non-conveying research processing, a permission common to the named CC BY-SA licenses; no particular unrecorded license version or redistribution right is invented.",
+        "evidence": [
+          "https://www.openml.org/d/45538",
+          "https://www.openml.org/api/v1/json/data/45538",
+          "https://doi.org/10.1109/ISCAS45731.2020.9181293"
+        ],
+        "primary_metadata_sha256": "e6d147162b0e889ca7c8a5d43c517fe48db7dfe599d3e9f242aebeadc68e06d0",
+        "reviewed_on": "2026-09-22",
+        "scope": "Private local processing and aggregate scientific reporting only. Exact CC BY-SA version and redistribution obligations require clarification before conveying data/row derivatives.",
+        "obligations": "Retain Luca Urbinati and coauthors' attribution, original CC BY-SA declaration and citation. No hosted row sharing, new-frequency origin inflation or row-level redistribution is approved.",
+        "redistribution_approved": false
+      },
+      "metadata_evidence": [
+        {
+          "kind": "official_features",
+          "url": "https://www.openml.org/api/v1/json/data/features/46930",
+          "sha256": "edd5d447dadb565af3877f62ca6f13b2bdd3cf2128d08266369f92aca0e6d12c"
+        },
+        {
+          "kind": "official_dataset",
+          "url": "https://www.openml.org/api/v1/json/data/46930",
+          "sha256": "2f01d456beb7e08a34257c096411694618107885f2adafcbe7d9296746c86a89"
+        },
+        {
+          "kind": "official_task",
+          "url": "https://www.openml.org/api/v1/json/task/363674",
+          "sha256": "d6a9c01e5bdec1fd35ca31c5f10b69545668129764c7b46c15b9e712cb223e57"
+        },
+        {
+          "kind": "original_donor_rights",
+          "url": "https://www.openml.org/api/v1/json/data/45538",
+          "sha256": "e6d147162b0e889ca7c8a5d43c517fe48db7dfe599d3e9f242aebeadc68e06d0"
+        }
+      ],
+      "source_official_split_count": 30,
+      "planned_split_count": 1,
+      "planned_cells": 8,
+      "split_plan": {
+        "policy": "official",
+        "official_split_ids": [
+          {
+            "repeat": 0,
+            "fold": 0,
+            "sample": 0
+          }
+        ]
+      },
+      "reservation_status": "active",
+      "ledger_matches": [],
+      "review_status": "schema_rights_and_exposure_reverified_metadata_only"
+    },
+    {
+      "family_id": "tabarena-46963",
+      "dataset_name": "tabarena-46963",
+      "stratum": "multiclass",
+      "origin_kind": "observational",
+      "claim_track": "primary_observational_tabular_candidate",
+      "rows": 1353,
+      "predictors": 9,
+      "class_labels": [
+        "Legitimate",
+        "Phishy",
+        "Suspicious"
+      ],
+      "observed_class_counts": {
+        "Legitimate": 548,
+        "Phishy": 702,
+        "Suspicious": 103
+      },
+      "minimum_total_class_count": 103,
+      "minimum_previously_verified_outer_train_class_count": 68,
+      "minimum_previously_verified_outer_test_class_count": 34,
+      "class_support_evidence_scope": "Already-approved profile across the source's previous reference outer splits; no labels or split-index payloads opened for this proposal. Final selected-split support must be revalidated after explicit release.",
+      "categorical_columns": [
+        "SFH",
+        "popUpWidnow",
+        "SSLfinal_State",
+        "Request_URL",
+        "URL_of_Anchor",
+        "web_traffic",
+        "URL_Length",
+        "age_of_domain",
+        "having_IP_Address"
+      ],
+      "string_predictors_included_as_categorical": [],
+      "target": "WebsiteType",
+      "target_columns": [
+        "WebsiteType"
+      ],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/379/website+phishing",
+          "https://archive.ics.uci.edu/api/dataset?id=379"
+        ],
+        "primary_page_sha256": "8aa2c674699c9f9f054b048df6ea9792f5a0651dea468ff2cdb6b3636bee4294",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "metadata_evidence": [
+        {
+          "kind": "official_features",
+          "url": "https://www.openml.org/api/v1/json/data/features/46963",
+          "sha256": "369aba0b9fcbd55be5b3da0e4fee885ee8e49b013135a01bb592f08e9ee7e4d4"
+        },
+        {
+          "kind": "official_dataset",
+          "url": "https://www.openml.org/api/v1/json/data/46963",
+          "sha256": "8f712cb69e33e8e0c35ac69f922783b7efa6db5945901f7afd3f87d61edfb2d8"
+        },
+        {
+          "kind": "official_task",
+          "url": "https://www.openml.org/api/v1/json/task/363707",
+          "sha256": "c2a5f427a319523813b5218f5c0867b0a845f3f7e5d99450c92bfd77d2e7c874"
+        },
+        {
+          "kind": "primary_rights",
+          "url": "https://archive.ics.uci.edu/dataset/379/website+phishing",
+          "sha256": "8aa2c674699c9f9f054b048df6ea9792f5a0651dea468ff2cdb6b3636bee4294"
+        }
+      ],
+      "source_official_split_count": 30,
+      "planned_split_count": 1,
+      "planned_cells": 8,
+      "split_plan": {
+        "policy": "official",
+        "official_split_ids": [
+          {
+            "repeat": 0,
+            "fold": 0,
+            "sample": 0
+          }
+        ]
+      },
+      "reservation_status": "active",
+      "ledger_matches": [],
+      "review_status": "schema_rights_and_exposure_reverified_metadata_only"
+    },
+    {
+      "family_id": "tabarena-46949",
+      "dataset_name": "tabarena-46949",
+      "stratum": "regression",
+      "origin_kind": "simulation",
+      "claim_track": "secondary_domain_simulation",
+      "rows": 45730,
+      "predictors": 9,
+      "class_labels": null,
+      "observed_class_counts": null,
+      "minimum_total_class_count": null,
+      "minimum_previously_verified_outer_train_class_count": null,
+      "minimum_previously_verified_outer_test_class_count": null,
+      "class_support_evidence_scope": "Already-approved profile across the source's previous reference outer splits; no labels or split-index payloads opened for this proposal. Final selected-split support must be revalidated after explicit release.",
+      "categorical_columns": [],
+      "string_predictors_included_as_categorical": [],
+      "target": "ResidualSize",
+      "target_columns": [
+        "ResidualSize"
+      ],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/265/physicochemical+properties+of+protein+tertiary+structure",
+          "https://archive.ics.uci.edu/api/dataset?id=265"
+        ],
+        "primary_page_sha256": "ad74cd89d4a60874e34bb58a8f7c4b5312d855119e5761c00cc4e872d650e258",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "metadata_evidence": [
+        {
+          "kind": "official_features",
+          "url": "https://www.openml.org/api/v1/json/data/features/46949",
+          "sha256": "28bcd457670a365477e802a1a75b55f58bd20895a7c1a945ba9daeac294bd458"
+        },
+        {
+          "kind": "official_dataset",
+          "url": "https://www.openml.org/api/v1/json/data/46949",
+          "sha256": "aa82a6f4893974b3e2e0f5fdf4ce997a783a0e95552dd1c74de76d8f23108763"
+        },
+        {
+          "kind": "official_task",
+          "url": "https://www.openml.org/api/v1/json/task/363693",
+          "sha256": "18a42451d0493498ba73e3e4ee097e708018c5b44fa779d4ec805572af477664"
+        },
+        {
+          "kind": "primary_rights",
+          "url": "https://archive.ics.uci.edu/dataset/265/physicochemical+properties+of+protein+tertiary+structure",
+          "sha256": "ad74cd89d4a60874e34bb58a8f7c4b5312d855119e5761c00cc4e872d650e258"
+        }
+      ],
+      "source_official_split_count": 30,
+      "planned_split_count": 1,
+      "planned_cells": 8,
+      "split_plan": {
+        "policy": "official",
+        "official_split_ids": [
+          {
+            "repeat": 0,
+            "fold": 0,
+            "sample": 0
+          }
+        ]
+      },
+      "reservation_status": "active",
+      "ledger_matches": [],
+      "review_status": "schema_rights_and_exposure_reverified_metadata_only"
+    },
+    {
+      "family_id": "tabarena-46950",
+      "dataset_name": "tabarena-46950",
+      "stratum": "binary",
+      "origin_kind": "observational",
+      "claim_track": "primary_observational_tabular_candidate",
+      "rows": 5910,
+      "predictors": 64,
+      "class_labels": [
+        "No",
+        "Yes"
+      ],
+      "observed_class_counts": {
+        "No": 5500,
+        "Yes": 410
+      },
+      "minimum_total_class_count": 410,
+      "minimum_previously_verified_outer_train_class_count": 273,
+      "minimum_previously_verified_outer_test_class_count": 136,
+      "class_support_evidence_scope": "Already-approved profile across the source's previous reference outer splits; no labels or split-index payloads opened for this proposal. Final selected-split support must be revalidated after explicit release.",
+      "categorical_columns": [],
+      "string_predictors_included_as_categorical": [],
+      "target": "company_bankrupt",
+      "target_columns": [
+        "company_bankrupt"
+      ],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/365/polish+companies+bankruptcy+data",
+          "https://archive.ics.uci.edu/api/dataset?id=365"
+        ],
+        "primary_page_sha256": "a9fc2b3d6a67115707a09ee08325893fc7c7ae2fbbfaad84c8cf09bfda32eb06",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "metadata_evidence": [
+        {
+          "kind": "official_features",
+          "url": "https://www.openml.org/api/v1/json/data/features/46950",
+          "sha256": "e1f19cc6fdff9271567335287184d69d3e889c4d34702823132280538d21656c"
+        },
+        {
+          "kind": "official_dataset",
+          "url": "https://www.openml.org/api/v1/json/data/46950",
+          "sha256": "69c8399ab8d9eb626263a5ba76f99d0a18562341058646d5ae8997b507066fc1"
+        },
+        {
+          "kind": "official_task",
+          "url": "https://www.openml.org/api/v1/json/task/363694",
+          "sha256": "7486f9365f20f0ab8c24606d2d123b0896d1534af0a787d33616ebc724a7cfd4"
+        },
+        {
+          "kind": "primary_rights",
+          "url": "https://archive.ics.uci.edu/dataset/365/polish+companies+bankruptcy+data",
+          "sha256": "a9fc2b3d6a67115707a09ee08325893fc7c7ae2fbbfaad84c8cf09bfda32eb06"
+        }
+      ],
+      "source_official_split_count": 30,
+      "planned_split_count": 1,
+      "planned_cells": 8,
+      "split_plan": {
+        "policy": "official",
+        "official_split_ids": [
+          {
+            "repeat": 0,
+            "fold": 0,
+            "sample": 0
+          }
+        ]
+      },
+      "reservation_status": "active",
+      "ledger_matches": [],
+      "review_status": "schema_rights_and_exposure_reverified_metadata_only"
+    },
+    {
+      "family_id": "tabarena-46956",
+      "dataset_name": "tabarena-46956",
+      "stratum": "binary",
+      "origin_kind": "observational",
+      "claim_track": "primary_observational_tabular_candidate",
+      "rows": 2584,
+      "predictors": 15,
+      "class_labels": [
+        "No",
+        "Yes"
+      ],
+      "observed_class_counts": {
+        "No": 2414,
+        "Yes": 170
+      },
+      "minimum_total_class_count": 170,
+      "minimum_previously_verified_outer_train_class_count": 113,
+      "minimum_previously_verified_outer_test_class_count": 56,
+      "class_support_evidence_scope": "Already-approved profile across the source's previous reference outer splits; no labels or split-index payloads opened for this proposal. Final selected-split support must be revalidated after explicit release.",
+      "categorical_columns": [
+        "seismic",
+        "seismoacoustic",
+        "shift",
+        "ghazard"
+      ],
+      "string_predictors_included_as_categorical": [
+        "ghazard"
+      ],
+      "target": "HighEnergySeismicBump",
+      "target_columns": [
+        "HighEnergySeismicBump"
+      ],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/266/seismic+bumps",
+          "https://archive.ics.uci.edu/api/dataset?id=266"
+        ],
+        "primary_page_sha256": "52d155fab993770e2268017c63b489cbb9f5b5e656f2c998262f2a3b38c0e12a",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "metadata_evidence": [
+        {
+          "kind": "official_features",
+          "url": "https://www.openml.org/api/v1/json/data/features/46956",
+          "sha256": "1141eb38f2a40605c6d6a3de8abc045687dd9f6d4f91b00fc417c92f03c35d0b"
+        },
+        {
+          "kind": "official_dataset",
+          "url": "https://www.openml.org/api/v1/json/data/46956",
+          "sha256": "2a7845eb3012d65e19edbe4bfec65d6cab1d4cc2d897d8f460d74deb0fb7c1bd"
+        },
+        {
+          "kind": "official_task",
+          "url": "https://www.openml.org/api/v1/json/task/363700",
+          "sha256": "c70a8da2a74e01e9d4e1e80f5f923ac792c9e48f0fb521f4fd795c518a09b8f1"
+        },
+        {
+          "kind": "primary_rights",
+          "url": "https://archive.ics.uci.edu/dataset/266/seismic+bumps",
+          "sha256": "52d155fab993770e2268017c63b489cbb9f5b5e656f2c998262f2a3b38c0e12a"
+        }
+      ],
+      "source_official_split_count": 30,
+      "planned_split_count": 1,
+      "planned_cells": 8,
+      "split_plan": {
+        "policy": "official",
+        "official_split_ids": [
+          {
+            "repeat": 0,
+            "fold": 0,
+            "sample": 0
+          }
+        ]
+      },
+      "reservation_status": "active",
+      "ledger_matches": [],
+      "review_status": "schema_rights_and_exposure_reverified_metadata_only"
+    },
+    {
+      "family_id": "tabarena-46962",
+      "dataset_name": "tabarena-46962",
+      "stratum": "binary",
+      "origin_kind": "observational",
+      "claim_track": "primary_observational_tabular_candidate",
+      "rows": 6819,
+      "predictors": 94,
+      "class_labels": [
+        "No",
+        "Yes"
+      ],
+      "observed_class_counts": {
+        "No": 6599,
+        "Yes": 220
+      },
+      "minimum_total_class_count": 220,
+      "minimum_previously_verified_outer_train_class_count": 146,
+      "minimum_previously_verified_outer_test_class_count": 73,
+      "class_support_evidence_scope": "Already-approved profile across the source's previous reference outer splits; no labels or split-index payloads opened for this proposal. Final selected-split support must be revalidated after explicit release.",
+      "categorical_columns": [],
+      "string_predictors_included_as_categorical": [],
+      "target": "Bankrupt",
+      "target_columns": [
+        "Bankrupt"
+      ],
+      "drop_columns": [],
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/572/taiwanese+bankruptcy+prediction",
+          "https://archive.ics.uci.edu/api/dataset?id=572"
+        ],
+        "primary_page_sha256": "3ba63a7335b022f8acb940d29009b534e8122086ef3ef3a0736208e29d8af34a",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "metadata_evidence": [
+        {
+          "kind": "official_features",
+          "url": "https://www.openml.org/api/v1/json/data/features/46962",
+          "sha256": "21ed65bdc4eb5b9aeadea59360b909d6fa9759e63fc27e072ddf26a576c5897d"
+        },
+        {
+          "kind": "official_dataset",
+          "url": "https://www.openml.org/api/v1/json/data/46962",
+          "sha256": "7d36a4ec6bd13cd3ad9c24680b2e19b94bcb44a41289c7cea8f803ab8e44b1b7"
+        },
+        {
+          "kind": "official_task",
+          "url": "https://www.openml.org/api/v1/json/task/363706",
+          "sha256": "7675c5efb455cb0936653971e3bbc0ebfa652661910844b49962761a21a51eea"
+        },
+        {
+          "kind": "primary_rights",
+          "url": "https://archive.ics.uci.edu/dataset/572/taiwanese+bankruptcy+prediction",
+          "sha256": "3ba63a7335b022f8acb940d29009b534e8122086ef3ef3a0736208e29d8af34a"
+        }
+      ],
+      "source_official_split_count": 30,
+      "planned_split_count": 1,
+      "planned_cells": 8,
+      "split_plan": {
+        "policy": "official",
+        "official_split_ids": [
+          {
+            "repeat": 0,
+            "fold": 0,
+            "sample": 0
+          }
+        ]
+      },
+      "reservation_status": "active",
+      "ledger_matches": [],
+      "review_status": "schema_rights_and_exposure_reverified_metadata_only"
+    }
+  ],
+  "split_plan": {
+    "heart-failure-clinical": {
+      "policy": "iid",
+      "folds": 3
+    },
+    "tabarena-46941": {
+      "policy": "official",
+      "official_split_ids": [
+        {
+          "repeat": 0,
+          "fold": 0,
+          "sample": 0
+        }
+      ]
+    },
+    "student-performance": {
+      "policy": "iid",
+      "folds": 3
+    },
+    "tabarena-46913": {
+      "policy": "official",
+      "official_split_ids": [
+        {
+          "repeat": 0,
+          "fold": 0,
+          "sample": 0
+        }
+      ]
+    },
+    "tabarena-46960": {
+      "policy": "official",
+      "official_split_ids": [
+        {
+          "repeat": 0,
+          "fold": 0,
+          "sample": 0
+        }
+      ]
+    },
+    "tabarena-46907": {
+      "policy": "official",
+      "official_split_ids": [
+        {
+          "repeat": 0,
+          "fold": 0,
+          "sample": 0
+        }
+      ]
+    },
+    "tabarena-46930": {
+      "policy": "official",
+      "official_split_ids": [
+        {
+          "repeat": 0,
+          "fold": 0,
+          "sample": 0
+        }
+      ]
+    },
+    "tabarena-46963": {
+      "policy": "official",
+      "official_split_ids": [
+        {
+          "repeat": 0,
+          "fold": 0,
+          "sample": 0
+        }
+      ]
+    },
+    "tabarena-46949": {
+      "policy": "official",
+      "official_split_ids": [
+        {
+          "repeat": 0,
+          "fold": 0,
+          "sample": 0
+        }
+      ]
+    },
+    "tabarena-46950": {
+      "policy": "official",
+      "official_split_ids": [
+        {
+          "repeat": 0,
+          "fold": 0,
+          "sample": 0
+        }
+      ]
+    },
+    "tabarena-46956": {
+      "policy": "official",
+      "official_split_ids": [
+        {
+          "repeat": 0,
+          "fold": 0,
+          "sample": 0
+        }
+      ]
+    },
+    "tabarena-46962": {
+      "policy": "official",
+      "official_split_ids": [
+        {
+          "repeat": 0,
+          "fold": 0,
+          "sample": 0
+        }
+      ]
+    }
+  },
+  "execution_binding_review": {
+    "verified_on": "2026-09-24",
+    "execution_agent": "13666955-a5d7-4a19-bac5-1ad047d5ff33",
+    "status": "draft_protocol_field_names_match_completed_execution_binding",
+    "class_support_thresholds": {"min_total": 30, "min_outer_train": 20, "min_outer_test": 10},
+    "method_semantics_field_enforced": false,
+    "method_binding": "Exact method names and frozen source/config/manifest/dependency identities bind the implementations; method_semantics is descriptive and receives no independent semantic validation.",
+    "resource_and_split_binding": "memory_limit_mb=4096, timeout=900, budget<=136800, exact family split_plan/unique integer IDs, IID folds matching config=3, expected_cells=128, exact methods/learners/seeds/shared config and current fixed learner search are enforced after actual confirmation admission.",
+    "release_state": "No release. Inventory-only bind_preregistration returns None; actual ACTIVE catalog reservations still block data/model access through historical development manifests.",
+    "legacy_dimension_field": "Top-level expected_official_split_dimensions_per_task is unused by the new split_plan path; individual source dimensions remain unchanged."
+  },
+  "method_semantics": {
+    "baseline": {
+      "representation": "All reviewed raw predictors, with the unchanged learner-specific training-only preprocessing and fixed three-setting tuning grid.",
+      "feature_generation": false
+    },
+    "featcopilot-importance-paired": {
+      "candidate_set": "extended",
+      "screening": "importance",
+      "selection_rule": "paired_gain",
+      "global_screening_config": "auto",
+      "method_override": "This exact existing method always overrides global screening with importance. No per-family/task/learner switch to another method.",
+      "importance": "Joint fit of the intended learner on retained raw plus candidate columns. Existing normalized absolute coefficients for linear models; LightGBM uses gain importance. Ranking and candidate deduplication occur inside training-only selection boundaries.",
+      "candidate_generation": "Existing extended numeric rowwise stream and training-frequency categorical-pair indicators; no code changes or new operators.",
+      "paired_gain": "Existing rule: candidate mean paired loss gain over raw must exceed both 0.001 * baseline loss and paired-gain SE; choose the smallest eligible subset within paired one-SE/0.1%-relative tolerance of the best. Return zero additions if no eligible subset. This built-in raw retention is not post-outcome method switching.",
+      "max_candidates": 1000,
+      "max_added_features": 50,
+      "stability_repeats": 3,
+      "selection_estimator": "The existing middle candidate of the same downstream learner's fixed three-setting grid."
+    },
+    "openfe-inductive-native": {
+      "package": "openfe",
+      "version": "0.0.12",
+      "adapter_method": "openfe-inductive",
+      "candidate_order": 1,
+      "operator_set": "Full supported published first-order numeric AND categorical candidate set; no stateless-only restriction.",
+      "max_added_features": null,
+      "width_policy": "native_output_no_50_feature_cap",
+      "statistics": "Existing train-only fitted selected DAG operators, applied independently to test batches; not stock transductive openfe.transform.",
+      "search_limitations": "Upstream default search on training data is retained; its internal aggregate screening is not presented as cross-fitted statistics.",
+      "resource_policy": "External 4096 MiB/900-second limits only; no new operator filtering or failure-to-baseline fallback."
+    },
+    "autofeat-native": {
+      "package": "autofeat",
+      "version": "2.1.1",
+      "feateng_steps": 2,
+      "featsel_runs": 5,
+      "max_gb": null,
+      "max_added_features": null,
+      "transformations": [
+        "1/",
+        "exp",
+        "log",
+        "abs",
+        "sqrt",
+        "^2",
+        "^3"
+      ],
+      "width_policy": "native_returned_features_no_50_feature_cap_or_alphabetical_truncation",
+      "categorical_handling": "Existing training-fitted dense one-hot adapter, unknown levels all zero; original categoricals retained.",
+      "resource_policy": "Native max_gb=None; no generation-size-driven subsampling. Native selection-run resampling stays unchanged; only external 4096 MiB/900-second limits apply.",
+      "failure_policy": "Do not repair upstream NaNs, drop constants, switch variants or substitute baseline after failure."
+    }
+  },
+  "decision_and_reporting_plan": {
+    "candidate_method": "featcopilot-importance-paired",
+    "raw_reference": "baseline",
+    "strong_references": [
+      "openfe-inductive-native",
+      "autofeat-native"
+    ],
+    "primary_family_ids": [
+      "heart-failure-clinical",
+      "tabarena-46941",
+      "student-performance",
+      "tabarena-46913",
+      "tabarena-46960",
+      "tabarena-46907",
+      "tabarena-46930",
+      "tabarena-46963",
+      "tabarena-46950",
+      "tabarena-46956",
+      "tabarena-46962"
+    ],
+    "secondary_simulation_family_ids": [
+      "tabarena-46949"
+    ],
+    "primary_units": "Original dataset family x learner; each family receives equal weight, regardless of row count or number of scheduled splits.",
+    "family_loss": "L(f,m,l) is the arithmetic mean of primary loss over ALL preregistered splits for family f, method m, learner l. An incomplete/nonfinite family-method-learner loss is missing, not averaged over surviving folds.",
+    "primary_metrics": {
+      "classification": "log_loss",
+      "regression": "rmse"
+    },
+    "paired_relative_improvement": "G(f,reference,l) = 1 - L(f,candidate,l) / L(f,reference,l). Positive is better. Use family-mean losses before taking the ratio.",
+    "scale_policy": "Report raw family mean/median losses in their task units, but aggregate across heterogeneous families only with normalized paired relative improvements, never unscaled log-loss/RMSE pooling.",
+    "mean_and_median": "For each task/learner stratum and each comparator, report arithmetic mean and median G across complete paired families, plus the equal-family primary-observational mean/median per learner and worst family harm.",
+    "primary_gate_strata": {
+      "classification/linear": [
+        "heart-failure-clinical",
+        "tabarena-46941",
+        "tabarena-46913",
+        "tabarena-46960",
+        "tabarena-46930",
+        "tabarena-46963",
+        "tabarena-46950",
+        "tabarena-46956",
+        "tabarena-46962"
+      ],
+      "classification/lightgbm": [
+        "heart-failure-clinical",
+        "tabarena-46941",
+        "tabarena-46913",
+        "tabarena-46960",
+        "tabarena-46930",
+        "tabarena-46963",
+        "tabarena-46950",
+        "tabarena-46956",
+        "tabarena-46962"
+      ],
+      "regression/linear": [
+        "student-performance",
+        "tabarena-46907"
+      ],
+      "regression/lightgbm": [
+        "student-performance",
+        "tabarena-46907"
+      ]
+    },
+    "classification_subgroups": "Additionally report binary (6 families) and multiclass (3 families) disaggregation with no data-dependent reweighting or learner/method switches.",
+    "simulation_policy": "The single protein-structure simulation family is a separate secondary analysis for each learner. It cannot rescue a failed primary observational gate or be pooled into the primary regression mean.",
+    "win_tie_loss": {
+      "unit": "family x learner x comparator",
+      "win": "G > 0.01",
+      "tie": "-0.01 <= G <= 0.01",
+      "loss": "G < -0.01"
+    },
+    "family_harm": {
+      "threshold_fraction": 0.05,
+      "definition": "Raw-baseline harm = L(candidate)/L(baseline) - 1. Flag strictly greater than 0.05; report analogous >5% harms against each strong reference separately."
+    },
+    "decision_gate": {
+      "all_conditions_required": true,
+      "numeric_criteria": {
+        "minimum_mean_relative_improvement_vs_raw": 0.0,
+        "raw_mean_comparison": "strictly_greater",
+        "maximum_family_relative_harm_vs_raw": 0.05,
+        "family_harm_comparison": "less_than_or_equal",
+        "minimum_mean_relative_improvement_vs_each_strong_reference": 0.0,
+        "reference_mean_comparison": "greater_than_or_equal",
+        "required_successful_finite_cell_fraction": 1.0,
+        "required_planned_cells": 128
+      },
+      "mean_vs_raw": "For EACH of the four primary task/learner strata, arithmetic mean G versus raw must be strictly > 0; primary-observational equal-family mean per learner must also be > 0.",
+      "family_harm": "No scheduled family/learner may have >5% loss worsening versus raw, including the separately reported simulation family. The simulation remains outside primary mean/median aggregation and cannot rescue any primary stratum.",
+      "strong_reference_noninferiority": "For EACH primary task/learner stratum and EACH of the two fixed strong references, arithmetic mean paired relative improvement G must be >= 0 on the complete preregistered paired-family set. Do not choose the easier reference after results.",
+      "completion": "All 128 planned cells must be successful and finite for a broad planned-cohort claim. Any error, timeout, OOM, unsupported method, admission failure, missing pair, interruption or budget-exhaustion blocks broad superiority/promotion claims; report surviving complete-pair results only as scoped descriptive evidence.",
+      "zero_or_invalid_denominators": "Do not inject epsilon denominators or drop families. Zero/nonfinite comparator losses make a ratio gate indeterminate and block its automatic pass; retain absolute losses and explain the limitation.",
+      "automatic_promotion": false,
+      "automatic_sota_claim": false,
+      "interpretation": "Passing the predeclared operational gate supports at most a narrowly scoped result for this protocol and release candidate. It is neither a significance test nor a universal guarantee."
+    },
+    "intervals": {
+      "interpretation": "Descriptive only, not a confirmatory p-value or proof of significance after development method selection.",
+      "method": "Paired family-block percentile bootstrap of G within each primary task/learner stratum; resample whole families with all their paired methods/splits.",
+      "confidence_level": 0.95,
+      "resamples": 10000,
+      "seed": 2026,
+      "small_n": "Primary regression contains only two families; its intervals are particularly unstable. A single simulation family has no meaningful between-family interval; report no fabricated one."
+    },
+    "completion_and_resources": "Report planned/succeeded/failed cells and complete paired families per method/task/learner, failure reasons, active wall time, per-cell timing, peak worker RSS and budget consumption. Failed references remain in denominators.",
+    "scope_limits": [
+      "Only these 12 independently reserved project-model-unexposed source families, two learners and four named FE methods.",
+      "Ten official tasks use one predetermined repeat0/fold0/sample0 only; this is NOT the full repeated TabArena suite or its leaderboard protocol.",
+      "Two native UCI tasks use fixed 3-fold seed-2026 IID CV, not their source paper's original evaluation.",
+      "No all-modality, all-dataset or universal SOTA assertion; no automatic release/default promotion.",
+      "Original curation, duplicate, retrospective-label, uncertain-annotation and restricted-use caveats remain binding."
+    ]
+  },
+  "preserved_prior_manifest_sha256": {
+    "confirmation_candidate_reservation_20260923.json": "c7ad92d890362d82bdb6f8e75d1024c9500f4c956aae56fb861015c559c73547",
+    "confirmation_candidate_reservation_audit_20260923.json": "43f9a662bfa51c8eec94db4df3b305d8e316b717cf8b9d80878acea6b231827a",
+    "development_expansion_20260922.json": "49a8d02f411d456abe4747026ec26762648fceefc03a722a1fc47ac3cadb4969",
+    "development_expansion_audit_20260922.json": "6782e17e825319394f4885137bc6e6832155317a12f4223b27ca8df722c150b6",
+    "seoul_development.json": "eb949eb6de7a77d39e5dbf4d2026cad6163d47f4fd837e686310bd2f2b1b3f48",
+    "seoul_inventory.json": "8f861070d84577f8a77d6135c61980d6bd24be4eb7f3099dda6256bc22ec5dd5",
+    "tabarena_confirmation_candidates_20260920.json": "db4bafa21d2697c4b19955e031440b55fdd33bd068fd08866cee70e5943d9b00",
+    "tabarena_confirmation_completion_repair_20260921.json": "85035ccd8290a105d87b05e2aebc8cd0193a9c81776a9e367f0d4cba9fe0253b",
+    "tabarena_v01_audit_20260920.json": "6a4f6f2c9dbaf222dd3b991fbef291e88d2a30833da4f4e86b1d7cfbe65063c9",
+    "tabarena_v01_inventory.json": "92dc0e6e58e09422104735cbe049dd42eca559acca3808a6abee55e9cf870243",
+    "uci_development.json": "72b5257603de43b1653c00449f0dfd3279a7dea3fa53c5f036d70e5e3443ee7d"
+  },
+  "parent_resolutions": [
+    "Explicit release authorization is still required; no registry fields were changed.",
+    "Execution-agent field compatibility is confirmed. Preserve the frozen split_plan/memory/no-LLM binding and capture the final runtime snapshot; do not describe descriptive method_semantics as an independently enforced semantic gate.",
+    "Confirm runtime environment satisfies native reference contracts (OpenFE 0.0.12, AutoFeat 2.1.1, supported pandas/sklearn), then freeze versions; unsupported runtime must fail rather than trigger a method switch.",
+    "Accept the narrow local-use grant for the microwave table, its unspecified CC-BY-SA version and no-redistribution restriction; do not expand permissions.",
+    "Treat intervals as descriptive and the two-family primary regression comparison as limited evidence. Passing the operational gate does not authorize broad SOTA/default-promotion claims."
+  ],
+  "datasets": [
+    {
+      "name": "uci-heart-failure-clinical",
+      "family_id": "heart-failure-clinical",
+      "provider": "uci",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "death_event",
+      "target_transform": "identity",
+      "categorical": [
+        "anaemia",
+        "diabetes",
+        "high_blood_pressure",
+        "sex",
+        "smoking"
+      ],
+      "drop_columns": [
+        "time"
+      ],
+      "split_policy": "iid",
+      "prediction_time": "Recorded death during the supplied follow-up from clinical measurements. Follow-up time is excluded as outcome-associated information; no uniform survival horizon or clinical deployment claim.",
+      "target_timing_review": {
+        "reviewed_on": "2026-09-24",
+        "task": "Retrospective classification of the supplied patient-record outcome, with follow-up duration excluded; NOT an all-fields outcome classifier or an established baseline prognostic model.",
+        "endpoint": "death_event=1 means death occurred during that patient's recorded follow-up; 0 means no recorded death during that observation period, not indefinite survival.",
+        "excluded_followup_column": "time",
+        "excluded_followup_units": "days",
+        "predictor_timing_limit": "The primary dataset describes records collected during follow-up. Removing time does not prove every remaining clinical predictor was available at a common baseline; no such availability is claimed.",
+        "survival_analysis_limit": "No fixed prediction horizon, common follow-up window, censoring adjustment or time-to-event model is defined by this binary classification recipe.",
+        "schema_changed": false,
+        "evidence": "https://archive.ics.uci.edu/api/dataset?id=519",
+        "metadata_sha256": "abb8ed505b926e5033e1adc6bbe5ab6658041ee065d8c181bf1dc16558264338"
+      },
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/519/heart+failure+clinical+records",
+          "https://archive.ics.uci.edu/api/dataset?id=519"
+        ],
+        "primary_page_sha256": "caa73aecc3ba74ec93c547aa360c69d5351d2561b1e31165342a06081ac43f39",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 519,
+        "data_url": "https://archive.ics.uci.edu/static/public/519/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=519",
+        "metadata_sha256": "abb8ed505b926e5033e1adc6bbe5ab6658041ee065d8c181bf1dc16558264338",
+        "schema_reviewed": true,
+        "columns": [
+          "age",
+          "anaemia",
+          "creatinine_phosphokinase",
+          "diabetes",
+          "ejection_fraction",
+          "high_blood_pressure",
+          "platelets",
+          "serum_creatinine",
+          "serum_sodium",
+          "sex",
+          "smoking",
+          "time",
+          "death_event"
+        ],
+        "target_columns": [
+          "death_event"
+        ],
+        "reported_rows": 299,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "54349729933cffdde5c92068572a89761bb53df50cc28250b0915fd18066976c",
+        "expected_rows": 299
+      },
+      "evaluation_track": "iid_development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 1,
+      "claim_track": "primary_observational_tabular_candidate",
+      "reservation_metadata": {
+        "rows": 299,
+        "predictors": 11,
+        "class_labels": [
+          0,
+          1
+        ],
+        "observed_class_counts": {
+          "0": 203,
+          "1": 96
+        },
+        "payload_sha256": "54349729933cffdde5c92068572a89761bb53df50cc28250b0915fd18066976c",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "draft_not_released"
+    },
+    {
+      "name": "tabarena-46941",
+      "display_name": "maternal_health_risk",
+      "family_id": "tabarena-46941",
+      "provider": "openml_task",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "observational",
+      "target": "RiskLevel",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "The recorded low/mid/high maternal-risk annotation from contemporaneous vital measurements. An annotation/classification task, not a verified future clinical outcome or treatment recommendation.",
+      "variant": "pinned_official_representation",
+      "evaluation_notes": " by the TabArena team (for code see the [page of the study](https://tabarena.ai/data-tabular-ml-iid-study)):\n- Anomaly: the data has a lot of duplicates (55%).",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/863/maternal+health+risk",
+          "https://archive.ics.uci.edu/api/dataset?id=863"
+        ],
+        "primary_page_sha256": "9f76f92ef2c3ba763bf9927f63388c17cdb23658fb2904475b19ed8d9d29e2e8",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "dataset_id": 46941,
+        "task_id": 363685,
+        "dataset_version": 3,
+        "uci_id": 863,
+        "schema_reviewed": true,
+        "expected_rows": 1014,
+        "md5_checksum": "57d6f4b7e1f90a5012e264bd8e8ba970",
+        "columns": [
+          "Age",
+          "SystolicBP",
+          "DiastolicBP",
+          "BS",
+          "BodyTemp",
+          "HeartRate",
+          "RiskLevel"
+        ],
+        "target_columns": [
+          "RiskLevel"
+        ],
+        "official_split_dimensions": {
+          "repeats": 10,
+          "folds": 3,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=863",
+        "primary_metadata_sha256": "d808e8d35745c61b914853212482729ba81c41ea6be37f73570f946cfe92d2a3",
+        "openml_description_sha256": "c0d11a1f69566d87bd806e6bcdfdd9d414cd27205535a3fe9236a4f025ea016d",
+        "openml_features_sha256": "b63a0a250c73beec10ce67d35468d8a1b8abce08004ee4bf1e2fc391f1143bd5",
+        "openml_qualities_sha256": "823b50675ff9355a59d75bec550c3fc103d1de8d3238d200c8823613b816c7a2",
+        "openml_task_sha256": "a0f5f0f83bca48f510b6b5113a72ea662ea4ddcd7986fb4a2a19a1a506aadd79",
+        "categorical_schema_rule": "All non-excluded nominal AND string predictors from the official feature declarations.",
+        "sha256": "d1152b35892f1d5e4f940ad8043059de00c2abe2e2e2865df394d95e793af2a9",
+        "splits_sha256": "40cb502bf5c780c9a851c304dd75cdeac689aa1532a3820f44f44de442c3ad4c"
+      },
+      "evaluation_track": "official_iid_development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 2,
+      "claim_track": "primary_observational_tabular_candidate",
+      "reservation_metadata": {
+        "rows": 1014,
+        "predictors": 6,
+        "class_labels": [
+          "high risk",
+          "low risk",
+          "mid risk"
+        ],
+        "observed_class_counts": {
+          "high risk": 272,
+          "low risk": 406,
+          "mid risk": 336
+        },
+        "payload_sha256": "d1152b35892f1d5e4f940ad8043059de00c2abe2e2e2865df394d95e793af2a9",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "draft_not_released"
+    },
+    {
+      "name": "uci-student-performance",
+      "family_id": "student-performance",
+      "provider": "uci",
+      "task": "regression",
+      "role": "inventory",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "target": "G3",
+      "target_transform": "identity",
+      "categorical": [
+        "school",
+        "sex",
+        "address",
+        "famsize",
+        "Pstatus",
+        "Mjob",
+        "Fjob",
+        "reason",
+        "guardian",
+        "schoolsup",
+        "famsup",
+        "paid",
+        "activities",
+        "nursery",
+        "higher",
+        "internet",
+        "romantic"
+      ],
+      "drop_columns": [
+        "G1",
+        "G2"
+      ],
+      "split_policy": "iid",
+      "prediction_time": "Recorded final Portuguese-course grade from the school/questionnaire record; G1 and G2 are excluded as other targets. Retrospective association, not an asserted enrollment-time early-warning task.",
+      "target_timing_review": {
+        "reviewed_on": "2026-09-24",
+        "task": "Retrospective regression of the final Portuguese-course grade from the supplied school/questionnaire record, WITHOUT prior-period grade predictors.",
+        "endpoint": "G3 is the final-year grade issued at the third period, on the original 0-20 scale.",
+        "prior_grade_definitions": {"G1": "first-period grade", "G2": "second-period grade"},
+        "prior_grade_predictors_included": false,
+        "excluded_prior_grade_columns": ["G1", "G2"],
+        "predictor_timing_limit": "Remaining predictors include recorded school absences and questionnaire/school attributes whose availability at enrollment or an earlier term is not established. No enrollment-time or pre-term early-warning claim is made.",
+        "schema_changed": false,
+        "evidence": "https://archive.ics.uci.edu/api/dataset?id=320",
+        "metadata_sha256": "cc52f5ef08ce63f13035d9290ba3c195b89e5bba33bece83288b0d97d421aaca"
+      },
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/320/student+performance",
+          "https://archive.ics.uci.edu/api/dataset?id=320"
+        ],
+        "primary_page_sha256": "c5ffc9d89828e9f667e7fbe695e122d4d3a93f0324a387f6f271049b819a8191",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "uci_id": 320,
+        "data_url": "https://archive.ics.uci.edu/static/public/320/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=320",
+        "metadata_sha256": "cc52f5ef08ce63f13035d9290ba3c195b89e5bba33bece83288b0d97d421aaca",
+        "schema_reviewed": true,
+        "columns": [
+          "school",
+          "sex",
+          "age",
+          "address",
+          "famsize",
+          "Pstatus",
+          "Medu",
+          "Fedu",
+          "Mjob",
+          "Fjob",
+          "reason",
+          "guardian",
+          "traveltime",
+          "studytime",
+          "failures",
+          "schoolsup",
+          "famsup",
+          "paid",
+          "activities",
+          "nursery",
+          "higher",
+          "internet",
+          "romantic",
+          "famrel",
+          "freetime",
+          "goout",
+          "Dalc",
+          "Walc",
+          "health",
+          "absences",
+          "G1",
+          "G2",
+          "G3"
+        ],
+        "target_columns": [
+          "G1",
+          "G2",
+          "G3"
+        ],
+        "reported_rows": 649,
+        "na_values": [
+          "?",
+          "\t?",
+          "\t"
+        ],
+        "skipinitialspace": true,
+        "sha256": "5be7b02f13f5800fddd66e2c8d834cd00ece14c552fb404def2397b31b63236b",
+        "expected_rows": 649
+      },
+      "evaluation_track": "iid_development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 3,
+      "claim_track": "primary_observational_tabular_candidate",
+      "reservation_metadata": {
+        "rows": 649,
+        "predictors": 30,
+        "class_labels": null,
+        "observed_class_counts": null,
+        "payload_sha256": "5be7b02f13f5800fddd66e2c8d834cd00ece14c552fb404def2397b31b63236b",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "draft_not_released"
+    },
+    {
+      "name": "tabarena-46913",
+      "display_name": "blood-transfusion-service-center",
+      "family_id": "tabarena-46913",
+      "provider": "openml_task",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "observational",
+      "target": "DonatedBloodInMarch2007",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Static classification of the supplied March-2007 donation annotation from the published RFM snapshot. The source does not establish a prospective cutoff; this is not future-donation forecasting.",
+      "variant": "pinned_official_representation",
+      "evaluation_notes": " by the TabArena team (for code see the [page of the study](https://tabarena.ai/data-tabular-ml-iid-study)):\n- We made feature names more descriptive.\n- Anomaly: the data has a lot of duplicates (29%) and several duplicates with \n  different target values.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/176/blood+transfusion+service+center",
+          "https://archive.ics.uci.edu/api/dataset?id=176"
+        ],
+        "primary_page_sha256": "4620fd103accca27d4f6a5a85c6b18b77bd552f0bf737f0f4e3814e3c7bbb8b0",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "dataset_id": 46913,
+        "task_id": 363621,
+        "dataset_version": 2,
+        "uci_id": 176,
+        "schema_reviewed": true,
+        "expected_rows": 748,
+        "md5_checksum": "22bfec0eb6cceb5715439912fdcb2275",
+        "columns": [
+          "MonthsSinceLastDonation",
+          "NumberOfDonations",
+          "TotalBloodDonated",
+          "MonthsSinceFirstDonation",
+          "DonatedBloodInMarch2007"
+        ],
+        "target_columns": [
+          "DonatedBloodInMarch2007"
+        ],
+        "official_split_dimensions": {
+          "repeats": 10,
+          "folds": 3,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=176",
+        "primary_metadata_sha256": "f84e43cc4030af42274e24a1f7b3a26dd05dbd8dd0a848f7d78fe4861a98f7e2",
+        "openml_description_sha256": "4b922b3596aac64603c20a8c579b2139e3258c5fcec819037c9bda55f4652113",
+        "openml_features_sha256": "68b1424a0a46c91e2092c47073346ff0c1dc9d35d6e001fb58b3f59f3ed7d179",
+        "openml_qualities_sha256": "8d86b2530a9467ef5144c521bf9efad4cfc9135398376bb385635c8d07509f0b",
+        "openml_task_sha256": "c409777eae9e8bad2cdf1dc115421ba605e9a6bd1d5575c2ad104a91bc7dad61",
+        "categorical_schema_rule": "All non-excluded nominal AND string predictors from the official feature declarations.",
+        "sha256": "80945cb11b502743c86236bb60dce8ca5b6ec53732a2d3be59838eb3d3561488",
+        "splits_sha256": "ecef9dc7052aadb1152f5955d2750754f81bebd7b34085769d4efd71232ba876"
+      },
+      "evaluation_track": "official_iid_development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 4,
+      "claim_track": "primary_observational_tabular_candidate",
+      "reservation_metadata": {
+        "rows": 748,
+        "predictors": 4,
+        "class_labels": [
+          "No",
+          "Yes"
+        ],
+        "observed_class_counts": {
+          "No": 570,
+          "Yes": 178
+        },
+        "payload_sha256": "80945cb11b502743c86236bb60dce8ca5b6ec53732a2d3be59838eb3d3561488",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "draft_not_released"
+    },
+    {
+      "name": "tabarena-46960",
+      "display_name": "students_dropout_and_academic_success",
+      "family_id": "tabarena-46960",
+      "provider": "openml_task",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "observational",
+      "target": "AcademicOutcome",
+      "target_transform": "identity",
+      "categorical": [
+        "Marital_status",
+        "Application_mode",
+        "Course",
+        "Daytimeevening_attendance",
+        "Previous_qualification",
+        "Nationality",
+        "Mothers_qualification",
+        "Fathers_qualification",
+        "Mothers_occupation",
+        "Fathers_occupation",
+        "Displaced",
+        "Educational_special_needs",
+        "Gender",
+        "International"
+      ],
+      "drop_columns": [
+        "Curricular_units_1st_sem_credited",
+        "Curricular_units_1st_sem_enrolled",
+        "Curricular_units_1st_sem_evaluations",
+        "Curricular_units_1st_sem_approved",
+        "Curricular_units_1st_sem_grade",
+        "Curricular_units_1st_sem_without_evaluations",
+        "Curricular_units_2nd_sem_credited",
+        "Curricular_units_2nd_sem_enrolled",
+        "Curricular_units_2nd_sem_evaluations",
+        "Curricular_units_2nd_sem_approved",
+        "Curricular_units_2nd_sem_grade",
+        "Curricular_units_2nd_sem_without_evaluations",
+        "Debtor",
+        "Tuition_fees_up_to_date",
+        "Scholarship_holder",
+        "Unemployment_rate",
+        "Inflation_rate",
+        "GDP"
+      ],
+      "split_policy": "official",
+      "prediction_time": "Recorded Dropout/Enrolled/Graduate status from a conservative enrollment-record variant. Semester outcomes and timing-ambiguous finance/scholarship/macro fields are excluded. Enrolled remains its original censored-status annotation, not an invented eventual outcome.",
+      "variant": "conservative_enrollment_record",
+      "evaluation_notes": " by the TabArena team (for code see the [page of the study](https://tabarena.ai/data-tabular-ml-iid-study)):\n- We renamed the target variable and fixed some typos in the feature names.\n- We reversed the ordinal encoding of all categorical features.\n- We removed whitespaces and special characters from the feature names.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/697/predict+students+dropout+and+academic+success",
+          "https://archive.ics.uci.edu/api/dataset?id=697"
+        ],
+        "primary_page_sha256": "dbaf9cf267f1200f153f430e71b5da1d2d50ea71be0ef56b70cfc345c6c9dcbf",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "dataset_id": 46960,
+        "task_id": 363704,
+        "dataset_version": 1,
+        "uci_id": 697,
+        "schema_reviewed": true,
+        "expected_rows": 4424,
+        "md5_checksum": "b4e170cbc7bb35aea529f7ece1d4d3d9",
+        "columns": [
+          "Marital_status",
+          "Application_mode",
+          "Application_order",
+          "Course",
+          "Daytimeevening_attendance",
+          "Previous_qualification",
+          "Previous_qualification_grade",
+          "Nationality",
+          "Mothers_qualification",
+          "Fathers_qualification",
+          "Mothers_occupation",
+          "Fathers_occupation",
+          "Admission_grade",
+          "Displaced",
+          "Educational_special_needs",
+          "Debtor",
+          "Tuition_fees_up_to_date",
+          "Gender",
+          "Scholarship_holder",
+          "Age_at_enrollment",
+          "International",
+          "Curricular_units_1st_sem_credited",
+          "Curricular_units_1st_sem_enrolled",
+          "Curricular_units_1st_sem_evaluations",
+          "Curricular_units_1st_sem_approved",
+          "Curricular_units_1st_sem_grade",
+          "Curricular_units_1st_sem_without_evaluations",
+          "Curricular_units_2nd_sem_credited",
+          "Curricular_units_2nd_sem_enrolled",
+          "Curricular_units_2nd_sem_evaluations",
+          "Curricular_units_2nd_sem_approved",
+          "Curricular_units_2nd_sem_grade",
+          "Curricular_units_2nd_sem_without_evaluations",
+          "Unemployment_rate",
+          "Inflation_rate",
+          "GDP",
+          "AcademicOutcome"
+        ],
+        "target_columns": [
+          "AcademicOutcome"
+        ],
+        "official_split_dimensions": {
+          "repeats": 10,
+          "folds": 3,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=697",
+        "primary_metadata_sha256": "c48a8f6303ccf2a5ade930fe6e85c53df209c2933f39910344c56a53a8641d5e",
+        "openml_description_sha256": "24e23b35b9e847d34e51c5ce3577d43452769229df838bda28180fdeec2f8b78",
+        "openml_features_sha256": "1e357584712d9f5186cc09759a6beffff7bc2d86db43c22fae48f8ae4b9138e9",
+        "openml_qualities_sha256": "3e12954dfbbcb1a9b7f06ff7d1b7c42492730a2478241d72a8f3cfa531fefd8c",
+        "openml_task_sha256": "712af4ba7fbba4060e7a10e39628119076f879ae915cdc344a0c5a95e0151c76",
+        "categorical_schema_rule": "All non-excluded nominal AND string predictors from the official feature declarations.",
+        "sha256": "70bfae55226591c3f2382326db09469eb9a7cfe9d20e9dd4f1711a66dae1a2d6",
+        "splits_sha256": "a5008b6d840b309c82cb7a8c5f246bd04567afad492f15594868055132dd44fe"
+      },
+      "evaluation_track": "official_iid_development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 5,
+      "claim_track": "primary_observational_tabular_candidate",
+      "reservation_metadata": {
+        "rows": 4424,
+        "predictors": 18,
+        "class_labels": [
+          "Dropout",
+          "Enrolled",
+          "Graduate"
+        ],
+        "observed_class_counts": {
+          "Dropout": 1421,
+          "Enrolled": 794,
+          "Graduate": 2209
+        },
+        "payload_sha256": "70bfae55226591c3f2382326db09469eb9a7cfe9d20e9dd4f1711a66dae1a2d6",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "draft_not_released"
+    },
+    {
+      "name": "tabarena-46907",
+      "display_name": "Another-Dataset-on-used-Fiat-500",
+      "family_id": "tabarena-46907",
+      "provider": "openml_task",
+      "task": "regression",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "observational",
+      "target": "price",
+      "target_transform": "identity",
+      "categorical": [
+        "model"
+      ],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Publisher's recorded used-Fiat-500 listing-price field from the listed vehicle specifications/age/mileage/location. Not verified closed-transaction prices, future-market forecasting, or unseen-vehicle generalization.",
+      "variant": "pinned_official_representation",
+      "evaluation_notes": " by the TabArena team (for code see the [page of the study](https://tabarena.ai/data-tabular-ml-iid-study)):\n- N/A",
+      "rights": {
+        "status": "approved",
+        "license": "CC0-1.0",
+        "access": "public",
+        "approval_basis": "The original dataset collector explicitly publishes this collected listing table under CC0 on Kaggle and invites regression research. This is a first-party publisher grant, not the TabArena badge alone.",
+        "evidence": [
+          "https://www.kaggle.com/datasets/paolocons/another-fiat-500-dataset-1538-rows",
+          "https://www.kaggle.com/api/v1/datasets/view/paolocons/another-fiat-500-dataset-1538-rows",
+          "https://creativecommons.org/publicdomain/zero/1.0/legalcode"
+        ],
+        "primary_metadata_sha256": "a1ec9d92040e61050fa6c75c6c74b9864998dbc1e2d893c258ca3097665c99ab",
+        "reviewed_on": "2026-09-22",
+        "scope": "Existing public table, local benchmarking only; no new listing-site scraping, seller reidentification, hosted row sharing or row redistribution is approved by this admission.",
+        "provenance_limit": "The collector describes querying a used-car website without naming it. The recorded grant is the collector's CC0 declaration for this table; no broader permission for the unnamed website is asserted.",
+        "obligations": "Retain collector and curated-task attribution for scientific provenance; report listing-price and origin limitations."
+      },
+      "source": {
+        "dataset_id": 46907,
+        "task_id": 363615,
+        "dataset_version": 1,
+        "schema_reviewed": true,
+        "expected_rows": 1538,
+        "md5_checksum": "b183f5dc9f223aa90af338beed7d2e08",
+        "columns": [
+          "model",
+          "engine_power",
+          "age_in_days",
+          "km",
+          "previous_owners",
+          "lat",
+          "lon",
+          "price"
+        ],
+        "target_columns": [
+          "price"
+        ],
+        "official_split_dimensions": {
+          "repeats": 10,
+          "folds": 3,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://www.kaggle.com/api/v1/datasets/view/paolocons/another-fiat-500-dataset-1538-rows",
+        "primary_metadata_sha256": "a1ec9d92040e61050fa6c75c6c74b9864998dbc1e2d893c258ca3097665c99ab",
+        "openml_description_sha256": "79b880e49658adcac52debae13d5214fbeae37de1cab4e6cfe871b11daa9eb9f",
+        "openml_features_sha256": "a474407d62a6a5510de34ca8ecf7bf154a26d1a0745c6d981649e23f5c74ce22",
+        "openml_qualities_sha256": "853c00ccbe9b697a6ae310bc3e28f969576ca30e2f561a465cd85c929425d08c",
+        "openml_task_sha256": "284552dc65f25719eb39b7f9fb66597711751ac40d37acd5477f9ab8b1103a17",
+        "categorical_schema_rule": "All non-excluded nominal AND string predictors from the official feature declarations.",
+        "sha256": "0302b2efcdb5cb359c2cdec34c4630264f26857599fbbe19082fe349b863783b",
+        "splits_sha256": "b32663476ec1c81af3acd74ca0a7da597d660ad28cbabb14a12dbaeeeed86539"
+      },
+      "evaluation_track": "official_iid_development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 6,
+      "claim_track": "primary_observational_tabular_candidate",
+      "reservation_metadata": {
+        "rows": 1538,
+        "predictors": 7,
+        "class_labels": null,
+        "observed_class_counts": null,
+        "payload_sha256": "0302b2efcdb5cb359c2cdec34c4630264f26857599fbbe19082fe349b863783b",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "draft_not_released"
+    },
+    {
+      "name": "tabarena-46930",
+      "display_name": "hazelnut-spread-contaminant-detection",
+      "family_id": "tabarena-46930",
+      "provider": "openml_task",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "observational",
+      "target": "Contaminated",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Recorded contamination/no-contamination laboratory annotation from 30 measured microwave scattering parameters at 10 GHz. One controlled physical study, not five independent frequency datasets; no unseen-jar/batch or production-line prevalence claim.",
+      "variant": "pinned_official_representation",
+      "evaluation_notes": " by the TabArena team (for code see the [page of the study](https://tabarena.ai/data-tabular-ml-iid-study)):\n- We select a features from a single frequency (10 GHz) as the authors also only considered this frequency for the final experiments.\n- Anomaly: we use the publicly available dataset state, which is without preprocessing. Moreover, we were not able to inverse the original ordinal encoding of the label.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-SA (version unspecified by original donor)",
+        "access": "public",
+        "approval_basis": "Original study dataset 45538 is published with creator Luca Urbinati, the cited paper's author, and an express CC BY-SA grant. Approval is limited to local non-conveying research processing, a permission common to the named CC BY-SA licenses; no particular unrecorded license version or redistribution right is invented.",
+        "evidence": [
+          "https://www.openml.org/d/45538",
+          "https://www.openml.org/api/v1/json/data/45538",
+          "https://doi.org/10.1109/ISCAS45731.2020.9181293"
+        ],
+        "primary_metadata_sha256": "e6d147162b0e889ca7c8a5d43c517fe48db7dfe599d3e9f242aebeadc68e06d0",
+        "reviewed_on": "2026-09-22",
+        "scope": "Private local processing and aggregate scientific reporting only. Exact CC BY-SA version and redistribution obligations require clarification before conveying data/row derivatives.",
+        "obligations": "Retain Luca Urbinati and coauthors' attribution, original CC BY-SA declaration and citation. No hosted row sharing, new-frequency origin inflation or row-level redistribution is approved.",
+        "redistribution_approved": false
+      },
+      "source": {
+        "dataset_id": 46930,
+        "task_id": 363674,
+        "dataset_version": 1,
+        "schema_reviewed": true,
+        "expected_rows": 2400,
+        "md5_checksum": "ee22c35dc7f819618eab65c6360157ed",
+        "columns": [
+          "s12",
+          "s13",
+          "s14",
+          "s15",
+          "s16",
+          "s21",
+          "s23",
+          "s24",
+          "s25",
+          "s26",
+          "s31",
+          "s32",
+          "s34",
+          "s35",
+          "s36",
+          "s41",
+          "s42",
+          "s43",
+          "s45",
+          "s46",
+          "s51",
+          "s52",
+          "s53",
+          "s54",
+          "s56",
+          "s61",
+          "s62",
+          "s63",
+          "s64",
+          "s65",
+          "Contaminated"
+        ],
+        "target_columns": [
+          "Contaminated"
+        ],
+        "official_split_dimensions": {
+          "repeats": 10,
+          "folds": 3,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://www.openml.org/api/v1/json/data/45538",
+        "primary_metadata_sha256": "e6d147162b0e889ca7c8a5d43c517fe48db7dfe599d3e9f242aebeadc68e06d0",
+        "openml_description_sha256": "2f01d456beb7e08a34257c096411694618107885f2adafcbe7d9296746c86a89",
+        "openml_features_sha256": "edd5d447dadb565af3877f62ca6f13b2bdd3cf2128d08266369f92aca0e6d12c",
+        "openml_qualities_sha256": "20f76b9fcf7730e8f3cfd3af7913ddd3e0642deabdbcb0fd08645e17d09db734",
+        "openml_task_sha256": "d6a9c01e5bdec1fd35ca31c5f10b69545668129764c7b46c15b9e712cb223e57",
+        "categorical_schema_rule": "All non-excluded nominal AND string predictors from the official feature declarations.",
+        "sha256": "79b224319a1ca21284aae19a97c42adc1eccabf292c82c3b66f40f5d87028897",
+        "splits_sha256": "ada6a5b96eb8ba57039500a4ee68478527bec7b5609140f503936d58038346cb"
+      },
+      "evaluation_track": "official_iid_development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 7,
+      "claim_track": "primary_observational_tabular_candidate",
+      "reservation_metadata": {
+        "rows": 2400,
+        "predictors": 30,
+        "class_labels": [
+          "0",
+          "1"
+        ],
+        "observed_class_counts": {
+          "0": 1200,
+          "1": 1200
+        },
+        "payload_sha256": "79b224319a1ca21284aae19a97c42adc1eccabf292c82c3b66f40f5d87028897",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "draft_not_released"
+    },
+    {
+      "name": "tabarena-46963",
+      "display_name": "website_phishing",
+      "family_id": "tabarena-46963",
+      "provider": "openml_task",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "observational",
+      "target": "WebsiteType",
+      "target_transform": "identity",
+      "categorical": [
+        "SFH",
+        "popUpWidnow",
+        "SSLfinal_State",
+        "Request_URL",
+        "URL_of_Anchor",
+        "web_traffic",
+        "URL_Length",
+        "age_of_domain",
+        "having_IP_Address"
+      ],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Original three-way website annotation: Legitimate, Phishy, Suspicious. Suspicious is an explicitly uncertain source label, not verified maliciousness. Static annotation classification; no novel-domain or live-safety claim.",
+      "variant": "pinned_official_representation",
+      "evaluation_notes": " by the TabArena team (for code see the [page of the study](https://tabarena.ai/data-tabular-ml-iid-study)):\n- We reversed the ordinal encoding of the original data.\n- We renamed the target feature to be more meaningful.\n- Anomaly: the data has many duplicates (~50%).",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/379/website+phishing",
+          "https://archive.ics.uci.edu/api/dataset?id=379"
+        ],
+        "primary_page_sha256": "8aa2c674699c9f9f054b048df6ea9792f5a0651dea468ff2cdb6b3636bee4294",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "dataset_id": 46963,
+        "task_id": 363707,
+        "dataset_version": 1,
+        "uci_id": 379,
+        "schema_reviewed": true,
+        "expected_rows": 1353,
+        "md5_checksum": "b167553818278383e4c2210cdbe3b1f6",
+        "columns": [
+          "SFH",
+          "popUpWidnow",
+          "SSLfinal_State",
+          "Request_URL",
+          "URL_of_Anchor",
+          "web_traffic",
+          "URL_Length",
+          "age_of_domain",
+          "having_IP_Address",
+          "WebsiteType"
+        ],
+        "target_columns": [
+          "WebsiteType"
+        ],
+        "official_split_dimensions": {
+          "repeats": 10,
+          "folds": 3,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=379",
+        "primary_metadata_sha256": "5d796a3f6ac414b78fe6837d07bdd3880366cdc7fd24bb947c8927426b3db918",
+        "openml_description_sha256": "8f712cb69e33e8e0c35ac69f922783b7efa6db5945901f7afd3f87d61edfb2d8",
+        "openml_features_sha256": "369aba0b9fcbd55be5b3da0e4fee885ee8e49b013135a01bb592f08e9ee7e4d4",
+        "openml_qualities_sha256": "052fe68529ba313c69eaca4f8bac70c9065b9b488abf3d5bb09ce47a1284caaa",
+        "openml_task_sha256": "c2a5f427a319523813b5218f5c0867b0a845f3f7e5d99450c92bfd77d2e7c874",
+        "categorical_schema_rule": "All non-excluded nominal AND string predictors from the official feature declarations.",
+        "sha256": "99b5d00d9cbe64b070d956c72c659d0fe2f61f9f247408209e614a6a704bf6bc",
+        "splits_sha256": "aef0c87787ad12fd6673925f56747396b8177c274850e5603b4c65071c44ee12"
+      },
+      "evaluation_track": "official_iid_development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 8,
+      "claim_track": "primary_observational_tabular_candidate",
+      "reservation_metadata": {
+        "rows": 1353,
+        "predictors": 9,
+        "class_labels": [
+          "Legitimate",
+          "Phishy",
+          "Suspicious"
+        ],
+        "observed_class_counts": {
+          "Legitimate": 548,
+          "Phishy": 702,
+          "Suspicious": 103
+        },
+        "payload_sha256": "99b5d00d9cbe64b070d956c72c659d0fe2f61f9f247408209e614a6a704bf6bc",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "draft_not_released"
+    },
+    {
+      "name": "tabarena-46949",
+      "display_name": "physiochemical_protein",
+      "family_id": "tabarena-46949",
+      "provider": "openml_task",
+      "task": "regression",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "simulation",
+      "target": "ResidualSize",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "CASP decoy-structure residual-size/RMSD annotation from computed structural descriptors. Domain-simulation/decoy-quality task, reported separately from observational outcomes.",
+      "variant": "pinned_official_representation",
+      "evaluation_notes": " by the TabArena team (for code see the [page of the study](https://tabarena.ai/data-tabular-ml-iid-study)):\n- We renamed the features to be more semantic meaningful.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/265/physicochemical+properties+of+protein+tertiary+structure",
+          "https://archive.ics.uci.edu/api/dataset?id=265"
+        ],
+        "primary_page_sha256": "ad74cd89d4a60874e34bb58a8f7c4b5312d855119e5761c00cc4e872d650e258",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "dataset_id": 46949,
+        "task_id": 363693,
+        "dataset_version": 8,
+        "uci_id": 265,
+        "schema_reviewed": true,
+        "expected_rows": 45730,
+        "md5_checksum": "1854a08f8ac73d92950e85bf3a6a2bdc",
+        "columns": [
+          "ResidualSize",
+          "TotalSurfaceArea",
+          "NonPolarExposedArea",
+          "FracExposedNonPolarResidue",
+          "FracExposedNonPolarPart",
+          "MassWeightedExposedArea",
+          "AvgDeviationExposedArea",
+          "EuclideanDistance",
+          "SecondaryStructurePenalty",
+          "SpatialDistNK"
+        ],
+        "target_columns": [
+          "ResidualSize"
+        ],
+        "official_split_dimensions": {
+          "repeats": 10,
+          "folds": 3,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=265",
+        "primary_metadata_sha256": "a0fff8212d4fb3ad54b7568a3fab8036edb65dd32fedb5a2e5aa9752297bcb83",
+        "openml_description_sha256": "aa82a6f4893974b3e2e0f5fdf4ce997a783a0e95552dd1c74de76d8f23108763",
+        "openml_features_sha256": "28bcd457670a365477e802a1a75b55f58bd20895a7c1a945ba9daeac294bd458",
+        "openml_qualities_sha256": "f95ef7a0e0fefb70a0170a6793acaade2367491474dcb64c627acfe26464700f",
+        "openml_task_sha256": "18a42451d0493498ba73e3e4ee097e708018c5b44fa779d4ec805572af477664",
+        "categorical_schema_rule": "All non-excluded nominal AND string predictors from the official feature declarations.",
+        "sha256": "373254f68ef06d9332f8e88256818d055f55e086dfe544fa4b96aba529036b18",
+        "splits_sha256": "8a404621daffccdca9198dbc2b6bdedb081b175f42d1d0a6c9448d58c7487ac8"
+      },
+      "evaluation_track": "domain_simulation",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 9,
+      "claim_track": "secondary_domain_simulation",
+      "reservation_metadata": {
+        "rows": 45730,
+        "predictors": 9,
+        "class_labels": null,
+        "observed_class_counts": null,
+        "payload_sha256": "373254f68ef06d9332f8e88256818d055f55e086dfe544fa4b96aba529036b18",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "draft_not_released"
+    },
+    {
+      "name": "tabarena-46950",
+      "display_name": "polish_companies_bankruptcy",
+      "family_id": "tabarena-46950",
+      "provider": "openml_task",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "observational",
+      "target": "company_bankrupt",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Recorded year-5 company's one-year bankruptcy-status annotation from the published accounting ratios. No unverified prospective reporting cutoff or company-disjoint claim.",
+      "variant": "pinned_official_representation",
+      "evaluation_notes": " by the TabArena team (for code see the [page of the study](https://tabarena.ai/data-tabular-ml-iid-study)):\n- We only use data from year 5, because it is the newest data and the target is bankruptcy status after only 1 year.\n- We created semantically meaningful feature names.\n- Anomaly: the data contains a lot of features created by feature engineering.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/365/polish+companies+bankruptcy+data",
+          "https://archive.ics.uci.edu/api/dataset?id=365"
+        ],
+        "primary_page_sha256": "a9fc2b3d6a67115707a09ee08325893fc7c7ae2fbbfaad84c8cf09bfda32eb06",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "dataset_id": 46950,
+        "task_id": 363694,
+        "dataset_version": 1,
+        "uci_id": 365,
+        "schema_reviewed": true,
+        "expected_rows": 5910,
+        "md5_checksum": "7bb8841d3c0426943845f6a7e1997e83",
+        "columns": [
+          "net_profit_to_total_assets",
+          "total_liabilities_to_total_assets",
+          "working_capital_to_total_assets",
+          "current_assets_to_short_term_liabilities",
+          "liquidity_days_ratio",
+          "retained_earnings_to_total_assets",
+          "ebit_to_total_assets",
+          "book_value_equity_to_total_liabilities",
+          "sales_to_total_assets",
+          "equity_to_total_assets",
+          "extended_profit_to_total_assets",
+          "gross_profit_to_short_term_liabilities",
+          "gross_profit_plus_depreciation_to_sales",
+          "gross_profit_plus_interest_to_total_assets",
+          "liabilities_days_ratio",
+          "gross_profit_plus_depreciation_to_total_liabilities",
+          "total_assets_to_total_liabilities",
+          "gross_profit_to_total_assets",
+          "gross_profit_to_sales",
+          "inventory_days_ratio",
+          "sales_growth_ratio",
+          "operating_profit_to_total_assets",
+          "net_profit_to_sales",
+          "three_year_gross_profit_to_total_assets",
+          "equity_minus_share_capital_to_total_assets",
+          "net_profit_plus_depreciation_to_total_liabilities",
+          "operating_profit_to_financial_expenses",
+          "working_capital_to_fixed_assets",
+          "log_total_assets",
+          "net_liabilities_to_sales",
+          "gross_profit_plus_interest_to_sales",
+          "current_liabilities_days_ratio",
+          "operating_expenses_to_short_term_liabilities",
+          "operating_expenses_to_total_liabilities",
+          "sales_profit_to_total_assets",
+          "total_sales_to_total_assets",
+          "current_assets_minus_inventories_to_long_term_liabilities",
+          "constant_capital_to_total_assets",
+          "sales_profit_to_sales",
+          "liquid_assets_to_short_term_liabilities",
+          "liabilities_to_adjusted_operating_profit",
+          "operating_profit_to_sales",
+          "receivables_plus_inventory_turnover_days",
+          "receivables_days_ratio",
+          "net_profit_to_inventory",
+          "current_assets_minus_inventory_to_short_term_liabilities",
+          "inventory_days_cost_ratio",
+          "ebitda_to_total_assets",
+          "ebitda_to_sales",
+          "current_assets_to_total_liabilities",
+          "short_term_liabilities_to_total_assets",
+          "short_term_liabilities_days_cost_ratio",
+          "equity_to_fixed_assets",
+          "constant_capital_to_fixed_assets",
+          "working_capital_absolute",
+          "gross_margin",
+          "adjusted_liquidity_ratio",
+          "total_costs_to_total_sales",
+          "long_term_liabilities_to_equity",
+          "inventory_turnover_ratio",
+          "receivables_turnover_ratio",
+          "short_term_liabilities_days_ratio",
+          "sales_to_short_term_liabilities",
+          "sales_to_fixed_assets",
+          "company_bankrupt"
+        ],
+        "target_columns": [
+          "company_bankrupt"
+        ],
+        "official_split_dimensions": {
+          "repeats": 10,
+          "folds": 3,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=365",
+        "primary_metadata_sha256": "6a2ee78e34e8317eac25882898f17c7a93a3dc6aec669d38ebc82af4e5b447f0",
+        "openml_description_sha256": "69c8399ab8d9eb626263a5ba76f99d0a18562341058646d5ae8997b507066fc1",
+        "openml_features_sha256": "e1f19cc6fdff9271567335287184d69d3e889c4d34702823132280538d21656c",
+        "openml_qualities_sha256": "a82c80b3acd2c7b4fc78a40c5c97aa7fa2804e2e825bd0b3bc8ede76d188f0fc",
+        "openml_task_sha256": "7486f9365f20f0ab8c24606d2d123b0896d1534af0a787d33616ebc724a7cfd4",
+        "categorical_schema_rule": "All non-excluded nominal AND string predictors from the official feature declarations.",
+        "sha256": "113352098b5c0285853cf983c940777e1893a87810111e9915ff744fbc5fcabc",
+        "splits_sha256": "b7a25dd575855d96d4359c8db09a339b6f675b2fd7cdc4dd4fd4bb79e5c34890"
+      },
+      "evaluation_track": "official_iid_development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 10,
+      "claim_track": "primary_observational_tabular_candidate",
+      "reservation_metadata": {
+        "rows": 5910,
+        "predictors": 64,
+        "class_labels": [
+          "No",
+          "Yes"
+        ],
+        "observed_class_counts": {
+          "No": 5500,
+          "Yes": 410
+        },
+        "payload_sha256": "113352098b5c0285853cf983c940777e1893a87810111e9915ff744fbc5fcabc",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "draft_not_released"
+    },
+    {
+      "name": "tabarena-46956",
+      "display_name": "seismic-bumps",
+      "family_id": "tabarena-46956",
+      "provider": "openml_task",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "observational",
+      "target": "HighEnergySeismicBump",
+      "target_transform": "identity",
+      "categorical": [
+        "seismic",
+        "seismoacoustic",
+        "shift",
+        "ghazard"
+      ],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Retrospective classification of the recorded next-shift seismic-hazard annotation from supplied shift summaries. Official shuffled task is not evidence of forward mine forecasting or longwall-disjoint generalization.",
+      "variant": "pinned_official_representation",
+      "evaluation_notes": " by the TabArena team (for code see the [page of the study](https://tabarena.ai/data-tabular-ml-iid-study)):\n- We renamed the target feature and reversed the values' ordinal encoding.\n- We drop the constant columns \"nbumps6\", \"nbumps7\", and \"nbumps89\".",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/266/seismic+bumps",
+          "https://archive.ics.uci.edu/api/dataset?id=266"
+        ],
+        "primary_page_sha256": "52d155fab993770e2268017c63b489cbb9f5b5e656f2c998262f2a3b38c0e12a",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "dataset_id": 46956,
+        "task_id": 363700,
+        "dataset_version": 4,
+        "uci_id": 266,
+        "schema_reviewed": true,
+        "expected_rows": 2584,
+        "md5_checksum": "4eb73b1e0e9b5233d1b0b3f457af662b",
+        "columns": [
+          "seismic",
+          "seismoacoustic",
+          "shift",
+          "genergy",
+          "gpuls",
+          "gdenergy",
+          "gdpuls",
+          "ghazard",
+          "nbumps",
+          "nbumps2",
+          "nbumps3",
+          "nbumps4",
+          "nbumps5",
+          "energy",
+          "maxenergy",
+          "HighEnergySeismicBump"
+        ],
+        "target_columns": [
+          "HighEnergySeismicBump"
+        ],
+        "official_split_dimensions": {
+          "repeats": 10,
+          "folds": 3,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=266",
+        "primary_metadata_sha256": "7736813bd18f0b083af5d5e1c3a7ba9f8a7b8a1bcddbee489bbf4b8fc9d410d9",
+        "openml_description_sha256": "2a7845eb3012d65e19edbe4bfec65d6cab1d4cc2d897d8f460d74deb0fb7c1bd",
+        "openml_features_sha256": "1141eb38f2a40605c6d6a3de8abc045687dd9f6d4f91b00fc417c92f03c35d0b",
+        "openml_qualities_sha256": "97d54f4e40e63bfdc4e245d416777f7edd5c02bd7be0afbec232c1339e10b036",
+        "openml_task_sha256": "c70a8da2a74e01e9d4e1e80f5f923ac792c9e48f0fb521f4fd795c518a09b8f1",
+        "categorical_schema_rule": "All non-excluded nominal AND string predictors from the official feature declarations.",
+        "sha256": "457abff74c716dee5e9836f779874369bfb8b61091dae3f7b011beca10d6b25b",
+        "splits_sha256": "ad73cb9e0154acd1dec4746e44fc0c1789f50caec50497eeffe664f7d9020f2f"
+      },
+      "evaluation_track": "official_iid_development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 11,
+      "claim_track": "primary_observational_tabular_candidate",
+      "reservation_metadata": {
+        "rows": 2584,
+        "predictors": 15,
+        "class_labels": [
+          "No",
+          "Yes"
+        ],
+        "observed_class_counts": {
+          "No": 2414,
+          "Yes": 170
+        },
+        "payload_sha256": "457abff74c716dee5e9836f779874369bfb8b61091dae3f7b011beca10d6b25b",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "draft_not_released"
+    },
+    {
+      "name": "tabarena-46962",
+      "display_name": "taiwanese_bankruptcy_prediction",
+      "family_id": "tabarena-46962",
+      "provider": "openml_task",
+      "task": "classification",
+      "role": "inventory",
+      "prior_exposure": "metadata_only",
+      "origin_kind": "observational",
+      "target": "Bankrupt",
+      "target_transform": "identity",
+      "categorical": [],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Recorded company bankruptcy-status annotation from the published financial ratios. Retrospective accounting-record classification, not a claimed prospective investment/credit decision model.",
+      "variant": "pinned_official_representation",
+      "evaluation_notes": " by the TabArena team (for code see the [page of the study](https://tabarena.ai/data-tabular-ml-iid-study)):\n- We rename the features to be shorter and have no special characters.\n- We drop the constant column \"Net_Income_Flag\".\n- Anomaly: the paper introducing the dataset has more features, but these do not seem to be in the dataset. \n- Anomaly: the data is temporal but all features are time-invariant. This might still have a latent, non-verifiable temporal component, which we ignore for our predictive IID task.",
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Reviewed original UCI publication's express data license; local development/stress benchmarking, not a curator badge alone.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/572/taiwanese+bankruptcy+prediction",
+          "https://archive.ics.uci.edu/api/dataset?id=572"
+        ],
+        "primary_page_sha256": "3ba63a7335b022f8acb940d29009b534e8122086ef3ef3a0736208e29d8af34a",
+        "reviewed_on": "2026-09-22",
+        "scope": "Local processing and aggregate reporting. No hosted-LLM row sharing is approved.",
+        "obligations": "Retain original contributor/UCI attribution and disclose all curation, target and split limitations."
+      },
+      "source": {
+        "dataset_id": 46962,
+        "task_id": 363706,
+        "dataset_version": 1,
+        "uci_id": 572,
+        "schema_reviewed": true,
+        "expected_rows": 6819,
+        "md5_checksum": "30a27e4516c9d069c4945857e7138f6c",
+        "columns": [
+          "Bankrupt",
+          "ROA_C_Before_Interest_Depreciation",
+          "ROA_A_Before_Interest_After_Tax",
+          "ROA_B_Before_Interest_Depreciation_After_Tax",
+          "Operating_Gross_Margin",
+          "Realized_Sales_Gross_Margin",
+          "Operating_Profit_Rate",
+          "PreTax_Net_Interest_Rate",
+          "AfterTax_Net_Interest_Rate",
+          "NonIndustry_Income_Expenditure_Revenue",
+          "Continuous_Interest_Rate_After_Tax",
+          "Operating_Expense_Rate",
+          "R&D_Expense_Rate",
+          "Cash_Flow_Rate",
+          "InterestBearing_Debt_Interest_Rate",
+          "Tax_Rate_A",
+          "Net_Value_Per_Share_B",
+          "Net_Value_Per_Share_A",
+          "Net_Value_Per_Share_C",
+          "Persistent_EPS_Last_4_Seasons",
+          "Cash_Flow_Per_Share",
+          "Revenue_Per_Share",
+          "Operating_Profit_Per_Share",
+          "Net_Profit_Before_Tax_Per_Share",
+          "Realized_Sales_Gross_Profit_Growth_Rate",
+          "Operating_Profit_Growth_Rate",
+          "AfterTax_Net_Profit_Growth_Rate",
+          "Regular_Net_Profit_Growth_Rate",
+          "Continuous_Net_Profit_Growth_Rate",
+          "Total_Asset_Growth_Rate",
+          "Net_Value_Growth_Rate",
+          "Total_Asset_Return_Growth_Rate",
+          "Cash_Reinvestment_Percent",
+          "Current_Ratio",
+          "Quick_Ratio",
+          "Interest_Expense_Ratio",
+          "Total_Debt_to_Net_Worth",
+          "Debt_Ratio_Percent",
+          "Net_Worth_to_Assets",
+          "LongTerm_Fund_Suitability_Ratio_A",
+          "Borrowing_Dependency",
+          "Contingent_Liabilities_to_Net_Worth",
+          "Operating_Profit_to_PaidIn_Capital",
+          "Net_Profit_Before_Tax_to_PaidIn_Capital",
+          "Inventory_Accounts_Receivable_to_Net_Value",
+          "Total_Asset_Turnover",
+          "Accounts_Receivable_Turnover",
+          "Average_Collection_Days",
+          "Inventory_Turnover_Rate",
+          "Fixed_Assets_Turnover_Frequency",
+          "Net_Worth_Turnover_Rate",
+          "Revenue_Per_Person",
+          "Operating_Profit_Per_Person",
+          "Allocation_Rate_Per_Person",
+          "Working_Capital_to_Total_Assets",
+          "Quick_Assets_to_Total_Assets",
+          "Current_Assets_to_Total_Assets",
+          "Cash_to_Total_Assets",
+          "Quick_Assets_to_Current_Liability",
+          "Cash_to_Current_Liability",
+          "Current_Liability_to_Assets",
+          "Operating_Funds_to_Liability",
+          "Inventory_to_Working_Capital",
+          "Inventory_to_Current_Liability",
+          "Current_Liabilities_to_Liability",
+          "Working_Capital_to_Equity",
+          "Current_Liabilities_to_Equity",
+          "LongTerm_Liability_to_Current_Assets",
+          "Retained_Earnings_to_Total_Assets",
+          "Total_Income_to_Total_Expense",
+          "Total_Expense_to_Assets",
+          "Current_Asset_Turnover_Rate",
+          "Quick_Asset_Turnover_Rate",
+          "Working_Capital_Turnover_Rate",
+          "Cash_Turnover_Rate",
+          "Cash_Flow_to_Sales",
+          "Fixed_Assets_to_Assets",
+          "Current_Liability_to_Liability",
+          "Current_Liability_to_Equity",
+          "Equity_to_LongTerm_Liability",
+          "Cash_Flow_to_Total_Assets",
+          "Cash_Flow_to_Liability",
+          "CFO_to_Assets",
+          "Cash_Flow_to_Equity",
+          "Current_Liability_to_Current_Assets",
+          "Liability_Assets_Flag",
+          "Net_Income_to_Total_Assets",
+          "Total_Assets_to_GNP_Price",
+          "NoCredit_Interval",
+          "Gross_Profit_to_Sales",
+          "Net_Income_to_Stockholders_Equity",
+          "Liability_to_Equity",
+          "DFL",
+          "Interest_Coverage_Ratio",
+          "Equity_to_Liability"
+        ],
+        "target_columns": [
+          "Bankrupt"
+        ],
+        "official_split_dimensions": {
+          "repeats": 10,
+          "folds": 3,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=572",
+        "primary_metadata_sha256": "b6d894c8110403d775eb42d52c523b133e0a101cc7a7e603927063403662ce28",
+        "openml_description_sha256": "7d36a4ec6bd13cd3ad9c24680b2e19b94bcb44a41289c7cea8f803ab8e44b1b7",
+        "openml_features_sha256": "21ed65bdc4eb5b9aeadea59360b909d6fa9759e63fc27e072ddf26a576c5897d",
+        "openml_qualities_sha256": "ba3dd8e06eab7ab2074359a1067f7cc83475afecfb358875519387349b396f8e",
+        "openml_task_sha256": "7675c5efb455cb0936653971e3bbc0ebfa652661910844b49962761a21a51eea",
+        "categorical_schema_rule": "All non-excluded nominal AND string predictors from the official feature declarations.",
+        "sha256": "e8c347eaef969f92b9ef19ab8f62b3ea53803ffa75d0f43c698114a4644e6c71",
+        "splits_sha256": "804e833ff8344336975f98066e95694de58891f91a84bea69ca6d1ebd08d6537"
+      },
+      "evaluation_track": "official_iid_development",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "confirmation-candidate-reservation-20260923",
+      "reservation_rank": 12,
+      "claim_track": "primary_observational_tabular_candidate",
+      "reservation_metadata": {
+        "rows": 6819,
+        "predictors": 94,
+        "class_labels": [
+          "No",
+          "Yes"
+        ],
+        "observed_class_counts": {
+          "No": 6599,
+          "Yes": 220
+        },
+        "payload_sha256": "e8c347eaef969f92b9ef19ab8f62b3ea53803ffa75d0f43c698114a4644e6c71",
+        "eligibility_evidence": "confirmation_candidate_reservation_audit_20260923.json#/decisions",
+        "model_access": "blocked until explicit parent freeze/release"
+      },
+      "intended_role_after_parent_release": "confirmation",
+      "protocol_state": "draft_not_released"
+    }
+  ]
+}

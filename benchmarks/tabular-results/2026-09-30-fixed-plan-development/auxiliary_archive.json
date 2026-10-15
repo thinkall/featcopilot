@@ -1,0 +1,22 @@
+{
+  "format": "bounded-lossless-artifacts-v1",
+  "files": [
+    {
+      "name": "manifest.json",
+      "compression": "gzip",
+      "parts": [
+        "manifest.json.gz.part1"
+      ],
+      "sha256": "385092f771bcad080d541670e3b30459663b2b0e382ebe29879c751316c62eab"
+    },
+    {
+      "name": "source.zip",
+      "compression": "none",
+      "parts": [
+        "source.zip.part1",
+        "source.zip.part2"
+      ],
+      "sha256": "5c6323b9c909ea8836638244410e18d91d6d8c4f2c8734d880a98655b50d243b"
+    }
+  ]
+}

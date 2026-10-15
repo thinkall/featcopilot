@@ -1,0 +1,170 @@
+{
+  "reference": "2026-10-03-subsample85-development",
+  "controls": 162,
+  "parameters_and_feature_names_equal": true,
+  "differences": [
+    {
+      "dataset": "uci-dry-bean",
+      "seed": 42,
+      "fold": 1,
+      "method": "baseline-robust",
+      "field": "loss",
+      "difference": -2.7755575615628914e-17,
+      "ulps": 1.0
+    },
+    {
+      "dataset": "uci-dry-bean",
+      "seed": 42,
+      "fold": 1,
+      "method": "featcopilot-frequency-aligned-robust",
+      "field": "loss",
+      "difference": -2.7755575615628914e-17,
+      "ulps": 1.0
+    },
+    {
+      "dataset": "uci-dry-bean",
+      "seed": 42,
+      "fold": 2,
+      "method": "baseline-robust",
+      "field": "loss",
+      "difference": -5.551115123125783e-17,
+      "ulps": 2.0
+    },
+    {
+      "dataset": "uci-dry-bean",
+      "seed": 42,
+      "fold": 2,
+      "method": "featcopilot-frequency-aligned-robust",
+      "field": "loss",
+      "difference": -5.551115123125783e-17,
+      "ulps": 2.0
+    },
+    {
+      "dataset": "uci-dry-bean",
+      "seed": 137,
+      "fold": 0,
+      "method": "baseline-robust",
+      "field": "loss",
+      "difference": -5.551115123125783e-17,
+      "ulps": 1.0
+    },
+    {
+      "dataset": "uci-dry-bean",
+      "seed": 137,
+      "fold": 0,
+      "method": "featcopilot-frequency-aligned-robust",
+      "field": "loss",
+      "difference": -5.551115123125783e-17,
+      "ulps": 1.0
+    },
+    {
+      "dataset": "uci-dry-bean",
+      "seed": 137,
+      "fold": 2,
+      "method": "baseline-robust",
+      "field": "brier_sum",
+      "difference": 1.3877787807814457e-17,
+      "ulps": 1.0
+    },
+    {
+      "dataset": "uci-dry-bean",
+      "seed": 137,
+      "fold": 2,
+      "method": "featcopilot-frequency-aligned-robust",
+      "field": "brier_sum",
+      "difference": 1.3877787807814457e-17,
+      "ulps": 1.0
+    },
+    {
+      "dataset": "uci-dry-bean",
+      "seed": 2029,
+      "fold": 0,
+      "method": "baseline-robust",
+      "field": "brier_sum",
+      "difference": -1.3877787807814457e-17,
+      "ulps": 1.0
+    },
+    {
+      "dataset": "uci-dry-bean",
+      "seed": 2029,
+      "fold": 1,
+      "method": "baseline-robust",
+      "field": "loss",
+      "difference": -5.551115123125783e-17,
+      "ulps": 2.0
+    },
+    {
+      "dataset": "uci-dry-bean",
+      "seed": 2029,
+      "fold": 1,
+      "method": "featcopilot-frequency-aligned-robust",
+      "field": "loss",
+      "difference": -5.551115123125783e-17,
+      "ulps": 2.0
+    },
+    {
+      "dataset": "uci-dry-bean",
+      "seed": 2029,
+      "fold": 2,
+      "method": "baseline-robust",
+      "field": "loss",
+      "difference": 2.7755575615628914e-17,
+      "ulps": 1.0
+    },
+    {
+      "dataset": "uci-steel-faults",
+      "seed": 137,
+      "fold": 0,
+      "method": "baseline-robust",
+      "field": "brier_sum",
+      "difference": 5.551115123125783e-17,
+      "ulps": 1.0
+    },
+    {
+      "dataset": "uci-steel-faults",
+      "seed": 137,
+      "fold": 1,
+      "method": "baseline-robust",
+      "field": "brier_sum",
+      "difference": 5.551115123125783e-17,
+      "ulps": 1.0
+    },
+    {
+      "dataset": "uci-steel-faults",
+      "seed": 2029,
+      "fold": 0,
+      "method": "baseline-robust",
+      "field": "loss",
+      "difference": -1.1102230246251565e-16,
+      "ulps": 1.0
+    },
+    {
+      "dataset": "uci-steel-faults",
+      "seed": 2029,
+      "fold": 0,
+      "method": "featcopilot-frequency-aligned-robust",
+      "field": "loss",
+      "difference": -1.1102230246251565e-16,
+      "ulps": 1.0
+    },
+    {
+      "dataset": "uci-steel-faults",
+      "seed": 2029,
+      "fold": 1,
+      "method": "baseline-robust",
+      "field": "loss",
+      "difference": -1.1102230246251565e-16,
+      "ulps": 1.0
+    },
+    {
+      "dataset": "uci-steel-faults",
+      "seed": 2029,
+      "fold": 2,
+      "method": "featcopilot-frequency-aligned-robust",
+      "field": "brier_sum",
+      "difference": 5.551115123125783e-17,
+      "ulps": 1.0
+    }
+  ],
+  "note": "Full-procedure prediction validates and normalizes probabilities; canonical single controls score native probabilities directly. No runtime threshold is changed."
+}

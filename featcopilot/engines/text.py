@@ -4,7 +4,7 @@ Generates features from text data using embeddings and NLP techniques.
 Supports local offline processing with transformers and spacy.
 """
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import pandas as pd
@@ -13,6 +13,9 @@ from pydantic import Field
 from featcopilot.core.base import BaseEngine, EngineConfig
 from featcopilot.core.feature import FeatureSet
 from featcopilot.utils.logger import get_logger
+
+if TYPE_CHECKING:
+    from transformers import TextClassificationPipeline
 
 logger = get_logger(__name__)
 
@@ -115,7 +118,7 @@ class TextEngine(BaseEngine):
 
         # Lazy-loaded models
         self._nlp = None  # spacy
-        self._sentiment_pipeline = None  # transformers
+        self._sentiment_pipeline: TextClassificationPipeline | None = None
         self._embedding_model = None  # sentence-transformers
         self._pca_models: dict[str, Any] = {}  # PCA for embeddings
 
@@ -217,7 +220,7 @@ class TextEngine(BaseEngine):
             from transformers import pipeline
 
             self._sentiment_pipeline = pipeline(
-                "sentiment-analysis",
+                "text-classification",
                 model=self.config.sentiment_model,
                 truncation=True,
                 max_length=512,
@@ -407,14 +410,14 @@ class TextEngine(BaseEngine):
         feature_names = [f"{col}_tfidf_{i}" for i in range(reduced.shape[1])]
         return pd.DataFrame(reduced, columns=feature_names, index=texts.index)
 
-    def _extract_sentiment(self, texts: pd.Series, col: str) -> dict[str, list]:
+    def _extract_sentiment(self, texts: pd.Series, col: str) -> dict[str, list[float]]:
         """Extract sentiment scores using transformers."""
         if self._sentiment_pipeline is None:
             self._load_sentiment()
             if self._sentiment_pipeline is None:
                 return {}
 
-        features = {
+        features: dict[str, list[float]] = {
             f"{col}_sentiment_positive": [],
             f"{col}_sentiment_negative": [],
             f"{col}_sentiment_neutral": [],

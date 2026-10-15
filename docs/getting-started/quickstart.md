@@ -71,29 +71,33 @@ if engineer.feature_importances_:
 ## Using in Sklearn Pipeline
 
 ```python
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
+from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
-# Create pipeline
+from featcopilot import FeatureEngineerTransformer
+
+# Keep feature engineering inside the pipeline so every validation fold
+# learns encodings and transformations from its training rows only.
 pipeline = Pipeline([
-    ('features', AutoFeatureEngineer(engines=['tabular'], max_features=20)),
+    ('features', FeatureEngineerTransformer(
+        engine='tabular',
+        max_features=20,
+        keep_original_categorical=False,
+    )),
+    ('imputer', SimpleImputer(strategy='median', add_indicator=True)),
     ('scaler', StandardScaler()),
-    ('classifier', LogisticRegression())
+    ('classifier', LogisticRegression(max_iter=1000)),
 ])
 
-# Note: For pipelines, use fit() then transform() separately
-# or handle NaN values in the pipeline
-engineer = AutoFeatureEngineer(engines=['tabular'], max_features=20)
-X_fe = engineer.fit_transform(X, y).fillna(0)
-
-# Evaluate
 scores = cross_val_score(
-    LogisticRegression(),
-    X_fe, y,
+    pipeline,
+    X,
+    y,
     cv=5,
-    scoring='roc_auc'
+    scoring='roc_auc',
 )
 print(f"ROC-AUC: {scores.mean():.4f} (+/- {scores.std()*2:.4f})")
 ```
@@ -108,7 +112,7 @@ engineer = AutoFeatureEngineer(
     engines=['tabular', 'llm'],
     max_features=40,
     llm_config={
-        'model': 'gpt-5.2',
+        'model': 'gpt-5.6-sol',
         'max_suggestions': 10
     }
 )

@@ -1,0 +1,93 @@
+{
+  "role": "RETROSPECTIVE_DEVELOPMENT_NOT_CONFIRMATION",
+  "started_utc": "2026-09-28T19:38:50.411260+00:00",
+  "source_sha256": "8199702864295cba90f75f7742aea16f56b087b21a1cf607e2937d4e229fb0c3",
+  "source_zip_sha256": "dffc2e41529e468ea9b51d939583bb05e1456940bc3bdf483fe7fb04e9b22180",
+  "audit_script_sha256": "8daf3dc2664b901e5cdb759b4a9797488e8621bb281bc8faf4dd2f1835ccc386",
+  "synthetic_safety_tests": {
+    "passed": 5,
+    "script_sha256": "1a66cde55b9e5b00d22acd516ec1ea334acd41eb2c6548018deccec7553717e1"
+  },
+  "original_source_sha256": "c30bfbfcacb2fc7d3c3398699d8b2ee67ace00807cecaf2de49c7c06f527a808",
+  "original_manifest_sha256": "c0c548cf5c4e9b4a16faaa66b0a0f2cd1efc2bea5a6d325eea7029a45f4910c2",
+  "versions": {
+    "scikit-learn": "1.7.2",
+    "joblib": "1.3.2",
+    "numpy": "2.4.4",
+    "pandas": "2.3.3",
+    "scipy": "1.17.1",
+    "threadpoolctl": "3.6.0"
+  },
+  "python_executable": "C:\\Users\\lijiang1\\.copilot\\session-state\\fc6747ca-1d37-46b8-a1c4-fb650ac71116\\files\\benchmark-env\\Scripts\\python.exe",
+  "families": [
+    "computer-hardware-performance",
+    "infrared-oral-temperature"
+  ],
+  "original_outer_seed": 2027,
+  "original_outer_folds": 3,
+  "audit_holdout_seed": 2028,
+  "audit_holdout_fraction": 0.25,
+  "nested_tuning_seed": 2027,
+  "nested_tuning_holdout_fraction": 0.25,
+  "alpha_grid": [
+    0.1,
+    1.0,
+    10.0
+  ],
+  "selection_alpha": 1.0,
+  "method": "featcopilot-frequency-paired",
+  "config": {
+    "seed": 2027,
+    "threads": 8,
+    "selection_learner": "linear",
+    "learners": [
+      "linear"
+    ],
+    "max_added_features": 50,
+    "max_candidates": 1000,
+    "stability_repeats": 3,
+    "screening": "importance",
+    "detailed_diagnostics": false
+  },
+  "whole_audit_seconds_ceiling": 3600,
+  "cell_seconds_ceiling": 600,
+  "process_tree_memory_mb": 4096,
+  "original_outer_test_scored": false,
+  "data": [
+    {
+      "family": "computer-hardware-performance",
+      "prepared_sha256": "9b41a54261472f08dcc0d9996c7c8080d0bfb3f50923144c68ca71f2fc967f0c",
+      "source_data_sha256": "a07e9467e9daec5cb93a73eb791b9703795c2c4b920a4f16677d79976e323ede",
+      "outer_split_hashes": [
+        "76c2a8534790486e207a876acdae20b8737b39af68c4be228108a22336e2049d",
+        "cd366aa7eab32cb4ae6ecb84b0c453e9e20f1f1f67f8cea9de816dce25114787",
+        "ce8ea987b6152bd5b68445cd36bf1e27e4fb83f9b836c792dfe3c6a82edef185"
+      ]
+    },
+    {
+      "family": "infrared-oral-temperature",
+      "prepared_sha256": "012d2275bae0d129729c3c55a5884eb9e3203052806fcd3900265690a125bdc6",
+      "source_data_sha256": "b25616c9f67e3a60b853fdce8532cab926ca7cb649c6b89bc9e1f1255d0f0a14",
+      "outer_split_hashes": [
+        "bf676620e3a510bd38cf8be792a16daae350d312d5f828ef48f3eb7f5454d89a",
+        "9963b17b34c553206bd865ceb97c1fe9aaffa2779bd923190c13ec6cae3ea475",
+        "a9711224e22e58de2203ad1b04bbe7b5d9b6284ae4ec3fe0f27911352c476ab4"
+      ]
+    }
+  ],
+  "finished_utc": "2026-09-28T19:42:47.092914+00:00",
+  "whole_audit_elapsed_seconds": 255.02731100004166,
+  "source_sha256_at_finish": "8199702864295cba90f75f7742aea16f56b087b21a1cf607e2937d4e229fb0c3",
+  "source_changed": false,
+  "launcher_accounting": {
+    "native_threads": 8,
+    "entire_audit_process_seconds": 263.4031827,
+    "exit_code": 0,
+    "started_utc": "2026-09-28T19:38:28.6167335+00:00",
+    "includes": "Process startup, six child launches, model execution, diagnostics and summary/artifact writing",
+    "finished_utc": "2026-09-28T19:42:52.0304299+00:00",
+    "ceiling_seconds": 3600,
+    "safety_test_process_seconds": 24.2764653
+  },
+  "timing_definition": "whole_audit_elapsed_seconds is the internal supervisor clock; launcher_accounting.entire_audit_process_seconds includes complete process startup and summary/exit"
+}

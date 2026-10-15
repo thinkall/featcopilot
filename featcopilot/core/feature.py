@@ -152,10 +152,16 @@ class Feature:
         with ``df``, ``np`` and ``pd`` bound as names alongside a
         curated set of safe Python builtins (``len``, ``range``,
         ``sum``, numeric / sequence constructors, etc.) so common
-        idioms work without giving the snippet a Python import system
-        — ``__import__`` is intentionally NOT in the safe builtins, so
-        an ``import foo`` statement inside the snippet raises at exec
-        time. The snippet must bind its output to a name called
+        idioms work without giving the snippet a Python import system.
+        When ``transformation`` names a registered transformation, that
+        callable is also exposed under its registered name so features
+        created by :class:`~featcopilot.core.registry.FeatureRegistry`
+        can execute. Stored fitted-frequency features receive their internal
+        callable separately: they must supply their fitted mapping and are
+        not advertised as public unary transformations.
+        ``__import__`` is intentionally NOT in the safe
+        builtins, so an ``import foo`` statement inside the snippet raises
+        at exec time. The snippet must bind its output to a name called
         ``result``.
 
         .. note::
@@ -220,6 +226,17 @@ class Feature:
             "np": np,
             "pd": pd,
         }
+        if self.transformation:
+            from featcopilot.core.registry import registry
+
+            registered_transform = registry.get_transformation(self.transformation)
+            if registered_transform is not None:
+                namespace[self.transformation] = registered_transform
+            elif self.transformation == "fitted_frequency_v1":
+                from featcopilot.utils.frequency import apply_frequency_mapping
+
+                namespace[self.transformation] = apply_frequency_mapping
+
         exec(self.code, namespace)
         if "result" not in namespace:
             raise ValueError(

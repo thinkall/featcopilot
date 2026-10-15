@@ -6,11 +6,13 @@ using GitHub Copilot SDK.
 
 import json
 import re
-from typing import Any, Literal
+from typing import Literal
 
 import pandas as pd
 
 from featcopilot.core.transform_rule import TransformRule
+from featcopilot.llm._execution import normalize_feature_code
+from featcopilot.llm._types import FeatureClient
 from featcopilot.stores.rule_store import TransformRuleStore
 from featcopilot.utils.logger import get_logger
 from featcopilot.utils.models import DEFAULT_MODEL
@@ -68,9 +70,9 @@ class TransformRuleGenerator:
         self.backend = backend
         self.api_key = api_key
         self.api_base = api_base
-        self._client: Any | None = None
+        self._client: FeatureClient | None = None
 
-    def _ensure_client(self) -> None:
+    def _ensure_client(self) -> FeatureClient:
         """Ensure LLM client is initialized."""
         if self._client is None:
             if self.backend == "openai":
@@ -86,6 +88,7 @@ class TransformRuleGenerator:
 
                 self._client = SyncCopilotFeatureClient(model=self.model)
             self._client.start()
+        return self._client
 
     def generate_from_description(
         self,
@@ -124,13 +127,13 @@ class TransformRuleGenerator:
         ...     tags=["healthcare", "bmi"]
         ... )
         """
-        self._ensure_client()
+        client = self._ensure_client()
 
         # Build prompt for rule generation
         prompt = self._build_generation_prompt(description, columns)
 
         # Get LLM response
-        response = self._client.send_prompt(prompt)
+        response = client.send_prompt(prompt)
 
         # Parse response into rule
         rule = self._parse_rule_response(response, description, columns, tags)
@@ -203,6 +206,8 @@ Return ONLY the JSON object, no other text.
                 response = "\n".join(line for line in lines if not line.startswith("```"))
 
             data = json.loads(response)
+            if not isinstance(data, dict) or not isinstance(data.get("code"), str) or not data["code"].strip():
+                raise ValueError("Generated rule response must contain non-empty code")
 
             return TransformRule(
                 name=data.get("name", "custom_rule"),
@@ -237,20 +242,7 @@ Return ONLY the JSON object, no other text.
 
     def _clean_code(self, code: str) -> str:
         """Clean and normalize generated code."""
-        code = code.strip()
-
-        # Remove markdown code blocks
-        if code.startswith("```"):
-            lines = code.split("\n")
-            code = "\n".join(line for line in lines if not line.startswith("```"))
-
-        # Ensure result assignment
-        if "result" not in code and "=" in code:
-            code = re.sub(r"^(\w+)\s*=", "result =", code, count=1)
-        elif "result" not in code:
-            code = f"result = {code}"
-
-        return code.strip()
+        return normalize_feature_code(code)
 
     def _extract_code(self, response: str) -> str:
         """Extract code from a response that isn't valid JSON."""
@@ -263,10 +255,9 @@ Return ONLY the JSON object, no other text.
         for pattern in code_patterns:
             match = re.search(pattern, response)
             if match:
-                return match.group()
+                return self._clean_code(match.group())
 
-        # Fallback
-        return "result = df.iloc[:, 0]"
+        raise ValueError("LLM response contains no usable transform rule code")
 
     def _generate_name(self, description: str) -> str:
         """Generate rule name from description."""
@@ -280,7 +271,8 @@ Return ONLY the JSON object, no other text.
 
     def _validate_and_fix(self, rule: TransformRule, sample_data: pd.DataFrame) -> TransformRule:
         """Validate rule code and attempt to fix issues."""
-        validation = self._client.validate_feature_code(
+        client = self._ensure_client()
+        validation = client.validate_feature_code(
             rule.code, {col: sample_data[col].tolist() for col in sample_data.columns}
         )
 
@@ -292,14 +284,14 @@ Return ONLY the JSON object, no other text.
             fixed_code = self._fix_common_issues(rule.code, validation["error"])
 
             # Re-validate
-            validation = self._client.validate_feature_code(
+            validation = client.validate_feature_code(
                 fixed_code, {col: sample_data[col].tolist() for col in sample_data.columns}
             )
 
             if validation["valid"]:
                 rule.code = fixed_code
             else:
-                logger.warning(f"Could not fix rule code: {validation['error']}")
+                raise ValueError(f"Generated rule failed validation: {validation['error']}")
 
         return rule
 

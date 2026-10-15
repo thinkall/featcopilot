@@ -1,0 +1,91 @@
+{
+  "promote": false,
+  "sota_demonstrated": false,
+  "decision": "Reject sigmoid as a general improvement. Freeze a development follow-up policy: linear single FE, LightGBM plain cross-fit FE ensemble; no per-dataset switching.",
+  "architectures": [
+    {
+      "learner": "lightgbm",
+      "architecture": "single",
+      "families": 9,
+      "matched_mean": 0.08120197247515595,
+      "matched_worst": -0.22764460134765652,
+      "mean_vs_single_raw": 0.08120197247515595,
+      "worst_vs_single_raw": -0.22764460134765652,
+      "matched_harms_above_5_percent": [
+        "uci-wisconsin-diagnostic"
+      ],
+      "single_raw_harms_above_5_percent": [
+        "uci-wisconsin-diagnostic"
+      ]
+    },
+    {
+      "learner": "lightgbm",
+      "architecture": "plain",
+      "families": 9,
+      "matched_mean": 0.08758468801694992,
+      "matched_worst": -0.0040308364424836984,
+      "mean_vs_single_raw": 0.07395000723761419,
+      "worst_vs_single_raw": -0.012303817913296378,
+      "matched_harms_above_5_percent": [],
+      "single_raw_harms_above_5_percent": []
+    },
+    {
+      "learner": "lightgbm",
+      "architecture": "sigmoid",
+      "families": 9,
+      "matched_mean": 0.0725802681052358,
+      "matched_worst": -0.0010372257112378769,
+      "mean_vs_single_raw": -0.11116838984649685,
+      "worst_vs_single_raw": -0.6790978520399094,
+      "matched_harms_above_5_percent": [],
+      "single_raw_harms_above_5_percent": [
+        "uci-adult",
+        "uci-chronic-kidney-disease",
+        "uci-dry-bean",
+        "uci-steel-faults"
+      ]
+    },
+    {
+      "learner": "linear",
+      "architecture": "single",
+      "families": 9,
+      "matched_mean": 0.16122116402097295,
+      "matched_worst": -0.04277003110987598,
+      "mean_vs_single_raw": 0.16122116402097295,
+      "worst_vs_single_raw": -0.04277003110987598,
+      "matched_harms_above_5_percent": [],
+      "single_raw_harms_above_5_percent": []
+    },
+    {
+      "learner": "linear",
+      "architecture": "plain",
+      "families": 9,
+      "matched_mean": 0.11217520308979095,
+      "matched_worst": -0.2798176228750473,
+      "mean_vs_single_raw": 0.060355381789463106,
+      "worst_vs_single_raw": -0.8273591563239497,
+      "matched_harms_above_5_percent": [
+        "uci-chronic-kidney-disease"
+      ],
+      "single_raw_harms_above_5_percent": [
+        "uci-chronic-kidney-disease"
+      ]
+    },
+    {
+      "learner": "linear",
+      "architecture": "sigmoid",
+      "families": 9,
+      "matched_mean": 0.12433326156164846,
+      "matched_worst": -0.0002707054727837388,
+      "mean_vs_single_raw": -0.434834928516582,
+      "worst_vs_single_raw": -2.552495794643492,
+      "matched_harms_above_5_percent": [],
+      "single_raw_harms_above_5_percent": [
+        "uci-chronic-kidney-disease",
+        "uci-dry-bean",
+        "uci-steel-faults",
+        "uci-wisconsin-diagnostic"
+      ]
+    }
+  ]
+}

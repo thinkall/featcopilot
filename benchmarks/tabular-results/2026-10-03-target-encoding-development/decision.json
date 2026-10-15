@@ -1,0 +1,29 @@
+{
+  "promote": false,
+  "sota_demonstrated": false,
+  "decision": "Do not replace one-hot defaults: target encoding weakens raw controls and does not improve incumbent feature-engineered performance overall.",
+  "comparisons": [
+    {
+      "learner": "lightgbm",
+      "families": 9,
+      "target_fe_vs_target_raw": 0.08918583269673237,
+      "target_fe_vs_onehot_raw": 0.08082643294593417,
+      "target_fe_vs_onehot_fe": -0.0015369617371780258,
+      "worst_vs_onehot_raw": -0.22764460134765652,
+      "harm_families_vs_onehot_raw": [
+        "uci-wisconsin-diagnostic"
+      ]
+    },
+    {
+      "learner": "linear",
+      "families": 9,
+      "target_fe_vs_target_raw": 0.15515840584675425,
+      "target_fe_vs_onehot_raw": 0.00893569464717519,
+      "target_fe_vs_onehot_fe": -0.1821908323584892,
+      "worst_vs_onehot_raw": -1.1686105798622357,
+      "harm_families_vs_onehot_raw": [
+        "uci-chronic-kidney-disease"
+      ]
+    }
+  ]
+}

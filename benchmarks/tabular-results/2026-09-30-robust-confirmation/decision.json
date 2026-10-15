@@ -1,0 +1,183 @@
+{
+  "promote": false,
+  "sota_demonstrated": false,
+  "reason": "Incomplete candidate/reference coverage, negative/neutral task means, and greater-than-5% family harms violate frozen gates; only one regression origin.",
+  "strata": [
+    {
+      "task": "classification",
+      "learner": "catboost",
+      "complete_families": 2,
+      "requested_families": 3,
+      "mean_reduction": -0.07149640869191076,
+      "worst_reduction": -0.13755334599923064,
+      "comparisons": [
+        {
+          "method": "openfe-inductive-native-robust",
+          "families": 2,
+          "candidate_mean": -0.07149640869191076,
+          "reference_mean": 0.015174088623120086
+        },
+        {
+          "method": "autofeat-native-robust",
+          "families": 2,
+          "candidate_mean": -0.07149640869191076,
+          "reference_mean": 0.00848988773590742
+        }
+      ]
+    },
+    {
+      "task": "classification",
+      "learner": "lightgbm",
+      "complete_families": 3,
+      "requested_families": 3,
+      "mean_reduction": 5.062061682692409e-05,
+      "worst_reduction": -0.0020427460821597077,
+      "comparisons": [
+        {
+          "method": "openfe-inductive-native-robust",
+          "families": 3,
+          "candidate_mean": 5.062061682692409e-05,
+          "reference_mean": -0.06519919601968067
+        },
+        {
+          "method": "autofeat-native-robust",
+          "families": 2,
+          "candidate_mean": 0.00109730396632024,
+          "reference_mean": -0.007693797653622547
+        }
+      ]
+    },
+    {
+      "task": "classification",
+      "learner": "linear",
+      "complete_families": 3,
+      "requested_families": 3,
+      "mean_reduction": 0.005611354979376777,
+      "worst_reduction": 0.0,
+      "comparisons": [
+        {
+          "method": "openfe-inductive-native-robust",
+          "families": 3,
+          "candidate_mean": 0.005611354979376777,
+          "reference_mean": -0.08278580128823392
+        },
+        {
+          "method": "autofeat-native-robust",
+          "families": 2,
+          "candidate_mean": 0.008417032469065167,
+          "reference_mean": -0.02068467865924667
+        }
+      ]
+    },
+    {
+      "task": "classification",
+      "learner": "xgboost",
+      "complete_families": 3,
+      "requested_families": 3,
+      "mean_reduction": -0.026073054969606064,
+      "worst_reduction": -0.07887021964578667,
+      "comparisons": [
+        {
+          "method": "openfe-inductive-native-robust",
+          "families": 3,
+          "candidate_mean": -0.026073054969606064,
+          "reference_mean": -0.031751509237204344
+        },
+        {
+          "method": "autofeat-native-robust",
+          "families": 2,
+          "candidate_mean": -0.03943510982289333,
+          "reference_mean": -0.014675017025608916
+        }
+      ]
+    },
+    {
+      "task": "regression",
+      "learner": "catboost",
+      "complete_families": 1,
+      "requested_families": 1,
+      "mean_reduction": -0.027674206806126422,
+      "worst_reduction": -0.027674206806126422,
+      "comparisons": [
+        {
+          "method": "openfe-inductive-native-robust",
+          "families": 1,
+          "candidate_mean": -0.027674206806126422,
+          "reference_mean": -0.017460054272398384
+        },
+        {
+          "method": "autofeat-native-robust",
+          "families": 1,
+          "candidate_mean": -0.027674206806126422,
+          "reference_mean": -0.01083608338291886
+        }
+      ]
+    },
+    {
+      "task": "regression",
+      "learner": "lightgbm",
+      "complete_families": 1,
+      "requested_families": 1,
+      "mean_reduction": 0.0,
+      "worst_reduction": 0.0,
+      "comparisons": [
+        {
+          "method": "openfe-inductive-native-robust",
+          "families": 1,
+          "candidate_mean": 0.0,
+          "reference_mean": 0.007512564714308612
+        },
+        {
+          "method": "autofeat-native-robust",
+          "families": 1,
+          "candidate_mean": 0.0,
+          "reference_mean": 0.017228742028129185
+        }
+      ]
+    },
+    {
+      "task": "regression",
+      "learner": "linear",
+      "complete_families": 1,
+      "requested_families": 1,
+      "mean_reduction": -0.00010210017009426586,
+      "worst_reduction": -0.00010210017009426586,
+      "comparisons": [
+        {
+          "method": "openfe-inductive-native-robust",
+          "families": 1,
+          "candidate_mean": -0.00010210017009426586,
+          "reference_mean": 0.004789659525493262
+        },
+        {
+          "method": "autofeat-native-robust",
+          "families": 1,
+          "candidate_mean": -0.00010210017009426586,
+          "reference_mean": -0.0006155862426697745
+        }
+      ]
+    },
+    {
+      "task": "regression",
+      "learner": "xgboost",
+      "complete_families": 1,
+      "requested_families": 1,
+      "mean_reduction": 0.03820383019382789,
+      "worst_reduction": 0.03820383019382789,
+      "comparisons": [
+        {
+          "method": "openfe-inductive-native-robust",
+          "families": 1,
+          "candidate_mean": 0.03820383019382789,
+          "reference_mean": -0.013626635571904355
+        },
+        {
+          "method": "autofeat-native-robust",
+          "families": 1,
+          "candidate_mean": 0.03820383019382789,
+          "reference_mean": -0.41689740046042156
+        }
+      ]
+    }
+  ]
+}

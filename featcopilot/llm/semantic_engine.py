@@ -7,10 +7,15 @@ from typing import Any, Literal
 
 import numpy as np
 import pandas as pd
-from pydantic import Field
+from pydantic import Field, JsonValue
 
 from featcopilot.core.base import BaseEngine, EngineConfig
 from featcopilot.core.feature import Feature, FeatureOrigin, FeatureSet, FeatureType
+from featcopilot.core.fitted_rule import FittedRulePlan, FittedRuleSpec
+from featcopilot.engines.fitted_rules import FittedRuleEngine
+from featcopilot.llm._execution import execute_feature_code
+from featcopilot.llm._types import FeatureClient, feature_suggestions
+from featcopilot.llm.plan_generator import request_fitted_plan
 from featcopilot.utils.logger import get_logger
 from featcopilot.utils.models import DEFAULT_MODEL
 
@@ -22,14 +27,22 @@ class SemanticEngineConfig(EngineConfig):
 
     name: str = "SemanticEngine"
     model: str = Field(default=DEFAULT_MODEL, description="LLM model to use")
-    max_suggestions: int = Field(default=20, description="Max features to suggest")
+    max_suggestions: int = Field(default=20, ge=1, description="Max features to suggest")
     validate_features: bool = Field(default=True, description="Validate generated code")
     domain: str | None = Field(default=None, description="Domain context")
-    temperature: float = Field(default=0.3, description="LLM temperature")
+    temperature: float = Field(default=0.3, ge=0, le=2, description="LLM temperature")
+    timeout: float = Field(
+        default=60.0, gt=0, strict=True, allow_inf_nan=False, description="Provider request timeout in seconds"
+    )
+    max_tokens: int = Field(default=4096, gt=0, description="Maximum response tokens for chat backends")
     backend: Literal["copilot", "litellm", "openai"] = Field(default="copilot", description="LLM backend to use")
     api_key: str | None = Field(default=None, description="API key for litellm/openai backend")
     api_base: str | None = Field(default=None, description="Custom API base URL for litellm/openai")
     api_version: str | None = Field(default=None, description="API version for Azure OpenAI")
+    feature_format: Literal["code", "plan"] = Field(default="code", description="Trusted Python or fitted typed rules")
+    task: Literal["auto", "classification", "regression"] = "auto"
+    random_state: int = 42
+    target_cv: int = Field(default=5, ge=2)
     enable_text_features: bool = Field(default=True, description="Generate ML features from text columns")
     keep_text_columns: bool = Field(
         default=True, description="Keep original text columns (for models that handle them natively)"
@@ -69,6 +82,42 @@ class SemanticEngine(BaseEngine):
         API key for openai/litellm backend (uses environment variable if not provided)
     api_base : str, optional
         Custom API base URL for openai/litellm backend (for internal/self-hosted endpoints)
+    api_version : str, optional
+        Azure API version for the openai backend
+    enable_text_features : bool, default=True
+        Generate built-in and optional LLM-suggested text features
+    text_feature_types : list[str], optional
+        Text feature categories to request. Defaults to sentiment, readability,
+        linguistic, and semantic. This guides suggestions, not built-in features.
+    keep_text_columns : bool, default=True
+        Retain original text columns in transformed data
+    temperature : float, default=0.3
+        Generation temperature for openai/litellm; not exposed by the Copilot SDK
+    timeout : float, default=60.0
+        Provider request timeout in seconds
+    max_tokens : int, default=4096
+        Response token limit for openai/litellm; not exposed by the Copilot SDK
+    feature_format : {'code', 'plan'}, default='code'
+        Code mode preserves trusted Python generation. Plan mode requests only
+        allowlisted fitted tabular rules, never executes generated Python, and
+        skips built-in/generated text features while retaining original columns.
+        Copilot plans use a fresh isolated session per request, without tools,
+        MCPs, skills, custom agents or workspace instructions. An existing CLI
+        login and a supported isolation contract are required; no permissive
+        session fallback is allowed. Chat backends remain tool-free completions.
+        Code-generation helpers suggest_more_features/generate_custom_feature
+        are unavailable in plan mode; supply new rules and refit instead.
+    rules : list[FittedRuleSpec or dict], optional
+        Predeclared rules for plan mode, bypassing the provider entirely.
+    task : {'auto', 'classification', 'regression'}, default='auto'
+        Target interpretation for plan-mode target means. Multiclass target
+        means are unsupported. Pass groups or timestamps to fit for grouped
+        or chronological cross-fitting; label_end_times additionally purges
+        labels unavailable at temporal validation cutoffs.
+    random_state : int, default=42
+        Seed for plan-mode target cross-fitting.
+    target_cv : int, default=5
+        Cross-fitting folds for plan-mode target means.
 
     Examples
     --------
@@ -115,6 +164,15 @@ class SemanticEngine(BaseEngine):
         api_version: str | None = None,
         enable_text_features: bool = True,
         text_feature_types: list[str] | None = None,
+        keep_text_columns: bool = True,
+        temperature: float = 0.3,
+        timeout: float = 60.0,
+        max_tokens: int = 4096,
+        feature_format: Literal["code", "plan"] = "code",
+        rules: list[FittedRuleSpec | dict[str, JsonValue]] | None = None,
+        task: Literal["auto", "classification", "regression"] = "auto",
+        random_state: int = 42,
+        target_cv: int = 5,
         **kwargs,
     ):
         config = SemanticEngineConfig(
@@ -128,12 +186,24 @@ class SemanticEngine(BaseEngine):
             api_base=api_base,
             api_version=api_version,
             enable_text_features=enable_text_features,
-            text_feature_types=text_feature_types or ["sentiment", "readability", "linguistic", "semantic"],
+            keep_text_columns=keep_text_columns,
+            temperature=temperature,
+            timeout=timeout,
+            max_tokens=max_tokens,
+            feature_format=feature_format,
+            task=task,
+            random_state=random_state,
+            target_cv=target_cv,
+            text_feature_types=(
+                text_feature_types
+                if text_feature_types is not None
+                else ["sentiment", "readability", "linguistic", "semantic"]
+            ),
             **kwargs,
         )
         super().__init__(config=config)
         self.config: SemanticEngineConfig = config
-        self._client: Any | None = None
+        self._client: FeatureClient | None = None
         self._suggested_features: list[dict[str, Any]] = []
         self._text_features: list[dict[str, Any]] = []
         self._feature_set = FeatureSet()
@@ -141,10 +211,34 @@ class SemanticEngine(BaseEngine):
         self._column_descriptions: dict[str, str] = {}
         self._task_description: str = ""
         self._text_columns: list[str] = []
+        if rules is not None and feature_format != "plan":
+            raise ValueError("Predeclared rules require feature_format='plan'")
+        self._configured_rules = (
+            [rule.model_copy(deep=True) for rule in FittedRulePlan.model_validate({"rules": rules}).rules]
+            if rules is not None
+            else None
+        )
+        self._plan_engine: FittedRuleEngine | None = None
 
-    def _ensure_client(self) -> None:
+    def _ensure_client(self) -> FeatureClient:
         """Ensure LLM client is initialized."""
         if self._client is None:
+            ignored_options = []
+            if self.config.backend == "copilot":
+                ignored_options = [
+                    name for name in ("api_key", "api_base", "api_version") if getattr(self.config, name) is not None
+                ]
+                if self.config.temperature != 0.3:
+                    ignored_options.append("temperature")
+                if self.config.max_tokens != 4096:
+                    ignored_options.append("max_tokens")
+            elif self.config.backend == "litellm" and self.config.api_version is not None:
+                ignored_options.append("api_version")
+            if ignored_options:
+                logger.warning(
+                    f"SemanticEngine: Backend '{self.config.backend}' does not support "
+                    f"{', '.join(ignored_options)}; these options are ignored"
+                )
             if self.config.backend == "openai":
                 from featcopilot.llm.openai_client import SyncOpenAIFeatureClient
 
@@ -153,6 +247,9 @@ class SemanticEngine(BaseEngine):
                     api_key=self.config.api_key,
                     api_base=self.config.api_base,
                     api_version=self.config.api_version,
+                    temperature=self.config.temperature,
+                    timeout=self.config.timeout,
+                    max_tokens=self.config.max_tokens,
                 )
             elif self.config.backend == "litellm":
                 from featcopilot.llm.litellm_client import SyncLiteLLMFeatureClient
@@ -161,12 +258,24 @@ class SemanticEngine(BaseEngine):
                     model=self.config.model,
                     api_key=self.config.api_key,
                     api_base=self.config.api_base,
+                    temperature=self.config.temperature,
+                    timeout=self.config.timeout,
+                    max_tokens=self.config.max_tokens,
                 )
             else:
                 from featcopilot.llm.copilot_client import SyncCopilotFeatureClient
 
-                self._client = SyncCopilotFeatureClient(model=self.config.model)
-            self._client.start()
+                self._client = SyncCopilotFeatureClient(
+                    model=self.config.model,
+                    timeout=self.config.timeout,
+                    **({"isolated_plan": True} if self.config.feature_format == "plan" else {}),
+                )
+            try:
+                self._client.start()
+            except Exception:
+                self._client = None
+                raise
+        return self._client
 
     def fit(
         self,
@@ -189,17 +298,33 @@ class SemanticEngine(BaseEngine):
             Human-readable descriptions of columns
         task_description : str
             Description of the ML task
+        **kwargs : dict
+            In plan mode, groups, timestamps and label_end_times are forwarded
+            to FittedRuleEngine.fit. Temporal prefix rows receive a fixed-zero
+            prior; get_fitted_rules()["cross_fit_report"] records their positions.
 
         Returns
         -------
         self : SemanticEngine
         """
+        self._is_fitted = False
+        self._suggested_features = []
+        self._text_features = []
+        self._feature_names = []
+        self._feature_set = FeatureSet()
+        self._column_info = {}
+        self._text_columns = []
+        self._feature_metadata = {}
+        self._plan_engine = None
         X = self._validate_input(X)
-        self._ensure_client()
-
+        if not X.columns.is_unique:
+            raise ValueError("SemanticEngine requires unique input column names")
         # Store metadata
         self._column_descriptions = column_descriptions or {}
         self._task_description = task_description
+        if self.config.feature_format == "plan":
+            return self._fit_plan(X, y, **kwargs)
+        self._ensure_client()
 
         # Build column info and detect text columns
         self._column_info = {}
@@ -234,33 +359,108 @@ class SemanticEngine(BaseEngine):
         non_text_column_info = {k: v for k, v in self._column_info.items() if k not in self._text_columns}
 
         if non_text_column_info:
-            try:
-                self._suggested_features = self._client.suggest_features(
-                    column_info=non_text_column_info,
-                    task_description=task_description,
-                    column_descriptions=column_descriptions,
-                    domain=self.config.domain,
-                    max_suggestions=self.config.max_suggestions,
-                )
-            except Exception as e:
-                if self.config.verbose:
-                    logger.warning(f"SemanticEngine: Could not get LLM suggestions: {e}")
-                self._suggested_features = []
+            self._suggested_features = self._ensure_client().suggest_features(
+                column_info=non_text_column_info,
+                task_description=task_description,
+                column_descriptions=column_descriptions,
+                domain=self.config.domain,
+                max_suggestions=self.config.max_suggestions,
+            )[: self.config.max_suggestions]
         else:
             self._suggested_features = []
 
         if self.config.verbose:
             logger.info(f"SemanticEngine: Received {len(self._suggested_features)} suggestions")
 
-        # Validate features if enabled
-        if self.config.validate_features:
-            self._validate_suggestions(X)
+        self._validate_suggestions(X)
 
         # Build feature set
         self._build_feature_set()
+        self._feature_names = [suggestion["name"] for suggestion in self._text_features + self._suggested_features]
+        if not self._feature_names:
+            logger.warning("SemanticEngine: No valid features were generated; returning input columns only")
 
         self._is_fitted = True
         return self
+
+    def _fit_plan(self, X: pd.DataFrame, y: pd.Series | np.ndarray | None, **kwargs: object) -> "SemanticEngine":
+        if any(not isinstance(column, str) for column in X.columns):
+            raise ValueError("Plan mode requires string input column names")
+        if not len(X):
+            raise ValueError("Plan mode requires non-empty training data")
+        self._column_info = {column: str(X[column].dtype) for column in X.columns}
+        if self.config.enable_text_features or not self.config.keep_text_columns:
+            logger.info(
+                "SemanticEngine: plan mode uses only fitted tabular rules; text feature generation and "
+                "keep_text_columns=False are ignored, preserving all original columns"
+            )
+        rules = self._configured_rules
+        if rules is None:
+            rules = request_fitted_plan(
+                self._ensure_client(),
+                self._column_info,
+                self._column_descriptions,
+                self._task_description,
+                self.config.domain,
+                self.config.max_suggestions,
+                has_target=y is not None,
+            )
+        if len(rules) > self.config.max_suggestions:
+            raise ValueError("Predeclared plan exceeds max_suggestions")
+        engine = FittedRuleEngine(
+            rules=list(rules),
+            task=self.config.task,
+            random_state=self.config.random_state,
+            target_cv=self.config.target_cv,
+        )
+        engine.fit(X, y, **kwargs)
+        self._plan_engine = engine
+        self._feature_names = engine.get_feature_names()
+        self._feature_metadata = engine.get_feature_metadata()
+        for rule in rules:
+            self._feature_set.add(
+                Feature(
+                    name=rule.name,
+                    dtype=FeatureType.CATEGORICAL if rule.operator == "rare_category" else FeatureType.NUMERIC,
+                    origin=FeatureOrigin.CUSTOM if self._configured_rules is not None else FeatureOrigin.LLM_GENERATED,
+                    source_columns=rule.columns.copy(),
+                    transformation=rule.operator,
+                    explanation=rule.explanation,
+                    metadata={"feature_format": "plan", "rule": rule.model_dump(mode="json")},
+                )
+            )
+        if not rules:
+            logger.warning("SemanticEngine: No fitted rules were proposed; returning input columns only")
+        self._is_fitted = True
+        return self
+
+    def _transform_fit_data(
+        self, X: pd.DataFrame | np.ndarray, y: pd.Series | np.ndarray | None = None, **kwargs: object
+    ) -> pd.DataFrame:
+        if self.config.feature_format == "plan":
+            if self._plan_engine is None or not self._is_fitted:
+                raise RuntimeError("Engine must be fitted before transform")
+            return self._plan_engine._transform_fit_data(X, y, **kwargs)
+        return self.transform(X, **kwargs)
+
+    def get_fitted_rules(self) -> dict[str, JsonValue]:
+        """
+        Export plan-mode inference state without provider connections.
+
+        Returns
+        -------
+        dict
+            JSON-compatible state accepted by FittedRuleEngine.from_dict,
+            including cross_fit_report with temporal fixed-zero prior positions.
+
+        Raises
+        ------
+        RuntimeError
+            If no plan has been fitted.
+        """
+        if self._plan_engine is None or not self._is_fitted:
+            raise RuntimeError("A plan must be fitted before exporting fitted rules")
+        return self._plan_engine.to_dict()
 
     def _generate_text_features(self, X: pd.DataFrame) -> list[dict[str, Any]]:
         """
@@ -274,6 +474,8 @@ class SemanticEngine(BaseEngine):
         for col in self._text_columns:
             # Always add fallback features first (don't require LLM)
             fallback_features = self._get_fallback_text_features(col)
+            for feature in fallback_features:
+                feature["is_builtin"] = True
             text_features.extend(fallback_features)
 
             # Try to get LLM-suggested features (optional)
@@ -281,9 +483,12 @@ class SemanticEngine(BaseEngine):
                 col_desc = self._column_descriptions.get(col, f"Text column: {col}")
 
                 # Use suggest_features instead of send_prompt for better compatibility
-                response = self._client.suggest_features(
+                response = self._ensure_client().suggest_features(
                     column_info={col: "string"},
-                    task_description=f"Extract numerical features from text column '{col}' for {self._task_description}",
+                    task_description=(
+                        f"Extract numerical {', '.join(self.config.text_feature_types)} features "
+                        f"from text column '{col}' for {self._task_description}"
+                    ),
                     column_descriptions={col: col_desc},
                     domain=self.config.domain,
                     max_suggestions=5,
@@ -296,8 +501,9 @@ class SemanticEngine(BaseEngine):
                     text_features.append(f)
 
             except Exception as e:
-                if self.config.verbose:
-                    logger.warning(f"SemanticEngine: Could not get LLM suggestions for '{col}': {e}")
+                logger.warning(
+                    f"SemanticEngine: Could not get LLM suggestions for '{col}': {e}; using built-in text features"
+                )
 
         return text_features
 
@@ -349,7 +555,7 @@ Return ONLY the JSON object, no other text. Generate 5-10 useful features."""
                 response = "\n".join(lines[1:-1])
 
             data = json.loads(response)
-            features = data.get("features", [])
+            features = feature_suggestions(data)
 
             # Add source column info
             for f in features:
@@ -363,7 +569,7 @@ Return ONLY the JSON object, no other text. Generate 5-10 useful features."""
             if json_match:
                 try:
                     data = json.loads(json_match.group())
-                    features = data.get("features", [])
+                    features = feature_suggestions(data)
                     for f in features:
                         f["source_columns"] = [col]
                         f["is_text_feature"] = True
@@ -456,27 +662,32 @@ Return ONLY the JSON object, no other text. Generate 5-10 useful features."""
 
     def _validate_suggestions(self, X: pd.DataFrame) -> None:
         """Validate suggested feature code."""
-        valid_features = []
         sample_data = {col: X[col].head(100).tolist() for col in X.columns}
-
-        for feature in self._suggested_features:
-            code = feature.get("code", "")
-            if not code:
-                continue
-
-            result = self._client.validate_feature_code(code, sample_data)
-
-            if result["valid"]:
-                valid_features.append(feature)
-            elif self.config.verbose:
-                logger.warning(
-                    f"SemanticEngine: Invalid feature '{feature.get('name', 'unknown')}': {result.get('error', 'unknown error')}"
-                )
-
-        self._suggested_features = valid_features
-
-        if self.config.verbose:
-            logger.info(f"SemanticEngine: {len(valid_features)} valid features after validation")
+        used_names = set(X.columns)
+        for attribute in ("_text_features", "_suggested_features"):
+            valid_features = []
+            for feature in getattr(self, attribute):
+                name = feature.get("name")
+                code = feature.get("code")
+                if not isinstance(name, str) or not name.strip() or name in used_names:
+                    logger.warning(f"SemanticEngine: Ignoring invalid or duplicate feature name {name!r}")
+                    continue
+                if not isinstance(code, str) or not code.strip():
+                    logger.warning(f"SemanticEngine: Feature '{name}' has no code")
+                    continue
+                if self.config.validate_features:
+                    validation = self._ensure_client().validate_feature_code(code, sample_data)
+                    if not validation["valid"]:
+                        logger.warning(f"SemanticEngine: Invalid feature '{name}': {validation.get('error')}")
+                        continue
+                    try:
+                        execute_feature_code(code, X)
+                    except Exception as error:
+                        logger.warning(f"SemanticEngine: Invalid feature '{name}': {error}")
+                        continue
+                used_names.add(name)
+                valid_features.append(feature.copy())
+            setattr(self, attribute, valid_features)
 
     def _build_feature_set(self) -> None:
         """Build FeatureSet from suggestions."""
@@ -487,7 +698,7 @@ Return ONLY the JSON object, no other text. Generate 5-10 useful features."""
             feature = Feature(
                 name=suggestion.get("name", f"text_feature_{len(self._feature_set)}"),
                 dtype=FeatureType.NUMERIC,
-                origin=FeatureOrigin.LLM_GENERATED,
+                origin=FeatureOrigin.CUSTOM if suggestion.get("is_builtin") else FeatureOrigin.LLM_GENERATED,
                 source_columns=suggestion.get("source_columns", []),
                 transformation="text_to_numeric",
                 explanation=suggestion.get("explanation", ""),
@@ -520,110 +731,31 @@ Return ONLY the JSON object, no other text. Generate 5-10 useful features."""
         Returns
         -------
         X_features : DataFrame
-            Data with generated features (numerical only, text columns dropped)
+            Data with the fitted generated features. Original text columns are
+            retained unless keep_text_columns=False.
         """
         if not self._is_fitted:
             raise RuntimeError("Engine must be fitted before transform")
+        if self.config.feature_format == "plan":
+            if self._plan_engine is None:
+                raise RuntimeError("Plan engine is not fitted")
+            return self._plan_engine.transform(X, **kwargs)
 
         X = self._validate_input(X)
+        missing = [column for column in self._column_info if column not in X.columns]
+        if missing:
+            raise ValueError(f"SemanticEngine input is missing fitted columns: {missing}")
         result = X.copy()
 
-        successful_features = []
-
-        # Apply text features first
-        for suggestion in self._text_features:
+        for suggestion in self._text_features + self._suggested_features:
             name = suggestion.get("name", "")
             code = suggestion.get("code", "")
-
-            if not code:
-                continue
-
             try:
-                local_vars = {"df": result, "np": np, "pd": pd}
-                exec(
-                    code,
-                    {
-                        "__builtins__": {
-                            "len": len,
-                            "sum": sum,
-                            "max": max,
-                            "min": min,
-                            "abs": abs,
-                            "round": round,
-                            "int": int,
-                            "float": float,
-                            "str": str,
-                            "list": list,
-                            "dict": dict,
-                            "set": set,
-                        },
-                        "np": np,
-                        "pd": pd,
-                    },
-                    local_vars,
-                )
-
-                if "result" in local_vars:
-                    feature_values = local_vars["result"]
-                    if isinstance(feature_values, pd.Series):
-                        result[name] = feature_values.values
-                    else:
-                        result[name] = feature_values
-                    successful_features.append(name)
-
-            except Exception as e:
-                if self.config.verbose:
-                    logger.error(f"SemanticEngine: Error computing text feature '{name}': {e}")
-
-        # Apply general features
-        for suggestion in self._suggested_features:
-            name = suggestion.get("name", "")
-            code = suggestion.get("code", "")
-
-            if not code:
-                continue
-
-            try:
-                # Execute feature code
-                local_vars = {"df": result, "np": np, "pd": pd}
-                exec(
-                    code,
-                    {
-                        "__builtins__": {
-                            "len": len,
-                            "sum": sum,
-                            "max": max,
-                            "min": min,
-                            "abs": abs,
-                            "round": round,
-                            "int": int,
-                            "float": float,
-                            "str": str,
-                            "list": list,
-                            "dict": dict,
-                            "set": set,
-                        }
-                    },
-                    local_vars,
-                )
-
-                if "result" in local_vars:
-                    feature_values = local_vars["result"]
-
-                    # Ensure it's a Series with correct index
-                    if isinstance(feature_values, pd.Series):
-                        result[name] = feature_values.values
-                    else:
-                        result[name] = feature_values
-
-                    successful_features.append(name)
-
-            except Exception as e:
-                if self.config.verbose:
-                    logger.error(f"SemanticEngine: Error computing '{name}': {e}")
-
-        # Handle infinities and NaNs
-        result = result.replace([np.inf, -np.inf], np.nan)
+                if name in result.columns:
+                    raise ValueError("Generated feature name collides with an input column")
+                result[name] = execute_feature_code(code, X, allow_all_missing=True)
+            except Exception as error:
+                raise ValueError(f"SemanticEngine: Error computing fitted feature '{name}': {error}") from error
 
         # Optionally drop original text columns (only if not keeping them for downstream models)
         if not self.config.keep_text_columns:
@@ -633,10 +765,8 @@ Return ONLY the JSON object, no other text. Generate 5-10 useful features."""
                 if self.config.verbose:
                     logger.info(f"SemanticEngine: Dropped {len(cols_to_drop)} text columns, keeping numerical features")
 
-        self._feature_names = successful_features
-
         if self.config.verbose:
-            logger.info(f"SemanticEngine: Successfully generated {len(successful_features)} features")
+            logger.info(f"SemanticEngine: Successfully generated {len(self._feature_names)} features")
 
         return result
 
@@ -649,7 +779,11 @@ Return ONLY the JSON object, no other text. Generate 5-10 useful features."""
         explanations : dict
             Mapping of feature names to explanations
         """
-        return {s.get("name", ""): s.get("explanation", "") for s in self._suggested_features if s.get("name")}
+        if self.config.feature_format == "plan":
+            return {feature.name: feature.explanation or "" for feature in self._feature_set}
+        return {
+            s["name"]: s.get("explanation", "") for s in self._text_features + self._suggested_features if s.get("name")
+        }
 
     def get_feature_code(self) -> dict[str, str]:
         """
@@ -660,7 +794,7 @@ Return ONLY the JSON object, no other text. Generate 5-10 useful features."""
         code : dict
             Mapping of feature names to Python code
         """
-        return {s.get("name", ""): s.get("code", "") for s in self._suggested_features if s.get("name")}
+        return {s["name"]: s.get("code", "") for s in self._text_features + self._suggested_features if s.get("name")}
 
     def suggest_more_features(self, focus_area: str, n_features: int = 5) -> list[dict[str, Any]]:
         """
@@ -678,12 +812,14 @@ Return ONLY the JSON object, no other text. Generate 5-10 useful features."""
         suggestions : list
             New feature suggestions
         """
+        if self.config.feature_format == "plan":
+            raise ValueError("suggest_more_features generates trusted code; refit with a new plan instead")
         self._ensure_client()
 
         # Build focused prompt
         enhanced_task = f"{self._task_description}\n\nFocus specifically on: {focus_area}"
 
-        new_suggestions = self._client.suggest_features(
+        new_suggestions = self._ensure_client().suggest_features(
             column_info=self._column_info,
             task_description=enhanced_task,
             column_descriptions=self._column_descriptions,
@@ -709,9 +845,11 @@ Return ONLY the JSON object, no other text. Generate 5-10 useful features."""
         feature : dict
             Generated feature with name, code, and explanation
         """
+        if self.config.feature_format == "plan":
+            raise ValueError("generate_custom_feature generates trusted code; supply a typed rule and refit instead")
         self._ensure_client()
 
-        code = self._client.generate_feature_code(
+        code = self._ensure_client().generate_feature_code(
             description=description,
             column_info=self._column_info,
             constraints=constraints,
@@ -731,6 +869,12 @@ Return ONLY the JSON object, no other text. Generate 5-10 useful features."""
     def get_feature_set(self) -> FeatureSet:
         """Get the feature set with metadata."""
         return self._feature_set
+
+    def __getstate__(self) -> dict[str, Any]:
+        """Persist generated rules, not live provider connections."""
+        state = self.__dict__.copy()
+        state["_client"] = None
+        return state
 
     def standardize_categories(
         self,
@@ -822,11 +966,12 @@ Return ONLY the JSON object, no other text. Generate 5-10 useful features."""
 
         try:
             # Use the client's send_prompt method if available, otherwise use suggest_features
-            if hasattr(self._client, "send_prompt"):
-                response = self._client.send_prompt(prompt)
+            client = self._ensure_client()
+            if hasattr(client, "send_prompt"):
+                response = client.send_prompt(prompt)
             else:
                 # Fallback: use suggest_features with a specialized task
-                response_list = self._client.suggest_features(
+                response_list = client.suggest_features(
                     column_info={column: "categorical"},
                     task_description=prompt,
                     column_descriptions={column: context or "Categorical column to standardize"},
@@ -836,8 +981,8 @@ Return ONLY the JSON object, no other text. Generate 5-10 useful features."""
                 # Extract mapping from response if possible
                 if response_list and isinstance(response_list, list) and len(response_list) > 0:
                     first = response_list[0]
-                    if isinstance(first, dict) and "mapping" in first:
-                        return first["mapping"]
+                    if isinstance(first, dict) and isinstance(first.get("mapping"), dict):
+                        return {str(key): str(value) for key, value in first["mapping"].items()}
                     response = str(first)
                 else:
                     response = str(response_list)
@@ -1078,8 +1223,9 @@ Return ONLY the JSON object, no markdown formatting, no explanation text."""
 
     def __del__(self):
         """Clean up client on deletion."""
-        if self._client:
+        client = getattr(self, "_client", None)
+        if client:
             try:
-                self._client.stop()
+                client.stop()
             except Exception:
                 pass

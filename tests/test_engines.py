@@ -78,6 +78,7 @@ class TestTabularEngine:
         # Should not have power features
         power_features = [c for c in result.columns if "_pow" in c]
         assert len(power_features) == 0
+        assert not any(column.endswith(("_log1p", "_sqrt", "_sq")) for column in result.columns)
 
 
 class TestTimeSeriesEngine:
@@ -245,6 +246,98 @@ class TestTabularEngineExtended:
 
         assert "cat_medium_target_encoded" in result.columns
 
+    def test_categorical_target_encoding_cross_fits_training_rows(self):
+        """Training rows must not be encoded from their own targets."""
+        n = 20
+        df = pd.DataFrame({"category": [f"category_{i}" for i in range(n)]})
+        y = pd.Series(np.arange(n, dtype=float))
+        engine = TabularEngine(
+            polynomial_degree=1,
+            include_transforms=[],
+            onehot_ratio_threshold=0.0,
+            target_encode_ratio_threshold=1.0,
+            target_encode_cv=5,
+            min_samples_per_category=1,
+        )
+
+        training_result = engine.fit_transform(df, y=y)
+        inference_result = engine.transform(df)
+
+        assert not np.allclose(training_result["category_target_encoded"], y)
+        assert np.allclose(inference_result["category_target_encoded"], y)
+
+    def test_categorical_target_encoding_aligns_target_by_position(self):
+        """A target Series index must not change row-to-target alignment."""
+        df = pd.DataFrame(
+            {"category": ["a", "a", "b", "b", "c", "c"]},
+            index=[10, 20, 30, 40, 50, 60],
+        )
+        y = pd.Series([1.0, 3.0, 10.0, 14.0, 100.0, 200.0])
+        engine = TabularEngine(
+            polynomial_degree=1,
+            include_transforms=[],
+            onehot_ratio_threshold=0.0,
+            target_encode_ratio_threshold=1.0,
+            min_samples_per_category=1,
+        )
+
+        engine.fit(df, y=y)
+        result = engine.transform(df)
+
+        assert result["category_target_encoded"].tolist() == [2.0, 2.0, 12.0, 12.0, 150.0, 150.0]
+
+    @pytest.mark.parametrize("wrapper", [False, True])
+    def test_categorical_predictors_cross_fit_like_object_predictors(self, wrapper):
+        from featcopilot import AutoFeatureEngineer
+
+        X = pd.DataFrame({"category": pd.Categorical(["a"] * 10 + ["b"] * 10)})
+        y = np.tile(np.arange(10, dtype=float), 2)
+        actual = AutoFeatureEngineer(max_features=None) if wrapper else TabularEngine()
+        reference = AutoFeatureEngineer(max_features=None) if wrapper else TabularEngine()
+        expected = reference.fit_transform(X.astype(object), y)
+        result = actual.fit_transform(X, y)
+        np.testing.assert_array_equal(result["category_target_encoded"], expected["category_target_encoded"])
+        query = pd.DataFrame({"category": pd.Categorical(["a", "b", "unseen"])})
+        np.testing.assert_array_equal(
+            actual.transform(query)["category_target_encoded"],
+            reference.transform(query.astype(object))["category_target_encoded"],
+        )
+
+    def test_numeric_categorical_targets_retain_label_semantics_and_positional_alignment(self):
+        X = pd.DataFrame({"category": ["a"] * 10 + ["b"] * 10}, index=np.arange(20) * 2)
+        labels = [10] * 6 + [20] * 4 + [10] * 4 + [20] * 6
+        y = pd.Series(pd.Categorical(labels), index=np.arange(20) + 100)
+        engine = TabularEngine()
+        result = engine.fit_transform(X, y)
+        reference = TabularEngine().fit_transform(X, np.asarray(labels).astype(str))
+        pd.testing.assert_series_equal(result["category_target_encoded"], reference["category_target_encoded"])
+        assert engine._target_encode_global_mean == 0.5
+        assert engine._target_label_encoder.classes_.tolist() == ["10", "20"]
+        assert engine.transform(X)["category_target_encoded"].tolist() == [0.4] * 10 + [0.6] * 10
+
+    def test_singleton_target_encoding_fails_instead_of_copying_its_own_label(self):
+        engine = TabularEngine(
+            onehot_ratio_threshold=0.0, target_encode_ratio_threshold=1.0, min_samples_per_category=1
+        )
+        with pytest.raises(ValueError, match="at least two rows"):
+            engine.fit_transform(pd.DataFrame({"category": ["a"]}), [17.0])
+        assert not engine.is_fitted
+
+    @pytest.mark.parametrize("failure", ["target_length", "invalid_input"])
+    def test_failed_tabular_refit_invalidates_previous_fitted_state(self, failure):
+        X = pd.DataFrame({"category": ["a", "a", "b", "b"], "value": [1.0, 2.0, 3.0, 4.0]})
+        engine = TabularEngine(onehot_ratio_threshold=1.0, min_samples_per_category=1)
+        expected = engine.fit_transform(X, [0, 1, 0, 1])
+        assert engine.is_fitted and engine.get_feature_names()
+        with pytest.raises((ValueError, TypeError)):
+            engine.fit(X, [0, 1]) if failure == "target_length" else engine.fit("invalid")
+        assert not engine.is_fitted
+        assert engine.get_feature_names() == []
+        assert len(engine.get_feature_set()) == 0
+        with pytest.raises(RuntimeError, match="fitted"):
+            engine.transform(X)
+        pd.testing.assert_frame_equal(engine.fit_transform(X, [0, 1, 0, 1]), expected)
+
     def test_categorical_string_target_encoding(self):
         """Test target encoding with string target (lines 183-194 LabelEncoder path)."""
         np.random.seed(42)
@@ -391,6 +484,25 @@ class TestTabularEngineExtended:
         # Original categorical column should be dropped
         assert "cat1" not in result.columns
         assert "cat1_A" in result.columns
+
+    def test_keep_original_categorical_false_drops_unencoded_columns(self):
+        """High-cardinality categorical inputs should not leak through as strings."""
+        df = pd.DataFrame(
+            {
+                "numeric": np.arange(20, dtype=float),
+                "identifier": [f"id_{i}" for i in range(20)],
+            }
+        )
+        engine = TabularEngine(
+            polynomial_degree=1,
+            include_transforms=[],
+            keep_original_categorical=False,
+        )
+
+        result = engine.fit_transform(df)
+
+        assert "identifier" not in result.columns
+        assert all(pd.api.types.is_numeric_dtype(dtype) for dtype in result.dtypes)
 
     def test_categorical_column_missing_in_transform(self):
         """Test transform when a categorical column is missing (lines 411-412, 426-427)."""

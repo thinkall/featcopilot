@@ -1,0 +1,41 @@
+{
+  "format": "bounded-lossless-artifacts-v1",
+  "files": [
+    {
+      "name": "iid/manifest.json",
+      "compression": "gzip",
+      "parts": [
+        "iid.manifest.json.gz.part1"
+      ],
+      "sha256": "511eb3fa743291aecfca902b691d8ba3755e65108a89f24075a616967c78b397"
+    },
+    {
+      "name": "iid/source.zip",
+      "compression": "none",
+      "parts": [
+        "iid.source.zip.part1",
+        "iid.source.zip.part2",
+        "iid.source.zip.part3"
+      ],
+      "sha256": "9573260a69bad0703dee4f2290a93293320c3a7d4672de311982c0567905e8e9"
+    },
+    {
+      "name": "hardware-official/manifest.json",
+      "compression": "gzip",
+      "parts": [
+        "hardware-official.manifest.json.gz.part1"
+      ],
+      "sha256": "9ec4d077cf99065e608be8e8c98bc878e890c1e79e6550c04fbc4ee9c0bcac65"
+    },
+    {
+      "name": "hardware-official/source.zip",
+      "compression": "none",
+      "parts": [
+        "hardware-official.source.zip.part1",
+        "hardware-official.source.zip.part2",
+        "hardware-official.source.zip.part3"
+      ],
+      "sha256": "dd8769590090c5740280c2854e20c50810146f9ef37ac569642512c0521db920"
+    }
+  ]
+}

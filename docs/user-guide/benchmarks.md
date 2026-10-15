@@ -1,299 +1,183 @@
 # Benchmarks
 
-FeatCopilot has been extensively benchmarked to demonstrate its effectiveness in automated feature engineering. This page presents comprehensive results across **63 datasets** spanning classification, regression, forecasting, and text tasks.
+FeatCopilot's target is competitive, reliable automatic feature engineering,
+starting with tabular data. **Current measurements are development evidence,
+not a SOTA claim or a guarantee of improvement.**
 
-## Executive Summary
+## Canonical tabular evaluation
 
-<div class="grid cards" markdown>
+The protocol-v3 `benchmarks.tabular` runner compares explicitly selected
+representations using identical outer splits and independently tuned learners.
+Linear, RandomForest, LightGBM, CatBoost and XGBoost are supported; each
+dataset/split/method/learner has its own recorded resource budget.
 
--   :material-rocket-launch:{ .lg .middle } __Simple Models Benchmark__
+| Method | Scope |
+|---|---|
+| Raw-feature baseline | Identical train-only model preprocessing and tuning |
+| FeatCopilot | Tabular engine with its default selection and do-no-harm heuristic |
+| Predictive FeatCopilot variants | Opt-in learner-aligned feature selection; standard, paired, extended and joint-importance configurations are separately named |
+| Polynomial | Degree-2 numeric features plus training-only univariate selection |
+| OpenFE-stateless | Explicitly rowwise-restricted OpenFE variant; no joint train/test aggregates |
+| AutoFeat | Budgeted two-step numeric generation and selection |
+| OpenFE-inductive / native | Full operator search with frozen training statistics; width-matched or native output width, not an unmodified paper reproduction |
+| AutoFeat-default / native | Native generation/selection and output width; declared internal memory-size hint or upstream no-hint setting, both externally resource-bounded |
 
-    ---
+The default remains a cached legacy 12-task development replay, with a
+5,000-row cap. New `--suite` manifests add reviewed UCI/OpenML and approved
+local sources, including a 50-origin development/stress inventory. Origins
+are deduplicated and rights, exposure, schema and split policies are checked;
+an inventory entry is not automatically fresh confirmation evidence.
+Official/group/time tasks require uncapped rows and their declared boundaries.
+Synthetic diagnostics and domain simulations are never merged into
+observational headline results.
 
-    **+7.52%** average improvement
+## Why this protocol is different
 
-    **+144%** max improvement (triple_interaction)
+- Feature engineering, imputation and model tuning stay within training folds.
+- Hyperparameters are chosen on inner validation; learners are **not** chosen
+  using their outer-test scores.
+- Classification log loss and regression RMSE are the primary losses. Secondary
+  metrics, runtime, feature counts and memory estimates remain available.
+- Failed/timed-out cases have no invented score. Coverage explicitly includes
+  every requested case.
+- Fold means are aggregated at the dataset level; descriptive bootstrap
+  intervals resample datasets, not correlated folds.
+- Every run records data/split/source hashes and software versions. A source
+  change during evaluation invalidates the comparison.
+- External worker deadlines trigger bounded, best-effort process-tree
+  termination. OS-denied or incomplete cleanup is reported, not guaranteed
+  to stop every child process.
 
--   :material-trophy:{ .lg .middle } __FE Tools Comparison__
+## Run it
 
-    ---
+Use an isolated environment for comparator compatibility. The optional
+`benchmark-tabular` extra pins pandas below 3, scikit-learn `>=1.7.2,<1.8`,
+and AutoFeat `==2.1.1`. These constraints do not apply to the base FeatCopilot
+install. Calibration adapters also support sklearn 1.8/1.9 in separately
+managed environments, outside this reference-compatible extra.
 
-    **#1 overall** — 80% win rate
-
-    Beats autofeat and featuretools
-
--   :material-chart-line:{ .lg .middle } __AutoML Benchmark__
-
-    ---
-
-    **+1.85%** avg improvement (FLAML)
-
-    **90%** datasets improved
-
--   :material-lightning-bolt:{ .lg .middle } __Feature Generation__
-
-    ---
-
-    **7→24** to **54→57** feature expansion
-
-    GBM-based importance selection
-
-</div>
-
----
-
-## Simple Models Benchmark
-
-Testing FeatCopilot with RandomForest (n_estimators=200, max_depth=20) and LogisticRegression/Ridge across 63 datasets to measure feature engineering impact.
-
-### Summary Results
-
-| Configuration | Datasets | Improved | Avg Improvement | Best Improvement |
-|---------------|----------|----------|-----------------|------------------|
-| **Tabular Engine** | 63 | 31 (49%) | **+7.52%** | +144% (triple_interaction) |
-
-### Classification Results (26 Datasets)
-
-| Dataset | Baseline | +FeatCopilot | Improvement | Features |
-|---------|----------|--------------|-------------|----------|
-| xor_classification | 0.6960 | **0.8120** | **+16.67%** | 20→24 |
-| complex_classification | 0.7125 | **0.8300** | **+16.49%** | 15→23 |
-| polynomial_classification | 0.7875 | **0.8675** | **+10.16%** | 15→21 |
-| interaction_classification | 0.7650 | **0.8075** | **+5.56%** | 12→17 |
-| credit_risk | 0.8525 | **0.8675** | **+1.76%** | 10→17 |
-| bioresponse | 0.7700 | **0.7802** | **+1.32%** | 419→419 |
-| covertype_cat | 0.8747 | **0.8819** | **+0.82%** | 54→55 |
-| magic_telescope | 0.8509 | **0.8572** | **+0.75%** | 10→12 |
-| credit_card_fraud | 0.9840 | 0.9840 | +0.00% | 30→40 |
-| employee_attrition | 0.9252 | 0.9252 | +0.00% | 11→16 |
-
-### Regression Results (30 Datasets)
-
-| Dataset | Baseline R² | +FeatCopilot R² | Improvement | Features |
-|---------|-------------|-----------------|-------------|----------|
-| triple_interaction_regression | 0.3542 | **0.8649** | **+144%** | 18→23 |
-| xor_regression | 0.3330 | **0.6801** | **+104%** | 20→24 |
-| pairwise_product_regression | 0.5132 | **0.8698** | **+69.5%** | 16→23 |
-| nonlinear_regression | 0.6086 | **0.8756** | **+43.9%** | 12→18 |
-| complex_regression | 0.6339 | **0.8725** | **+37.6%** | 15→20 |
-| quadratic_heavy_regression | 0.7134 | **0.9341** | **+30.9%** | 18→25 |
-| polynomial_regression | 0.7321 | **0.8692** | **+18.7%** | 12→19 |
-| sqrt_log_regression | 0.8725 | **0.8997** | **+3.12%** | 15→25 |
-| bike_sharing | 0.9534 | **0.9697** | **+1.71%** | 10→12 |
-| house_prices | 0.9798 | **0.9953** | **+1.58%** | 14→16 |
-| spotify_tracks | 0.9529 | **0.9648** | **+1.25%** | 13→17 |
-| ecommerce_product | 0.9462 | **0.9564** | **+1.08%** | 10→11 |
-
-!!! success "Key Insight"
-    FeatCopilot provides the **largest improvements** on datasets with complex feature interactions (XOR, polynomial, triple interactions) where simple models struggle with raw features. The GBM-based feature selection ensures only high-quality derived features are kept.
-
----
-
-## FE Tools Comparison
-
-Comparing FeatCopilot against autofeat and featuretools across 10 datasets using FLAML (30s budget).
-
-### Overall Ranking
-
-| Rank | Tool | Win Rate | Avg Improvement | Speed | Coverage | Composite |
-|------|------|----------|-----------------|-------|----------|-----------|
-| 🥇 | **FeatCopilot** | **80%** (8/10) | **+1.89%** | 1.9s | **100%** | **0.606** |
-| 🥈 | featuretools | 0% (0/10) | -2.71% | 0.1s | 100% | 0.397 |
-| 🥉 | autofeat | 40% (2/5) | +1.46% | 48.1s | 50% | 0.351 |
-
-### Key Advantages
-
-- **Highest win rate**: FeatCopilot wins 8 out of 10 datasets
-- **Best coverage**: Works on all datasets (autofeat times out on 50%)
-- **Fast**: ~25x faster than autofeat, with intelligent feature selection
-- **No harm**: Never significantly hurts performance (min improvement -0.02%)
-
-!!! note "Why autofeat has low coverage"
-    autofeat uses L1 regularization which is computationally expensive for classification tasks. It timed out (>120s) on 5 of 10 datasets. FeatCopilot uses GBM-based selection which is much faster.
-
----
-
-## AutoML Benchmark
-
-Testing FeatCopilot with FLAML and AutoGluon (120s time budget) across 10 datasets to evaluate feature engineering benefits with AutoML optimization.
-
-### Cross-Framework Summary
-
-| Framework | Datasets | Improved | Avg Improvement | Max Improvement |
-|-----------|----------|----------|-----------------|-----------------|
-| **FLAML** | 10 | 9 (90%) | **+1.85%** | +6.67% |
-| **AutoGluon** | 10 | 9 (90%) | **+1.55%** | +7.62% |
-| **Combined** | 20 | 18 (90%) | **+1.70%** | — |
-
-### Per-Dataset Results
-
-| Dataset | FLAML Baseline | FLAML +FE | Δ | AutoGluon Base | AutoGluon +FE | Δ |
-|---------|---------------|-----------|---|---------------|---------------|---|
-| complex_classification | 0.7875 | 0.8400 | **+6.67%** 🔥 | 0.7550 | 0.8125 | **+7.62%** 🔥 |
-| xor_classification | 0.8180 | 0.8640 | **+5.62%** 🔥 | 0.8280 | 0.8480 | **+2.42%** 🔥 |
-| polynomial_regression | 0.9103 | 0.9375 | **+2.99%** 🔥 | 0.9404 | 0.9492 | +0.94% |
-| titanic | 0.8156 | 0.8268 | +1.37% | 0.8212 | 0.8324 | +1.36% |
-| complex_regression | 0.8704 | 0.8790 | +0.99% | 0.9166 | 0.9401 | **+2.57%** 🔥 |
-| credit_risk | 0.8500 | 0.8550 | +0.59% | 0.8525 | 0.8650 | +1.47% |
-| house_prices | 0.9963 | 0.9972 | +0.09% | 0.9969 | 0.9975 | +0.06% |
-
-!!! note "AutoML Observations"
-    With AutoML (FLAML/AutoGluon), improvements are more modest because these frameworks already use powerful gradient boosting models. FeatCopilot still provides consistent value by generating meaningful derived features that help AutoML find better models faster.
-
----
-
-## When FeatCopilot Excels
-
-Based on comprehensive benchmarking across 63 datasets, FeatCopilot provides the most value in these scenarios:
-
-| Scenario | Expected Benefit | Evidence |
-|----------|------------------|----------|
-| **Complex interactions** | **Very High** (+30-144%) | triple_interaction: +144%, xor: +104% |
-| **Small feature sets** | **High** (+5-20%) | polynomial_classification: +10%, complex_classification: +16.5% |
-| **AutoML enhancement** | **Medium** (+1-8%) | complex_classification: +6.67% (FLAML), +7.62% (AutoGluon) |
-| **Already high-performing** | **Low** (0-1%) | credit_card_fraud: +0.00% (baseline 0.984) |
-| **FE tool comparison** | **Winner** (80% win rate) | Composite score 0.606 (#1 of 3 tools) |
-
-!!! info "Key Insight"
-    FeatCopilot provides the **largest improvements** on datasets where:
-
-    1. **Feature interactions matter** - XOR, polynomial, and multi-way interactions
-    2. **Feature set is small** - More potential for derived features
-    3. **Baseline performance has room** - Near-perfect baselines show minimal improvement
-
-    FeatCopilot's GBM-based feature selection ensures it **rarely hurts** performance, even when improvements are small.
-
----
-
-## Running Benchmarks
-
-### Quick Start
-
-```bash
-# Clone and install
-git clone https://github.com/thinkall/featcopilot.git
-cd featcopilot
-pip install -e ".[benchmark]"
-
-# Run simple models benchmark (63 datasets)
-python -m benchmarks.simple_models.run_simple_models_benchmark --all
-
-# Run with LLM engine
-python -m benchmarks.simple_models.run_simple_models_benchmark --all --with-llm
-
-# Run AutoML benchmark (FLAML + AutoGluon)
-python -m benchmarks.automl.run_automl_benchmark --framework all
-
-# Run FE tools comparison
-python -m benchmarks.compare_tools.run_fe_tools_comparison
+```powershell
+python -m venv .venv-benchmark
+.\.venv-benchmark\Scripts\python.exe -m pip install -e ".[benchmark-tabular]"
+.\.venv-benchmark\Scripts\python.exe -m benchmarks.tabular --output benchmarks\tabular-results\my-run
 ```
 
-### Available Benchmarks
+For a short functional smoke run:
 
-| Benchmark | Command | Description |
-|-----------|---------|-------------|
-| **Simple Models** | `python -m benchmarks.simple_models.run_simple_models_benchmark --all` | RF/Ridge on 63 datasets |
-| **Simple Models + LLM** | `python -m benchmarks.simple_models.run_simple_models_benchmark --all --with-llm` | With LLM-generated features |
-| **AutoML (FLAML)** | `python -m benchmarks.automl.run_automl_benchmark --framework flaml` | FLAML on 10 datasets |
-| **AutoML (AutoGluon)** | `python -m benchmarks.automl.run_automl_benchmark --framework autogluon` | AutoGluon on 10 datasets |
-| **AutoML (All)** | `python -m benchmarks.automl.run_automl_benchmark --framework all` | Both frameworks |
-| **Tool Comparison** | `python -m benchmarks.compare_tools.run_fe_tools_comparison` | vs autofeat, featuretools |
-
-### Benchmark Options
-
-```bash
-# Specific datasets
-python -m benchmarks.simple_models.run_simple_models_benchmark --datasets titanic,house_prices
-
-# By category
-python -m benchmarks.automl.run_automl_benchmark --category classification
-
-# Use AutoGluon instead of FLAML
-python -m benchmarks.automl.run_automl_benchmark --framework autogluon
-
-# Custom time budget
-python -m benchmarks.automl.run_automl_benchmark --time-budget 300
+```powershell
+python -m benchmarks.tabular --datasets magic abalone --folds 2 --seeds 42 --max-rows 400 --output benchmarks\tabular-results\smoke
 ```
 
-### Benchmark Reports
+Each run writes `manifest.json`, `results.json`, a readable `REPORT.md`, and
+worker logs. Output directories must be new unless `--resume` is explicitly
+requested. Resume reuses only fingerprint-identical completed cells, preserving
+previous attempts; it does not reuse arbitrary cached engineered features or
+scores from another run. A nonzero exit status can mean partial failure, so
+inspect the report for completed measurements and failed requests.
 
-```
-benchmarks/
-├── simple_models/
-│   ├── SIMPLE_MODELS_BENCHMARK.md      # Tabular only
-│   └── SIMPLE_MODELS_BENCHMARK_LLM.md  # Tabular + LLM
-├── automl/
-│   ├── AUTOML_BENCHMARK.md             # Combined (FLAML + AutoGluon)
-│   ├── AUTOML_FLAML_BENCHMARK.md       # FLAML only
-│   └── AUTOML_AUTOGLUON_BENCHMARK.md   # AutoGluon only
-└── compare_tools/
-    └── FE_TOOLS_COMPARISON.md          # FeatCopilot vs competitors
-```
+See the repository's
+[full protocol and improvement task list](https://github.com/thinkall/featcopilot/blob/main/benchmarks/TABULAR_PROTOCOL.md)
+and [benchmark instructions](https://github.com/thinkall/featcopilot/blob/main/benchmarks/README.md).
 
----
+## First expanded measurement
 
-## Methodology
+The [2026-09-16 development analysis](https://github.com/thinkall/featcopilot/blob/main/benchmarks/tabular-results/2026-09-16/ANALYSIS.md)
+covers 12 real datasets and two separate synthetic diagnostics, with three folds
+and one seed. FeatCopilot completed all cases but added no features in 29 of the
+36 real-data outer fits.
 
-### Evaluation Protocol
+| Real-data primary-loss reduction vs matched raw features | FeatCopilot | OpenFE-stateless |
+|---|---|---|
+| Classification, LightGBM | +0.26% | +0.98% |
+| Regression, LightGBM | +0.08% | +3.49% |
 
-- **Train/Test Split**: 80/20 with `random_state=42` for reproducibility
-- **Metrics**: Accuracy for classification, R² for regression
-- **Models**:
-  - Simple: RandomForest (n_estimators=200, max_depth=20), LogisticRegression/Ridge
-  - AutoML: FLAML / AutoGluon with 120s time budget
-  - FE Comparison: FLAML with 30s time budget
-- **Feature Selection**: GBM-based importance with median threshold + GBM refinement
+Each cell covers all six real datasets of its task type. These results show
+remaining headroom, not superiority. AutoFeat timed out on 24 of 42 method/fold
+cases; those outcomes remain explicit and unscored. The full report includes
+linear/RF results, dataset-level uncertainty, time and memory estimates.
 
-### FeatCopilot Configuration
+## Predictive-strategy follow-up
 
-```python
-from featcopilot import AutoFeatureEngineer
+The [opt-in strategy follow-up](https://github.com/thinkall/featcopilot/blob/main/benchmarks/tabular-results/2026-09-16-predictive/ANALYSIS.md)
+compares legacy behavior, explicit task routing and learner-aligned predictive
+selection on the same 12 real development datasets:
 
-# Standard configuration
-engineer = AutoFeatureEngineer(
-    engines=["tabular", "relational"],
-    max_features=100,
-    verbose=False,
-)
+| Mean primary-loss reduction vs matched raw features | Legacy | Predictive | OpenFE-stateless |
+|---|---|---|---|
+| Classification, linear | +0.55% | +6.76% | +5.21% |
+| Classification, LightGBM | +0.26% | +0.49% | +0.98% |
+| Regression, linear | +0.00% | +8.67% | +14.18% |
+| Regression, LightGBM | +0.08% | +2.10% | +3.49% |
 
-X_transformed = engineer.fit_transform(X_train, y_train)
-X_test_transformed = engineer.transform(X_test)
-```
+All FeatCopilot cases completed. These are meaningful gains, but **not SOTA**:
+linear-regression RMSE increased by 32.33% on houses and 15.88% on wine.
+The predictive strategy therefore remains opt-in; its next priority is robust
+selection rather than automatic default promotion.
 
----
+## Interpreting results
 
-## Dataset Coverage
+The [latest capped, aligned four-family confirmation](https://github.com/thinkall/featcopilot/blob/main/benchmarks/tabular-results/2026-09-30-robust-confirmation/ANALYSIS.md)
+also fails promotion: FeatCopilot scores 45/48 requested cells, with
+three CatBoost timeouts and thyroid harms of 13.76% (CatBoost) and
+7.89% (XGBoost). Its small, mostly neutral results do not establish SOTA;
+one regression origin cannot support broad regression claims.
 
-63 datasets across 4 categories:
+The later [ten-family, four-learner confirmation](https://github.com/thinkall/featcopilot/blob/main/benchmarks/tabular-results/2026-09-28-frequency-iid-confirmation/ANALYSIS.md)
+also **failed promotion** despite completing every FeatCopilot cell.
+Linear-classification mean loss improved 15.41%, but linear-regression
+loss worsened 26.68%, with hardware/linear RMSE up 61.25% and
+temperature/linear up 45.61%. Nine family/learner comparisons exceeded
+5% harm. Forty-five reference failures remain unscored and comparisons
+use common complete families. Defaults are unchanged; these results are
+evidence against claiming reliable general improvement or SOTA.
 
-| Category | Count | Examples |
-|----------|-------|----------|
-| **Classification** | 26 | titanic, xor_classification, complex_classification, higgs, covertype |
-| **Regression** | 30 | house_prices, complex_regression, polynomial_regression, diamonds |
-| **Forecasting** | 3 | sensor_anomaly, retail_demand, server_latency |
-| **Text** | 4 | product_reviews, fake_news, news_classification, medical_notes |
+Follow-up training-only audits and a parameter-aligned pipeline experiment
+also produced mixed outcomes. Alignment improves one diagnostic family but
+worsens the other; it does not resolve extrapolation or feature-set
+instability. The benchmark now defers predictive imputation until the
+appropriate training split, but correcting that boundary does not
+retroactively validate earlier performance claims.
 
-Dataset sources include:
-- **OpenML** (INRIA benchmark suite)
-- **Kaggle** (popular ML datasets)
-- **Synthetic** (interaction-heavy datasets for FE evaluation)
+The [12-family independent native-reference comparison](https://github.com/thinkall/featcopilot/blob/main/benchmarks/tabular-results/2026-09-24-frozen-native-confirmation/ANALYSIS.md)
+completed every FeatCopilot cell, with +7.09% linear-classification mean loss
+reduction. It nevertheless **failed the locked promotion gates**:
+LightGBM classification improved by +1.13% versus OpenFE's +9.39%, while
+LightGBM regression worsened by 0.95%. Eight AutoFeat resource failures remain
+unscored. Default selection is unchanged, and these families are no longer
+available as fresh confirmation for a revised algorithm.
 
----
+The [joint-importance development comparison](https://github.com/thinkall/featcopilot/blob/main/benchmarks/tabular-results/2026-09-23-joint-importance-development/ANALYSIS.md)
+completed 480 cells. Its paired variant narrowed the boosted-classification
+mean-loss gap to OpenFE-inductive (+8.58% versus +9.71%) and improved linear
+regression (+13.37% versus +8.28%). However, its boosted-classification median
+was zero, with a 22.00% loss increase on Wisconsin Diagnostic/LightGBM.
+The variant remains opt-in; these repeatedly examined development families
+cannot establish independent superiority.
 
-## Conclusion
+The [completed roadmap cycle](https://github.com/thinkall/featcopilot/blob/main/benchmarks/IMPROVEMENT_PLAN.md#evaluated-implementation-status)
+adds audited confirmation and separate LLM, temporal and relational evaluations.
+The six-family confirmation is complete after an explicitly recorded schema
+repair; it is mostly neutral on classification, with an Airfoil-led regression
+gain. It does not establish SOTA, and default promotion remains unwarranted.
 
-FeatCopilot demonstrates **consistent improvements** across diverse datasets and frameworks:
+Positive loss reduction means an improvement over the **same learner** on the
+same outer folds. It does not mean the representation beats every other learner.
+Do not rank methods measured on different complete-pair subsets. W/T/L uses a
+predeclared 1% relative-loss tolerance, not a significance threshold.
 
-1. **Simple Models**: +7.52% average, up to +144% maximum improvement across 63 datasets
-2. **AutoML**: +1.70% average across FLAML and AutoGluon, 90% improvement rate
-3. **vs Competitors**: #1 ranked FE tool with 80% win rate, beating autofeat and featuretools
+The current subset uses our own CV splits; it is not a reproduction of the full
+INRIA/OpenML leaderboard. A credible SOTA claim still requires wider datasets,
+untouched confirmation tasks, repeated seeds, strong modern comparators,
+competitive tuning, and multiple resource tiers. Temporal/grouped data need
+separate split policies rather than shuffled tabular CV.
 
-**Best use cases**:
-- Datasets with complex feature interactions (XOR, polynomial, multi-way)
-- Small feature sets that benefit from derived features
-- Any ML pipeline where consistent, safe feature engineering is needed
+## Historical experiments
 
-**Key strengths**:
-- GBM-based selection ensures features rarely hurt performance
-- Fast (~2s) compared to alternatives (autofeat: ~48s)
-- Works on all dataset types (100% coverage vs autofeat's 50%)
+The previous simple-model, FLAML/AutoGluon, and feature-tool reports remain in
+the repository for traceability. Their old "#1", composite-score, large
+synthetic-gain and "do-no-harm guarantee" headlines are **retired**. They included
+methodological limitations such as test-fold best-model selection, asymmetric
+preprocessing, simulated competition-like datasets, and unenforced timeouts.
+
+Do not combine those historical scores with results from the canonical
+protocol or present them as current comparative evidence.

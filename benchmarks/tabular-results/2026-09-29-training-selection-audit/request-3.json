@@ -1,0 +1,25 @@
+{
+  "family": "infrared-oral-temperature",
+  "fold": 0,
+  "cache_path": "C:\\code\\featcopilot\\benchmarks\\tabular-results\\2026-09-28-frequency-iid-confirmation\\prepared\\infrared-oral-temperature.pkl",
+  "prepared_sha256": "012d2275bae0d129729c3c55a5884eb9e3203052806fcd3900265690a125bdc6",
+  "split_hashes": [
+    "bf676620e3a510bd38cf8be792a16daae350d312d5f828ef48f3eb7f5454d89a",
+    "9963b17b34c553206bd865ceb97c1fe9aaffa2779bd923190c13ec6cae3ea475",
+    "a9711224e22e58de2203ad1b04bbe7b5d9b6284ae4ec3fe0f27911352c476ab4"
+  ],
+  "source_sha256": "8199702864295cba90f75f7742aea16f56b087b21a1cf607e2937d4e229fb0c3",
+  "config": {
+    "seed": 2027,
+    "threads": 8,
+    "selection_learner": "linear",
+    "learners": [
+      "linear"
+    ],
+    "max_added_features": 50,
+    "max_candidates": 1000,
+    "stability_repeats": 3,
+    "screening": "importance",
+    "detailed_diagnostics": false
+  }
+}

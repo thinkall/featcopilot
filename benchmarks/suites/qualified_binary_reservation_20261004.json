@@ -1,0 +1,2154 @@
+{
+  "schema_version": 1,
+  "name": "qualified-binary-reservation-20261004",
+  "family_registry": "../families.json",
+  "purpose": "One metadata-only ACTIVE reservation after reviewing exactly QSAR biodegradation and Thoracic Surgery. No broad inventory sweep, payloads or model release.",
+  "evaluation_tier": "standard_iid_unverified_entity",
+  "claim_boundary": {
+    "evaluation_tier": "standard_iid_unverified_entity",
+    "claim_scope": "Row-level standard public IID benchmark evidence only, under explicitly unresolved patient/entity mapping.",
+    "patient_entity_independence_verified": false,
+    "patient_entity_disjoint_claims_allowed": false,
+    "clinical_generalization_claims_allowed": false,
+    "pool_with_verified_entity_cohorts": false,
+    "prospective_clinical_decision_use_authorized": false,
+    "known_group_time_constraints_must_be_preserved": true,
+    "future_confirmation_requires_explicit_tier_binding": true,
+    "limits": "This is not a waiver for known repeat-entity or temporal leakage. If later evidence identifies available group IDs, repeated-entity links or mandatory temporal boundaries, stop and review; do not drop or ignore them to preserve IID eligibility."
+  },
+  "reservation_status": "active_inventory_only",
+  "model_execution_authorized": false,
+  "payload_acquisition_authorized": false,
+  "requested_origins": 2,
+  "reserved_origins": 1,
+  "audit": "qualified_binary_reservation_audit_20261004.json",
+  "exposure_audit": {
+    "as_of": "2026-10-04",
+    "prior_registry_family_ids": [
+      "abalone",
+      "adult",
+      "albert",
+      "allstate-claims",
+      "appliances-energy",
+      "assam-medical-entrance",
+      "australian-credit-approval",
+      "auto-mpg",
+      "bank-marketing",
+      "banknote-authentication",
+      "bioresponse",
+      "brazilian-houses",
+      "california-housing",
+      "capital-bikeshare",
+      "chronic-kidney-disease",
+      "cleveland-heart-disease",
+      "combined-cycle-power",
+      "communities-crime",
+      "computer-hardware-performance",
+      "concrete-strength",
+      "contraceptive-method-choice",
+      "covertype",
+      "cpu-act",
+      "default-of-credit-card-clients",
+      "diabetes130us",
+      "diamonds",
+      "differentiated-thyroid-recurrence",
+      "dry-bean",
+      "electricity",
+      "elevators",
+      "energy-efficiency",
+      "eye-movements",
+      "facebook-cosmetics-posts",
+      "fake-news-gonzaloa",
+      "forest-fires-montesinho",
+      "german-credit",
+      "give-me-some-credit",
+      "glass-identification",
+      "haberman-survival",
+      "heart-failure-clinical",
+      "heloc",
+      "higgs",
+      "house-sales",
+      "indian-liver-patients",
+      "infrared-oral-temperature",
+      "ionosphere-radar",
+      "iris-anderson",
+      "jannis",
+      "magic-telescope",
+      "mammographic-mass",
+      "mercedes-benz",
+      "miami-housing",
+      "miniboone",
+      "musk-molecules",
+      "nyc-taxi-green-2016",
+      "online-shoppers",
+      "optical-digits",
+      "parkinsons-telemonitoring",
+      "personality-drug-consumption",
+      "real-estate-sindian",
+      "road-safety",
+      "seoul-bike",
+      "spambase",
+      "steel-faults",
+      "student-performance",
+      "superconductivity",
+      "synthetic-house-prices",
+      "synthetic-titanic",
+      "tabarena-46904",
+      "tabarena-46906",
+      "tabarena-46907",
+      "tabarena-46908",
+      "tabarena-46913",
+      "tabarena-46916",
+      "tabarena-46930",
+      "tabarena-46937",
+      "tabarena-46941",
+      "tabarena-46949",
+      "tabarena-46950",
+      "tabarena-46954",
+      "tabarena-46956",
+      "tabarena-46958",
+      "tabarena-46960",
+      "tabarena-46962",
+      "tabarena-46963",
+      "tabarena-46969",
+      "tabarena-46980",
+      "vertebral-column",
+      "wall-following-robot",
+      "wine-cultivars",
+      "wine-quality",
+      "wisconsin-diagnostic",
+      "zurich-delays"
+    ],
+    "prior_suite_source_ids": [
+      "openml-task:23",
+      "openml-task:2318",
+      "openml-task:29",
+      "openml-task:359945",
+      "openml-task:363402",
+      "openml-task:363410",
+      "openml-task:363612",
+      "openml-task:363613",
+      "openml-task:363614",
+      "openml-task:363615",
+      "openml-task:363616",
+      "openml-task:363618",
+      "openml-task:363619",
+      "openml-task:363620",
+      "openml-task:363621",
+      "openml-task:363623",
+      "openml-task:363624",
+      "openml-task:363625",
+      "openml-task:363626",
+      "openml-task:363627",
+      "openml-task:363628",
+      "openml-task:363629",
+      "openml-task:363630",
+      "openml-task:363631",
+      "openml-task:363632",
+      "openml-task:363671",
+      "openml-task:363672",
+      "openml-task:363673",
+      "openml-task:363674",
+      "openml-task:363675",
+      "openml-task:363676",
+      "openml-task:363677",
+      "openml-task:363678",
+      "openml-task:363679",
+      "openml-task:363681",
+      "openml-task:363682",
+      "openml-task:363683",
+      "openml-task:363684",
+      "openml-task:363685",
+      "openml-task:363686",
+      "openml-task:363689",
+      "openml-task:363691",
+      "openml-task:363693",
+      "openml-task:363694",
+      "openml-task:363696",
+      "openml-task:363697",
+      "openml-task:363698",
+      "openml-task:363699",
+      "openml-task:363700",
+      "openml-task:363702",
+      "openml-task:363704",
+      "openml-task:363705",
+      "openml-task:363706",
+      "openml-task:363707",
+      "openml-task:363708",
+      "openml-task:363711",
+      "openml-task:363712",
+      "openml-task:57",
+      "openml-task:9939",
+      "openml-task:9960",
+      "openml-task:9971",
+      "openml:1480",
+      "openml:1497",
+      "openml:1523",
+      "openml:23",
+      "openml:230",
+      "openml:29",
+      "openml:42730",
+      "openml:46584",
+      "openml:46605",
+      "openml:46904",
+      "openml:46905",
+      "openml:46906",
+      "openml:46907",
+      "openml:46908",
+      "openml:46910",
+      "openml:46911",
+      "openml:46912",
+      "openml:46913",
+      "openml:46915",
+      "openml:46916",
+      "openml:46917",
+      "openml:46918",
+      "openml:46919",
+      "openml:46920",
+      "openml:46921",
+      "openml:46922",
+      "openml:46923",
+      "openml:46924",
+      "openml:46927",
+      "openml:46928",
+      "openml:46929",
+      "openml:46930",
+      "openml:46931",
+      "openml:46932",
+      "openml:46933",
+      "openml:46934",
+      "openml:46935",
+      "openml:46937",
+      "openml:46938",
+      "openml:46939",
+      "openml:46940",
+      "openml:46941",
+      "openml:46942",
+      "openml:46947",
+      "openml:46949",
+      "openml:46950",
+      "openml:46952",
+      "openml:46953",
+      "openml:46954",
+      "openml:46955",
+      "openml:46956",
+      "openml:46958",
+      "openml:46960",
+      "openml:46961",
+      "openml:46962",
+      "openml:46963",
+      "openml:46964",
+      "openml:46969",
+      "openml:46979",
+      "openml:46980",
+      "openml:59",
+      "uci:109",
+      "uci:125",
+      "uci:144",
+      "uci:161",
+      "uci:162",
+      "uci:165",
+      "uci:17",
+      "uci:176",
+      "uci:183",
+      "uci:186",
+      "uci:189",
+      "uci:194",
+      "uci:198",
+      "uci:2",
+      "uci:212",
+      "uci:222",
+      "uci:225",
+      "uci:242",
+      "uci:254",
+      "uci:265",
+      "uci:266",
+      "uci:267",
+      "uci:27",
+      "uci:275",
+      "uci:29",
+      "uci:291",
+      "uci:294",
+      "uci:296",
+      "uci:3",
+      "uci:30",
+      "uci:320",
+      "uci:336",
+      "uci:350",
+      "uci:365",
+      "uci:368",
+      "uci:373",
+      "uci:374",
+      "uci:379",
+      "uci:42",
+      "uci:421",
+      "uci:43",
+      "uci:45",
+      "uci:464",
+      "uci:468",
+      "uci:477",
+      "uci:504",
+      "uci:519",
+      "uci:52",
+      "uci:53",
+      "uci:560",
+      "uci:572",
+      "uci:579",
+      "uci:582",
+      "uci:602",
+      "uci:603",
+      "uci:69",
+      "uci:697",
+      "uci:722",
+      "uci:75",
+      "uci:80",
+      "uci:863",
+      "uci:9",
+      "uci:915",
+      "uci:925",
+      "uci:94"
+    ],
+    "historical_cache_identity_checks": [
+      {
+        "path": "benchmarks/simple_models/SIMPLE_MODELS_CACHE.json",
+        "sha256": "77d41190780af6414ba81c8c29bfa95baaccc6af209154aaccbebd660d599141",
+        "dataset_names_only": [
+          "abalone",
+          "albert",
+          "allstate_claims",
+          "bank_marketing",
+          "bike_sharing",
+          "bike_sharing_inria",
+          "bioresponse",
+          "brazilian_houses",
+          "california",
+          "complex_classification",
+          "complex_regression",
+          "covertype",
+          "covertype_cat",
+          "cpu_act",
+          "credit",
+          "credit_card_fraud",
+          "credit_risk",
+          "customer_churn",
+          "customer_support",
+          "delays_zurich",
+          "diabetes",
+          "diamonds",
+          "ecommerce_product",
+          "electricity",
+          "elevators",
+          "employee_attrition",
+          "eye_movements",
+          "fake_news",
+          "higgs",
+          "house_prices",
+          "house_sales",
+          "houses",
+          "insurance_claims",
+          "interaction_classification",
+          "jannis",
+          "job_postings",
+          "magic_telescope",
+          "medical_diagnosis",
+          "medical_notes",
+          "mercedes_benz",
+          "miami_housing",
+          "miniboone",
+          "news_classification",
+          "nonlinear_regression",
+          "nyc_taxi",
+          "pairwise_product_regression",
+          "polynomial_classification",
+          "polynomial_regression",
+          "product_reviews",
+          "quadratic_heavy_regression",
+          "ratio_regression",
+          "retail_demand",
+          "road_safety",
+          "sensor_anomaly",
+          "server_latency",
+          "spotify_tracks",
+          "sqrt_log_regression",
+          "superconduct",
+          "titanic",
+          "triple_interaction_regression",
+          "wine_quality",
+          "xor_classification",
+          "xor_regression"
+        ]
+      },
+      {
+        "path": "benchmarks/simple_models/SIMPLE_MODELS_CACHE_LLM.json",
+        "sha256": "f34f28b7d96bbac7eaa1173649629d90997997094dda329209c0ac40add4d538",
+        "dataset_names_only": [
+          "abalone",
+          "albert",
+          "allstate_claims",
+          "bank_marketing",
+          "bike_sharing",
+          "bike_sharing_inria",
+          "bioresponse",
+          "brazilian_houses",
+          "california",
+          "complex_classification",
+          "complex_regression",
+          "covertype",
+          "covertype_cat",
+          "cpu_act",
+          "credit",
+          "credit_card_fraud",
+          "credit_risk",
+          "customer_churn",
+          "customer_support",
+          "delays_zurich",
+          "diabetes",
+          "diamonds",
+          "ecommerce_product",
+          "electricity",
+          "elevators",
+          "employee_attrition",
+          "eye_movements",
+          "fake_news",
+          "higgs",
+          "house_prices",
+          "house_sales",
+          "houses",
+          "insurance_claims",
+          "interaction_classification",
+          "jannis",
+          "job_postings",
+          "magic_telescope",
+          "medical_diagnosis",
+          "medical_notes",
+          "mercedes_benz",
+          "miami_housing",
+          "miniboone",
+          "news_classification",
+          "nonlinear_regression",
+          "nyc_taxi",
+          "pairwise_product_regression",
+          "polynomial_classification",
+          "polynomial_regression",
+          "product_reviews",
+          "quadratic_heavy_regression",
+          "ratio_regression",
+          "retail_demand",
+          "road_safety",
+          "sensor_anomaly",
+          "server_latency",
+          "spotify_tracks",
+          "sqrt_log_regression",
+          "superconduct",
+          "titanic",
+          "triple_interaction_regression",
+          "wine_quality",
+          "xor_classification",
+          "xor_regression"
+        ]
+      }
+    ],
+    "ledger": {
+      "path": "benchmarks/.cache/exposure.sqlite",
+      "access": "SQLite URI mode=ro; no writes",
+      "query": "SELECT family_id,run_id,role,created_at FROM exposure ORDER BY family_id,run_id",
+      "row_count": 245,
+      "logical_rows_sha256": "4b93b855d42dd0a50181e883d246be2ff3d3a7615df6bbba2c1f2c7fd7d09c3b",
+      "rows": [
+        {
+          "family_id": "adult",
+          "run_id": "0e9c4a4b35a90d93e2e2f7a188f289093e39e36f063a3465da36421ca6012ea3",
+          "role": "development",
+          "created_at": "2026-10-04T01:09:43.244191+00:00"
+        },
+        {
+          "family_id": "adult",
+          "run_id": "11d2a3f3d445692a65f4bea67e61c9e14c9b7b085c658168291d01e3895d6b6f",
+          "role": "development",
+          "created_at": "2026-09-30T19:10:07.405182+00:00"
+        },
+        {
+          "family_id": "adult",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:27.167775+00:00"
+        },
+        {
+          "family_id": "adult",
+          "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+          "role": "development",
+          "created_at": "2026-09-28T19:59:56.215108+00:00"
+        },
+        {
+          "family_id": "adult",
+          "run_id": "23af63399977aa8783458992e2eac99a67dd0355fc249cb43a3a11c246e79e88",
+          "role": "development",
+          "created_at": "2026-10-03T02:25:55.932042+00:00"
+        },
+        {
+          "family_id": "adult",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:06.294233+00:00"
+        },
+        {
+          "family_id": "adult",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.023155+00:00"
+        },
+        {
+          "family_id": "adult",
+          "run_id": "3baa720fb83314d9c768a2125d4c0a6f4d886ee10d7eb0ce1c7da56afe0a0a5f",
+          "role": "development",
+          "created_at": "2026-10-04T04:24:12.311777+00:00"
+        },
+        {
+          "family_id": "adult",
+          "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+          "role": "development",
+          "created_at": "2026-09-29T18:59:00.887532+00:00"
+        },
+        {
+          "family_id": "adult",
+          "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+          "role": "development",
+          "created_at": "2026-09-29T11:30:39.185731+00:00"
+        },
+        {
+          "family_id": "adult",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:40.271692+00:00"
+        },
+        {
+          "family_id": "adult",
+          "run_id": "ab421a05619154e95c3adcede7cbc1e0c4f80b441c9ff67801ada72ddcface36",
+          "role": "development",
+          "created_at": "2026-09-30T13:47:21.057816+00:00"
+        },
+        {
+          "family_id": "adult",
+          "run_id": "b6c846e0ae35e25cedbac8e046ba3732da8acdbe4f79c12d46c3ed3899c8460d",
+          "role": "development",
+          "created_at": "2026-10-03T15:38:59.762724+00:00"
+        },
+        {
+          "family_id": "adult",
+          "run_id": "c3ae9396bad78ce1399451043b36fc0edd60df56c9437b094b5e5d46e5360536",
+          "role": "development",
+          "created_at": "2026-10-03T19:52:18.852574+00:00"
+        },
+        {
+          "family_id": "adult",
+          "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+          "role": "development",
+          "created_at": "2026-09-24T04:06:12.461344+00:00"
+        },
+        {
+          "family_id": "adult",
+          "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+          "role": "development",
+          "created_at": "2026-09-29T02:35:48.246107+00:00"
+        },
+        {
+          "family_id": "assam-medical-entrance",
+          "run_id": "205bacfad79659a49ecb47afcddc737cbd3f6701122dadd6d19fdfa0e20262e6",
+          "role": "confirmation",
+          "created_at": "2026-09-30T01:08:27.141965+00:00"
+        },
+        {
+          "family_id": "australian-credit-approval",
+          "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+          "role": "confirmation",
+          "created_at": "2026-09-28T01:38:21.590842+00:00"
+        },
+        {
+          "family_id": "auto-mpg",
+          "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+          "role": "development",
+          "created_at": "2026-09-28T19:59:56.964361+00:00"
+        },
+        {
+          "family_id": "auto-mpg",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.773312+00:00"
+        },
+        {
+          "family_id": "auto-mpg",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.545256+00:00"
+        },
+        {
+          "family_id": "auto-mpg",
+          "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+          "role": "development",
+          "created_at": "2026-09-29T18:59:01.687185+00:00"
+        },
+        {
+          "family_id": "auto-mpg",
+          "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+          "role": "development",
+          "created_at": "2026-09-29T11:30:39.939782+00:00"
+        },
+        {
+          "family_id": "auto-mpg",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.714926+00:00"
+        },
+        {
+          "family_id": "auto-mpg",
+          "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+          "role": "development",
+          "created_at": "2026-09-24T04:06:13.223339+00:00"
+        },
+        {
+          "family_id": "auto-mpg",
+          "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+          "role": "development",
+          "created_at": "2026-09-29T02:35:49.014516+00:00"
+        },
+        {
+          "family_id": "banknote-authentication",
+          "run_id": "0e9c4a4b35a90d93e2e2f7a188f289093e39e36f063a3465da36421ca6012ea3",
+          "role": "development",
+          "created_at": "2026-10-04T01:14:03.191711+00:00"
+        },
+        {
+          "family_id": "banknote-authentication",
+          "run_id": "11d2a3f3d445692a65f4bea67e61c9e14c9b7b085c658168291d01e3895d6b6f",
+          "role": "development",
+          "created_at": "2026-09-30T19:19:45.912695+00:00"
+        },
+        {
+          "family_id": "banknote-authentication",
+          "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+          "role": "development",
+          "created_at": "2026-09-28T19:59:56.838852+00:00"
+        },
+        {
+          "family_id": "banknote-authentication",
+          "run_id": "23af63399977aa8783458992e2eac99a67dd0355fc249cb43a3a11c246e79e88",
+          "role": "development",
+          "created_at": "2026-10-03T02:31:17.219699+00:00"
+        },
+        {
+          "family_id": "banknote-authentication",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.408141+00:00"
+        },
+        {
+          "family_id": "banknote-authentication",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.174076+00:00"
+        },
+        {
+          "family_id": "banknote-authentication",
+          "run_id": "3baa720fb83314d9c768a2125d4c0a6f4d886ee10d7eb0ce1c7da56afe0a0a5f",
+          "role": "development",
+          "created_at": "2026-10-04T04:25:41.679740+00:00"
+        },
+        {
+          "family_id": "banknote-authentication",
+          "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+          "role": "development",
+          "created_at": "2026-09-29T18:59:01.558957+00:00"
+        },
+        {
+          "family_id": "banknote-authentication",
+          "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+          "role": "development",
+          "created_at": "2026-09-29T11:30:39.819951+00:00"
+        },
+        {
+          "family_id": "banknote-authentication",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.375998+00:00"
+        },
+        {
+          "family_id": "banknote-authentication",
+          "run_id": "ab421a05619154e95c3adcede7cbc1e0c4f80b441c9ff67801ada72ddcface36",
+          "role": "development",
+          "created_at": "2026-09-30T13:56:54.768948+00:00"
+        },
+        {
+          "family_id": "banknote-authentication",
+          "run_id": "b6c846e0ae35e25cedbac8e046ba3732da8acdbe4f79c12d46c3ed3899c8460d",
+          "role": "development",
+          "created_at": "2026-10-03T15:44:21.399259+00:00"
+        },
+        {
+          "family_id": "banknote-authentication",
+          "run_id": "b75e94b7e74c0b95fd38a4f237ac3a31b3e9894166a27c70f85423fd4982fefd",
+          "role": "development",
+          "created_at": "2026-09-24T02:04:38.040577+00:00"
+        },
+        {
+          "family_id": "banknote-authentication",
+          "run_id": "c3ae9396bad78ce1399451043b36fc0edd60df56c9437b094b5e5d46e5360536",
+          "role": "development",
+          "created_at": "2026-10-03T19:52:19.702238+00:00"
+        },
+        {
+          "family_id": "banknote-authentication",
+          "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+          "role": "development",
+          "created_at": "2026-09-24T04:06:13.100572+00:00"
+        },
+        {
+          "family_id": "banknote-authentication",
+          "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+          "role": "development",
+          "created_at": "2026-09-29T02:35:48.892234+00:00"
+        },
+        {
+          "family_id": "california-housing",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:28.301260+00:00"
+        },
+        {
+          "family_id": "california-housing",
+          "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+          "role": "development",
+          "created_at": "2026-09-28T19:59:57.141987+00:00"
+        },
+        {
+          "family_id": "california-housing",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.873285+00:00"
+        },
+        {
+          "family_id": "california-housing",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.640344+00:00"
+        },
+        {
+          "family_id": "california-housing",
+          "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+          "role": "development",
+          "created_at": "2026-09-29T18:59:01.869282+00:00"
+        },
+        {
+          "family_id": "california-housing",
+          "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+          "role": "development",
+          "created_at": "2026-09-29T11:30:40.116662+00:00"
+        },
+        {
+          "family_id": "california-housing",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.809720+00:00"
+        },
+        {
+          "family_id": "california-housing",
+          "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+          "role": "development",
+          "created_at": "2026-09-24T04:06:13.396378+00:00"
+        },
+        {
+          "family_id": "california-housing",
+          "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+          "role": "development",
+          "created_at": "2026-09-29T02:35:49.190989+00:00"
+        },
+        {
+          "family_id": "chronic-kidney-disease",
+          "run_id": "0e9c4a4b35a90d93e2e2f7a188f289093e39e36f063a3465da36421ca6012ea3",
+          "role": "development",
+          "created_at": "2026-10-04T01:15:48.254065+00:00"
+        },
+        {
+          "family_id": "chronic-kidney-disease",
+          "run_id": "11d2a3f3d445692a65f4bea67e61c9e14c9b7b085c658168291d01e3895d6b6f",
+          "role": "development",
+          "created_at": "2026-09-30T19:26:41.333422+00:00"
+        },
+        {
+          "family_id": "chronic-kidney-disease",
+          "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+          "role": "development",
+          "created_at": "2026-09-28T19:59:57.015859+00:00"
+        },
+        {
+          "family_id": "chronic-kidney-disease",
+          "run_id": "23af63399977aa8783458992e2eac99a67dd0355fc249cb43a3a11c246e79e88",
+          "role": "development",
+          "created_at": "2026-10-03T02:34:58.671907+00:00"
+        },
+        {
+          "family_id": "chronic-kidney-disease",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.692856+00:00"
+        },
+        {
+          "family_id": "chronic-kidney-disease",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.454403+00:00"
+        },
+        {
+          "family_id": "chronic-kidney-disease",
+          "run_id": "3baa720fb83314d9c768a2125d4c0a6f4d886ee10d7eb0ce1c7da56afe0a0a5f",
+          "role": "development",
+          "created_at": "2026-10-04T04:26:39.549167+00:00"
+        },
+        {
+          "family_id": "chronic-kidney-disease",
+          "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+          "role": "development",
+          "created_at": "2026-09-29T18:59:01.735052+00:00"
+        },
+        {
+          "family_id": "chronic-kidney-disease",
+          "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+          "role": "development",
+          "created_at": "2026-09-29T11:30:39.987584+00:00"
+        },
+        {
+          "family_id": "chronic-kidney-disease",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.643585+00:00"
+        },
+        {
+          "family_id": "chronic-kidney-disease",
+          "run_id": "ab421a05619154e95c3adcede7cbc1e0c4f80b441c9ff67801ada72ddcface36",
+          "role": "development",
+          "created_at": "2026-09-30T14:03:33.965045+00:00"
+        },
+        {
+          "family_id": "chronic-kidney-disease",
+          "run_id": "b6c846e0ae35e25cedbac8e046ba3732da8acdbe4f79c12d46c3ed3899c8460d",
+          "role": "development",
+          "created_at": "2026-10-03T15:48:00.575648+00:00"
+        },
+        {
+          "family_id": "chronic-kidney-disease",
+          "run_id": "b75e94b7e74c0b95fd38a4f237ac3a31b3e9894166a27c70f85423fd4982fefd",
+          "role": "development",
+          "created_at": "2026-09-24T02:04:38.130018+00:00"
+        },
+        {
+          "family_id": "chronic-kidney-disease",
+          "run_id": "c3ae9396bad78ce1399451043b36fc0edd60df56c9437b094b5e5d46e5360536",
+          "role": "development",
+          "created_at": "2026-10-03T19:52:19.796846+00:00"
+        },
+        {
+          "family_id": "chronic-kidney-disease",
+          "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+          "role": "development",
+          "created_at": "2026-09-24T04:06:13.269857+00:00"
+        },
+        {
+          "family_id": "chronic-kidney-disease",
+          "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+          "role": "development",
+          "created_at": "2026-09-29T02:35:49.062194+00:00"
+        },
+        {
+          "family_id": "combined-cycle-power",
+          "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+          "role": "development",
+          "created_at": "2026-09-28T19:59:56.893944+00:00"
+        },
+        {
+          "family_id": "combined-cycle-power",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.510790+00:00"
+        },
+        {
+          "family_id": "combined-cycle-power",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.274612+00:00"
+        },
+        {
+          "family_id": "combined-cycle-power",
+          "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+          "role": "development",
+          "created_at": "2026-09-29T18:59:01.613922+00:00"
+        },
+        {
+          "family_id": "combined-cycle-power",
+          "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+          "role": "development",
+          "created_at": "2026-09-29T11:30:39.873295+00:00"
+        },
+        {
+          "family_id": "combined-cycle-power",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.471117+00:00"
+        },
+        {
+          "family_id": "combined-cycle-power",
+          "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+          "role": "development",
+          "created_at": "2026-09-24T04:06:13.153186+00:00"
+        },
+        {
+          "family_id": "combined-cycle-power",
+          "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+          "role": "development",
+          "created_at": "2026-09-29T02:35:48.945925+00:00"
+        },
+        {
+          "family_id": "communities-crime",
+          "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+          "role": "confirmation",
+          "created_at": "2026-09-28T01:38:21.049218+00:00"
+        },
+        {
+          "family_id": "computer-hardware-performance",
+          "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+          "role": "confirmation",
+          "created_at": "2026-09-28T01:38:21.210509+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "12de448078245ea61495c6e442b7f81d9e6907edbc0c15b553448004ba9ebda3",
+          "role": "development",
+          "created_at": "2026-09-20T08:52:54.881121+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:28.075106+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+          "role": "development",
+          "created_at": "2026-09-28T19:59:56.636965+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:06.960342+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.711007+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+          "role": "development",
+          "created_at": "2026-09-29T18:59:01.340820+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "7bf61e7cf3f0c03687d21bfb072f1054f9df4d9f1ee8f1c2969fa45b8d357bad",
+          "role": "development",
+          "created_at": "2026-09-17T06:51:56.088888+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+          "role": "development",
+          "created_at": "2026-09-29T11:30:39.617367+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:40.938193+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "a5c05d09c00626a942851f70d680f8a121cb0c6f5840c2e8a7715db4cdbf30ec",
+          "role": "development",
+          "created_at": "2026-09-17T07:23:12.228125+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+          "role": "development",
+          "created_at": "2026-09-24T04:06:12.896687+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+          "role": "development",
+          "created_at": "2026-09-29T02:35:48.682243+00:00"
+        },
+        {
+          "family_id": "concrete-strength",
+          "run_id": "f1113556c7db1d80a1b00fd28f006515bf715c8a9af875df1d517ea2f03af17b",
+          "role": "development",
+          "created_at": "2026-09-17T07:19:07.259838+00:00"
+        },
+        {
+          "family_id": "contraceptive-method-choice",
+          "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+          "role": "confirmation",
+          "created_at": "2026-09-28T01:38:22.149323+00:00"
+        },
+        {
+          "family_id": "differentiated-thyroid-recurrence",
+          "run_id": "205bacfad79659a49ecb47afcddc737cbd3f6701122dadd6d19fdfa0e20262e6",
+          "role": "confirmation",
+          "created_at": "2026-09-30T01:08:26.984560+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "0e9c4a4b35a90d93e2e2f7a188f289093e39e36f063a3465da36421ca6012ea3",
+          "role": "development",
+          "created_at": "2026-10-04T01:18:17.600071+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "11d2a3f3d445692a65f4bea67e61c9e14c9b7b085c658168291d01e3895d6b6f",
+          "role": "development",
+          "created_at": "2026-09-30T19:34:44.920544+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:27.795029+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+          "role": "development",
+          "created_at": "2026-09-28T19:59:56.524043+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "23af63399977aa8783458992e2eac99a67dd0355fc249cb43a3a11c246e79e88",
+          "role": "development",
+          "created_at": "2026-10-03T02:39:05.346022+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:06.749764+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.497413+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "3baa720fb83314d9c768a2125d4c0a6f4d886ee10d7eb0ce1c7da56afe0a0a5f",
+          "role": "development",
+          "created_at": "2026-10-04T04:27:45.526903+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+          "role": "development",
+          "created_at": "2026-09-29T18:59:01.211800+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "7bf61e7cf3f0c03687d21bfb072f1054f9df4d9f1ee8f1c2969fa45b8d357bad",
+          "role": "development",
+          "created_at": "2026-09-17T06:51:56.059433+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+          "role": "development",
+          "created_at": "2026-09-29T11:30:39.499043+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:40.728420+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "ab421a05619154e95c3adcede7cbc1e0c4f80b441c9ff67801ada72ddcface36",
+          "role": "development",
+          "created_at": "2026-09-30T14:11:28.373341+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "b6c846e0ae35e25cedbac8e046ba3732da8acdbe4f79c12d46c3ed3899c8460d",
+          "role": "development",
+          "created_at": "2026-10-03T15:52:07.046798+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "c3ae9396bad78ce1399451043b36fc0edd60df56c9437b094b5e5d46e5360536",
+          "role": "development",
+          "created_at": "2026-10-03T19:52:19.304689+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+          "role": "development",
+          "created_at": "2026-09-24T04:06:12.780967+00:00"
+        },
+        {
+          "family_id": "dry-bean",
+          "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+          "role": "development",
+          "created_at": "2026-09-29T02:35:48.563764+00:00"
+        },
+        {
+          "family_id": "energy-efficiency",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:28.176485+00:00"
+        },
+        {
+          "family_id": "energy-efficiency",
+          "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+          "role": "development",
+          "created_at": "2026-09-28T19:59:56.671956+00:00"
+        },
+        {
+          "family_id": "energy-efficiency",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.037263+00:00"
+        },
+        {
+          "family_id": "energy-efficiency",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.789596+00:00"
+        },
+        {
+          "family_id": "energy-efficiency",
+          "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+          "role": "development",
+          "created_at": "2026-09-29T18:59:01.379160+00:00"
+        },
+        {
+          "family_id": "energy-efficiency",
+          "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+          "role": "development",
+          "created_at": "2026-09-29T11:30:39.652188+00:00"
+        },
+        {
+          "family_id": "energy-efficiency",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.016341+00:00"
+        },
+        {
+          "family_id": "energy-efficiency",
+          "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+          "role": "development",
+          "created_at": "2026-09-24T04:06:12.930733+00:00"
+        },
+        {
+          "family_id": "energy-efficiency",
+          "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+          "role": "development",
+          "created_at": "2026-09-29T02:35:48.716880+00:00"
+        },
+        {
+          "family_id": "facebook-cosmetics-posts",
+          "run_id": "205bacfad79659a49ecb47afcddc737cbd3f6701122dadd6d19fdfa0e20262e6",
+          "role": "confirmation",
+          "created_at": "2026-09-30T01:08:25.964792+00:00"
+        },
+        {
+          "family_id": "forest-fires-montesinho",
+          "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+          "role": "confirmation",
+          "created_at": "2026-09-28T01:38:21.294153+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "0e9c4a4b35a90d93e2e2f7a188f289093e39e36f063a3465da36421ca6012ea3",
+          "role": "development",
+          "created_at": "2026-10-04T01:33:36.069917+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "11d2a3f3d445692a65f4bea67e61c9e14c9b7b085c658168291d01e3895d6b6f",
+          "role": "development",
+          "created_at": "2026-09-30T19:52:03.492436+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:27.349190+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+          "role": "development",
+          "created_at": "2026-09-28T19:59:56.274808+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "23af63399977aa8783458992e2eac99a67dd0355fc249cb43a3a11c246e79e88",
+          "role": "development",
+          "created_at": "2026-10-03T02:52:11.673619+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:06.405585+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.137742+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "3baa720fb83314d9c768a2125d4c0a6f4d886ee10d7eb0ce1c7da56afe0a0a5f",
+          "role": "development",
+          "created_at": "2026-10-04T04:31:15.911285+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+          "role": "development",
+          "created_at": "2026-09-29T18:59:00.953898+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "7bf61e7cf3f0c03687d21bfb072f1054f9df4d9f1ee8f1c2969fa45b8d357bad",
+          "role": "development",
+          "created_at": "2026-09-17T06:51:55.935561+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+          "role": "development",
+          "created_at": "2026-09-29T11:30:39.245561+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:40.382260+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "ab421a05619154e95c3adcede7cbc1e0c4f80b441c9ff67801ada72ddcface36",
+          "role": "development",
+          "created_at": "2026-09-30T14:28:33.739742+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "b6c846e0ae35e25cedbac8e046ba3732da8acdbe4f79c12d46c3ed3899c8460d",
+          "role": "development",
+          "created_at": "2026-10-03T16:05:11.458331+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "b75e94b7e74c0b95fd38a4f237ac3a31b3e9894166a27c70f85423fd4982fefd",
+          "role": "development",
+          "created_at": "2026-09-24T02:04:37.962546+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "c3ae9396bad78ce1399451043b36fc0edd60df56c9437b094b5e5d46e5360536",
+          "role": "development",
+          "created_at": "2026-10-03T19:52:18.959556+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+          "role": "development",
+          "created_at": "2026-09-24T04:06:12.522152+00:00"
+        },
+        {
+          "family_id": "german-credit",
+          "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+          "role": "development",
+          "created_at": "2026-09-29T02:35:48.310127+00:00"
+        },
+        {
+          "family_id": "haberman-survival",
+          "run_id": "e2e67649c7ef4dc91336ed84575a0a6323a4051d0a413e272d2b63fba29380b9",
+          "role": "confirmation",
+          "created_at": "2026-10-03T12:29:27.474573+00:00"
+        },
+        {
+          "family_id": "heart-failure-clinical",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:43.781894+00:00"
+        },
+        {
+          "family_id": "indian-liver-patients",
+          "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+          "role": "confirmation",
+          "created_at": "2026-09-28T01:38:21.766292+00:00"
+        },
+        {
+          "family_id": "infrared-oral-temperature",
+          "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+          "role": "confirmation",
+          "created_at": "2026-09-28T01:38:21.402442+00:00"
+        },
+        {
+          "family_id": "ionosphere-radar",
+          "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+          "role": "confirmation",
+          "created_at": "2026-09-28T01:38:21.936026+00:00"
+        },
+        {
+          "family_id": "mammographic-mass",
+          "run_id": "e2e67649c7ef4dc91336ed84575a0a6323a4051d0a413e272d2b63fba29380b9",
+          "role": "confirmation",
+          "created_at": "2026-10-03T12:46:18.960829+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "0e9c4a4b35a90d93e2e2f7a188f289093e39e36f063a3465da36421ca6012ea3",
+          "role": "development",
+          "created_at": "2026-10-04T01:36:40.488291+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "11d2a3f3d445692a65f4bea67e61c9e14c9b7b085c658168291d01e3895d6b6f",
+          "role": "development",
+          "created_at": "2026-09-30T20:00:27.703681+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "12de448078245ea61495c6e442b7f81d9e6907edbc0c15b553448004ba9ebda3",
+          "role": "development",
+          "created_at": "2026-09-20T08:52:54.782252+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:27.523781+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+          "role": "development",
+          "created_at": "2026-09-28T19:59:56.375148+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "23af63399977aa8783458992e2eac99a67dd0355fc249cb43a3a11c246e79e88",
+          "role": "development",
+          "created_at": "2026-10-03T02:56:46.018726+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:06.549907+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.289717+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "3baa720fb83314d9c768a2125d4c0a6f4d886ee10d7eb0ce1c7da56afe0a0a5f",
+          "role": "development",
+          "created_at": "2026-10-04T04:32:30.176420+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+          "role": "development",
+          "created_at": "2026-09-29T18:59:01.057339+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+          "role": "development",
+          "created_at": "2026-09-29T11:30:39.345665+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:40.531157+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "ab421a05619154e95c3adcede7cbc1e0c4f80b441c9ff67801ada72ddcface36",
+          "role": "development",
+          "created_at": "2026-09-30T14:36:42.288556+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "b6c846e0ae35e25cedbac8e046ba3732da8acdbe4f79c12d46c3ed3899c8460d",
+          "role": "development",
+          "created_at": "2026-10-03T16:09:47.948692+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "c3ae9396bad78ce1399451043b36fc0edd60df56c9437b094b5e5d46e5360536",
+          "role": "development",
+          "created_at": "2026-10-03T19:52:19.106329+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+          "role": "development",
+          "created_at": "2026-09-24T04:06:12.622127+00:00"
+        },
+        {
+          "family_id": "online-shoppers",
+          "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+          "role": "development",
+          "created_at": "2026-09-29T02:35:48.412439+00:00"
+        },
+        {
+          "family_id": "personality-drug-consumption",
+          "run_id": "205bacfad79659a49ecb47afcddc737cbd3f6701122dadd6d19fdfa0e20262e6",
+          "role": "confirmation",
+          "created_at": "2026-09-30T01:08:27.258967+00:00"
+        },
+        {
+          "family_id": "real-estate-sindian",
+          "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+          "role": "development",
+          "created_at": "2026-09-28T19:59:56.931755+00:00"
+        },
+        {
+          "family_id": "real-estate-sindian",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.597870+00:00"
+        },
+        {
+          "family_id": "real-estate-sindian",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.364126+00:00"
+        },
+        {
+          "family_id": "real-estate-sindian",
+          "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+          "role": "development",
+          "created_at": "2026-09-29T18:59:01.654644+00:00"
+        },
+        {
+          "family_id": "real-estate-sindian",
+          "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+          "role": "development",
+          "created_at": "2026-09-29T11:30:39.909251+00:00"
+        },
+        {
+          "family_id": "real-estate-sindian",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.554520+00:00"
+        },
+        {
+          "family_id": "real-estate-sindian",
+          "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+          "role": "development",
+          "created_at": "2026-09-24T04:06:13.193460+00:00"
+        },
+        {
+          "family_id": "real-estate-sindian",
+          "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+          "role": "development",
+          "created_at": "2026-09-29T02:35:48.983932+00:00"
+        },
+        {
+          "family_id": "seoul-bike",
+          "run_id": "37b08f9e0d0c0482c06a31727c593d3c24c7a69a859891dfcd592ca31617ea1c",
+          "role": "development",
+          "created_at": "2026-09-20T10:09:12.059098+00:00"
+        },
+        {
+          "family_id": "spambase",
+          "run_id": "0e9c4a4b35a90d93e2e2f7a188f289093e39e36f063a3465da36421ca6012ea3",
+          "role": "development",
+          "created_at": "2026-10-04T01:40:43.455313+00:00"
+        },
+        {
+          "family_id": "spambase",
+          "run_id": "11d2a3f3d445692a65f4bea67e61c9e14c9b7b085c658168291d01e3895d6b6f",
+          "role": "development",
+          "created_at": "2026-09-30T20:09:47.470923+00:00"
+        },
+        {
+          "family_id": "spambase",
+          "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+          "role": "development",
+          "created_at": "2026-09-28T19:59:56.791233+00:00"
+        },
+        {
+          "family_id": "spambase",
+          "run_id": "23af63399977aa8783458992e2eac99a67dd0355fc249cb43a3a11c246e79e88",
+          "role": "development",
+          "created_at": "2026-10-03T03:02:02.375500+00:00"
+        },
+        {
+          "family_id": "spambase",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.306397+00:00"
+        },
+        {
+          "family_id": "spambase",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.068277+00:00"
+        },
+        {
+          "family_id": "spambase",
+          "run_id": "3baa720fb83314d9c768a2125d4c0a6f4d886ee10d7eb0ce1c7da56afe0a0a5f",
+          "role": "development",
+          "created_at": "2026-10-04T04:33:53.672921+00:00"
+        },
+        {
+          "family_id": "spambase",
+          "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+          "role": "development",
+          "created_at": "2026-09-29T18:59:01.504887+00:00"
+        },
+        {
+          "family_id": "spambase",
+          "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+          "role": "development",
+          "created_at": "2026-09-29T11:30:39.772491+00:00"
+        },
+        {
+          "family_id": "spambase",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.274182+00:00"
+        },
+        {
+          "family_id": "spambase",
+          "run_id": "ab421a05619154e95c3adcede7cbc1e0c4f80b441c9ff67801ada72ddcface36",
+          "role": "development",
+          "created_at": "2026-09-30T14:45:49.212781+00:00"
+        },
+        {
+          "family_id": "spambase",
+          "run_id": "b6c846e0ae35e25cedbac8e046ba3732da8acdbe4f79c12d46c3ed3899c8460d",
+          "role": "development",
+          "created_at": "2026-10-03T16:15:04.865446+00:00"
+        },
+        {
+          "family_id": "spambase",
+          "run_id": "c3ae9396bad78ce1399451043b36fc0edd60df56c9437b094b5e5d46e5360536",
+          "role": "development",
+          "created_at": "2026-10-03T19:52:19.605232+00:00"
+        },
+        {
+          "family_id": "spambase",
+          "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+          "role": "development",
+          "created_at": "2026-09-24T04:06:13.049823+00:00"
+        },
+        {
+          "family_id": "spambase",
+          "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+          "role": "development",
+          "created_at": "2026-09-29T02:35:48.841265+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "0e9c4a4b35a90d93e2e2f7a188f289093e39e36f063a3465da36421ca6012ea3",
+          "role": "development",
+          "created_at": "2026-10-04T01:47:59.815280+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "11d2a3f3d445692a65f4bea67e61c9e14c9b7b085c658168291d01e3895d6b6f",
+          "role": "development",
+          "created_at": "2026-09-30T20:22:31.863280+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:27.990273+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+          "role": "development",
+          "created_at": "2026-09-28T19:59:56.598695+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "23af63399977aa8783458992e2eac99a67dd0355fc249cb43a3a11c246e79e88",
+          "role": "development",
+          "created_at": "2026-10-03T03:09:48.830220+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:06.873999+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.625443+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "3baa720fb83314d9c768a2125d4c0a6f4d886ee10d7eb0ce1c7da56afe0a0a5f",
+          "role": "development",
+          "created_at": "2026-10-04T04:35:58.612347+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+          "role": "development",
+          "created_at": "2026-09-29T18:59:01.293853+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+          "role": "development",
+          "created_at": "2026-09-29T11:30:39.576893+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:40.855516+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "ab421a05619154e95c3adcede7cbc1e0c4f80b441c9ff67801ada72ddcface36",
+          "role": "development",
+          "created_at": "2026-09-30T14:58:10.226547+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "b6c846e0ae35e25cedbac8e046ba3732da8acdbe4f79c12d46c3ed3899c8460d",
+          "role": "development",
+          "created_at": "2026-10-03T16:22:52.278450+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "c3ae9396bad78ce1399451043b36fc0edd60df56c9437b094b5e5d46e5360536",
+          "role": "development",
+          "created_at": "2026-10-03T19:52:19.432975+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+          "role": "development",
+          "created_at": "2026-09-24T04:06:12.857768+00:00"
+        },
+        {
+          "family_id": "steel-faults",
+          "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+          "role": "development",
+          "created_at": "2026-09-29T02:35:48.641715+00:00"
+        },
+        {
+          "family_id": "student-performance",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:45.017687+00:00"
+        },
+        {
+          "family_id": "tabarena-46904",
+          "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+          "role": "confirmation",
+          "created_at": "2026-09-20T10:14:48.511575+00:00"
+        },
+        {
+          "family_id": "tabarena-46907",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:46.824642+00:00"
+        },
+        {
+          "family_id": "tabarena-46913",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:45.259114+00:00"
+        },
+        {
+          "family_id": "tabarena-46916",
+          "run_id": "fbfa458ef79c8fae0ed44da73fcb1ada89468d3c7ea5b7aadc12d3ecda99c581",
+          "role": "confirmation",
+          "created_at": "2026-09-20T21:42:54.263178+00:00"
+        },
+        {
+          "family_id": "tabarena-46930",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:47.358962+00:00"
+        },
+        {
+          "family_id": "tabarena-46937",
+          "run_id": "fbfa458ef79c8fae0ed44da73fcb1ada89468d3c7ea5b7aadc12d3ecda99c581",
+          "role": "confirmation",
+          "created_at": "2026-09-20T21:42:57.385423+00:00"
+        },
+        {
+          "family_id": "tabarena-46941",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:44.921408+00:00"
+        },
+        {
+          "family_id": "tabarena-46949",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:55.236359+00:00"
+        },
+        {
+          "family_id": "tabarena-46950",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:56.541063+00:00"
+        },
+        {
+          "family_id": "tabarena-46954",
+          "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+          "role": "confirmation",
+          "created_at": "2026-09-20T10:15:10.740949+00:00"
+        },
+        {
+          "family_id": "tabarena-46956",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:57.110080+00:00"
+        },
+        {
+          "family_id": "tabarena-46958",
+          "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+          "role": "confirmation",
+          "created_at": "2026-09-20T10:15:15.995406+00:00"
+        },
+        {
+          "family_id": "tabarena-46960",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:46.410078+00:00"
+        },
+        {
+          "family_id": "tabarena-46962",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:58.913018+00:00"
+        },
+        {
+          "family_id": "tabarena-46963",
+          "run_id": "d7c6d5033bce2f74193978c250ce48df69ba3a75f02f3ff196ea4104f8c0dc69",
+          "role": "confirmation",
+          "created_at": "2026-09-23T20:56:47.689276+00:00"
+        },
+        {
+          "family_id": "tabarena-46969",
+          "run_id": "9d595eba9cb0866b6c14e031627cd81661f136ddc51327884888662f60b1cf94",
+          "role": "confirmation",
+          "created_at": "2026-09-20T10:15:24.009024+00:00"
+        },
+        {
+          "family_id": "vertebral-column",
+          "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+          "role": "confirmation",
+          "created_at": "2026-09-28T01:38:22.292973+00:00"
+        },
+        {
+          "family_id": "wall-following-robot",
+          "run_id": "4f4a08805d58f7442ce51645652cf1960642cf09af8bdef549d3725cfbaa1446",
+          "role": "confirmation",
+          "created_at": "2026-09-28T01:38:22.785467+00:00"
+        },
+        {
+          "family_id": "wine-quality",
+          "run_id": "15e319b9ab8a06caf21b682714dca15394b70bf0777795accb5b3836e9896feb",
+          "role": "development",
+          "created_at": "2026-09-17T07:38:28.244611+00:00"
+        },
+        {
+          "family_id": "wine-quality",
+          "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+          "role": "development",
+          "created_at": "2026-09-28T19:59:57.100621+00:00"
+        },
+        {
+          "family_id": "wine-quality",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.816767+00:00"
+        },
+        {
+          "family_id": "wine-quality",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:42.587084+00:00"
+        },
+        {
+          "family_id": "wine-quality",
+          "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+          "role": "development",
+          "created_at": "2026-09-29T18:59:01.824897+00:00"
+        },
+        {
+          "family_id": "wine-quality",
+          "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+          "role": "development",
+          "created_at": "2026-09-29T11:30:40.074131+00:00"
+        },
+        {
+          "family_id": "wine-quality",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.756758+00:00"
+        },
+        {
+          "family_id": "wine-quality",
+          "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+          "role": "development",
+          "created_at": "2026-09-24T04:06:13.355445+00:00"
+        },
+        {
+          "family_id": "wine-quality",
+          "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+          "role": "development",
+          "created_at": "2026-09-29T02:35:49.148966+00:00"
+        },
+        {
+          "family_id": "wisconsin-diagnostic",
+          "run_id": "0e9c4a4b35a90d93e2e2f7a188f289093e39e36f063a3465da36421ca6012ea3",
+          "role": "development",
+          "created_at": "2026-10-04T02:00:48.374907+00:00"
+        },
+        {
+          "family_id": "wisconsin-diagnostic",
+          "run_id": "11d2a3f3d445692a65f4bea67e61c9e14c9b7b085c658168291d01e3895d6b6f",
+          "role": "development",
+          "created_at": "2026-09-30T20:38:52.148267+00:00"
+        },
+        {
+          "family_id": "wisconsin-diagnostic",
+          "run_id": "16b7c24b7964ddccb38decf73aaa553e14ceb6a148fea882a92d2c41b428b17e",
+          "role": "development",
+          "created_at": "2026-09-28T19:59:57.069462+00:00"
+        },
+        {
+          "family_id": "wisconsin-diagnostic",
+          "run_id": "23af63399977aa8783458992e2eac99a67dd0355fc249cb43a3a11c246e79e88",
+          "role": "development",
+          "created_at": "2026-10-03T03:21:14.315936+00:00"
+        },
+        {
+          "family_id": "wisconsin-diagnostic",
+          "run_id": "31a07c81a396bd5593e15a6eb02ca3d8c8ec5d617f7a22f959b776a43b0bc6c2",
+          "role": "development",
+          "created_at": "2026-09-22T10:10:07.134785+00:00"
+        },
+        {
+          "family_id": "wisconsin-diagnostic",
+          "run_id": "3b193c8761913ff695181ad78b026fc23ccfafcd3e1b4a74b9d846e11a819e66",
+          "role": "development",
+          "created_at": "2026-09-23T10:25:41.892925+00:00"
+        },
+        {
+          "family_id": "wisconsin-diagnostic",
+          "run_id": "3baa720fb83314d9c768a2125d4c0a6f4d886ee10d7eb0ce1c7da56afe0a0a5f",
+          "role": "development",
+          "created_at": "2026-10-04T04:38:49.598980+00:00"
+        },
+        {
+          "family_id": "wisconsin-diagnostic",
+          "run_id": "607619e74e6345ea28b0a4caea3538ab4057c5cb4376dbc9bbe9b12eb2f97fe7",
+          "role": "development",
+          "created_at": "2026-09-29T18:59:01.791228+00:00"
+        },
+        {
+          "family_id": "wisconsin-diagnostic",
+          "run_id": "857436dad113c40511566da4a11bd5c96faeacd1e43041b41b2e1d8f88216a77",
+          "role": "development",
+          "created_at": "2026-09-29T11:30:40.042228+00:00"
+        },
+        {
+          "family_id": "wisconsin-diagnostic",
+          "run_id": "8b3199f8f8ab5b8a9c03a4b4fa95fe343f75b45eb651a7aa49d0719191abc6a5",
+          "role": "development",
+          "created_at": "2026-09-22T22:34:41.110435+00:00"
+        },
+        {
+          "family_id": "wisconsin-diagnostic",
+          "run_id": "ab421a05619154e95c3adcede7cbc1e0c4f80b441c9ff67801ada72ddcface36",
+          "role": "development",
+          "created_at": "2026-09-30T15:13:26.274406+00:00"
+        },
+        {
+          "family_id": "wisconsin-diagnostic",
+          "run_id": "b6c846e0ae35e25cedbac8e046ba3732da8acdbe4f79c12d46c3ed3899c8460d",
+          "role": "development",
+          "created_at": "2026-10-03T16:34:12.162269+00:00"
+        },
+        {
+          "family_id": "wisconsin-diagnostic",
+          "run_id": "c3ae9396bad78ce1399451043b36fc0edd60df56c9437b094b5e5d46e5360536",
+          "role": "development",
+          "created_at": "2026-10-03T19:52:19.903227+00:00"
+        },
+        {
+          "family_id": "wisconsin-diagnostic",
+          "run_id": "ca35131f62898a11ba781694826e2be8492a945a94544a6848c9c1924115e0ec",
+          "role": "development",
+          "created_at": "2026-09-24T04:06:13.321931+00:00"
+        },
+        {
+          "family_id": "wisconsin-diagnostic",
+          "run_id": "df134d100d2294174af98904cd1e2d306c5e2e53c3d4fc032ea7a15eea21eebd",
+          "role": "development",
+          "created_at": "2026-09-29T02:35:49.116535+00:00"
+        }
+      ],
+      "selected_family_matches": []
+    },
+    "freshness_limit": "No recorded thoracic source/mirror match was found. Unknown exposure remains unknown until a future formal release audit; no independent-patient or pretraining guarantee."
+  },
+  "datasets": [
+    {
+      "name": "thoracic-surgery",
+      "family_id": "thoracic-surgery",
+      "provider": "openml_task",
+      "task": "classification",
+      "role": "inventory",
+      "reservation_role": "confirmation_candidate",
+      "reservation_id": "qualified-binary-reservation-20261004",
+      "prior_exposure": "unknown",
+      "origin_kind": "observational",
+      "evaluation_tier": "standard_iid_unverified_entity",
+      "claim_boundary": {
+        "evaluation_tier": "standard_iid_unverified_entity",
+        "claim_scope": "Row-level standard public IID benchmark evidence only, under explicitly unresolved patient/entity mapping.",
+        "patient_entity_independence_verified": false,
+        "patient_entity_disjoint_claims_allowed": false,
+        "clinical_generalization_claims_allowed": false,
+        "pool_with_verified_entity_cohorts": false,
+        "prospective_clinical_decision_use_authorized": false,
+        "known_group_time_constraints_must_be_preserved": true,
+        "future_confirmation_requires_explicit_tier_binding": true,
+        "limits": "This is not a waiver for known repeat-entity or temporal leakage. If later evidence identifies available group IDs, repeated-entity links or mandatory temporal boundaries, stop and review; do not drop or ignore them to preserve IID eligibility."
+      },
+      "target": "Class",
+      "target_transform": "identity",
+      "categorical": [
+        "V1",
+        "V4",
+        "V5",
+        "V6",
+        "V7",
+        "V8",
+        "V9",
+        "V10",
+        "V11",
+        "V12",
+        "V13",
+        "V14",
+        "V15"
+      ],
+      "drop_columns": [],
+      "split_policy": "official",
+      "prediction_time": "Original binary one-year outcome, OpenML Class1=death within one year after surgery, Class2=survival; same native Risk1Yr meaning. No relabeling, transformation or alternative horizon. This is retrospective record-level annotation classification, not an established baseline prognostic or clinical-use model. PRE19's 'MI up to6months' wording is retained without inventing a precise reference-time definition for it or a universal feature-availability cutoff.",
+      "timing_and_entity_review": {
+        "collection": "Retrospective Wroclaw Thoracic Surgery Centre cases for major lung resections for primary lung cancer in2007-2011; part of the Polish National Lung Cancer Registry.",
+        "endpoint": "Original binary one-year outcome, OpenML Class1=death within one year after surgery, Class2=survival; same native Risk1Yr meaning. No relabeling, transformation or alternative horizon.",
+        "predictors": "Diagnosis, FVC/FEV1, Zubrod status, documented pre-surgery pain/haemoptysis/dyspnoea/cough/weakness, clinical tumour-size category, diabetes/MI/PAD/smoking/asthma and age at surgery.",
+        "no_target_components": "The reviewed16predictor fields contain no death/survival indicator, one-year outcome component, follow-up length or other result target. No postoperative survival proxy is inserted.",
+        "timing_limit": "This is retrospective record-level annotation classification, not an established baseline prognostic or clinical-use model. PRE19's 'MI up to6months' wording is retained without inventing a precise reference-time definition for it or a universal feature-availability cutoff.",
+        "entity_limit": "Primary metadata calls instances individual patients, but identifiers/record linkage needed to independently certify patient-disjointness are not provided. The qualified tier, not a verified-entity claim, applies.",
+        "known_boundaries": "No supplied patient/group/time keys or mandatory split constraints are discarded. Original official source splits remain intact; any experimental IID3 override requires a separately frozen protocol."
+      },
+      "rights": {
+        "status": "approved",
+        "license": "CC-BY-4.0",
+        "access": "public",
+        "approval_basis": "Explicit primary UCI277 CC-BY-4.0 grant; OpenML's host license badge is not the basis.",
+        "evidence": [
+          "https://archive.ics.uci.edu/dataset/277/thoracic+surgery+data",
+          "https://archive.ics.uci.edu/api/dataset?id=277"
+        ],
+        "primary_page_sha256": "aa65f88359c4a42acc56ef59d48a6959b5e36b98a1010bd84b6babb334a77f45",
+        "reviewed_on": "2026-10-04",
+        "scope": "Metadata-only reservation now. Later local research only after an explicitly qualified cohort freeze/release; no clinical deployment, reidentification, hosted-row sharing or additional redistribution approval.",
+        "obligations": "Retain source/contributor attribution and disclose retrospective collection, native coding, class imbalance and unresolved independent-patient mapping."
+      },
+      "source": {
+        "uci_id": 277,
+        "dataset_id": 1506,
+        "dataset_version": 1,
+        "task_id": 9969,
+        "schema_reviewed": true,
+        "columns": [
+          "V1",
+          "V2",
+          "V3",
+          "V4",
+          "V5",
+          "V6",
+          "V7",
+          "V8",
+          "V9",
+          "V10",
+          "V11",
+          "V12",
+          "V13",
+          "V14",
+          "V15",
+          "V16",
+          "Class"
+        ],
+        "target_columns": [
+          "Class"
+        ],
+        "expected_rows": 470,
+        "md5_checksum": "1a00c945a6c5d87cb5a5f234649bcbb0",
+        "official_split_dimensions": {
+          "repeats": 1,
+          "folds": 10,
+          "samples": 1
+        },
+        "primary_metadata_url": "https://archive.ics.uci.edu/api/dataset?id=277",
+        "primary_metadata_sha256": "9c79770b224d89ccf0f24ce66f11550e0d2f2183bd9f44cadde729aeb551a795",
+        "openml_description_sha256": "d2fe797d3b88ccf71dd378bf9ce439eba4171e70bfd32d092ac01715e56592cb",
+        "openml_features_sha256": "47f788ed204cab95fed1b9b303ed98b2281a431ed1df2c6f81c4fb6f5d54bec8",
+        "openml_qualities_sha256": "30d131c6bac4507c759db11ba638ff428ce544418ce6fa8952494780194d295e",
+        "openml_task_sha256": "7b688395eeed4b891c3956748b85e25e6f314b84224201466800608f638110de",
+        "label_meanings": {
+          "1": "death within one year after surgery",
+          "2": "survival"
+        },
+        "native_target_name": "Risk1Yr",
+        "column_semantics": {
+          "V1": {
+            "native_name": "DGN",
+            "meaning": "Diagnosis - specific combination of ICD-10 codes for primary and secondary as well multiple tumours if any",
+            "native_role": "Feature"
+          },
+          "V2": {
+            "native_name": "PRE4",
+            "meaning": "Forced vital capacity - FVC (numeric)",
+            "native_role": "Feature"
+          },
+          "V3": {
+            "native_name": "PRE5",
+            "meaning": "Volume that has been exhaled at the end of the first second of forced expiration - FEV1 (numeric)",
+            "native_role": "Feature"
+          },
+          "V4": {
+            "native_name": "PRE6",
+            "meaning": "Performance status - Zubrod scale (PRZ2,PRZ1,PRZ0)",
+            "native_role": "Feature"
+          },
+          "V5": {
+            "native_name": "PRE7",
+            "meaning": "Pain before surgery (T,F)",
+            "native_role": "Feature"
+          },
+          "V6": {
+            "native_name": "PRE8",
+            "meaning": "Haemoptysis before surgery (T,F)",
+            "native_role": "Feature"
+          },
+          "V7": {
+            "native_name": "PRE9",
+            "meaning": "Dyspnoea before surgery (T,F)",
+            "native_role": "Feature"
+          },
+          "V8": {
+            "native_name": "PRE10",
+            "meaning": "Cough before surgery (T,F)",
+            "native_role": "Feature"
+          },
+          "V9": {
+            "native_name": "PRE11",
+            "meaning": "Weakness before surgery (T,F)",
+            "native_role": "Feature"
+          },
+          "V10": {
+            "native_name": "PRE14",
+            "meaning": "T in clinical TNM - size of the original tumour, from OC11 (smallest) to OC14 (largest) (OC11,OC14,OC12,OC13)",
+            "native_role": "Feature"
+          },
+          "V11": {
+            "native_name": "PRE17",
+            "meaning": "Type 2 DM - diabetes mellitus (T,F)",
+            "native_role": "Feature"
+          },
+          "V12": {
+            "native_name": "PRE19",
+            "meaning": "MI up to 6 months (T,F)",
+            "native_role": "Feature"
+          },
+          "V13": {
+            "native_name": "PRE25",
+            "meaning": "PAD - peripheral arterial diseases (T,F)",
+            "native_role": "Feature"
+          },
+          "V14": {
+            "native_name": "PRE30",
+            "meaning": "Smoking (T,F)",
+            "native_role": "Feature"
+          },
+          "V15": {
+            "native_name": "PRE32",
+            "meaning": "Asthma (T,F)",
+            "native_role": "Feature"
+          },
+          "V16": {
+            "native_name": "AGE",
+            "meaning": "Age at surgery (numeric)",
+            "native_role": "Feature"
+          },
+          "Class": {
+            "native_name": "Risk1Yr",
+            "meaning": "1 year survival period - (T)rue value if died (T,F)",
+            "native_role": "Target"
+          }
+        },
+        "categorical_rule": "All source NOMINAL and STRING predictors are declared categorical. Numeric FVC, FEV1 and age remain numeric.",
+        "payload_integrity_status": "No payloads or labels acquired. The publisher MD5 pins the representation metadata, not verified downloaded bytes."
+      },
+      "metadata_profile": {
+        "rows": 470,
+        "predictors": 16,
+        "classes": 2,
+        "class_counts": {
+          "1": 70,
+          "2": 400
+        },
+        "minimum_class_count": 70,
+        "expected_three_fold_minimum_test_count": 23,
+        "source_ten_fold_minority_test_count_expectation": 7,
+        "basis": "Primary descriptive counts and official OpenML metadata only, no payload recomputation.",
+        "payload_verified": false,
+        "entity_independence_verified": false,
+        "warning": "Metadata size/class eligibility is not proof of later fold support. Existing official10fold minority tests are expected to have7rows; a later required>=10 test margin needs an explicit allowed IID3 experiment policy and actual checks, never an implicit replacement."
+      }
+    }
+  ]
+}

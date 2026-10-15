@@ -8,6 +8,7 @@ from featcopilot.selection.importance import ImportanceSelector
 from featcopilot.selection.redundancy import RedundancyEliminator
 from featcopilot.selection.statistical import StatisticalSelector
 from featcopilot.utils.logger import get_logger
+from featcopilot.utils.task import prepare_target, validate_task
 
 logger = get_logger(__name__)
 
@@ -27,6 +28,10 @@ class FeatureSelector(BaseSelector):
         Maximum features to select
     correlation_threshold : float, default=0.95
         Threshold for redundancy elimination
+    task : {'auto', 'classification', 'regression'}, default='auto'
+        Task propagated to child selectors and tree-based refinement.
+        Auto preserves each method's historical target heuristic. Explicit
+        tasks validate targets and propagate refinement failures.
 
     Examples
     --------
@@ -46,15 +51,18 @@ class FeatureSelector(BaseSelector):
         combination: str = "union",
         original_features: set[str] | None = None,
         verbose: bool = False,
+        task: str = "auto",
         **kwargs,
     ):
         super().__init__(**kwargs)
+        validate_task(task)
         self.methods = methods or ["mutual_info", "importance"]
         self.max_features = max_features
         self.correlation_threshold = correlation_threshold
         self.combination = combination  # 'union' or 'intersection'
         self.original_features = original_features or set()
         self.verbose = verbose
+        self.task = task
         self._selectors: dict[str, BaseSelector] = {}
         self._method_scores: dict[str, dict[str, float]] = {}
 
@@ -73,8 +81,13 @@ class FeatureSelector(BaseSelector):
         -------
         self : FeatureSelector
         """
+        self._is_fitted = False
+        self._selectors = {}
+        self._method_scores = {}
+        self._feature_scores = {}
+        self._selected_features = []
         X = self._validate_input(X)
-        y = np.array(y)
+        y = prepare_target(y, self.task)
 
         # Identify categorical/text columns (can't be scored by numeric methods)
         categorical_cols = X.select_dtypes(include=["object", "category", "string"]).columns.tolist()
@@ -96,7 +109,7 @@ class FeatureSelector(BaseSelector):
             # Get the median score of numeric features to use as baseline for categorical
             numeric_scores = [v for k, v in self._feature_scores.items() if k in numeric_cols and v > 0]
             if numeric_scores:
-                baseline_score = np.median(numeric_scores)
+                baseline_score = float(np.median(numeric_scores))
             else:
                 baseline_score = 0.5  # Default if no numeric scores
 
@@ -139,23 +152,23 @@ class FeatureSelector(BaseSelector):
     def _create_selector(self, method: str) -> BaseSelector:
         """Create selector for a given method."""
         if method == "mutual_info":
-            return StatisticalSelector(method="mutual_info", verbose=self.verbose)
+            return StatisticalSelector(method="mutual_info", verbose=self.verbose, task=self.task)
         elif method == "f_test":
-            return StatisticalSelector(method="f_test", verbose=self.verbose)
+            return StatisticalSelector(method="f_test", verbose=self.verbose, task=self.task)
         elif method == "chi2":
-            return StatisticalSelector(method="chi2", verbose=self.verbose)
+            return StatisticalSelector(method="chi2", verbose=self.verbose, task=self.task)
         elif method == "correlation":
-            return StatisticalSelector(method="correlation", verbose=self.verbose)
+            return StatisticalSelector(method="correlation", verbose=self.verbose, task=self.task)
         elif method == "importance":
-            return ImportanceSelector(model="random_forest", verbose=self.verbose)
+            return ImportanceSelector(model="random_forest", verbose=self.verbose, task=self.task)
         elif method == "xgboost":
-            return ImportanceSelector(model="xgboost", verbose=self.verbose)
+            return ImportanceSelector(model="xgboost", verbose=self.verbose, task=self.task)
         else:
             raise ValueError(f"Unknown selection method: {method}")
 
     def _combine_scores(self, columns: list[str]) -> None:
         """Combine scores from multiple methods."""
-        combined = {}
+        combined: dict[str, float] = {}
 
         for col in columns:
             scores = []
@@ -172,7 +185,7 @@ class FeatureSelector(BaseSelector):
 
             # Average normalized scores
             if scores:
-                combined[col] = np.mean(scores)
+                combined[col] = float(np.mean(scores))
             else:
                 combined[col] = 0
 
@@ -185,11 +198,14 @@ class FeatureSelector(BaseSelector):
         if len(candidates) == 0:
             return candidates
 
+        y = prepare_target(y, self.task)
         X_cand = X[candidates].copy()
         X_cand = X_cand.replace([np.inf, -np.inf], np.nan).fillna(0)
 
         try:
             is_classification = len(np.unique(y)) <= 20 and pd.api.types.is_integer_dtype(y)
+            if self.task != "auto":
+                is_classification = self.task == "classification"
             if is_classification:
                 model = GradientBoostingClassifier(n_estimators=50, max_depth=3, subsample=0.8, random_state=42)
             else:
@@ -208,7 +224,10 @@ class FeatureSelector(BaseSelector):
                 selected = [candidates[i] for i in idx]
 
             return selected
-        except Exception:
+        except Exception as exc:
+            if self.task != "auto":
+                raise
+            logger.warning(f"Feature refinement failed; retaining candidates in auto mode: {exc}")
             return candidates
 
     def _final_selection(self) -> None:

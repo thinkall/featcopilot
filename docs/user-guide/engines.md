@@ -13,6 +13,7 @@ Generates features from numeric tabular data through mathematical transformation
 - **Mathematical transforms**: log, sqrt, exp, sin, cos
 - **Ratio features**: x₁ / x₂
 - **Difference features**: x₁ - x₂
+- **Categorical encoding**: one-hot for low cardinality and cross-fitted target encoding for medium cardinality
 
 ### Usage
 
@@ -23,6 +24,7 @@ engine = TabularEngine(
     polynomial_degree=2,      # Max polynomial degree
     interaction_only=False,   # Include powers, not just interactions
     include_transforms=['log', 'sqrt', 'square'],
+    keep_original_categorical=False,
     max_features=50,
     verbose=True
 )
@@ -39,6 +41,21 @@ X_transformed = engine.fit_transform(X, y)
 | `include_transforms` | list | ['log', 'sqrt', 'square'] | Math transforms to apply |
 | `max_features` | int | None | Maximum features to generate |
 | `min_unique_values` | int | 5 | Minimum unique values for continuous |
+| `encode_categorical` | bool | True | Encode supported categorical columns |
+| `keep_original_categorical` | bool | True | Keep original categorical columns alongside encoded features |
+| `onehot_ratio_threshold` | float | 0.05 | Maximum cardinality ratio for one-hot encoding |
+| `target_encode_ratio_threshold` | float | 0.5 | Maximum cardinality ratio for target encoding |
+| `target_encode_cv` | int | 5 | Cross-fitting folds used for training-row target encodings |
+| `min_samples_per_category` | int | 3 | Minimum samples required for an encoded category |
+
+When a target is provided, `fit_transform` uses out-of-fold target encodings for
+the training rows. A later `transform` call uses category means learned from the
+full training set. This distinction prevents each training row's own target
+from leaking into its encoded feature.
+If target encoding is activated, fitting requires at least two rows; singleton
+training no longer falls back to its own target. Pandas categorical predictors
+produce numeric encodings, and categorical targets retain label semantics even
+when their categories are numbers or their indexes differ from the input frame.
 
 ### Available Transforms
 
@@ -56,6 +73,35 @@ TRANSFORMS = [
     'cos',      # cos(x)
 ]
 ```
+
+---
+
+## PredictiveTabularEngine (opt-in)
+
+The predictive engine uses a bounded numeric candidate pool and internal
+learner-based validation, while preserving original categorical columns:
+
+```python
+from sklearn.linear_model import Ridge
+from featcopilot.engines.predictive import PredictiveTabularEngine
+
+engine = PredictiveTabularEngine(
+    task="regression",
+    estimator=Ridge(alpha=1.0),
+    max_candidates=1000,
+    max_features=50,
+    random_state=42,
+)
+X_train_fe = engine.fit_transform(X_train, y_train)
+X_test_fe = engine.transform(X_test)
+```
+
+For the main API, use
+`AutoFeatureEngineer(selection_strategy="predictive", task="regression")`.
+For a single-engine sklearn wrapper, use
+`FeatureEngineerTransformer(engine="predictive", task="regression")`.
+See [predictive selection](selection.md#predictive-tabular-strategy-opt-in)
+for selection semantics and limitations.
 
 ---
 
@@ -113,6 +159,13 @@ X_features = engine.fit_transform(time_series_df)
 ## RelationalEngine
 
 Generates aggregation features from related tables, inspired by Featuretools.
+
+For leakage-controlled temporal histories, use
+`PointInTimeRelationalEngine` with declared entity keys, prediction timestamps
+and related-table availability timestamps. It preserves a frozen history
+snapshot and excludes equal-time/future events for each query.
+See the [point-in-time example](../examples/relational-feature-engineering.md#prediction-time-history-features).
+The legacy engine below does not automatically enforce those boundaries.
 
 ### Features Generated
 

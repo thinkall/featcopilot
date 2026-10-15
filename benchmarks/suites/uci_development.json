@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "name": "uci-development-v1",
+  "family_registry": "../families.json",
+  "purpose": "Seven predeclared development families. Not fresh confirmation or official benchmark replication. Rights approved for public local benchmarking under the user-approved roadmap; preserve UCI attribution.",
+  "variant_policy": "one_per_family",
+  "budget_ceiling": {"wall_hours": 72, "cpus": 8},
+  "dataset_defaults": {
+    "provider": "uci",
+    "role": "development",
+    "prior_exposure": "metadata_only",
+    "origin_kind": "observational",
+    "split_policy": "iid",
+    "target_transform": "identity",
+    "categorical": [],
+    "drop_columns": [],
+    "rights": {
+      "status": "approved",
+      "license": "CC-BY-4.0",
+      "access": "public",
+      "approval_basis": "User approved the roadmap's seven public UCI development candidates before model evaluation, 2026-09-17.",
+      "evidence": ["benchmarks/IMPROVEMENT_PLAN.md section 7: official UCI pages display CC BY 4.0"],
+      "obligations": "Retain attribution and source URL; do not infer redistribution or hosted-LLM row-sharing approval."
+    }
+  },
+  "datasets": [
+    {
+      "name": "uci-adult",
+      "family_id": "adult",
+      "task": "classification",
+      "target": "income",
+      "prior_exposure": "loader_only",
+      "categorical": ["workclass", "education", "marital-status", "occupation", "relationship", "race", "sex", "native-country"],
+      "drop_columns": ["fnlwgt"],
+      "prediction_time": "Census record attributes predict annual income; survey weight fnlwgt is excluded, not used as a feature or loss weight.",
+      "evaluation_notes": "Development IID CV on the normalized full CSV, not reproduction of the original train/test evaluation. Audit duplicates before reporting.",
+      "original_split": {
+        "kind": "source_train_test_boundary",
+        "train_rows": 32561,
+        "test_rows": 16281,
+        "normalized_boundary_index": 32561,
+        "status": "source-reported boundary; normalized payload ordering must be verified before any official-split claim",
+        "evidence": ["https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.names"],
+        "evaluation_uses_boundary": false
+      },
+      "source": {
+        "uci_id": 2,
+        "data_url": "https://archive.ics.uci.edu/static/public/2/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=2",
+        "schema_reviewed": true,
+        "expected_rows": 48842,
+        "columns": ["age", "workclass", "fnlwgt", "education", "education-num", "marital-status", "occupation", "relationship", "race", "sex", "capital-gain", "capital-loss", "hours-per-week", "native-country", "income"],
+        "target_columns": ["income"],
+        "target_value_map": {"<=50K": "<=50K", ">50K": ">50K", "<=50K.": "<=50K", ">50K.": ">50K"},
+        "na_values": ["?"],
+        "skipinitialspace": true
+      }
+    },
+    {
+      "name": "uci-german-credit",
+      "family_id": "german-credit",
+      "task": "classification",
+      "target": "class",
+      "categorical": ["Attribute1", "Attribute3", "Attribute4", "Attribute6", "Attribute7", "Attribute9", "Attribute10", "Attribute12", "Attribute14", "Attribute15", "Attribute17", "Attribute19", "Attribute20"],
+      "prediction_time": "Credit application attributes predict good/bad credit risk; no outcomes are predictors.",
+      "evaluation_notes": "Use repeated stratification for low-N development. Native class 1=good, 2=bad; numeric recoding is not a second family.",
+      "source": {
+        "uci_id": 144,
+        "data_url": "https://archive.ics.uci.edu/static/public/144/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=144",
+        "schema_reviewed": true,
+        "expected_rows": 1000,
+        "columns": ["Attribute1", "Attribute2", "Attribute3", "Attribute4", "Attribute5", "Attribute6", "Attribute7", "Attribute8", "Attribute9", "Attribute10", "Attribute11", "Attribute12", "Attribute13", "Attribute14", "Attribute15", "Attribute16", "Attribute17", "Attribute18", "Attribute19", "Attribute20", "class"],
+        "target_columns": ["class"],
+        "feature_descriptions": {
+          "Attribute1":"Status of existing checking account","Attribute2":"Duration in months","Attribute3":"Credit history","Attribute4":"Purpose","Attribute5":"Credit amount","Attribute6":"Savings account/bonds","Attribute7":"Present employment since","Attribute8":"Installment rate as percent of disposable income","Attribute9":"Personal status and sex","Attribute10":"Other debtors/guarantors","Attribute11":"Present residence since","Attribute12":"Property","Attribute13":"Age in years","Attribute14":"Other installment plans","Attribute15":"Housing","Attribute16":"Number of existing credits at this bank","Attribute17":"Job","Attribute18":"Number of people liable to provide maintenance for","Attribute19":"Telephone","Attribute20":"Foreign worker"
+        },
+        "label_meanings": {"1": "good", "2": "bad"}
+      }
+    },
+    {
+      "name": "uci-online-shoppers",
+      "family_id": "online-shoppers",
+      "task": "classification",
+      "target": "Revenue",
+      "categorical": ["Month", "OperatingSystems", "Browser", "Region", "TrafficType", "VisitorType", "Weekend"],
+      "drop_columns": ["PageValues", "Administrative_Duration", "Informational_Duration", "ProductRelated_Duration", "BounceRates", "ExitRates"],
+      "prediction_time": "Retrospective completed-session classification, not early conversion or chronological forecasting. PageValues, aggregate bounce/exit metrics and durations excluded conservatively; page counts describe the completed session.",
+      "evaluation_notes": "Curated conservative feature subset, not all-17-feature paper replication. Month is not a timestamp. Preserve natural imbalance.",
+      "source": {
+        "uci_id": 468,
+        "data_url": "https://archive.ics.uci.edu/static/public/468/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=468",
+        "schema_reviewed": true,
+        "expected_rows": 12330,
+        "columns": ["Administrative", "Administrative_Duration", "Informational", "Informational_Duration", "ProductRelated", "ProductRelated_Duration", "BounceRates", "ExitRates", "PageValues", "SpecialDay", "Month", "OperatingSystems", "Browser", "Region", "TrafficType", "VisitorType", "Weekend", "Revenue"],
+        "target_columns": ["Revenue"]
+      }
+    },
+    {
+      "name": "uci-dry-bean",
+      "family_id": "dry-bean",
+      "task": "classification",
+      "target": "Class",
+      "prediction_time": "Image-derived grain shape measurements predict bean variety.",
+      "evaluation_notes": "Seven-class stratified evaluation; report macro/per-class metrics and duplicate counts.",
+      "source": {
+        "uci_id": 602,
+        "data_url": "https://archive.ics.uci.edu/static/public/602/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=602",
+        "schema_reviewed": true,
+        "expected_rows": 13611,
+        "columns": ["Area", "Perimeter", "MajorAxisLength", "MinorAxisLength", "AspectRatio", "Eccentricity", "ConvexArea", "EquivDiameter", "Extent", "Solidity", "Roundness", "Compactness", "ShapeFactor1", "ShapeFactor2", "ShapeFactor3", "ShapeFactor4", "Class"],
+        "target_columns": ["Class"]
+      }
+    },
+    {
+      "name": "uci-steel-faults",
+      "family_id": "steel-faults",
+      "task": "classification",
+      "target": "fault_type",
+      "target_transform": "one_hot",
+      "categorical": ["TypeOfSteel_A300", "TypeOfSteel_A400"],
+      "drop_columns": ["Pastry", "Z_Scratch", "K_Scratch", "Stains", "Dirtiness", "Bumps", "Other_Faults"],
+      "prediction_time": "Measured steel-plate attributes predict defect class; all seven fault indicators excluded from predictors.",
+      "evaluation_notes": "Reject payloads unless all seven labels are binary and each row has exactly one active label.",
+      "source": {
+        "uci_id": 198,
+        "data_url": "https://archive.ics.uci.edu/static/public/198/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=198",
+        "schema_reviewed": true,
+        "expected_rows": 1941,
+        "columns": ["X_Minimum", "X_Maximum", "Y_Minimum", "Y_Maximum", "Pixels_Areas", "X_Perimeter", "Y_Perimeter", "Sum_of_Luminosity", "Minimum_of_Luminosity", "Maximum_of_Luminosity", "Length_of_Conveyer", "TypeOfSteel_A300", "TypeOfSteel_A400", "Steel_Plate_Thickness", "Edges_Index", "Empty_Index", "Square_Index", "Outside_X_Index", "Edges_X_Index", "Edges_Y_Index", "Outside_Global_Index", "LogOfAreas", "Log_X_Index", "Log_Y_Index", "Orientation_Index", "Luminosity_Index", "SigmoidOfAreas", "Pastry", "Z_Scratch", "K_Scratch", "Stains", "Dirtiness", "Bumps", "Other_Faults"],
+        "target_columns": ["Pastry", "Z_Scratch", "K_Scratch", "Stains", "Dirtiness", "Bumps", "Other_Faults"]
+      }
+    },
+    {
+      "name": "uci-concrete-strength",
+      "family_id": "concrete-strength",
+      "task": "regression",
+      "target": "Concrete compressive strength",
+      "prediction_time": "Mixture ingredients and declared curing age predict measured compressive strength in MPa.",
+      "evaluation_notes": "IID interpolation only. Composition-grouped generalization across curing ages requires a separate grouped protocol.",
+      "source": {
+        "uci_id": 165,
+        "data_url": "https://archive.ics.uci.edu/static/public/165/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=165",
+        "schema_reviewed": true,
+        "expected_rows": 1030,
+        "columns": ["Cement", "Blast Furnace Slag", "Fly Ash", "Water", "Superplasticizer", "Coarse Aggregate", "Fine Aggregate", "Age", "Concrete compressive strength"],
+        "target_columns": ["Concrete compressive strength"]
+      }
+    },
+    {
+      "name": "uci-energy-efficiency",
+      "family_id": "energy-efficiency",
+      "task": "regression",
+      "target": "Y1",
+      "drop_columns": ["Y2"],
+      "categorical": ["X6", "X8"],
+      "origin_kind": "simulation",
+      "prediction_time": "Building geometry/design predicts simulated heating load; cooling load Y2 is unavailable as a predictor.",
+      "evaluation_notes": "Primary Y1 only. IID design interpolation, not observational evidence or held-out-geometry generalization. Y2 is the same family.",
+      "source": {
+        "uci_id": 242,
+        "data_url": "https://archive.ics.uci.edu/static/public/242/data.csv",
+        "metadata_url": "https://archive.ics.uci.edu/api/dataset?id=242",
+        "schema_reviewed": true,
+        "expected_rows": 768,
+        "columns": ["X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "Y1", "Y2"],
+        "target_columns": ["Y1", "Y2"],
+        "feature_descriptions": {"X1":"Relative compactness","X2":"Surface area","X3":"Wall area","X4":"Roof area","X5":"Overall height","X6":"Orientation","X7":"Glazing area","X8":"Glazing area distribution"},
+        "label_meanings": {"Y1":"Heating load","Y2":"Cooling load"}
+      }
+    }
+  ]
+}

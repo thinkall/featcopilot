@@ -425,11 +425,11 @@ class TestModelsDefault:
 
     def test_get_default_model(self):
         """Test get_default_model returns the expected default."""
-        assert get_default_model() == "gpt-5.2"
+        assert get_default_model() == "gpt-5.6-sol"
 
     def test_default_model_constant(self):
         """Test DEFAULT_MODEL constant value."""
-        assert DEFAULT_MODEL == "gpt-5.2"
+        assert DEFAULT_MODEL == "gpt-5.6-sol"
 
     def test_default_model_exposed_from_utils_package(self):
         """``DEFAULT_MODEL`` is exported from the ``featcopilot.utils`` namespace.

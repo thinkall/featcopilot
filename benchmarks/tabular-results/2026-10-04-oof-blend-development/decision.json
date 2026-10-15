@@ -1,0 +1,35 @@
+{
+  "promote": false,
+  "sota_demonstrated": false,
+  "reason": "Learned OOF blending retains large external tail harm and two bundles timed out. Fixed averaging is a separate promising control needing complete-panel replication.",
+  "comparisons": [
+    {
+      "method": "featcopilot-frequency-aligned-robust",
+      "complete_families": 8,
+      "requested_families": 9,
+      "mean_gain": 0.09124646252087487,
+      "worst_gain": -0.22764460134765652,
+      "harms_over_5_percent": [
+        "uci-wisconsin-diagnostic"
+      ]
+    },
+    {
+      "method": "prediction-average-robust",
+      "complete_families": 8,
+      "requested_families": 9,
+      "mean_gain": 0.0858417394052181,
+      "worst_gain": -0.009170621544770441,
+      "harms_over_5_percent": []
+    },
+    {
+      "method": "prediction-oof-blend-robust",
+      "complete_families": 8,
+      "requested_families": 9,
+      "mean_gain": 0.09446665428349886,
+      "worst_gain": -0.22920544137585175,
+      "harms_over_5_percent": [
+        "uci-wisconsin-diagnostic"
+      ]
+    }
+  ]
+}

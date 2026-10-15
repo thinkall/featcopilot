@@ -1,0 +1,421 @@
+{
+  "format": "sha256-artifact-index-v1",
+  "files": {
+    ".gitignore": {
+      "sha256": "2bf33887bdf907563c67ec89d23ec2a134cdc9f1d23478bf278a080ed68f6cb1",
+      "bytes": 657
+    },
+    "ANALYSIS.md": {
+      "sha256": "0d3cc70933bb8383776b7d8bd5aff8567681f1916c6ffaffe8922e7085dc4486",
+      "bytes": 5423
+    },
+    "archive.json": {
+      "sha256": "5583b4c54ab5dba8764b7617f254d3a31ded51b739306a600525249320d2866c",
+      "bytes": 185
+    },
+    "auxiliary_archive.json": {
+      "sha256": "ae6baed658857b02391cb42e69f3eec6be1e444e6a6fbb6c137ba9663d7ee040",
+      "bytes": 3544
+    },
+    "cell-result-39654003d9fa21f3.json.gz.part1": {
+      "sha256": "0e5c6a7febbf60fe8a153ae8f2c8eae7a9c358c0c94a48c696c6186161227786",
+      "bytes": 21615
+    },
+    "cell-result-a2564da3eccb3538.json.gz.part1": {
+      "sha256": "faff8a71ba7de51ecf8f46fb1798947d74fe7c444d26f8c8571c48b7091fc01b",
+      "bytes": 22831
+    },
+    "cell-result-c086fa2e4eb5e5fc.json.gz.part1": {
+      "sha256": "c9b133caf1d3bb23172de51b8cff44e79168e48df1c5cf46ddd1f043aa36eb84",
+      "bytes": 26431
+    },
+    "cell-result-d63937f4f0e17b7d.json.gz.part1": {
+      "sha256": "fcd05ac3bc2e470465ea75897dfb0886327fc3e81f873a53f4bb5c3dabba1698",
+      "bytes": 22582
+    },
+    "cell-result-d6ba4e02614fca77.json.gz.part1": {
+      "sha256": "3051433cc362c9b166a50bbdaf06d4624e5f6d4bebdb9dd7a3197f7a9cd6ba66",
+      "bytes": 21918
+    },
+    "cell-result-eadf65150811a129.json.gz.part1": {
+      "sha256": "d10d739c3cc8a80f21b6553a5281a5aee86ca426218bfef36d0641c6883b2c03",
+      "bytes": 27007
+    },
+    "cells/computer-hardware-performance-fold-0-baseline/result.json": {
+      "sha256": "cd181c21c854fd04acbd2977715517f5bbaf43eb36aa6ae2c20f31a7867d0f62",
+      "bytes": 1407
+    },
+    "cells/computer-hardware-performance-fold-0-baseline/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cells/computer-hardware-performance-fold-0-baseline-robust/result.json": {
+      "sha256": "0e049daec65f3995241d18500fe5658475355d1f6da52c18b9e8450be7efb5c0",
+      "bytes": 1529
+    },
+    "cells/computer-hardware-performance-fold-0-baseline-robust/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cells/computer-hardware-performance-fold-0-featcopilot-frequency-aligned/result.json": {
+      "sha256": "6f7d07755f14f4c1f08cce8289424e59518cc8db7bc7d4df2adbb0e493b46394",
+      "bytes": 159203
+    },
+    "cells/computer-hardware-performance-fold-0-featcopilot-frequency-aligned/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cells/computer-hardware-performance-fold-0-featcopilot-frequency-aligned-robust/result.json": {
+      "sha256": "8f29050f4861404de9aa8f1175535f912ae6583ab05ccd2e54a1a1b32d5fadf6",
+      "bytes": 161578
+    },
+    "cells/computer-hardware-performance-fold-0-featcopilot-frequency-aligned-robust/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cells/computer-hardware-performance-fold-1-baseline/result.json": {
+      "sha256": "23f9936ce3236ecfa79e8a93a37704b6d7040d8a901a5f0a1a00eb16137a23f4",
+      "bytes": 1399
+    },
+    "cells/computer-hardware-performance-fold-1-baseline/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cells/computer-hardware-performance-fold-1-baseline-robust/result.json": {
+      "sha256": "4416047ede883970a0c6d6cc4f9adc0fece6f61f5af3259212d655f997961711",
+      "bytes": 1526
+    },
+    "cells/computer-hardware-performance-fold-1-baseline-robust/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cells/computer-hardware-performance-fold-1-featcopilot-frequency-aligned/result.json": {
+      "sha256": "32685d893d993503cd3f9f35bfedf4e52ef38a39a947a4edd250b9aaa67b9c71",
+      "bytes": 157435
+    },
+    "cells/computer-hardware-performance-fold-1-featcopilot-frequency-aligned/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cells/computer-hardware-performance-fold-1-featcopilot-frequency-aligned-robust/result.json": {
+      "sha256": "39b1655b4af830c7974ecd08ba4be2ff287c46439d352372c49d29d478f49d12",
+      "bytes": 160147
+    },
+    "cells/computer-hardware-performance-fold-1-featcopilot-frequency-aligned-robust/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cells/computer-hardware-performance-fold-2-baseline/result.json": {
+      "sha256": "7fbb1c4e3c0336dfb264305e062cdb814a128b80d14d289c7bf9674d6eb92ae4",
+      "bytes": 1405
+    },
+    "cells/computer-hardware-performance-fold-2-baseline/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cells/computer-hardware-performance-fold-2-baseline-robust/result.json": {
+      "sha256": "cbba49b145a40bb1d3d774ea49702480fdb560e5d078369f6a211cdad2d02b9f",
+      "bytes": 1528
+    },
+    "cells/computer-hardware-performance-fold-2-baseline-robust/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cells/computer-hardware-performance-fold-2-featcopilot-frequency-aligned/result.json": {
+      "sha256": "acdb9333e02bc70ace3aacd22628c7265aa5a80e4969fa681b7d3e627e8a7f57",
+      "bytes": 151731
+    },
+    "cells/computer-hardware-performance-fold-2-featcopilot-frequency-aligned/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cells/computer-hardware-performance-fold-2-featcopilot-frequency-aligned-robust/result.json": {
+      "sha256": "fad437493e16f1cde99d5495e0424695960354fc79e0b54ff12489193927c1f9",
+      "bytes": 154987
+    },
+    "cells/computer-hardware-performance-fold-2-featcopilot-frequency-aligned-robust/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cells/infrared-oral-temperature-fold-0-baseline/result.json": {
+      "sha256": "ccc233e118d01e86d8d308d0b9dac6bfd66afde47b0ad5abeac8f640cb1beace",
+      "bytes": 1405
+    },
+    "cells/infrared-oral-temperature-fold-0-baseline/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cells/infrared-oral-temperature-fold-0-baseline-robust/result.json": {
+      "sha256": "22fb7808826451a247bc2016d129c8b7a34845c8067802a3d6b5b13dea3d7df6",
+      "bytes": 1526
+    },
+    "cells/infrared-oral-temperature-fold-0-baseline-robust/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cells/infrared-oral-temperature-fold-0-featcopilot-frequency-aligned/result.json": {
+      "sha256": "5dcf8afa89aa589f7f561a3205bf1f54d669e51342811daae66875191c8a11ac",
+      "bytes": 598598
+    },
+    "cells/infrared-oral-temperature-fold-0-featcopilot-frequency-aligned/result.json.gz.part1": {
+      "sha256": "3051433cc362c9b166a50bbdaf06d4624e5f6d4bebdb9dd7a3197f7a9cd6ba66",
+      "bytes": 21918
+    },
+    "cells/infrared-oral-temperature-fold-0-featcopilot-frequency-aligned/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cells/infrared-oral-temperature-fold-0-featcopilot-frequency-aligned-robust/result.json": {
+      "sha256": "7985f2a3da2b487193d12d749003dd378f7d14bc1214cb50cc23d9989e457d17",
+      "bytes": 601291
+    },
+    "cells/infrared-oral-temperature-fold-0-featcopilot-frequency-aligned-robust/result.json.gz.part1": {
+      "sha256": "faff8a71ba7de51ecf8f46fb1798947d74fe7c444d26f8c8571c48b7091fc01b",
+      "bytes": 22831
+    },
+    "cells/infrared-oral-temperature-fold-0-featcopilot-frequency-aligned-robust/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cells/infrared-oral-temperature-fold-1-baseline/result.json": {
+      "sha256": "9326ddddb11c43902a6ccc19deae08b6690d0be4b095c6a7d050ad7d838fd52e",
+      "bytes": 1403
+    },
+    "cells/infrared-oral-temperature-fold-1-baseline/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cells/infrared-oral-temperature-fold-1-baseline-robust/result.json": {
+      "sha256": "4a7243c0852ce918084223c65571c6874d7373c63d87eb6d035d0665a81e7fab",
+      "bytes": 1524
+    },
+    "cells/infrared-oral-temperature-fold-1-baseline-robust/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cells/infrared-oral-temperature-fold-1-featcopilot-frequency-aligned/result.json": {
+      "sha256": "474d99dd2c53239901c661f305d91f64d1220a04d110e0f91d850dc3a0fbf970",
+      "bytes": 585817
+    },
+    "cells/infrared-oral-temperature-fold-1-featcopilot-frequency-aligned/result.json.gz.part1": {
+      "sha256": "0e5c6a7febbf60fe8a153ae8f2c8eae7a9c358c0c94a48c696c6186161227786",
+      "bytes": 21615
+    },
+    "cells/infrared-oral-temperature-fold-1-featcopilot-frequency-aligned/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cells/infrared-oral-temperature-fold-1-featcopilot-frequency-aligned-robust/result.json": {
+      "sha256": "240738d03857d6d03ec15cbd22f45ba8ca3a2f4e9cd4422356d5424b8300fb1e",
+      "bytes": 587560
+    },
+    "cells/infrared-oral-temperature-fold-1-featcopilot-frequency-aligned-robust/result.json.gz.part1": {
+      "sha256": "fcd05ac3bc2e470465ea75897dfb0886327fc3e81f873a53f4bb5c3dabba1698",
+      "bytes": 22582
+    },
+    "cells/infrared-oral-temperature-fold-1-featcopilot-frequency-aligned-robust/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cells/infrared-oral-temperature-fold-2-baseline/result.json": {
+      "sha256": "82bcf6473884ac8d1dcd59754c9a1b488527591cead4be039f93e1e5adcc865f",
+      "bytes": 1403
+    },
+    "cells/infrared-oral-temperature-fold-2-baseline/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cells/infrared-oral-temperature-fold-2-baseline-robust/result.json": {
+      "sha256": "abca55538c418839fe6eb20ccbebe87d57493f4833be7136daa22cdef81fe3cc",
+      "bytes": 1529
+    },
+    "cells/infrared-oral-temperature-fold-2-baseline-robust/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cells/infrared-oral-temperature-fold-2-featcopilot-frequency-aligned/result.json": {
+      "sha256": "8168e843ae74094530b776ce9c0a2624899ccbf0d9db0ebc18d76e7b51d448f0",
+      "bytes": 621446
+    },
+    "cells/infrared-oral-temperature-fold-2-featcopilot-frequency-aligned/result.json.gz.part1": {
+      "sha256": "c9b133caf1d3bb23172de51b8cff44e79168e48df1c5cf46ddd1f043aa36eb84",
+      "bytes": 26431
+    },
+    "cells/infrared-oral-temperature-fold-2-featcopilot-frequency-aligned/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cells/infrared-oral-temperature-fold-2-featcopilot-frequency-aligned-robust/result.json": {
+      "sha256": "f09fa8f228c7f4fe7571feb09be73479f5da50d7ea7c5add807c2fd0e0cde1a8",
+      "bytes": 623128
+    },
+    "cells/infrared-oral-temperature-fold-2-featcopilot-frequency-aligned-robust/result.json.gz.part1": {
+      "sha256": "d10d739c3cc8a80f21b6553a5281a5aee86ca426218bfef36d0641c6883b2c03",
+      "bytes": 27007
+    },
+    "cells/infrared-oral-temperature-fold-2-featcopilot-frequency-aligned-robust/worker.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "launcher_timing.json": {
+      "sha256": "e2cd50ea675043e372b1c1fdab8a1d632b54bbcd8b59d6c9059b0964c1fe2618",
+      "bytes": 462
+    },
+    "protocol.json": {
+      "sha256": "657e48fa6172a460fb29f4c9760692694229c21ec289ec89b6edeb6978772888",
+      "bytes": 73021
+    },
+    "record-00.json": {
+      "sha256": "a341f0fbe10e70f71b2877e6f393ff349eeccde11990ebe9109cadb63b68a949",
+      "bytes": 2055
+    },
+    "record-01.json": {
+      "sha256": "42c2fdeb8780eeb866fc6a205cb643bb4ee6e4a427fbdbdbebfc935d7fe7bfb5",
+      "bytes": 1998
+    },
+    "record-02.json": {
+      "sha256": "43ae9ba906275f8268b0b1aabe0e464ca4c6af7617c6554e6f5f2f336ab930fc",
+      "bytes": 150299
+    },
+    "record-03.json": {
+      "sha256": "386ab93d068cca8ceef21073545f13890cf355016cb29db98217b7c20e553497",
+      "bytes": 152353
+    },
+    "record-04.json": {
+      "sha256": "05e521d53638c83b1470bc8b4ee6a561980f1fa72c7edef2714d07f06397ecd5",
+      "bytes": 2047
+    },
+    "record-05.json": {
+      "sha256": "c3b9e4e3fcf975f7f900f398c296c68ec8c4d458215a29fc57e58443f48688d1",
+      "bytes": 1994
+    },
+    "record-06.json": {
+      "sha256": "0834acc436f5fbd94bc365b8cc17d9fe0557a4763f833cf5b2a9f8cb5a2040d2",
+      "bytes": 148644
+    },
+    "record-07.json": {
+      "sha256": "e6ebc73e5c9fea3a6dbd41322a10351276d663dd8ac98b981ae1c2421234f6ea",
+      "bytes": 151002
+    },
+    "record-08.json": {
+      "sha256": "462f750d72f03ab8c5b942f8b7599805493a32be9283928c85c51eb5c24cb387",
+      "bytes": 2051
+    },
+    "record-09.json": {
+      "sha256": "ebfafe3329cedb5332866f449600006bae451de17f32f4b62b435e9c1a788ad5",
+      "bytes": 1997
+    },
+    "record-10.json": {
+      "sha256": "473be3a81f199efa8a69d41aef6d0778de1e1389237ba1685bd5289f45ea071a",
+      "bytes": 143256
+    },
+    "record-11.json": {
+      "sha256": "ff1a4f31de389e51e1d5b2174390e965875c122b5ed8becc86817778949c11ed",
+      "bytes": 146121
+    },
+    "record-12.json": {
+      "sha256": "d006357bfc61d34acc5458e9af66668c631eecb01b4baafdbd3bc8fe47d04c03",
+      "bytes": 2049
+    },
+    "record-13.json": {
+      "sha256": "844e15d69165fcdce2c00a63f5079375244309f709a20d6d1a646327ebab5745",
+      "bytes": 1992
+    },
+    "record-14.json": {
+      "sha256": "71ab3bfea44c67555329c9539efd774f068a86eb873de0bec95ee4fa56b09637",
+      "bytes": 564224
+    },
+    "record-14.json.gz.part1": {
+      "sha256": "3f0a5d9fd9264ac1df1c6d270222c98d339cf0f48704d6bb9de244aed99bc90c",
+      "bytes": 21927
+    },
+    "record-15.json": {
+      "sha256": "ea2a74a8136ee31414e16244a7aff58e6eba2c98f1b986bdbc394ea6d6579b29",
+      "bytes": 566564
+    },
+    "record-15.json.gz.part1": {
+      "sha256": "57d126f68e2f210b9888a0d7a9b228237910b6d8a8a5787ffd04dd830f9243aa",
+      "bytes": 22750
+    },
+    "record-16.json": {
+      "sha256": "772b627b1a9b773f84f6721fd6b65fabaf4c7a9a3bef5017e04b58996d68538a",
+      "bytes": 2046
+    },
+    "record-17.json": {
+      "sha256": "673a7bbf2925edfbb4239ca5536388b4d021f6169774e2d7287210c9046111dc",
+      "bytes": 1987
+    },
+    "record-18.json": {
+      "sha256": "727a4b1b545b8826fc2e09c69b5438af98b1c556b84dc64d9ea733d3f5c3f7de",
+      "bytes": 552186
+    },
+    "record-18.json.gz.part1": {
+      "sha256": "8ebd71f8f23f8cfaad35251c69d7dc9101acf9d31b449a2aa40e9d9eb9aea019",
+      "bytes": 21533
+    },
+    "record-19.json": {
+      "sha256": "94c80bd229e9f93fe26313d4f0f6b7b7c13b22d8f3004effbf594f46a128b196",
+      "bytes": 553643
+    },
+    "record-19.json.gz.part1": {
+      "sha256": "6fd98392176c66d59ce56ae3793e5131438ed0b5e77db6eda0d559c755d830fb",
+      "bytes": 22424
+    },
+    "record-20.json": {
+      "sha256": "bd16d52afd73a39fae0a690a3011be1b8383bc1337ed061e0860cd655c3fcb4d",
+      "bytes": 2048
+    },
+    "record-21.json": {
+      "sha256": "5f84a547a6b622d70dc7b25f283215c160a380efc483b0b0a1cdaa7de5875760",
+      "bytes": 1995
+    },
+    "record-22.json": {
+      "sha256": "cca360d8f39b978a6ff3576e3d5015daba0c5d135909796365ce4bf0ead56074",
+      "bytes": 585715
+    },
+    "record-22.json.gz.part1": {
+      "sha256": "efca66aa02d4adada46bad9c747052ada12dd1205bef0fb1dac703e7c9208c6c",
+      "bytes": 22850
+    },
+    "record-23.json": {
+      "sha256": "4feadae4fc1bc76adbc6d0626455f268377190821d70b076138e7435567ba4cb",
+      "bytes": 587127
+    },
+    "record-23.json.gz.part1": {
+      "sha256": "3c9c7e449d3bffb05d9f91c748300f67b7c4beab980def96692296da5589c0eb",
+      "bytes": 23479
+    },
+    "resource_accounting.json": {
+      "sha256": "0d75f2847bada536470ef6d55f5811c1ce73154e372665d9d6dd98ccf6892b52",
+      "bytes": 596
+    },
+    "results.json": {
+      "sha256": "4c73d12093221ddade7a552836a8b5528709c522e8d3b2ce5669b22ddc746fa0",
+      "bytes": 4950450
+    },
+    "results.json.gz.part1": {
+      "sha256": "c64d7dd94943f4500bb911516590624f823df8700828592d5d24ad56ac647f9d",
+      "bytes": 240155
+    },
+    "robust_training_audit.py": {
+      "sha256": "5c43873b3e1193844936d50831f87b00c91727f6dc1d64ed229e8340a234ffc8",
+      "bytes": 25134
+    },
+    "source.zip": {
+      "sha256": "d8243b1b81df4e6ca8cb7b0ba162a2cd1199c9d45db4f808b7f84236525b117c",
+      "bytes": 780677
+    },
+    "source.zip.part1": {
+      "sha256": "b175372998642446162a60a41888bacb8b9543865d535bcd050dc8016da5eb42",
+      "bytes": 491520
+    },
+    "source.zip.part2": {
+      "sha256": "8072b2c42d8d7dbd8d1b37d997413d01f0df725bbc37bd1e735d66e1e8e56972",
+      "bytes": 289157
+    },
+    "test_robust_training_audit.py": {
+      "sha256": "f58d1576a4d03e6a9664f41399e3286738bcb195d4e1ee372eb1d86d09f5ed5a",
+      "bytes": 3617
+    }
+  }
+}
